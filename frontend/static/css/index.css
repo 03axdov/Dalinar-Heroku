@@ -1,0 +1,80 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--background);
+    color: white;
+    height: 100%;
+    width: 100%;
+
+    line-height: 1.5;
+    letter-spacing: 0px;
+    word-spacing: 0px;
+    font-family: 'Open Sans', sans-serif; /* 1 */
+    -ms-text-size-adjust: 100%; /* 2 */
+    -webkit-text-size-adjust: 100%; /* 2 */
+    font-weight: 500;
+    font-size: 16px;
+}
+
+#root, #main, #app {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+#toolbar {
+    top: 0;
+    width: 100%;
+    height: var(--toolbar-height);
+    background: var(--toolbar);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    position: fixed;
+}
+
+#toolbar-logo {
+    height: 30px;
+    width: auto;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+.toolbar-text {
+    font-size: 1.1rem;
+    margin: 0 0 0 40px;
+    letter-spacing: 1px;
+}
+
+.toolbar-text:hover {
+    text-decoration: underline;
+    cursor: pointer;
+    
+}
+
+.toolbar-right {
+    margin-left: auto;
+}
+
+.toolbar-button {
+    border: none;
+    margin: 0 0 0 40px;
+    background: var(--blue);
+    color: white;
+    border-radius: 3px;
+    font-size: 1.1rem;
+    letter-spacing: 1px;
+    padding:  7px 15px;
+    font-family: 'Open Sans', sans-serif; /* 1 */
+}
+
+.toolbar-button:hover {
+    cursor: pointer;
+    background: var(--blue-dark);
+}
