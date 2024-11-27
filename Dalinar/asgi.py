@@ -1,5 +1,5 @@
 """
-ASGI config for Muskie project.
+ASGI config for Dalinar project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Muskie.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Dalinar.settings')
 
 application = get_asgi_application()
