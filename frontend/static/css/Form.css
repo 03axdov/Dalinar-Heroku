@@ -1,4 +1,4 @@
-.form-page {
+.form-body {
     width: 100%;
     height: 100%;
     display: flex;
@@ -30,7 +30,7 @@
     min-width: 400px;
 }
   
-.form-input {
+input {
     width: 100%;
     padding: 15px 10px;
     margin: 10px 0;
@@ -44,7 +44,7 @@
     color: white;
 }
   
-.form-button {
+button {
     width: 100%;
     padding: 10px;
     margin: 25px 0;

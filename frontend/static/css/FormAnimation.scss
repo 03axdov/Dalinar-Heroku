@@ -1,23 +1,5 @@
-@use "sass:math";
-
 $size: 350px;
 $layer: 20;
-
-.form-image-container {
-  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
-  height: calc(100% - var(--toolbar-height));
-  margin-top: var(--toolbar-height);
-  overflow: hidden;
-  display: flex;
-  font-family: 'Anton', sans-serif;
-  justify-content: center;
-  align-items: center;
-  perspective: 1000px;
-  width: calc(100% - var(--form-width));
-  box-sizing: border-box;
-  border-right: 1px solid var(--border);
-
-}
 
 .container {
   position: relative;
@@ -104,7 +86,7 @@ $layer: 20;
 
     @for $i from 1 through $layer {
       &:nth-child(#{$i}) {
-        transform: translateZ($i * math.div($size, $layer) - math.div($size,2));
+        transform: translateZ($i * $size / $layer - $size / 2);
       }
       
       &:nth-child(#{$i}) &_item {
