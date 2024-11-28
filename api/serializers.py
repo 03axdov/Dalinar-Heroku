@@ -1,16 +1,16 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Dataset
+from .models import ImageDataset
 
 
-class DatasetSerializer(serializers.ModelSerializer):
+class ImageDatasetSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Dataset
+        model = ImageDataset
         fields = ["id", "name", "description", "created_at", "owner"]
         extra_kwargs = {"owner": {"read_only": True}}
         
         
-class CreateDatasetSerializer(serializers.ModelSerializer):
+class CreateImageDatasetSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Dataset
+        model = ImageDataset
         fields = ("name", "description")

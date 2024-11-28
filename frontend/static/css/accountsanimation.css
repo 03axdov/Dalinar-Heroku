@@ -1,8 +1,7 @@
 
 .form-image-container {
   background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
-  height: calc(100% - var(--toolbar-height));
-  margin-top: var(--toolbar-height);
+  height: 100%;
   overflow: hidden;
   display: flex;
   font-family: 'Anton', sans-serif;

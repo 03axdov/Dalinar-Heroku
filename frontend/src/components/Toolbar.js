@@ -11,8 +11,12 @@ function Toolbar() {
             <p className="toolbar-text" onClick={() => navigate("/")}>Solutions</p>
             <p className="toolbar-text" onClick={() => navigate("/home")}>Home</p>
 
-            <p className="toolbar-text toolbar-right" onClick={() => navigate("/login")}>Sign in</p>
-            <button className="toolbar-button toolbar-register" onClick={() => navigate("/register")}>Register</button>
+            <p className="toolbar-text toolbar-right" onClick={() => {
+                window.location.href = window.location.origin + "/accounts/login/"
+                }}>Sign in</p>
+            <button className="toolbar-button toolbar-register" onClick={() => {
+                window.location.href = window.location.origin + "/accounts/signup/"
+                }}>Register</button>
         </nav>
     )
 }

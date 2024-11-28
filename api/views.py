@@ -1,21 +1,21 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from rest_framework import generics
-from .serializers import DatasetSerializer
+from .serializers import ImageDatasetSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Dataset
+from .models import ImageDataset
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 
 
 
-class DatasetListCreate(generics.ListCreateAPIView):
-    serializer_class = DatasetSerializer
+class ImageDatasetListCreate(generics.ListCreateAPIView):
+    serializer_class = ImageDatasetSerializer
     permission_classes  = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        return Dataset.objects.filter(owner=user)
+        return ImageDataset.objects.filter(owner=user)
     
     def perform_create(self, serializer):
         if serializer.is_valid():
@@ -24,10 +24,10 @@ class DatasetListCreate(generics.ListCreateAPIView):
             print(serializer.errors)
             
 
-class DatasetDelete(generics.DestroyAPIView):
-    serializer_class = DatasetSerializer
+class ImageDatasetDelete(generics.DestroyAPIView):
+    serializer_class = ImageDatasetSerializer
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         user = self.request.user
-        return Dataset.objects.filter(owner=user)
+        return ImageDataset.objects.filter(owner=user)

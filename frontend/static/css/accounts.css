@@ -4,6 +4,7 @@
     display: flex;
     flex-direction: row;
     align-items: start;
+
 }
 
 .form-container {
@@ -43,6 +44,14 @@ input {
     background: var(--toolbar);
     color: white;
 }
+
+input:-webkit-autofill {
+    transition: background-color 600000s 0s, color 600000s 0s;
+}
+input[data-autocompleted] {
+    background-color: transparent !important;
+}
+
   
 button {
     width: 100%;
@@ -85,4 +94,55 @@ button {
     padding: 5px 10px;
     border-radius: 3px;
     background: var(--toolbar);
+}
+
+.accounts-form-container h1 {
+    display: none;
+}
+
+.accounts-form-container {
+    width: var(--form-width);
+    padding: 10px 20px;
+    overflow-y: auto;
+    max-height: 100%;
+    box-sizing: border-box;
+}
+
+a {
+    color: var(--blue-light);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+h2 {
+    width: 100%;
+    text-align: center;
+    font-size: 3rem;
+    font-weight: 500;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border);
+}
+
+#id_remember {
+    height: 22px;
+    width: 22px;
+    margin: 0;
+    margin-left: 10px;
+}
+
+label {
+    display: none;
+}
+
+.login p:nth-of-type(3) {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.login p:nth-of-type(3) label {
+    display: inline-block;
 }

@@ -78,3 +78,22 @@ html, body {
     cursor: pointer;
     background: var(--blue-dark);
 }
+
+input[type=checkbox] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 24px;
+
+    padding: 0;
+    background-color: var(--toolbar);
+    box-sizing: border-box;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+    background: url("../images/checked.png");
+    background-repeat: no-repeat;
+    background-size: cover;
+}

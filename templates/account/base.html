@@ -9,8 +9,8 @@
 
     <link href="{% static 'css/index.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'css/root.css' %}" rel="stylesheet" type="text/css">
-    <link href="{% static 'css/Form.css' %}" rel="stylesheet" type="text/css">
-    <link href="{% static 'css/FormAnimation.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/accounts.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/accountsanimation.css' %}" rel="stylesheet" type="text/css">
 
     <meta content="width=device-width, initial-scale=1" name="viewport" />
 
@@ -42,12 +42,13 @@
 
     <div class="accounts-form-container">
       <h2 className="accounts-title">Dalinar</h2>
+
       {% block content %}
       {% endblock %}
       {% endblock %}
       {% block extra_body %}
       {% endblock %}
-      <a href="https://www.mediareviewr.com/" class="skip-link">Return to the homepage</a>
+      <a href="/" class="skip-link">Return to the homepage</a>
     </div>
     
     <script src="{% static "frontend/animation.js" %}"></script>
