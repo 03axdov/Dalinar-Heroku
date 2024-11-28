@@ -2,8 +2,10 @@ import React from "react"
 import {useNavigate} from "react-router-dom"
 
 // The default page. Login not required.
-function Toolbar() {
+function Toolbar({currentProfile, loadingCurrentProfile}) {
     const navigate = useNavigate()
+
+    console.log(currentProfile)
 
     return (
         <nav id="toolbar">
@@ -11,12 +13,25 @@ function Toolbar() {
             <p className="toolbar-text" onClick={() => navigate("/")}>Solutions</p>
             <p className="toolbar-text" onClick={() => navigate("/home")}>Home</p>
 
-            <p className="toolbar-text toolbar-right" onClick={() => {
-                window.location.href = window.location.origin + "/accounts/login/"
-                }}>Sign in</p>
-            <button className="toolbar-button toolbar-register" onClick={() => {
-                window.location.href = window.location.origin + "/accounts/signup/"
-                }}>Register</button>
+            {!loadingCurrentProfile && currentProfile.user === "" &&
+                <div className="toolbar-auth">
+                    <p className="toolbar-text" onClick={() => {
+                        window.location.href = window.location.origin + "/accounts/login/"
+                    }}>Sign in</p>
+                    <button className="toolbar-button toolbar-register" onClick={() => {
+                        window.location.href = window.location.origin + "/accounts/signup/"
+                    }}>Register</button>
+                </div>
+            }
+            {!loadingCurrentProfile && currentProfile.user !== "" &&
+                <div className="toolbar-auth">
+                    <p className="toolbar-text" onClick={() => {
+                        window.location.href = window.location.origin + "/accounts/logout/"
+                    }}>Sign out</p>
+                </div>
+            }
+            
+
         </nav>
     )
 }

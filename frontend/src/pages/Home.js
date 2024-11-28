@@ -18,7 +18,7 @@ function Home() {
         .then((data) => {
             setDatasets(data)
         }).catch((err) => {
-            console.log(error)
+            console.log(err)
         })
 
     }

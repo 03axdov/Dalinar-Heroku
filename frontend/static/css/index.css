@@ -58,8 +58,12 @@ html, body {
     
 }
 
-.toolbar-right {
+.toolbar-auth {
     margin-left: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 100%;
 }
 
 .toolbar-button {

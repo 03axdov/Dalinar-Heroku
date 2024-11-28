@@ -1,11 +1,27 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from rest_framework import generics
-from .serializers import ImageDatasetSerializer
+from rest_framework import generics, status
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import ImageDataset
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
+from rest_framework.response import Response
+
+from .serializers import ImageDatasetSerializer, ProfileSerializer
+from .models import ImageDataset
+
+
+class GetCurrentProfile(APIView):
+    serializer_class = ProfileSerializer
+
+    def get(self, request, format=None):
+        if request.user.id == None:
+            return Response('', status=status.HTTP_200_OK)
+        profile = request.user.profile
+        profile = ProfileSerializer(profile)
+        data = profile.data
+        
+        return Response(data, status=status.HTTP_200_OK)
 
 
 
