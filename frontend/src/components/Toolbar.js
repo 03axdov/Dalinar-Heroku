@@ -9,7 +9,7 @@ function Toolbar({currentProfile, loadingCurrentProfile}) {
 
     return (
         <nav id="toolbar">
-            <img id="toolbar-logo" src="static/images/logoToolbar.jpg" onClick={() => navigate("/")}/>
+            <img id="toolbar-logo" src="static/images/logoWhite.svg" onClick={() => navigate("/")}/>
             <p className="toolbar-text" onClick={() => navigate("/")}>Solutions</p>
             <p className="toolbar-text" onClick={() => navigate("/home")}>Home</p>
 

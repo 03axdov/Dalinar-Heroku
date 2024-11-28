@@ -118,12 +118,12 @@ a:hover {
 }
 
 h2 {
-    width: 100%;
     text-align: center;
-    font-size: 3rem;
+    font-size: 2.5rem;
     font-weight: 500;
     padding-bottom: 5px;
     border-bottom: 1px solid var(--border);
+    letter-spacing: 2px;
 }
 
 #id_remember {
@@ -145,4 +145,10 @@ label {
 
 .login p:nth-of-type(3) label {
     display: inline-block;
+}
+
+.skip-link {
+    text-align: center;
+    width: 100%;
+    display: block;
 }
