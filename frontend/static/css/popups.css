@@ -11,8 +11,50 @@
 
 .account-popup-container {
     width: 450px;
-    height: 650px;
-
     border-radius: 5px;
     background: var(--toolbar);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.account-popup-button {
+    border: none;
+    width: 100%;
+    color: white;
+    border-radius: 3px;
+    margin-top: 20px;
+    font-size: 1.1rem;
+    padding:  7px 15px;
+    font-family: "IBM Plex Mono", monospace;
+    cursor: pointer;
+}
+
+.account-popup-signin {
+    background: var(--blue);
+}
+.account-popup-signin:hover {
+    background: var(--blue-dark);
+}
+
+.account-popup-register {
+    background: var(--purple);
+}
+.account-popup-register:hover {
+    background: var(--purple-dark);
+}
+
+.account-popup-cancel {
+    background: var(--gray);
+}
+.account-popup-cancel:hover {
+    background: var(--gray-dark);
+}
+
+.account-popup-message {
+    font-size: 1.1rem;
+    text-align: justify;
+    margin: 0;
+    margin-bottom: 10px;
 }

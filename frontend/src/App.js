@@ -41,7 +41,7 @@ export default function App() {
 
     return (
         <div id="main">
-            {showAccountPopup && <AccountPopup setShowAccountPopup={setShowAccountPopup}/>}
+            {showAccountPopup && <AccountPopup setShowAccountPopup={setShowAccountPopup} message={"Please sign in to access the homepage."}/>}
             <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile} setShowAccountPopup={setShowAccountPopup}></Toolbar>
 
             <div id="app">

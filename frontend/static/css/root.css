@@ -4,9 +4,15 @@
 
     --toolbar: #181d25;
     --border: rgb(50,50,50);
+
     --blue: #008ff8;
     --blue-dark: #0082df;
     --blue-light: #00aaf8;
+    --purple: #7001d8;
+    --purple-dark: #6300c0;
+    --gray: #3f3f3f;
+    --gray-dark: #383838;
+
     --form-width: 35%;
     --toolbar-height: 60px;
 }
