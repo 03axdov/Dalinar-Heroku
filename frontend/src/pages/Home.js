@@ -16,7 +16,10 @@ function Home() {
         fetch("/api/datasets")
         .then((response) => response.json())
         .then((data) => {
-            setDatasets(data)
+            if (data) {
+                setDatasets(data)
+            }
+
         }).catch((err) => {
             console.log(err)
         })

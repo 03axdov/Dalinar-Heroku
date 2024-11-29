@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react"
 import { Routes, Route } from "react-router-dom"
 
 import Toolbar from "./components/Toolbar"
+import AccountPopup from "./components/AccountPopup"
 import Home from "./pages/Home"
 import Landing from "./pages/Landing"
+
 
 export default function App() {
 
@@ -13,6 +15,8 @@ export default function App() {
     })
     const [loadingCurrentProfile, setLoadingCurrentProfile] = useState(true)
     const [updateProfile, setUpdateProfile] = useState(0) // Increase by 1 whenever currentProfile must be updated
+
+    const [showAccountPopup, setShowAccountPopup] = useState(false)
 
 
     useEffect(() => {
@@ -37,8 +41,8 @@ export default function App() {
 
     return (
         <div id="main">
-
-            <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile}></Toolbar>
+            {showAccountPopup && <AccountPopup setShowAccountPopup={setShowAccountPopup}/>}
+            <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile} setShowAccountPopup={setShowAccountPopup}></Toolbar>
 
             <div id="app">
                 <Routes>

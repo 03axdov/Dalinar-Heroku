@@ -45,8 +45,8 @@ h1, h2, h3 {
 }
 
 #toolbar-logo {
-    height: 80%;
-    width: auto;
+    height: 45px;
+    width: 45px;
     object-fit: cover;
     cursor: pointer;
 }
