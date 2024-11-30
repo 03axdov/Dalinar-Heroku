@@ -1,3 +1,48 @@
+.home-container {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    width: 100%;
+}
+
 .home-create-dataset {
-    
+    padding: 7px 15px;
+    border-radius: 30px;
+    color: white;
+    background: rgb(50, 50, 50);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.home-create-dataset:hover {
+    background: rgb(55,55,55);
+    cursor: pointer;
+}
+
+.home-sidebar {
+    width: var(--home-sidebar-width);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 10px;
+    padding-top: 20px;
+    box-sizing: border-box;
+    background: var(--sidebar);
+    overflow-y: auto;
+}
+
+.home-non-sidebar {
+    width: calc(100% - var(--home-sidebar-width));
+    padding-left: 50px;
+    padding-top: 20px;
+    height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.my-datasets-title {
+    font-size: 2rem;
+    margin: 0;
+    font-weight: 500;
 }

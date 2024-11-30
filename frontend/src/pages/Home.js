@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react"
 import DatasetElement from "../components/DatasetElement"
+import { useNavigate } from "react-router-dom"
 
 // This is the personal view. /home
 function Home() {
+    const navigate = useNavigate()
 
     const [datasets, setDatasets] = useState([])
     const [description, setDescription] = useState("")
@@ -28,14 +30,22 @@ function Home() {
 
     }
 
-    return <div>
-        <div>
-            <h2>Datasets</h2>
-            {datasets.map((dataset) => (
-                <DatasetElement dataset={dataset} key={dataset.id} />
-            ))}
+    return <div className="home-container">
+        <div className="home-sidebar">
+            <button className="home-create-dataset" onClick={() => {
+                navigate("/create-dataset")
+            }}>+ Create dataset</button>
         </div>
-        <button className="home-create-dataset">+ Create dataset</button>
+        <div className="home-non-sidebar">
+            <div>
+                <h2 className="my-datasets-title">My Datasets</h2>
+                {datasets.map((dataset) => (
+                    <DatasetElement dataset={dataset} key={dataset.id} />
+                ))}
+            </div>
+        </div>
+        
+
         
     </div>
 }

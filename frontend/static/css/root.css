@@ -5,6 +5,7 @@
     --toolbar: #181d25;
     --toolbar-light: #212730;
     --border: rgb(50,50,50);
+    --sidebar: #181d24;
     
 
     --blue: #008ff8;
@@ -17,4 +18,6 @@
 
     --form-width: 35%;
     --toolbar-height: 60px;
+
+    --home-sidebar-width: 185px;
 }
