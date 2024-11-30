@@ -6,6 +6,7 @@ import AccountPopup from "./components/AccountPopup"
 import Home from "./pages/Home"
 import Landing from "./pages/Landing"
 import CreateDataset from "./pages/CreateDataset"
+import Dataset from "./pages/Dataset"
 
 
 export default function App() {
@@ -50,6 +51,7 @@ export default function App() {
                     <Route path="/" element={<Landing />}/>
                     <Route path="/home" element={<Home />}/>
                     <Route path="/create-dataset" element={<CreateDataset />}/>
+                    <Route path="/dataset/:name" element={<Dataset />}/>
                 </Routes>
             </div>
             

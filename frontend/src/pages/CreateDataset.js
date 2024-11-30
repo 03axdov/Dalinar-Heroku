@@ -1,10 +1,18 @@
 import React from "react"
+import {useNavigate} from "react-router-dom"
 
 
 function CreateDataset() {
+
+    const navigate = useNavigate()
+
+    function formOnSubmit() {
+        
+    }
+
     return (
         <div className="create-dataset-container">
-            <form className="create-dataset-form">
+            <form className="create-dataset-form" onSubmit={formOnSubmit}>
                 <h1 className="create-dataset-title">Create a dataset</h1>
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
 

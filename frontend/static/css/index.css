@@ -56,6 +56,13 @@ html, body {
     cursor: pointer;
 }
 
+input:-webkit-autofill {
+    transition: background-color 600000s 0s, color 600000s 0s;
+}
+input[data-autocompleted] {
+    background-color: transparent !important;
+}
+
 button {
     border: none;
     font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;

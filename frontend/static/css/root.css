@@ -25,3 +25,22 @@
 
     --gray-text: rgb(180,180,180);
 }
+
+::-webkit-scrollbar {
+    background: rgb(41, 41, 41);
+    width: 15px;
+    z-index: 3;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgb(68, 68, 68);
+    border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgb(80, 80, 80);
+}
+
+::-webkit-scrollbar-corner {
+    background: rgba(31, 31, 31, 0);
+}

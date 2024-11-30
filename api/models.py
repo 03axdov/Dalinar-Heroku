@@ -21,7 +21,7 @@ def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
     
     
-# Datasets
+# DATASETS
 
 class Dataset(models.Model):
     name = models.CharField(max_length=200)
@@ -32,15 +32,15 @@ class Dataset(models.Model):
     def __str__(self):
         return self.name
     
-    
-    
+
+# ELEMENTS
 # Datasets contain elements, which can be e.g. files
 
 class Element(models.Model):
     pass
     
     
-    
+# LABELS
 # Elements in datasets, such as files, are given labels
     
 class AbstractLabel(models.Model):
