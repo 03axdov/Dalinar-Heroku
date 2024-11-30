@@ -13,11 +13,13 @@ function Home() {
     }, [])
 
     const getDatasets = () => {
-        fetch("/api/datasets")
+        fetch(window.location.origin + "/api/datasets")
         .then((response) => response.json())
         .then((data) => {
             if (data) {
                 setDatasets(data)
+            } else {
+                setDatasets([])
             }
 
         }).catch((err) => {
@@ -33,32 +35,8 @@ function Home() {
                 <DatasetElement dataset={dataset} key={dataset.id} />
             ))}
         </div>
-        <h2>Create a Dataset</h2>
-        <form>
-            <label htmlFor="name">Name:</label>
-            <br/>
-            <input 
-                type="text" 
-                id="name" 
-                name="name" 
-                required 
-                onChange={(e) => {setName(e.target.value)}} 
-                value={name}
-            />
-            <label htmlFor="description">Description</label>
-            <br />
-            <textarea
-                id="description"
-                name="description"
-                value={description}
-                onChange={(e) => {setDescription(e.target.value)}}
-            ></textarea>
-            <br />
-            <input 
-                type="submit" 
-                value="Submit"
-            />
-        </form>
+        <button className="home-create-dataset">+ Create dataset</button>
+        
     </div>
 }
 

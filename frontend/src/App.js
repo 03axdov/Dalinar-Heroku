@@ -25,7 +25,7 @@ export default function App() {
 
 
     function getCurrentProfile() {
-        fetch("api/current-profile")
+        fetch(window.location.origin + "/api/current-profile")
         .then((response) => response.json())
         .then((data) => {
             if (data) {

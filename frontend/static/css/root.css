@@ -3,15 +3,17 @@
     --background-dark: rgb(9, 11, 15);
 
     --toolbar: #181d25;
+    --toolbar-light: #212730;
     --border: rgb(50,50,50);
+    
 
     --blue: #008ff8;
     --blue-dark: #0082df;
     --blue-light: #00aaf8;
     --purple: #7001d8;
-    --purple-dark: #6300c0;
+    --purple-dark: #6701c7;
     --gray: #3f3f3f;
-    --gray-dark: #383838;
+    --gray-dark: #3b3b3b;
 
     --form-width: 35%;
     --toolbar-height: 60px;

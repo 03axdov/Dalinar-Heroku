@@ -9,23 +9,24 @@ html, body {
     line-height: 1.5;
     letter-spacing: 0px;
     word-spacing: 0px;
-    font-family: "IBM Plex Mono", monospace;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+    font-weight: 500;
     font-optical-sizing: auto;
     -ms-text-size-adjust: 100%; /* 2 */
     -webkit-text-size-adjust: 100%; /* 2 */
-    font-weight: 300;
     font-size: 16px;
 }
 
-h1, h2, h3 {
-    font-family: "Poppins", serif;
-}
 
 #root, #main, #app {
     height: 100%;
     width: 100%;
     margin: 0;
     padding: 0;
+    overflow: hidden;
+}
+#app {
+    overflow: auto;
 }
 
 #toolbar {
@@ -86,15 +87,19 @@ h1, h2, h3 {
     height: 100%;
 }
 
-.toolbar-button {
+button {
     border: none;
+}
+
+.toolbar-button {
     margin: 0 0 0 40px;
     background: var(--blue);
     color: white;
     border-radius: 3px;
     font-size: 1.1rem;
     padding:  7px 15px;
-    font-family: "IBM Plex Mono", monospace;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+    font-weight: 500;
 }
 
 .toolbar-button:hover {
@@ -109,7 +114,6 @@ input[type=checkbox] {
     height: 24px;
 
     padding: 0;
-    background-color: var(--toolbar);
     box-sizing: border-box;
     border-radius: 4px;
     cursor: pointer;

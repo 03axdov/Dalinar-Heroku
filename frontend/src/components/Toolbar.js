@@ -9,7 +9,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, setShowAccountPopup}) {
 
     return (
         <nav id="toolbar">
-            <img id="toolbar-logo" src="static/images/logoWhite.svg" onClick={() => navigate("/")}/>
+            <img id="toolbar-logo" src={window.location.origin + "/static/images/logoWhite.svg"} onClick={() => navigate("/")}/>
             <p className="toolbar-text" onClick={() => navigate("/")}>Solutions</p>
             <p className="toolbar-text" onClick={() => {
                 if (!loadingCurrentProfile && currentProfile.user !== "") {

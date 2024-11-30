@@ -20,14 +20,14 @@
 }
 
 .account-popup-button {
-    border: none;
     width: 100%;
     color: white;
     border-radius: 3px;
     margin-top: 20px;
     font-size: 1.1rem;
     padding:  7px 15px;
-    font-family: "IBM Plex Mono", monospace;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+    font-weight: 500;
     cursor: pointer;
 }
 

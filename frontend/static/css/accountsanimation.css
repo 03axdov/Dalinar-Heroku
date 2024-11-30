@@ -1,6 +1,5 @@
 
 .form-image-container {
-  background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);
   height: 100%;
   overflow: hidden;
   display: flex;
@@ -10,7 +9,6 @@
   perspective: 1000px;
   width: calc(100% - var(--form-width));
   box-sizing: border-box;
-  border-right: 1px solid var(--border);
 
 }
 
