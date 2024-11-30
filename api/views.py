@@ -76,3 +76,10 @@ class GetDataset(APIView):
             
         else:
             return Response({'Bad Request': 'Must be logged in to get datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class CreateDatasetView(APIView):
+    serializer_class = CreateDatasetSerializer
+    
+    def post(self, request, format=None):
+        pass

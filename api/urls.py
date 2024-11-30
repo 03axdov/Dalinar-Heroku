@@ -8,6 +8,6 @@ urlpatterns = [
     # DATASET HANDLING
     path("datasets/", DatasetListCreate.as_view(), name="dataset-list"),
     path("datasets/delete/<int:pk>/", DatasetDelete.as_view(), name="delete-dataset"),
-    path("dataset/<int:id>", GetDataset.as_view(), name="get-dataset"),
+    path("datasets/<int:id>", GetDataset.as_view(), name="get-dataset"),
 
 ]
