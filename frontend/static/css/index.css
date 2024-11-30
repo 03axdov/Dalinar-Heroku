@@ -61,6 +61,10 @@ button {
     font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
     font-weight: 500;
     font-size: 1.1rem;
+    border-radius: 3px;
+    padding: 7px 15px;
+    background: var(--blue);
+    color: white;
 }
 
 .toolbar-text {

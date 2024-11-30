@@ -20,12 +20,35 @@ def create_user_profile(sender, instance, created, **kwargs):
 def save_user_profile(sender, instance, **kwargs):
     instance.profile.save()
     
+    
+# Datasets
 
-class ImageDataset(models.Model):
+class Dataset(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="datasets")
-
+    
     def __str__(self):
         return self.name
+    
+    
+    
+# Datasets contain elements, which can be e.g. files
+
+class Element(models.Model):
+    pass
+    
+    
+    
+# Elements in datasets, such as files, are given labels
+    
+class AbstractLabel(models.Model):
+    element = models.OneToOneField(Element, on_delete=models.CASCADE, related_name="label")
+      
+    class Meta:
+        abstract = True
+    
+    
+class ClassificationLabel(AbstractLabel):
+    name = models.CharField(max_length=200)

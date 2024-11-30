@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import ImageDataset, Profile
+from .models import Dataset, Profile
 
 # Register your models here.
-admin.site.register(ImageDataset)
+admin.site.register(Dataset)
 admin.site.register(Profile)

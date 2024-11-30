@@ -6,7 +6,62 @@
 }
 
 .create-dataset-form {
-    width: 600px;
-    max-width: 90%;
+    width: 700px;
+    max-width: 100%;
     margin-top: 50px;
+}
+
+.create-dataset-title {
+    font-size: 2rem;
+    font-weight: 500;
+    margin-bottom: 0;
+}
+
+.create-dataset-description {
+    font-size: 0.9rem;
+    line-height: 150%;
+    margin: 0;
+    margin-top: 10px;
+    color: var(--gray-text);
+}
+
+.create-dataset-label-inp {
+    display: flex;
+    flex-direction: row;
+    margin-top: 40px;
+    align-items: center;
+}
+
+.create-dataset-label {
+    font-size: 1.1rem;
+}
+
+.create-dataset-required {
+    color: var(--gray-text);
+    font-size: 0.9rem;
+    margin-left: 5px;
+}
+
+.create-dataset-inp {
+    width: 300px;
+    padding: 5px 10px;
+    margin-left: 20px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: 'Open Sans', sans-serif; /* 1 */
+    box-sizing: border-box;
+    outline: none;
+    background: var(--background-dark);
+    color: white;
+}
+
+.create-dataset-full-width {
+    width: 100%;
+}
+
+.create-dataset-submit {
+    float: right;
+    margin-top: 40px;
+    padding: 7px 20px;
 }

@@ -39,10 +39,10 @@
 }
 
 .account-popup-register {
-    background: var(--purple);
+    background: var(--darkblue);
 }
 .account-popup-register:hover {
-    background: var(--purple-dark);
+    background: var(--darkblue-dark);
 }
 
 .account-popup-cancel {

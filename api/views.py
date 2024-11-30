@@ -7,8 +7,8 @@ from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from rest_framework.response import Response
 
-from .serializers import ImageDatasetSerializer, ProfileSerializer
-from .models import ImageDataset
+from .serializers import DatasetSerializer, ProfileSerializer
+from .models import Dataset
 
 
 class GetCurrentProfile(APIView):
@@ -25,13 +25,13 @@ class GetCurrentProfile(APIView):
 
 
 
-class ImageDatasetListCreate(generics.ListCreateAPIView):
-    serializer_class = ImageDatasetSerializer
+class DatasetListCreate(generics.ListCreateAPIView):
+    serializer_class = DatasetSerializer
     permission_classes  = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        return ImageDataset.objects.filter(owner=user)
+        return Dataset.objects.filter(owner=user)
     
     def perform_create(self, serializer):
         if serializer.is_valid():
@@ -40,10 +40,10 @@ class ImageDatasetListCreate(generics.ListCreateAPIView):
             print(serializer.errors)
             
 
-class ImageDatasetDelete(generics.DestroyAPIView):
-    serializer_class = ImageDatasetSerializer
+class DatasetDelete(generics.DestroyAPIView):
+    serializer_class = DatasetSerializer
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         user = self.request.user
-        return ImageDataset.objects.filter(owner=user)
+        return Dataset.objects.filter(owner=user)

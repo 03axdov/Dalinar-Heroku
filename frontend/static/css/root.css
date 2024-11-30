@@ -11,8 +11,10 @@
     --blue: #008ff8;
     --blue-dark: #0082df;
     --blue-light: #00aaf8;
-    --purple: #7001d8;
-    --purple-dark: #6701c7;
+
+    --darkblue: #0061df;
+    --darkblue-dark: #0058cc;
+
     --gray: #3f3f3f;
     --gray-dark: #3b3b3b;
 
@@ -20,4 +22,6 @@
     --toolbar-height: 60px;
 
     --home-sidebar-width: 185px;
+
+    --gray-text: rgb(180,180,180);
 }
