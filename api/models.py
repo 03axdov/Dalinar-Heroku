@@ -31,6 +31,12 @@ class Dataset(models.Model):
     private = models.BooleanField(default=True)
     image = models.ImageField(upload_to='images/', null=True)
     
+    DATATYPE_CHOICES = [
+        ("image", "Image"),
+        ("text", "Text")
+    ]
+    datatype = models.CharField(max_length=10, choices=DATATYPE_CHOICES, default="image")
+    
     def __str__(self):
         return self.name
     
@@ -39,7 +45,15 @@ class Dataset(models.Model):
 # Datasets contain elements, which can be e.g. files
 
 class Element(models.Model):
-    pass
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="elements", null=True)
+    
+
+class ImageElement(Element):
+    image = models.ImageField(upload_to="images/")
+    
+    
+class TextElement(Element):
+    text = models.FileField(upload_to="documents/")
     
     
 # LABELS

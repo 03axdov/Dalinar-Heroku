@@ -1,6 +1,8 @@
 from django.contrib import admin
-from .models import Dataset, Profile
+from .models import *
 
 # Register your models here.
 admin.site.register(Dataset)
 admin.site.register(Profile)
+admin.site.register(Element)
+admin.site.register(ClassificationLabel)
