@@ -129,3 +129,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/home'
 LOGOUT_REDIRECT_URL = '/accounts/login'
+
+MEDIA_URL = '/media/'  # URL to access media files in development
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory where media files are stored

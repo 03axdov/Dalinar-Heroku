@@ -1,0 +1,39 @@
+/* For elements, such as dataset-element */
+
+.dataset-element {
+    width: 300px;
+    height: 300px;
+    border-radius: 5px;
+    padding: 10px;
+    box-sizing: border-box;
+    background: var(--element);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 0 1px var(--border);
+    align-items: start;
+}
+
+.dataset-element-name {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.dataset-element-description {
+    margin: 0;
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: var(--gray-text);
+    
+}
+
+.dataset-element-date {
+    margin: 0;
+}
+
+.dataset-element-image {
+    width: 100%;
+    height: auto;
+    max-height: 150px;
+    border-radius: 5px;
+    margin-top: 5px;
+}

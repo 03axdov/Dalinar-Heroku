@@ -39,9 +39,12 @@ function Home() {
         <div className="home-non-sidebar">
             <div>
                 <h2 className="my-datasets-title">My Datasets</h2>
-                {datasets.map((dataset) => (
-                    <DatasetElement dataset={dataset} key={dataset.id} />
-                ))}
+                <div className="my-datasets-container">
+                    {datasets.map((dataset) => (
+                        <DatasetElement dataset={dataset} key={dataset.id} />
+                    ))}
+                </div>
+                
             </div>
         </div>
         

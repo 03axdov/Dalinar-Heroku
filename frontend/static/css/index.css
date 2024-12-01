@@ -133,3 +133,13 @@ input[type="checkbox"]:checked {
     background-repeat: no-repeat;
     background-size: cover;
 }
+
+.truncate {
+    display: -webkit-box; /* Use flexbox for webkit-based browsers */
+    -webkit-line-clamp: 3; /* Limit the number of lines */
+    -webkit-box-orient: vertical; /* Set box orientation to vertical */
+    overflow: hidden; /* Hide overflow content */
+    text-overflow: ellipsis; /* Add ellipsis for truncated text */
+    word-break: break-word; /* Break long words onto the next line */
+    overflow-wrap: break-word; /* Ensure long words wrap appropriately */
+}

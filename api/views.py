@@ -38,15 +38,6 @@ class DatasetListProfile(generics.ListCreateAPIView):
         user = self.request.user
         profile = user.profile
         return profile.datasets
-            
-
-class DatasetDelete(generics.DestroyAPIView):
-    serializer_class = DatasetSerializer
-    permission_classes = [IsAuthenticated]
-    
-    def get_queryset(self):
-        user = self.request.user
-        return Dataset.objects.filter(owner=user)
 
 
 class GetDataset(APIView):
@@ -60,7 +51,7 @@ class GetDataset(APIView):
                 
             if dataset_id != None:
                 try:
-                    dataset = Dataset.objects.get(Q(id=dataset_id) & Q(Q(private = False) | Q(owner=user)))
+                    dataset = Dataset.objects.get(Q(id=dataset_id) & Q(Q(private = False) | Q(owner=user.profile)))
                     dataset = DatasetSerializer(dataset)
                     data = dataset.data
                     return Response(data, status=status.HTTP_200_OK)

@@ -29,6 +29,7 @@ class Dataset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="datasets")
     private = models.BooleanField(default=True)
+    image = models.ImageField(upload_to='images/', null=True)
     
     def __str__(self):
         return self.name
