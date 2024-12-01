@@ -12,12 +12,12 @@ class Profile(models.Model):    # Extends default User class
         return self.name
     
 @receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
+def create_profile(sender, instance, created, **kwargs):
     if created:
-        UserProfile.objects.create(user=instance, name=instance.username)
+        Profile.objects.create(user=instance, name=instance.username)
 
 @receiver(post_save, sender=User)
-def save_user_profile(sender, instance, **kwargs):
+def save_profile(sender, instance, **kwargs):
     instance.profile.save()
     
     
@@ -27,7 +27,8 @@ class Dataset(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name="datasets")
+    owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="datasets")
+    private = models.BooleanField(default=True)
     
     def __str__(self):
         return self.name

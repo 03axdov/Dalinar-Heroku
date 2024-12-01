@@ -6,8 +6,8 @@ urlpatterns = [
     path("current-profile/", GetCurrentProfile.as_view(), name="current-profile"),
     
     # DATASET HANDLING
-    path("datasets/", DatasetListCreate.as_view(), name="dataset-list"),
+    path("my-datasets/", DatasetListProfile.as_view(), name="my-datasets"),
     path("datasets/delete/<int:pk>/", DatasetDelete.as_view(), name="delete-dataset"),
-    path("datasets/<int:id>", GetDataset.as_view(), name="get-dataset"),
+    path("dataset/<int:id>", GetDataset.as_view(), name="get-dataset"),
 
 ]

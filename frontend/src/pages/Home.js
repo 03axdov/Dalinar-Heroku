@@ -15,7 +15,7 @@ function Home() {
     }, [])
 
     const getDatasets = () => {
-        fetch(window.location.origin + "/api/datasets")
+        fetch(window.location.origin + "/api/my-datasets")
         .then((response) => response.json())
         .then((data) => {
             if (data) {

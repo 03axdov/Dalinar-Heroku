@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from rest_framework.response import Response
+from django.db.models import Q
 
 from .serializers import *
 from .models import *
@@ -29,19 +30,14 @@ class GetCurrentProfile(APIView):
 
 # DATASET HANDLING
 
-class DatasetListCreate(generics.ListCreateAPIView):
+class DatasetListProfile(generics.ListCreateAPIView):
     serializer_class = DatasetSerializer
     permission_classes  = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        return Dataset.objects.filter(owner=user)
-    
-    def perform_create(self, serializer):
-        if serializer.is_valid():
-            serializer.save(owner=self.request.user)
-        else:
-            print(serializer.errors)
+        profile = user.profile
+        return profile.datasets
             
 
 class DatasetDelete(generics.DestroyAPIView):
@@ -61,21 +57,22 @@ class GetDataset(APIView):
         user = self.request.user
         if user.is_authenticated:
             dataset_id = kwargs[self.lookup_url_kwarg]
+                
             if dataset_id != None:
                 try:
-                    dataset = Dataset.objects.get(id=dataset_id)
+                    dataset = Dataset.objects.get(Q(id=dataset_id) & Q(Q(private = False) | Q(owner=user)))
                     dataset = DatasetSerializer(dataset)
                     data = dataset.data
                     return Response(data, status=status.HTTP_200_OK)
                     
                 except Dataset.DoesNotExist:
-                    return Response({'Bad Request': 'No dataset was found with the id ' + dataset_id + '.'}, status=status.HTTP_404_NOT_FOUND)        
+                    return Response({'Not found': 'No public dataset or dataset belonging to you was found with the id ' + str(dataset_id) + '.'}, status=status.HTTP_404_NOT_FOUND)        
             
             else:
                 return Response({'Bad Request': 'Name parameter not found in call to GetDataset.'}, status=status.HTTP_400_BAD_REQUEST)
             
         else:
-            return Response({'Bad Request': 'Must be logged in to get datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'Unauthorized': 'Must be logged in to get datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         
 class CreateDatasetView(APIView):

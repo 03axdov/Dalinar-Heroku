@@ -50,8 +50,8 @@ html, body {
 }
 
 #toolbar-logo {
-    height: 45px;
-    width: 45px;
+    height: 40px;
+    width: 40px;
     object-fit: cover;
     cursor: pointer;
 }
@@ -104,6 +104,16 @@ button {
 .toolbar-button:hover {
     cursor: pointer;
     background: var(--blue-dark);
+}
+
+.toolbar-title {
+    margin-left: 10px;
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+}
+
+.toolbar-title:hover {
+    text-decoration: none;
 }
 
 input[type=checkbox] {

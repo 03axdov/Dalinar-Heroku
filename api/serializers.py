@@ -15,12 +15,12 @@ class ProfileSerializer(serializers.ModelSerializer):
 class DatasetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
-        fields = ["id", "name", "description", "created_at", "owner"]
+        fields = "__all__"
         extra_kwargs = {"owner": {"read_only": True}}
         
         
 class CreateDatasetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
-        fields = ("name", "description")
+        fields = ("name", "description", "private")
         
