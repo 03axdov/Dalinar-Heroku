@@ -3,19 +3,25 @@
 .dataset-element {
     width: 300px;
     height: 300px;
-    border-radius: 5px;
-    padding: 10px;
+    border-radius: 7px;
+    padding: 10px 0;
     box-sizing: border-box;
     background: var(--element);
     display: flex;
     flex-direction: column;
+    align-items: center;
+}
+
+.dataset-element:hover {
+    cursor: pointer;
     box-shadow: 0 0 0 1px var(--border);
-    align-items: start;
 }
 
 .dataset-element-name {
     font-size: 1.5rem;
     margin: 0;
+    width: calc(100% - 20px);
+    text-align: left;
 }
 
 .dataset-element-description {
@@ -23,6 +29,7 @@
     margin-top: 10px;
     font-size: 0.9rem;
     color: var(--gray-text);
+    width: calc(100% - 20px);
     
 }
 
@@ -34,6 +41,6 @@
     width: 100%;
     height: auto;
     max-height: 150px;
-    border-radius: 5px;
     margin-top: 5px;
 }
+

@@ -31,18 +31,11 @@
     cursor: pointer;
 }
 
-.account-popup-signin {
+.account-popup-login {
     background: var(--blue);
 }
-.account-popup-signin:hover {
+.account-popup-login:hover {
     background: var(--blue-dark);
-}
-
-.account-popup-register {
-    background: var(--darkblue);
-}
-.account-popup-register:hover {
-    background: var(--darkblue-dark);
 }
 
 .account-popup-cancel {

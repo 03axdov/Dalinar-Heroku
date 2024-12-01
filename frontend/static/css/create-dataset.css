@@ -66,3 +66,26 @@
     margin-top: 40px;
     padding: 7px 20px;
 }
+
+.create-dataset-submit:hover {
+    background: var(--blue-dark);
+    cursor: pointer;
+}
+
+.create-dataset-type {
+    margin: 0;
+    margin-right: 40px;
+}
+
+#create-dataset-type-text, #create-dataset-visibility-public {
+    margin-left: 20px;
+}
+
+.create-dataset-type-label {
+    padding-left: 7px;
+}
+
+.create-dataset-file-inp {
+    margin-left: 20px;
+
+}

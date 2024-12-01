@@ -28,8 +28,13 @@ class Dataset(models.Model):
     description = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="datasets")
-    private = models.BooleanField(default=True)
     image = models.ImageField(upload_to='images/', null=True)
+    
+    VISIBILITY_CHOICES = [
+        ("private", "Private"),
+        ("public", "Public")
+    ]
+    visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default="private")
     
     DATATYPE_CHOICES = [
         ("image", "Image"),

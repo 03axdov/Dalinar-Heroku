@@ -134,6 +134,27 @@ input[type="checkbox"]:checked {
     background-size: cover;
 }
 
+input[type=radio] {
+    appearance: none;
+    -webkit-appearance: none; /* For Safari */
+    width: 20px; /* Size of the radio button */
+    height: 20px;
+    background-color: var(--background-dark);
+    border-radius: 50%; /* Make it circular */
+    border: 1px solid gray;
+    outline: none;
+    cursor: pointer;
+    margin: 0;
+}
+
+/* Style when checked */
+input[type="radio"]:checked {
+    background-color: white;
+    border: 6px solid var(--blue);
+    box-sizing: border-box;
+
+}
+
 .truncate {
     display: -webkit-box; /* Use flexbox for webkit-based browsers */
     -webkit-line-clamp: 3; /* Limit the number of lines */

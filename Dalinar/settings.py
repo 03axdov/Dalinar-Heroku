@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     
     "api.apps.ApiConfig",
+    'corsheaders',
     "rest_framework",
     "frontend.apps.FrontendConfig"
 ]
