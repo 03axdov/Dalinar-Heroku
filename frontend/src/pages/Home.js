@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import DatasetElement from "../components/DatasetElement"
 import { useNavigate } from "react-router-dom"
+import axios from 'axios'
 
 // This is the personal view. /home
 function Home() {
@@ -15,11 +16,13 @@ function Home() {
     }, [])
 
     const getDatasets = () => {
-        fetch(window.location.origin + "/api/my-datasets")
-        .then((response) => response.json())
-        .then((data) => {
-            if (data) {
-                setDatasets(data)
+        axios({
+            method: 'GET',
+            url: window.location.origin + '/api/my-datasets/',
+        })
+        .then((res) => {
+            if (res.data) {
+                setDatasets(res.data)
             } else {
                 setDatasets([])
             }

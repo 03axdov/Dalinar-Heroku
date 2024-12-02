@@ -1,15 +1,16 @@
 /* For elements, such as dataset-element */
 
 .dataset-element {
-    width: 300px;
-    height: 300px;
-    border-radius: 7px;
-    padding: 10px 0;
+    width: 250px;
+    height: 250px;
+    border-radius: 5px;
+    padding: 10px;
     box-sizing: border-box;
     background: var(--element);
     display: flex;
     flex-direction: column;
     align-items: center;
+    margin-right: 20px;
 }
 
 .dataset-element:hover {
@@ -18,19 +19,11 @@
 }
 
 .dataset-element-name {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
     margin: 0;
-    width: calc(100% - 20px);
-    text-align: left;
-}
-
-.dataset-element-description {
-    margin: 0;
-    margin-top: 10px;
-    font-size: 0.9rem;
-    color: var(--gray-text);
-    width: calc(100% - 20px);
-    
+    overflow: hidden; /* Hide overflow content */
+    text-overflow: ellipsis; /* Add ellipsis for truncated text */
+    word-break: break-word; /* Break long words onto the next line */
 }
 
 .dataset-element-date {
@@ -39,8 +32,37 @@
 
 .dataset-element-image {
     width: 100%;
-    height: auto;
-    max-height: 150px;
-    margin-top: 5px;
+    height: 100%;
+    margin-top: 10px;
+    object-fit: cover;
+    border-radius: 5px;
+    background: var(--background-dark);
 }
 
+.dataset-element-header {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dataset-element-icon {
+    height: 24px;
+    width: 24;
+}
+
+.dataset-element-icon-type {
+    height: 20px;
+    width: auto;
+}
+
+.dataset-element-options {
+    padding: 5px;
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+.dataset-element-options:hover {
+    background: var(--element-light);
+}

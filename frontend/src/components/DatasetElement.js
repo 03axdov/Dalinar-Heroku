@@ -5,9 +5,14 @@ function DatasetElement({dataset}) {
 
     return (
         <div className="dataset-element">
-            <p className="dataset-element-name">{dataset.name}</p>
+            <div className="dataset-element-header">
+            <img className="dataset-element-icon dataset-element-icon-type" src={window.location.origin + "/static/images/dataset.png"}/>
+                <p className="dataset-element-name">{dataset.name}</p>
+                <img className="dataset-element-icon dataset-element-options" src={window.location.origin + "/static/images/options.png"}/>
+            </div>
+            
             {dataset.image && <img className="dataset-element-image" src={dataset.image}/>}
-            <p className="truncate dataset-element-description">{dataset.description}</p>
+            
 
         </div>
     )

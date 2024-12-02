@@ -7,6 +7,7 @@ import Home from "./pages/Home"
 import Landing from "./pages/Landing"
 import CreateDataset from "./pages/CreateDataset"
 import Dataset from "./pages/Dataset"
+import axios from "axios"
 
 
 export default function App() {
@@ -27,11 +28,13 @@ export default function App() {
 
 
     function getCurrentProfile() {
-        fetch(window.location.origin + "/api/current-profile")
-        .then((response) => response.json())
-        .then((data) => {
-            if (data) {
-                setCurrentProfile(data)
+        axios({
+            method: 'GET',
+            url: window.location.origin + '/api/current-profile/',
+        })
+        .then((res) => {
+            if (res.data) {
+                setCurrentProfile(res.data)
             }
             
             setLoadingCurrentProfile(false)

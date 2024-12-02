@@ -1,5 +1,6 @@
 import React, {useState} from "react"
 import {useNavigate} from "react-router-dom"
+import axios from "axios"
 
 
 function CreateDataset() {
@@ -13,26 +14,28 @@ function CreateDataset() {
 
     function formOnSubmit(e) {
         e.preventDefault()
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
         let formData = new FormData()
-        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
         formData.append('name', name)
-        formData.append('datasetType', type)
+        formData.append('datatype', type)
         formData.append('description', description)
         formData.append('image', image)
         formData.append("visibility", visibility)
 
-        fetch("/api/create-dataset/", {
-            method: "POST",
-            headers: {
-                'X-CSRFTOKEN': csrfToken, // Set CSRF token in the headers
-            },
-            body: formData
-        }).then((response) => {
-            response.text()
-        }).then((data) => {
+        const URL = window.location.origin + '/api/create-dataset/'
+        const config = {headers: {'Content-Type': 'multipart/form-data'}}
+
+        axios.post(URL, formData, config)
+        .then((data) => {
             console.log("Success:", data);
+            navigate("/home")
         }).catch((error) => {
+            alert("An error occurred.")
             console.log("Error: ", error)
         })
     }
