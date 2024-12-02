@@ -1,7 +1,7 @@
 from django.db import models
 from django.dispatch import receiver
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 
 
 class Profile(models.Model):    # Extends default User class
@@ -29,6 +29,7 @@ class Dataset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="datasets")
     image = models.ImageField(upload_to='images/', null=True)
+    element_count = models.PositiveIntegerField(default=0)
     
     VISIBILITY_CHOICES = [
         ("private", "Private"),
@@ -44,7 +45,7 @@ class Dataset(models.Model):
     
     def __str__(self):
         return self.name
-    
+
 
 # ELEMENTS
 # Datasets contain elements, which can be e.g. files
@@ -60,6 +61,13 @@ class ImageElement(Element):
 class TextElement(Element):
     text = models.FileField(upload_to="documents/")
     
+    
+@receiver(post_save, sender=Element)
+@receiver(post_delete, sender=Element)
+def update_element_count(sender, instance, **kwargs):
+    dataset = instance.dataset
+    dataset.element_count = dataset.elements.count()
+    dataset.save()
     
 # LABELS
 # Elements in datasets, such as files, are given labels

@@ -11,11 +11,12 @@
     flex-direction: column;
     align-items: center;
     margin-right: 20px;
+    position: relative;
 }
 
 .dataset-element:hover {
     cursor: pointer;
-    box-shadow: 0 0 0 1px var(--border);
+    background: var(--element-light);
 }
 
 .dataset-element-name {
@@ -64,5 +65,24 @@
 }
 
 .dataset-element-options:hover {
-    background: var(--element-light);
+    background: var(--element-icon-hover);
+}
+
+.dataset-element-date, .dataset-element-count {
+    position: absolute;
+    font-size: 0.9rem;
+    padding: 2px 5px;
+    margin: 0;
+    border-radius: 3px;
+    background: var(--element);
+    bottom: 15px;
+    color: var(--gray-text);
+}
+
+.dataset-element-date {
+    left: 15px;
+}
+
+.dataset-element-count {
+    right: 15px;
 }

@@ -28,6 +28,7 @@ function Home() {
             }
 
         }).catch((err) => {
+            alert("An error occured while loading your datasets.")
             console.log(err)
         })
 

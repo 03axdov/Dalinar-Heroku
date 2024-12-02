@@ -39,6 +39,7 @@ export default function App() {
             
             setLoadingCurrentProfile(false)
         }).catch((err) => {
+            alert("An error occured while loading the user.")
             console.log(err)
         })
     }
@@ -54,7 +55,7 @@ export default function App() {
                     <Route path="/" element={<Landing />}/>
                     <Route path="/home" element={<Home />}/>
                     <Route path="/create-dataset" element={<CreateDataset />}/>
-                    <Route path="/dataset/:name" element={<Dataset />}/>
+                    <Route path="/datasets/:id" element={<Dataset />}/>
                 </Routes>
             </div>
             

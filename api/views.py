@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from rest_framework.response import Response
-from django.db.models import Q
+from django.db.models import Q, Count
 from rest_framework.parsers import MultiPartParser, FormParser
 
 from .serializers import *
@@ -38,7 +38,9 @@ class DatasetListProfile(generics.ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
         profile = user.profile
-        return profile.datasets
+        datasets = profile.datasets
+
+        return datasets
 
 
 class GetDataset(APIView):
@@ -52,7 +54,7 @@ class GetDataset(APIView):
                 
             if dataset_id != None:
                 try:
-                    dataset = Dataset.objects.get(Q(id=dataset_id) & Q(Q(private = False) | Q(owner=user.profile)))
+                    dataset = Dataset.objects.get(Q(id=dataset_id) & Q(Q(visibility = "public") | Q(owner=user.profile)))
                     dataset = DatasetSerializer(dataset)
                     data = dataset.data
                     return Response(data, status=status.HTTP_200_OK)

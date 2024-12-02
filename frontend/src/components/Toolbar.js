@@ -5,8 +5,6 @@ import {useNavigate} from "react-router-dom"
 function Toolbar({currentProfile, loadingCurrentProfile, setShowAccountPopup}) {
     const navigate = useNavigate()
 
-    console.log(currentProfile)
-
     return (
         <nav id="toolbar">
             <img id="toolbar-logo" src={window.location.origin + "/static/images/logoWhite.svg"} onClick={() => navigate("/")}/>

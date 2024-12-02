@@ -95,7 +95,11 @@ function CreateDataset() {
                     }} />
                 </div>
 
-                <button type="submit" className="create-dataset-submit">Create dataset</button>
+                <div className="create-dataset-buttons">
+                    <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Cancel</button>
+                    <button type="submit" className="create-dataset-submit">Create dataset</button>
+                </div>
+                
             
             </form>
         </div>
