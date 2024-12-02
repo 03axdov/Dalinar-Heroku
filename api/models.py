@@ -52,6 +52,10 @@ class Dataset(models.Model):
 
 class Element(models.Model):
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="elements", null=True)
+    name = models.CharField(max_length=100)
+    
+    def __str__(self):
+        return self.name
     
 
 class ImageElement(Element):
@@ -74,6 +78,7 @@ def update_element_count(sender, instance, **kwargs):
     
 class AbstractLabel(models.Model):
     element = models.OneToOneField(Element, on_delete=models.CASCADE, related_name="label")
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="labels", null=True)
       
     class Meta:
         abstract = True

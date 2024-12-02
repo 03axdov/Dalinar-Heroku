@@ -55,8 +55,13 @@ class GetDataset(APIView):
             if dataset_id != None:
                 try:
                     dataset = Dataset.objects.get(Q(id=dataset_id) & Q(Q(visibility = "public") | Q(owner=user.profile)))
-                    dataset = DatasetSerializer(dataset)
-                    data = dataset.data
+                    
+                    datasetSerialized = DatasetSerializer(dataset)
+                    data = datasetSerialized.data
+                    
+                    print(dataset.elements)
+
+                    
                     return Response(data, status=status.HTTP_200_OK)
                     
                 except Dataset.DoesNotExist:

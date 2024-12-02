@@ -164,3 +164,17 @@ input[type="radio"]:checked {
     word-break: break-word; /* Break long words onto the next line */
     overflow-wrap: break-word; /* Ensure long words wrap appropriately */
 }
+
+.sidebar-button {
+    padding: 7px 15px;
+    border-radius: 30px;
+    color: white;
+    background: rgb(50, 50, 50);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.sidebar-button:hover {
+    background: rgb(55,55,55);
+    cursor: pointer;
+}

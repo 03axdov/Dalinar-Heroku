@@ -36,7 +36,7 @@ function Home() {
 
     return <div className="home-container">
         <div className="home-sidebar">
-            <button className="home-create-dataset" onClick={() => {
+            <button className="sidebar-button" onClick={() => {
                 navigate("/create-dataset")
             }}>+ Create dataset</button>
         </div>

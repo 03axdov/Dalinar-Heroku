@@ -24,6 +24,8 @@
     --toolbar-height: 60px;
 
     --home-sidebar-width: 185px;
+    --dataset-elements-width: 185px;
+    --dataset-labels-width: 185px;
 
     --gray-text: rgb(180,180,180);
 }

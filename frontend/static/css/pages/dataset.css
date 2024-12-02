@@ -1,4 +1,39 @@
 .dataset-container {
     width: 100%;
     height: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+.dataset-elements, .dataset-labels {
+    height: 100%;
+    background: var(--sidebar);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+.dataset-elements {
+    width: var(--dataset-elements-width);
+}
+
+.dataset-labels {
+    width: var(--dataset-labels-width);
+}
+
+.dataset-main {
+    width: calc(100% - var(--dataset-elements-width) - var(--dataset-labels-width));
+}
+
+.dataset-sidebar-title {
+    margin: 0;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-size: 1.7rem;
+    width: 100%;
+    text-align: center;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--border);
 }

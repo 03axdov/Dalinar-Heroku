@@ -5,19 +5,7 @@
     width: 100%;
 }
 
-.home-create-dataset {
-    padding: 7px 15px;
-    border-radius: 30px;
-    color: white;
-    background: rgb(50, 50, 50);
-    width: 100%;
-    box-sizing: border-box;
-}
 
-.home-create-dataset:hover {
-    background: rgb(55,55,55);
-    cursor: pointer;
-}
 
 .home-sidebar {
     width: var(--home-sidebar-width);
