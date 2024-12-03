@@ -15,6 +15,7 @@ function Dataset() {
         getDataset()
     }, [])
 
+
     function getDataset() {
         axios({
             method: 'GET',
@@ -22,7 +23,9 @@ function Dataset() {
         })
         .then((res) => {
             console.log(res.data)
-            setDataset(res.data)
+            setDataset(res.data["dataset"])
+            setElements(res.data["elements"])
+
         }).catch((err) => {
             navigate("/")
             alert("An error occured when loading dataset with id " + id + ".")
@@ -30,7 +33,6 @@ function Dataset() {
             console.log(err)
         })
     }
-
 
     return (
         <div className="dataset-container">

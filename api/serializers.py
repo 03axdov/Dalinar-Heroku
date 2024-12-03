@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Dataset, Profile
+from .models import *
 
 # PROFILE HANDLING
 
@@ -24,3 +24,10 @@ class CreateDatasetSerializer(serializers.ModelSerializer):
         model = Dataset
         fields = ("name", "description", "visibility", "image", "datatype")
         
+
+# ELEMENT HANDLING
+
+class ElementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Element
+        fields = "__all__"

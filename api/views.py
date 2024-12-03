@@ -1,3 +1,4 @@
+import requests
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from rest_framework import generics, status
@@ -8,6 +9,7 @@ from django.contrib import messages
 from rest_framework.response import Response
 from django.db.models import Q, Count
 from rest_framework.parsers import MultiPartParser, FormParser
+from django.urls import resolve
 
 from .serializers import *
 from .models import *
@@ -56,13 +58,16 @@ class GetDataset(APIView):
                 try:
                     dataset = Dataset.objects.get(Q(id=dataset_id) & Q(Q(visibility = "public") | Q(owner=user.profile)))
                     
-                    datasetSerialized = DatasetSerializer(dataset)
+                    datasetSerialized = self.serializer_class(dataset)
                     data = datasetSerialized.data
+                    
+                    datasetElements = dataset.elements
+                    datasetElementsSerialized = ElementSerializer(datasetElements)
                     
                     print(dataset.elements)
 
                     
-                    return Response(data, status=status.HTTP_200_OK)
+                    return Response({"dataset": data, "elements": datasetElementsSerialized.data}, status=status.HTTP_200_OK)
                     
                 except Dataset.DoesNotExist:
                     return Response({'Not found': 'No public dataset or dataset belonging to you was found with the id ' + str(dataset_id) + '.'}, status=status.HTTP_404_NOT_FOUND)        
