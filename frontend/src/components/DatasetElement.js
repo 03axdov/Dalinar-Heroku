@@ -25,7 +25,7 @@ function DatasetElement({dataset}) {
             
 
             <p className="dataset-element-date">{formattedDate}</p>
-            <p className="dataset-element-count">{dataset.element_count + " element" + (dataset.element_count != 1 ? "s" : "")}</p>
+            <p className="dataset-element-count">{dataset.elements.length + " element" + (dataset.elements.length != 1 ? "s" : "")}</p>
 
 
         </div>

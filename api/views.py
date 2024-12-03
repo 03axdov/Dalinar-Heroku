@@ -61,13 +61,7 @@ class GetDataset(APIView):
                     datasetSerialized = self.serializer_class(dataset)
                     data = datasetSerialized.data
                     
-                    datasetElements = dataset.elements
-                    datasetElementsSerialized = ElementSerializer(datasetElements)
-                    
-                    print(dataset.elements)
-
-                    
-                    return Response({"dataset": data, "elements": datasetElementsSerialized.data}, status=status.HTTP_200_OK)
+                    return Response(data, status=status.HTTP_200_OK)
                     
                 except Dataset.DoesNotExist:
                     return Response({'Not found': 'No public dataset or dataset belonging to you was found with the id ' + str(dataset_id) + '.'}, status=status.HTTP_404_NOT_FOUND)        

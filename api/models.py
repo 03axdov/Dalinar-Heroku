@@ -29,7 +29,6 @@ class Dataset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="datasets")
     image = models.ImageField(upload_to='images/', null=True)
-    element_count = models.PositiveIntegerField(default=0)
     
     VISIBILITY_CHOICES = [
         ("private", "Private"),
@@ -76,13 +75,14 @@ def update_element_count(sender, instance, **kwargs):
 # LABELS
 # Elements in datasets, such as files, are given labels
     
-class AbstractLabel(models.Model):
-    element = models.OneToOneField(Element, on_delete=models.CASCADE, related_name="label")
+class Label(models.Model):
+    element = models.ForeignKey(Element, on_delete=models.SET_NULL, related_name="labels", blank=True, null=True)
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="labels", null=True)
-      
-    class Meta:
-        abstract = True
-    
-    
-class ClassificationLabel(AbstractLabel):
     name = models.CharField(max_length=200)
+        
+    def __str__(self):
+        return self.name
+    
+    
+class ClassificationLabel(Label):
+    pass

@@ -10,9 +10,28 @@ class ProfileSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+# ELEMENT HANDLING
+
+class ElementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Element
+        fields = "__all__"
+        
+        
+# LABEL HANDLING
+
+class LabelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Label
+        fields = "__all__"
+        
+        
 # DATASET HANDLING
 
 class DatasetSerializer(serializers.ModelSerializer):
+    elements = ElementSerializer(many=True, read_only=True)
+    labels = LabelSerializer(many=True, read_only=True)
+    
     class Meta:
         model = Dataset
         fields = "__all__"
@@ -24,10 +43,3 @@ class CreateDatasetSerializer(serializers.ModelSerializer):
         model = Dataset
         fields = ("name", "description", "visibility", "image", "datatype")
         
-
-# ELEMENT HANDLING
-
-class ElementSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Element
-        fields = "__all__"
