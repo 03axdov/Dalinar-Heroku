@@ -22,18 +22,32 @@ function Dataset() {
     }, [])
 
 
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+
+            if (loading) {return};
+            
+            if (event.key === "ArrowDown" || event.key == "ArrowRight") {    
+                setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
+            } else if (event.key === "ArrowUp" || event.key == "ArrowLeft") {
+                setElementsIndex(Math.max(elementsIndex - 1, 0))  
+            }
+        };
+    
+        // Attach the event listener
+        window.addEventListener("keydown", handleKeyDown);
+    }, [loading, elements])
+
+
     function getDataset() {
         axios({
             method: 'GET',
             url: window.location.origin + '/api/datasets/' + id,
         })
         .then((res) => {
-            console.log(res.data)
             setDataset(res.data)
             setElements(res.data.elements)
             setLabels(res.data.labels)
-
-            console.log(res.data.labels)
 
             setLoading(false)
         }).catch((err) => {
@@ -70,7 +84,9 @@ function Dataset() {
                     <button type="button" className="sidebar-button">+ Upload files</button>
                 </div>
                 {elements.map((element, idx) => (
-                    <div className="dataset-sidebar-element" key={element.id} onClick={() => setElementsIndex(idx)}>{element.name}</div>
+                    <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
+                    key={element.id} 
+                    onClick={() => setElementsIndex(idx)}>{element.name}</div>
                 ))}
             </div>
 

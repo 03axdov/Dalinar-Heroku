@@ -53,6 +53,14 @@
     cursor: pointer;
 }
 
+.dataset-sidebar-element-selected {
+    background: var(--sidebar-selected);
+}
+
+.dataset-sidebar-element-selected:hover{
+    background: var(--sidebar-selected);
+}
+
 .dataset-sidebar-button-container {
     width: calc(100% - 20px);
     margin-bottom: 10px;
