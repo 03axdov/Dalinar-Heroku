@@ -10,6 +10,11 @@ function Dataset() {
     const [elements, setElements] = useState([])
     const [labels, setLabels] = useState([])
 
+    const [elementsIndex, setElementsIndex] = useState(0)
+
+    const [loading, setLoading] = useState(true)
+
+
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -28,15 +33,34 @@ function Dataset() {
             setElements(res.data.elements)
             setLabels(res.data.labels)
 
+            console.log(res.data.labels)
+
+            setLoading(false)
         }).catch((err) => {
             navigate("/")
             alert("An error occured when loading dataset with id " + id + ".")
 
             console.log(err)
+            setLoading(false)
         })
     }
 
-    console.log(elements)
+
+    const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp"])
+    const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
+
+    function getPreviewElement(element) {
+        const extension = element.file.split(".").pop()
+        
+        if (IMAGE_FILE_EXTENSIONS.has(extension)) {
+            return <img className="dataset-element-view-image" src={window.location.origin + element.file} />
+        } else if (TEXT_FILE_EXTENSIONS.has(extension)) {
+            return <p className="dataset-element-view-text"></p>
+        } else {
+            return <div className="extension-not-found">File of type .{extension} could not be rendered.</div>
+        }
+    }
+
 
     return (
         <div className="dataset-container">
@@ -45,13 +69,16 @@ function Dataset() {
                 <div className="dataset-sidebar-button-container">
                     <button type="button" className="sidebar-button">+ Upload files</button>
                 </div>
-                {elements.map((element) => (
-                    <div className="dataset-sidebar-element" key={element.id}>{element.name}</div>
+                {elements.map((element, idx) => (
+                    <div className="dataset-sidebar-element" key={element.id} onClick={() => setElementsIndex(idx)}>{element.name}</div>
                 ))}
             </div>
 
             <div className="dataset-main">
-                {elements.length == 0 && <button type="button" className="dataset-upload-button">Upload files</button>}
+                {(elements.length == 0 && !loading) && <button type="button" className="dataset-upload-button">Upload files</button>}
+                {elements.length != 0 && <div className="dataset-element-view-container">
+                    {getPreviewElement(elements[elementsIndex])}
+                </div>}
             </div>
 
             <div className="dataset-labels">
@@ -61,7 +88,7 @@ function Dataset() {
                 </div>
                 
                 {labels.map((label) => (
-                    <div className="dataset-sidebar-element" key={label.id}>{label.name}</div>
+                    <div className="dataset-sidebar-element" key={label.id} style={{color: (label.color ? label.color : "#ffffff")}}>{label.name}</div>
                 ))}
             </div>
         </div>

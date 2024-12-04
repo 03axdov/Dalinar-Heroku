@@ -1,6 +1,7 @@
 :root {
     --background: #0d1017;
     --background-dark: rgb(9, 11, 15);
+    --background-shadow: #000000;
 
     --toolbar: #181d25;
     --toolbar-light: #212730;

@@ -2,6 +2,11 @@ from django.db import models
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
+from django.core.validators import FileExtensionValidator
+
+
+ALLOWED_IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp"]
+ALLOWED_TEXT_FILE_EXTENSIONS = ["txt", "doc", "docx"]
 
 
 class Profile(models.Model):    # Extends default User class
@@ -49,28 +54,15 @@ class Dataset(models.Model):
 # ELEMENTS
 # Datasets contain elements, which can be e.g. files
 
+
 class Element(models.Model):
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="elements", null=True)
     name = models.CharField(max_length=100)
+    file = models.FileField(upload_to="files/", null=True, validators=[FileExtensionValidator(allowed_extensions=ALLOWED_IMAGE_FILE_EXTENSIONS + ALLOWED_TEXT_FILE_EXTENSIONS)])
     
     def __str__(self):
         return self.name
-    
 
-class ImageElement(Element):
-    image = models.ImageField(upload_to="images/")
-    
-    
-class TextElement(Element):
-    text = models.FileField(upload_to="documents/")
-    
-    
-@receiver(post_save, sender=Element)
-@receiver(post_delete, sender=Element)
-def update_element_count(sender, instance, **kwargs):
-    dataset = instance.dataset
-    dataset.element_count = dataset.elements.count()
-    dataset.save()
     
 # LABELS
 # Elements in datasets, such as files, are given labels
@@ -79,10 +71,8 @@ class Label(models.Model):
     element = models.ForeignKey(Element, on_delete=models.SET_NULL, related_name="labels", blank=True, null=True)
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="labels", null=True)
     name = models.CharField(max_length=200)
+    color = models.CharField(max_length=7, default="#ffffff") # Hexadecimal format -- #000000
         
     def __str__(self):
         return self.name
     
-    
-class ClassificationLabel(Label):
-    pass

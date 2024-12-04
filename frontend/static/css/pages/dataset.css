@@ -60,6 +60,16 @@
     border-bottom: 1px solid var(--border);
 }
 
-.dataset-upload-button {
+.dataset-element-view-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
+.dataset-element-view-image {
+    max-width: 90%;
+    max-height: 85%;
+    box-shadow: 0 0 50px 0 var(--background-shadow);
 }

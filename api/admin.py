@@ -5,4 +5,4 @@ from .models import *
 admin.site.register(Dataset)
 admin.site.register(Profile)
 admin.site.register(Element)
-admin.site.register(ClassificationLabel)
+admin.site.register(Label)
