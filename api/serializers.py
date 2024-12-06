@@ -16,6 +16,12 @@ class ElementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Element
         fields = "__all__"
+
+
+class CreateElementSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Element
+        fields = ("dataset", "name", "file")
         
         
 # LABEL HANDLING

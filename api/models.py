@@ -54,9 +54,9 @@ class Dataset(models.Model):
 # ELEMENTS
 # Datasets contain elements, which can be e.g. files
 
-
 class Element(models.Model):
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="elements", null=True)
+    owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="elements", null=True)
     name = models.CharField(max_length=100)
     file = models.FileField(upload_to="files/", null=True, validators=[FileExtensionValidator(allowed_extensions=ALLOWED_IMAGE_FILE_EXTENSIONS + ALLOWED_TEXT_FILE_EXTENSIONS)])
     

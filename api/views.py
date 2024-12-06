@@ -82,7 +82,7 @@ class CreateDatasetView(APIView):
             serializer.save(owner=request.user.profile)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response({'Bad Request': 'An error occurred'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'Bad Request': 'An error occurred while creating dataset'}, status=status.HTTP_400_BAD_REQUEST)
     
     
 # ELEMENT HANDLING
@@ -92,4 +92,12 @@ class CreateElementView(APIView):
     parser_classes = [MultiPartParser, FormParser]
     
     def post(self, request, format=None):
-        pass
+        data = request.data
+        
+        serializer = self.serializer_class(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response({"Bad Request": "An error occured while creating element"})
