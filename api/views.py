@@ -88,16 +88,32 @@ class CreateDatasetView(APIView):
 # ELEMENT HANDLING
 
 class CreateElementView(APIView):
-    serializer_class = ElementSerializer
+    serializer_class = CreateElementSerializer
     parser_classes = [MultiPartParser, FormParser]
     
     def post(self, request, format=None):
-        data = request.data
-        
+        data = self.request.data
         serializer = self.serializer_class(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            
-            return Response(serializer.data, status=status.HTTP_200_OK)
         
-        return Response({"Bad Request": "An error occured while creating element"})
+        if serializer.is_valid():
+            
+            dataset_id = data["dataset"]
+            dataset = Dataset.objects.get(id=dataset_id)
+            
+            user = self.request.user
+            
+            if user.is_authenticated:
+                
+                if user.profile == dataset.owner:
+                
+                    serializer.save(owner=request.user.profile)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({'Unauthorized': 'You can only add elements to your own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            else:
+                return Response({'Unauthorized': 'Must be logged in to create elements.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        else:
+            return Response({"Bad Request": "An error occured while creating element"})

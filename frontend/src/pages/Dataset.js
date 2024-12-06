@@ -23,23 +23,25 @@ function Dataset() {
         getDataset()
     }, [])
 
-    console.log(elements)
-
     useEffect(() => {
         const handleKeyDown = (event) => {
 
             if (loading) {return};
             
-            if (event.key === "ArrowDown" || event.key == "ArrowRight") {    
+            if (event.key === "ArrowDown" || event.key === "ArrowRight") {    
                 setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
-            } else if (event.key === "ArrowUp" || event.key == "ArrowLeft") {
+            } else if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
             }
         };
     
         // Attach the event listener
         window.addEventListener("keydown", handleKeyDown);
-    }, [loading, elements])
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyDown, false);
+        };
+    }, [loading, elements, elementsIndex])
 
 
     function getDataset() {
