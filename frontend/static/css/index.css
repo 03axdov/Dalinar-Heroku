@@ -33,6 +33,10 @@ html, body {
     padding: 0;
 }
 
+.hidden {
+    display: none;
+}
+
 #toolbar {
     top: 0;
     width: 100%;
@@ -72,6 +76,11 @@ button {
     padding: 7px 15px;
     background: var(--blue);
     color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: var(--blue-dark);
 }
 
 .toolbar-text {

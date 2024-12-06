@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react"
+import React, {useEffect, useState, useRef} from "react"
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios"
 
@@ -14,6 +14,8 @@ function Dataset() {
 
     const [loading, setLoading] = useState(true)
 
+    const hiddenFileInputRef = useRef(null);
+
 
     const navigate = useNavigate()
 
@@ -21,6 +23,7 @@ function Dataset() {
         getDataset()
     }, [])
 
+    console.log(elements)
 
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -75,13 +78,34 @@ function Dataset() {
         }
     }
 
+    function fileInputClick() {
+        if (hiddenFileInputRef.current) {
+            hiddenFileInputRef.current.click();
+        }
+    }
+
+    function elementFilesUploaded(e) {
+        let files = e.target.files
+        for (let i=0; i < files.length; i++) {
+            
+        }
+
+        if (files.length > 0) {
+            getDataset()
+        }
+    }
+
 
     return (
         <div className="dataset-container">
+
+            {/* Uploading files to elements goes through here */}
+            <input id="dataset-file-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFileInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
+
             <div className="dataset-elements">
                 <p className="dataset-sidebar-title">Elements</p>
                 <div className="dataset-sidebar-button-container">
-                    <button type="button" className="sidebar-button">+ Upload files</button>
+                    <button type="button" className="sidebar-button" onClick={fileInputClick}>+ Upload files</button>
                 </div>
                 {elements.map((element, idx) => (
                     <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
@@ -91,7 +115,7 @@ function Dataset() {
             </div>
 
             <div className="dataset-main">
-                {(elements.length == 0 && !loading) && <button type="button" className="dataset-upload-button">Upload files</button>}
+                {(elements.length == 0 && !loading) && <button type="button" className="dataset-upload-button" onClick={fileInputClick}>Upload files</button>}
                 {elements.length != 0 && <div className="dataset-element-view-container">
                     {getPreviewElement(elements[elementsIndex])}
                 </div>}

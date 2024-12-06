@@ -30,7 +30,6 @@ class GetCurrentProfile(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
 
-
 # DATASET HANDLING
 
 class DatasetListProfile(generics.ListCreateAPIView):
@@ -84,3 +83,13 @@ class CreateDatasetView(APIView):
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response({'Bad Request': 'An error occurred'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    
+# ELEMENT HANDLING
+
+class CreateElementView(APIView):
+    serializer_class = ElementSerializer
+    parser_classes = [MultiPartParser, FormParser]
+    
+    def post(self, request, format=None):
+        pass
