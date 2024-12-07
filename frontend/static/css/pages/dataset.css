@@ -46,6 +46,20 @@
     width: 100%;
     padding: 5px 10px;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.dataset-sidebar-color {
+    height: 15px;
+    width: 15px;
+    border-radius: 8px;
+    display: inline-block;
+    margin-right: 10px;
 }
 
 .dataset-sidebar-element:hover {
@@ -66,6 +80,76 @@
     margin-bottom: 10px;
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border);
+    position: relative;
+}
+
+.dataset-create-label-container {
+    position: absolute;
+    width: 300px;
+    right: calc(100% + 20px);
+    top: -10px;
+    z-index: 2;
+    border: 1px solid var(--border);
+    background: var(--sidebar);
+    border-radius: 3px;
+    box-sizing: border-box;
+    padding: 30px 20px;
+}
+
+.dataset-create-label-form {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+}
+
+.dataset-create-label-inp {
+    padding: 5px 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: 'Open Sans', sans-serif; /* 1 */
+    box-sizing: border-box;
+    outline: none;
+    background: var(--background-dark);
+    color: white;
+    width: 100%;
+}
+
+.create-label-color-container {
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    box-sizing: border-box;
+}
+
+.create-label-submit {
+    width: 100%;
+    background: var(--gray);
+}
+
+.create-label-submit:hover {
+    background: var(--gray-dark);
+}
+
+.dataset-create-label-color {
+    opacity: 0;
+}
+
+.dataset-create-label-label {
+    color: var(--gray-text);
+    margin-right: 10px;
+    width: 45px;
+}
+
+.dataset-create-label-row {
+    margin-bottom: 20px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: left;
 }
 
 .dataset-element-view-container {

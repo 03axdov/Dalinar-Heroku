@@ -13,6 +13,9 @@ function Dataset() {
     const [elementsIndex, setElementsIndex] = useState(0)
 
     const [loading, setLoading] = useState(true)
+    
+    const [displayCreateLabel, setDisplayCreateLabel] = useState(false)
+    const [selectedColor, setSelectedColor] = useState("#07E5E9")
 
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
@@ -183,11 +186,31 @@ function Dataset() {
             <div className="dataset-labels">
                 <p className="dataset-sidebar-title">Labels</p>
                 <div className="dataset-sidebar-button-container">
-                    <button type="button" className="sidebar-button">+ Add label</button>
+                    <button type="button" className="sidebar-button" onClick={() => {setDisplayCreateLabel(!displayCreateLabel)}}>{(displayCreateLabel ? "- Hide form" : "+ Add label")}</button>
+                    <div className="dataset-create-label-container" style={{display: (displayCreateLabel ? "flex" : "none")}}>
+                        <form className="dataset-create-label-form">
+                            <div className="dataset-create-label-row">
+                                <label className="dataset-create-label-label">Name</label>
+                                <input className="dataset-create-label-inp" type="text" placeholder="Name" />
+                            </div>
+                            
+                            <div className="dataset-create-label-row">
+                                <label className="dataset-create-label-label">Color</label>
+                                <div className="create-label-color-container" style={{background: selectedColor}}>
+                                    <input className="dataset-create-label-color" type="color" value={selectedColor} onChange={(e) => {
+                                        setSelectedColor(e.target.value)
+                                    }} />
+                                </div>
+                            </div>
+
+                            <button type="submit" className="create-label-submit">Create</button>
+                            
+                        </form>
+                    </div>
                 </div>
                 
                 {labels.map((label) => (
-                    <div className="dataset-sidebar-element" key={label.id} style={{color: (label.color ? label.color : "#ffffff")}}>{label.name}</div>
+                    <div className="dataset-sidebar-element" key={label.id}><span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>{label.name}</div>
                 ))}
                 {labels.length == 0 && !loading && <p className="dataset-no-items">Labels will show here</p>}
             </div>
