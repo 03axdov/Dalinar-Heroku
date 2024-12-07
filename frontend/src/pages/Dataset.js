@@ -14,6 +14,7 @@ function Dataset() {
 
     const [loading, setLoading] = useState(true)
 
+    const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
 
 
@@ -80,6 +81,12 @@ function Dataset() {
         }
     }
 
+    function folderInputClick() {
+        if (hiddenFolderInputRef.current) {
+            hiddenFolderInputRef.current.click();
+        }
+    }
+
     function fileInputClick() {
         if (hiddenFileInputRef.current) {
             hiddenFileInputRef.current.click();
@@ -88,36 +95,86 @@ function Dataset() {
 
     function elementFilesUploaded(e) {
         let files = e.target.files
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        let errorMessages = ""
+        let totalSize = 0
         for (let i=0; i < files.length; i++) {
-            
+            let file = files[i]
+            totalSize += file.size
+
+            if (totalSize > 10 * 10**6) {
+                if (errorMessages) {errorMessages += "\n\n"}
+                errorMessages += "Stopped uploading after " + file.name + " as only 10 Megabytes can be uploaded at a time."
+                alert(errorMessages)
+                return
+            }
+
+            let extension = file.name.split(".").pop()
+            if (!IMAGE_FILE_EXTENSIONS.has(extension) && !TEXT_FILE_EXTENSIONS.has(extension)) {
+                if (errorMessages) {errorMessages += "\n\n"}
+                errorMessages += "Did not upload file with extension " + extension + " as this filetype is not supported."
+
+                if (i == files.length - 1) {alert(errorMessages)}
+
+                continue
+            }
+
+            let formData = new FormData()
+
+            formData.append('file', file)
+            formData.append('dataset', dataset.id)
+
+            const URL = window.location.origin + '/api/create-element/'
+            const config = {headers: {'Content-Type': 'multipart/form-data'}}
+
+            axios.post(URL, formData, config)
+            .then((data) => {
+                console.log("Success: ", data)
+            }).catch((error) => {
+                if (errorMessages) {errorMessages += "\n\n"}
+                errorMessages += "Did not upload file with extension ." + extension + " as this filetype is not supported."
+                console.log("Error: ", error)
+            }).finally(() => {
+                if (i == files.length - 1) {
+                    getDataset()
+                    if (errorMessages) {
+                        alert(errorMessages)
+                    }
+                }
+            })
         }
 
-        if (files.length > 0) {
-            getDataset()
-        }
+
     }
 
 
     return (
         <div className="dataset-container">
 
-            {/* Uploading files to elements goes through here */}
-            <input id="dataset-file-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFileInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
+            {/* Uploading folders / files to elements goes through these */}
+            <input id="dataset-file-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFolderInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
+            <input id="dataset-file-upload-inp" type="file" className="hidden" multiple ref={hiddenFileInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
 
             <div className="dataset-elements">
                 <p className="dataset-sidebar-title">Elements</p>
                 <div className="dataset-sidebar-button-container">
-                    <button type="button" className="sidebar-button" onClick={fileInputClick}>+ Upload files</button>
+                    <button type="button" className="sidebar-button" onClick={folderInputClick}>+ Upload folder</button>
+                    <button type="button" className="sidebar-button dataset-upload-button dataset-upload-files-button" onClick={fileInputClick}>+ Upload files</button>
                 </div>
                 {elements.map((element, idx) => (
                     <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
                     key={element.id} 
                     onClick={() => setElementsIndex(idx)}>{element.name}</div>
                 ))}
+                {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
             </div>
 
             <div className="dataset-main">
-                {(elements.length == 0 && !loading) && <button type="button" className="dataset-upload-button" onClick={fileInputClick}>Upload files</button>}
+                {(elements.length == 0 && !loading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>Upload folder</button>}
                 {elements.length != 0 && <div className="dataset-element-view-container">
                     {getPreviewElement(elements[elementsIndex])}
                 </div>}
@@ -132,6 +189,7 @@ function Dataset() {
                 {labels.map((label) => (
                     <div className="dataset-sidebar-element" key={label.id} style={{color: (label.color ? label.color : "#ffffff")}}>{label.name}</div>
                 ))}
+                {labels.length == 0 && !loading && <p className="dataset-no-items">Labels will show here</p>}
             </div>
         </div>
     )

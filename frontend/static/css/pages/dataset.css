@@ -81,3 +81,18 @@
     max-height: 85%;
     box-shadow: 0 0 50px 0 var(--background-shadow);
 }
+
+.dataset-upload-files-button {
+    margin-top: 10px;
+}
+
+.dataset-upload-button {
+    text-align: left;
+}
+
+.dataset-no-items {
+    color: var(--gray-text);
+    font-size: 0.9rem;
+    width: 97%;
+    text-align: center;
+}

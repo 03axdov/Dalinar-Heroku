@@ -3,6 +3,7 @@ from django.dispatch import receiver
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.core.validators import FileExtensionValidator
+import os
 
 
 ALLOWED_IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp"]
@@ -62,6 +63,14 @@ class Element(models.Model):
     
     def __str__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        # If a new file is uploaded
+        if self.file and not self.name:
+            # Set the name field to the file's name (without the path)
+            self.name = os.path.basename(self.file.name)
+            print(self.file.name)
+        super().save(*args, **kwargs)
 
     
 # LABELS
