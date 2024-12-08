@@ -16,6 +16,8 @@ function Dataset() {
     
     const [displayCreateLabel, setDisplayCreateLabel] = useState(false)
     const [selectedColor, setSelectedColor] = useState("#07E5E9")
+    
+    const [keybinding, setKeybinding] = useState('');
 
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
@@ -151,8 +153,29 @@ function Dataset() {
             })
         }
 
-
     }
+
+
+    const handleKeyDown = (event) => {
+        event.preventDefault(); // Prevent default behavior
+    
+        if (event.key == "ArrowUp" || event.key == "ArrowDown" || event.key == "ArrowLeft" || event.key == "ArrowRight") {
+            return; // Binded to scrolling through elements already
+        }
+
+        const keys = [];
+        if (event.ctrlKey) keys.push('Ctrl');
+        if (event.shiftKey) keys.push('Shift');
+        if (event.altKey) keys.push('Alt');
+        if (event.metaKey) keys.push('Meta'); // For Mac's Command key
+        if (event.key && !['Control', 'Shift', 'Alt', 'Meta'].includes(event.key)) {
+          keys.push(event.key); // Add the actual key
+        }
+    
+        setKeybinding(keys.join('+'));
+    };
+
+    console.log(keybinding)
 
 
     return (
@@ -186,21 +209,36 @@ function Dataset() {
             <div className="dataset-labels">
                 <p className="dataset-sidebar-title">Labels</p>
                 <div className="dataset-sidebar-button-container">
-                    <button type="button" className="sidebar-button" onClick={() => {setDisplayCreateLabel(!displayCreateLabel)}}>{(displayCreateLabel ? "- Hide form" : "+ Add label")}</button>
+                    <button type="button" className="sidebar-button" onClick={() => {setDisplayCreateLabel(!displayCreateLabel)}}>
+                        {(displayCreateLabel ? "- Hide form" : "+ Add label")}
+                    </button>
                     <div className="dataset-create-label-container" style={{display: (displayCreateLabel ? "flex" : "none")}}>
                         <form className="dataset-create-label-form">
                             <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label">Name</label>
-                                <input className="dataset-create-label-inp" type="text" placeholder="Name" />
+                                <label className="dataset-create-label-label" for="label-name-inp">Name</label>
+                                <input id="label-name-inp" className="dataset-create-label-inp" type="text" placeholder="Name" />
                             </div>
                             
                             <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label">Color</label>
+                                <label className="dataset-create-label-label" for="label-color-inp">Color</label>
                                 <div className="create-label-color-container" style={{background: selectedColor}}>
-                                    <input className="dataset-create-label-color" type="color" value={selectedColor} onChange={(e) => {
+                                    <input id="label-color-inp" className="dataset-create-label-color" type="color" value={selectedColor} onChange={(e) => {
                                         setSelectedColor(e.target.value)
                                     }} />
                                 </div>
+                            </div>
+
+                            <div className="dataset-create-label-row">
+                                <label className="dataset-create-label-label" for="keybinding">Keybind</label>
+                                <input
+                                    id="keybinding"
+                                    className="dataset-create-label-inp"
+                                    type="text"
+                                    value={keybinding}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder="Press keys..."
+                                    readOnly
+                                />
                             </div>
 
                             <button type="submit" className="create-label-submit">Create</button>
@@ -210,7 +248,10 @@ function Dataset() {
                 </div>
                 
                 {labels.map((label) => (
-                    <div className="dataset-sidebar-element" key={label.id}><span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>{label.name}</div>
+                    <div className="dataset-sidebar-element" key={label.id}>
+                        <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
+                        {label.name}
+                    </div>
                 ))}
                 {labels.length == 0 && !loading && <p className="dataset-no-items">Labels will show here</p>}
             </div>

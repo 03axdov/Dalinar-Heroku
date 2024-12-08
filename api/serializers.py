@@ -32,6 +32,12 @@ class LabelSerializer(serializers.ModelSerializer):
         fields = "__all__"
         
         
+class CreateLabelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Label
+        fields = ("element", "name", "color", "keybind")    # Dataset and Owner provided by view
+        
+        
 # DATASET HANDLING
 
 class DatasetSerializer(serializers.ModelSerializer):

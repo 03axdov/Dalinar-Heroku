@@ -110,6 +110,7 @@
     border: 1px solid var(--border);
     border-radius: 4px;
     font-size: 1rem;
+    font-weight: 550;
     font-family: 'Open Sans', sans-serif; /* 1 */
     box-sizing: border-box;
     outline: none;
@@ -140,7 +141,7 @@
 .dataset-create-label-label {
     color: var(--gray-text);
     margin-right: 10px;
-    width: 45px;
+    min-width: 60px;
 }
 
 .dataset-create-label-row {

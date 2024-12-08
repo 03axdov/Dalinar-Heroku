@@ -80,7 +80,9 @@ class Label(models.Model):
     element = models.ForeignKey(Element, on_delete=models.SET_NULL, related_name="labels", blank=True, null=True)
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="labels", null=True)
     name = models.CharField(max_length=200)
+    owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="labels", null=True)
     color = models.CharField(max_length=7, default="#ffffff") # Hexadecimal format -- #000000
+    keybind = models.CharField(max_length=20, blank=True)
         
     def __str__(self):
         return self.name

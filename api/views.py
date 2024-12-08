@@ -117,3 +117,37 @@ class CreateElementView(APIView):
         
         else:
             return Response({"Bad Request": "An error occured while creating element"})
+        
+        
+# LABEL HANDLING
+
+class CreateLabelView(APIView):
+    serializer_class = CreateLabelSerializer
+    parser_classes = [MultiPartParser, FormParser]
+    
+    def post(self, request, format=None):
+        data = self.request.data
+        serializer = self.serializer_class(data=data)
+        
+        if serializer.is_valid():
+            
+            element_id = data["element"]
+            element = Element.objects.get(id=element_id)
+            
+            user = self.request.user
+            
+            if user.is_authenticated:
+                
+                if user.profile == element.owner:
+                
+                    serializer.save(owner=request.user.profile, dataset=element.dataset)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({'Unauthorized': 'You can only add elements to your own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            else:
+                return Response({'Unauthorized': 'Must be logged in to create elements.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        else:
+            return Response({"Bad Request": "An error occured while creating label"})
