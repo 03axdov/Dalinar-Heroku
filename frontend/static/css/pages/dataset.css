@@ -89,9 +89,9 @@
     right: calc(100% + 20px);
     top: -10px;
     z-index: 2;
-    border: 1px solid var(--border);
+    box-shadow: 0 0 10px black;
     background: var(--sidebar);
-    border-radius: 3px;
+    border-radius: 5px;
     box-sizing: border-box;
     padding: 30px 20px;
 }
@@ -107,26 +107,25 @@
 
 .dataset-create-label-inp {
     padding: 5px 10px;
-    border: 1px solid var(--border);
+    border: none;
     border-radius: 4px;
     font-size: 1rem;
     font-weight: 550;
     font-family: 'Open Sans', sans-serif; /* 1 */
     box-sizing: border-box;
     outline: none;
-    background: var(--background-dark);
+    background: var(--background);
     color: white;
     width: 100%;
 }
 
 .create-label-color-container {
     border-radius: 3px;
-    border: 1px solid var(--border);
-    box-sizing: border-box;
 }
 
 .create-label-submit {
     width: 100%;
+    margin-top: 20px;
     background: var(--gray);
 }
 

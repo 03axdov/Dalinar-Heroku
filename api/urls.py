@@ -11,5 +11,8 @@ urlpatterns = [
     path("create-dataset/", CreateDatasetView.as_view(), name="create-dataset"),
 
     # ELEMENT HANDLING
-    path("create-element/", CreateElementView.as_view(), name="create-element")
+    path("create-element/", CreateElementView.as_view(), name="create-element"),
+    
+    # LABEL HANDLING
+    path("create-label/", CreateLabelView.as_view(), name="create-label"),
 ]

@@ -52,6 +52,21 @@ class Dataset(models.Model):
         return self.name
 
 
+    
+# LABELS
+# Elements in datasets, such as files, are given labels
+    
+class Label(models.Model):
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="labels", null=True)
+    name = models.CharField(max_length=200)
+    owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="labels", null=True)
+    color = models.CharField(max_length=7, default="#ffffff") # Hexadecimal format -- #000000
+    keybind = models.CharField(max_length=20, blank=True)
+        
+    def __str__(self):
+        return self.name
+
+
 # ELEMENTS
 # Datasets contain elements, which can be e.g. files
 
@@ -60,6 +75,7 @@ class Element(models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="elements", null=True)
     name = models.CharField(max_length=100)
     file = models.FileField(upload_to="files/", null=True, validators=[FileExtensionValidator(allowed_extensions=ALLOWED_IMAGE_FILE_EXTENSIONS + ALLOWED_TEXT_FILE_EXTENSIONS)])
+    label = models.ForeignKey(Label, on_delete=models.SET_NULL, related_name="labels", blank=True, null=True)
     
     def __str__(self):
         return self.name
@@ -71,19 +87,3 @@ class Element(models.Model):
             self.name = os.path.basename(self.file.name)
             print(self.file.name)
         super().save(*args, **kwargs)
-
-    
-# LABELS
-# Elements in datasets, such as files, are given labels
-    
-class Label(models.Model):
-    element = models.ForeignKey(Element, on_delete=models.SET_NULL, related_name="labels", blank=True, null=True)
-    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="labels", null=True)
-    name = models.CharField(max_length=200)
-    owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="labels", null=True)
-    color = models.CharField(max_length=7, default="#ffffff") # Hexadecimal format -- #000000
-    keybind = models.CharField(max_length=20, blank=True)
-        
-    def __str__(self):
-        return self.name
-    

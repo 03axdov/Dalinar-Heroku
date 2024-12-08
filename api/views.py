@@ -116,7 +116,7 @@ class CreateElementView(APIView):
                 return Response({'Unauthorized': 'Must be logged in to create elements.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         else:
-            return Response({"Bad Request": "An error occured while creating element"})
+            return Response({"Bad Request": "An error occured while creating element"}, status=status.HTTP_400_BAD_REQUEST)
         
         
 # LABEL HANDLING
@@ -131,23 +131,23 @@ class CreateLabelView(APIView):
         
         if serializer.is_valid():
             
-            element_id = data["element"]
-            element = Element.objects.get(id=element_id)
+            dataset_id = data["dataset"]
+            dataset = Dataset.objects.get(id=dataset_id)
             
             user = self.request.user
             
             if user.is_authenticated:
                 
-                if user.profile == element.owner:
+                if user.profile == dataset.owner:
                 
-                    serializer.save(owner=request.user.profile, dataset=element.dataset)
+                    serializer.save(owner=request.user.profile)
                     return Response(serializer.data, status=status.HTTP_200_OK)
                 
                 else:
-                    return Response({'Unauthorized': 'You can only add elements to your own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
+                    return Response({'Unauthorized': 'Users can only add labels to their  own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
             
             else:
-                return Response({'Unauthorized': 'Must be logged in to create elements.'}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response({'Unauthorized': 'Users must be logged in to create labels.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         else:
-            return Response({"Bad Request": "An error occured while creating label"})
+            return Response({"Bad Request": "An error occured while creating label. Invalid input."}, status=status.HTTP_400_BAD_REQUEST)

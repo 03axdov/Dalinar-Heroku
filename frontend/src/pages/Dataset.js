@@ -15,7 +15,9 @@ function Dataset() {
     const [loading, setLoading] = useState(true)
     
     const [displayCreateLabel, setDisplayCreateLabel] = useState(false)
-    const [selectedColor, setSelectedColor] = useState("#07E5E9")
+    const [createLabelName, setCreateLabelName] = useState("")
+    const [createLabelColor, setCreateLabelColor] = useState("#07E5E9")
+    const [createLabelKeybind, setCreateLabelKeybind] = useState("")
     
     const [keybinding, setKeybinding] = useState('');
 
@@ -29,14 +31,31 @@ function Dataset() {
         getDataset()
     }, [])
 
+
+    function getUserPressKeycode(event) {
+        const keys = [];
+        if (event.ctrlKey) keys.push('Ctrl');
+        if (event.shiftKey) keys.push('Shift');
+        if (event.altKey) keys.push('Alt');
+        if (event.metaKey) keys.push('Meta'); // For Mac's Command key
+        if (event.key && !['Control', 'Shift', 'Alt', 'Meta'].includes(event.key)) {
+          keys.push(event.key); // Add the actual key
+        }
+        return keys.join('+')
+    }
+
+
+    // Handles user button presses
     useEffect(() => {
         const handleKeyDown = (event) => {
 
             if (loading) {return};
+
+            let key = getUserPressKeycode(event)
             
-            if (event.key === "ArrowDown" || event.key === "ArrowRight") {    
+            if (key === "ArrowDown" || key === "ArrowRight") {    
                 setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
-            } else if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+            } else if (key === "ArrowUp" || key === "ArrowLeft") {
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
             }
         };
@@ -162,20 +181,43 @@ function Dataset() {
         if (event.key == "ArrowUp" || event.key == "ArrowDown" || event.key == "ArrowLeft" || event.key == "ArrowRight") {
             return; // Binded to scrolling through elements already
         }
-
-        const keys = [];
-        if (event.ctrlKey) keys.push('Ctrl');
-        if (event.shiftKey) keys.push('Shift');
-        if (event.altKey) keys.push('Alt');
-        if (event.metaKey) keys.push('Meta'); // For Mac's Command key
-        if (event.key && !['Control', 'Shift', 'Alt', 'Meta'].includes(event.key)) {
-          keys.push(event.key); // Add the actual key
-        }
     
-        setKeybinding(keys.join('+'));
+        setCreateLabelKeybind(getUserPressKeycode(event));
     };
 
-    console.log(keybinding)
+    
+    function createLabelSubmit(e) {
+        e.preventDefault()
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        let formData = new FormData()
+
+        formData.append('name', createLabelName)
+        formData.append('color', createLabelColor)
+        formData.append('keybind', createLabelKeybind)
+        formData.append('dataset', dataset.id)
+
+        const URL = window.location.origin + '/api/create-label/'
+        const config = {headers: {'Content-Type': 'multipart/form-data'}}
+
+        axios.post(URL, formData, config)
+        .then((data) => {
+            console.log("Success: ", data)
+            setCreateLabelName("")
+            setCreateLabelColor("#07E5E9")
+            setCreateLabelKeybind("")
+            
+            getDataset()
+            setDisplayCreateLabel(false)
+
+        }).catch((error) => {
+            alert("Error: ", error)
+        })
+
+    }
 
 
     return (
@@ -213,28 +255,30 @@ function Dataset() {
                         {(displayCreateLabel ? "- Hide form" : "+ Add label")}
                     </button>
                     <div className="dataset-create-label-container" style={{display: (displayCreateLabel ? "flex" : "none")}}>
-                        <form className="dataset-create-label-form">
+                        <form className="dataset-create-label-form" onSubmit={createLabelSubmit}>
                             <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" for="label-name-inp">Name</label>
-                                <input id="label-name-inp" className="dataset-create-label-inp" type="text" placeholder="Name" />
+                                <label className="dataset-create-label-label" htmlFor="label-name-inp">Name</label>
+                                <input id="label-name-inp" className="dataset-create-label-inp" type="text" placeholder="Name" value={createLabelName} onChange={(e) => {
+                                    setCreateLabelName(e.target.value)
+                                }}/>
                             </div>
                             
                             <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" for="label-color-inp">Color</label>
-                                <div className="create-label-color-container" style={{background: selectedColor}}>
-                                    <input id="label-color-inp" className="dataset-create-label-color" type="color" value={selectedColor} onChange={(e) => {
-                                        setSelectedColor(e.target.value)
+                                <label className="dataset-create-label-label" htmlFor="label-color-inp">Color</label>
+                                <div className="create-label-color-container" style={{background: createLabelColor}}>
+                                    <input id="label-color-inp" className="dataset-create-label-color" type="color" value={createLabelColor} onChange={(e) => {
+                                        setCreateLabelColor(e.target.value)
                                     }} />
                                 </div>
                             </div>
 
                             <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" for="keybinding">Keybind</label>
+                                <label className="dataset-create-label-label" htmlFor="keybinding">Keybind</label>
                                 <input
                                     id="keybinding"
                                     className="dataset-create-label-inp"
                                     type="text"
-                                    value={keybinding}
+                                    value={createLabelKeybind}
                                     onKeyDown={handleKeyDown}
                                     placeholder="Press keys..."
                                     readOnly
