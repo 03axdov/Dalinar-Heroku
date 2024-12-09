@@ -62,6 +62,11 @@
     margin-right: 10px;
 }
 
+.dataset-sidebar-color-element {
+    margin-left: 10px;
+    margin-right: 0;
+}
+
 .dataset-sidebar-element:hover {
     background: var(--sidebar-light);
     cursor: pointer;

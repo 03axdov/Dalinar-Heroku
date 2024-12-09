@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from rest_framework.response import Response
 from django.db.models import Q, Count
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.urls import resolve
 
 from .serializers import *
@@ -117,6 +117,34 @@ class CreateElementView(APIView):
         
         else:
             return Response({"Bad Request": "An error occured while creating element"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+class EditElement(APIView):   # Currently only used for labelling
+    serializer_class = EditElementSerializer
+    parser_classes = [JSONParser]
+
+    def post(self, request, format=None):   # A put request may fit better, post for now
+        label = request.data["label"]
+        element_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                element = Element.objects.get(id=element_id)
+                if element.owner == user.profile:
+                    element.label = label
+                    element.save()
+                
+                    serializer = self.serializer_class(instance)
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({'Unauthorized': 'You can only edit your own elements.'}, status=status.HTTP_401_UNAUTHORIZED)
+            except Element.DoesNotExist:
+                return Response({'Not found': 'Could not find element with the id ' + str(element_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to edit elements.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         
 # LABEL HANDLING

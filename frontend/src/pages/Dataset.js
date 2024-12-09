@@ -19,7 +19,8 @@ function Dataset() {
     const [createLabelColor, setCreateLabelColor] = useState("#07E5E9")
     const [createLabelKeybind, setCreateLabelKeybind] = useState("")
     
-    const [keybinding, setKeybinding] = useState('');
+    const [labelKeybinds, setLabelKeybinds] = useState({})
+    const [idToLabel, setIdToLabel] = useState({})
 
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
@@ -44,7 +45,6 @@ function Dataset() {
         return keys.join('+')
     }
 
-
     // Handles user button presses
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -57,6 +57,8 @@ function Dataset() {
                 setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
             } else if (key === "ArrowUp" || key === "ArrowLeft") {
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
+            } else if (labelKeybinds[key]) {
+                console.log(key)
             }
         };
     
@@ -76,8 +78,25 @@ function Dataset() {
         })
         .then((res) => {
             setDataset(res.data)
+
+            console.log(res.data.elements)
+
             setElements(res.data.elements)
             setLabels(res.data.labels)
+
+            if (res.data.labels) {
+                let tempObjKeys = {}
+                let tempObjIds = {}
+                for (let i=0; i < res.data.labels.length; i++) {
+                    if (res.data.labels[i].keybind) {
+                        tempObjKeys[res.data.labels[i].keybind] = res.data.labels[i].id
+                    }
+                    tempObjIds[res.data.labels[i].id] = res.data.labels[i]
+                }
+
+                setLabelKeybinds(tempObjKeys)
+                setIdToLabel(tempObjIds)
+            }
 
             setLoading(false)
         }).catch((err) => {
@@ -105,6 +124,7 @@ function Dataset() {
         }
     }
 
+
     function folderInputClick() {
         if (hiddenFolderInputRef.current) {
             hiddenFolderInputRef.current.click();
@@ -116,6 +136,7 @@ function Dataset() {
             hiddenFileInputRef.current.click();
         }
     }
+
 
     function elementFilesUploaded(e) {
         let files = e.target.files
@@ -236,7 +257,10 @@ function Dataset() {
                 {elements.map((element, idx) => (
                     <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
                     key={element.id} 
-                    onClick={() => setElementsIndex(idx)}>{element.name}</div>
+                    onClick={() => setElementsIndex(idx)}>
+                        {element.name}
+                        {idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}></span>}
+                    </div>
                 ))}
                 {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
             </div>

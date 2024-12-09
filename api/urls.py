@@ -12,6 +12,7 @@ urlpatterns = [
 
     # ELEMENT HANDLING
     path("create-element/", CreateElementView.as_view(), name="create-element"),
+    path("edit-element/", EditElement.as_view(), name="edit-element"),
     
     # LABEL HANDLING
     path("create-label/", CreateLabelView.as_view(), name="create-label"),
