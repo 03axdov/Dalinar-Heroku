@@ -231,13 +231,38 @@ function Dataset() {
             setCreateLabelColor("#07E5E9")
             setCreateLabelKeybind("")
             
-            getDataset()
+            getDataset() // Ineffective and temporary
             setDisplayCreateLabel(false)
 
         }).catch((error) => {
             alert("Error: ", error)
         })
 
+    }
+
+
+    function labelOnClick(label) {
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';
+
+        const URL = window.location.origin + '/api/edit-element/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        const data = {
+            "label": label.id,
+            "id": elements[elementsIndex].id
+        }
+
+        axios.post(URL, data, config)
+        .then((res) => {
+            getDataset()    // Ineffective and temporary
+            console.log("COMPLETE")
+        })
+        .catch((err) => {
+            alert(err)
+            console.log(err)
+        })
     }
 
 
@@ -316,7 +341,7 @@ function Dataset() {
                 </div>
                 
                 {labels.map((label) => (
-                    <div className="dataset-sidebar-element" key={label.id}>
+                    <div className="dataset-sidebar-element" key={label.id} onClick={() => labelOnClick(label)}>
                         <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
                         {label.name}
                     </div>

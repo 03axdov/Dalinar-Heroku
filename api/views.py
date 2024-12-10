@@ -124,24 +124,28 @@ class EditElement(APIView):   # Currently only used for labelling
     parser_classes = [JSONParser]
 
     def post(self, request, format=None):   # A put request may fit better, post for now
-        label = request.data["label"]
+        label_id = request.data["label"]
         element_id = request.data["id"]
         
         user = self.request.user
         
         if user.is_authenticated:
+            found_element = False
             try:
                 element = Element.objects.get(id=element_id)
+                found_element = True
+                
+                label = Label.objects.get(id=label_id)
                 if element.owner == user.profile:
                     element.label = label
                     element.save()
                 
-                    serializer = self.serializer_class(instance)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
+                    return Response(None, status=status.HTTP_200_OK)
                 
                 else:
                     return Response({'Unauthorized': 'You can only edit your own elements.'}, status=status.HTTP_401_UNAUTHORIZED)
-            except Element.DoesNotExist:
+            except Element.DoesNotExist or Label.DoesNotExist:
+                if found_element: return Response({'Not found': 'Could not find label with the id ' + str(label_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
                 return Response({'Not found': 'Could not find element with the id ' + str(element_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to edit elements.'}, status=status.HTTP_401_UNAUTHORIZED)
