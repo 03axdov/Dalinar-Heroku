@@ -185,3 +185,10 @@
     width: 97%;
     text-align: center;
 }
+
+.dataset-sidebar-icon {
+    height: 15px;
+    width: 15px;
+    margin-right: 10px;
+    border-radius: 8px;
+}

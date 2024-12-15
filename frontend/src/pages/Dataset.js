@@ -84,6 +84,7 @@ function Dataset() {
             setElements(res.data.elements)
             setLabels(res.data.labels)
 
+            // Update keybinds
             if (res.data.labels) {
                 let tempObjKeys = {}
                 let tempObjIds = {}
@@ -108,6 +109,8 @@ function Dataset() {
         })
     }
 
+
+    // ELEMENT FUNCTIONALITY
 
     const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp"])
     const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
@@ -196,6 +199,30 @@ function Dataset() {
     }
 
 
+    // LABEL FUNCTIONALITY
+
+
+    function getLabels() {
+        setLoading(true)
+        
+        axios({
+            method: 'GET',
+            url: window.location.origin + '/api/dataset-labels?dataset=' + id,
+        })
+        .then((res) => {
+            setLabels(res.data)
+
+            console.log(res.data)
+
+            setLoading(false)
+        }).catch((err) => {
+            alert("An error occured when loading labels for dataset with id " + id + ".")
+            console.log(err)
+            setLoading(false)
+        })
+    }
+
+
     const handleKeyDown = (event) => {
         event.preventDefault(); // Prevent default behavior
     
@@ -231,7 +258,7 @@ function Dataset() {
             setCreateLabelColor("#07E5E9")
             setCreateLabelKeybind("")
             
-            getDataset() // Ineffective and temporary
+            getLabels()
             setDisplayCreateLabel(false)
 
         }).catch((error) => {
@@ -251,6 +278,29 @@ function Dataset() {
 
         const data = {
             "label": label.id,
+            "id": elements[elementsIndex].id
+        }
+
+        axios.post(URL, data, config)
+        .then((res) => {
+            getDataset()    // Ineffective and temporary
+            console.log("COMPLETE")
+        })
+        .catch((err) => {
+            alert(err)
+            console.log(err)
+        })
+    }
+
+    function removeCurrentElementLabel() {
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';
+
+        const URL = window.location.origin + '/api/remove-element-label/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        const data = {
             "id": elements[elementsIndex].id
         }
 
@@ -339,14 +389,16 @@ function Dataset() {
                         </form>
                     </div>
                 </div>
-                
+                <div className="dataset-sidebar-element" onClick={removeCurrentElementLabel}>
+                    <img className="dataset-sidebar-icon" src={window.location.origin + "/static/images/cross.svg"}/>
+                    Clear label
+                </div>
                 {labels.map((label) => (
                     <div className="dataset-sidebar-element" key={label.id} onClick={() => labelOnClick(label)}>
                         <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
                         {label.name}
                     </div>
                 ))}
-                {labels.length == 0 && !loading && <p className="dataset-no-items">Labels will show here</p>}
             </div>
         </div>
     )

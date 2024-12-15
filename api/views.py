@@ -151,6 +151,32 @@ class EditElement(APIView):   # Currently only used for labelling
             return Response({'Unauthorized': 'Must be logged in to edit elements.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         
+class RemoveElementLabel(APIView):
+    serializer_class = EditElementSerializer
+    parser_classes = [JSONParser]
+
+    def post(self, request, format=None):   # A put request may fit better, post for now
+        element_id = request.data["id"]
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                element = Element.objects.get(id=element_id)
+
+                if element.owner == user.profile:
+                    element.label = None
+                    element.save()
+                
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({'Unauthorized': 'You can only edit your own elements.'}, status=status.HTTP_401_UNAUTHORIZED)
+            except Element.DoesNotExist:
+                return Response({'Not found': 'Could not find element with the id ' + str(element_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to edit elements.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
 # LABEL HANDLING
 
 class CreateLabelView(APIView):
@@ -183,3 +209,17 @@ class CreateLabelView(APIView):
         
         else:
             return Response({"Bad Request": "An error occured while creating label. Invalid input."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+class GetDatasetLabels(generics.ListAPIView):
+    serializer_class = LabelSerializer
+    permission_classes  = [AllowAny]
+    
+    def get_queryset(self):
+        dataset = self.request.query_params.get("dataset", None)
+        labels = []
+        
+        if dataset:
+            labels = Label.objects.filter(dataset=int(dataset))
+    
+        return labels

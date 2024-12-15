@@ -13,7 +13,9 @@ urlpatterns = [
     # ELEMENT HANDLING
     path("create-element/", CreateElementView.as_view(), name="create-element"),
     path("edit-element/", EditElement.as_view(), name="edit-element"),
+    path("remove-element-label/", RemoveElementLabel.as_view(), name="remove-element-label"),
     
     # LABEL HANDLING
     path("create-label/", CreateLabelView.as_view(), name="create-label"),
+    path("dataset-labels/", GetDatasetLabels.as_view(), name="dataset-labels")
 ]
