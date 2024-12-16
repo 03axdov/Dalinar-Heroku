@@ -22,6 +22,8 @@ function Dataset() {
     const [labelKeybinds, setLabelKeybinds] = useState({})
     const [idToLabel, setIdToLabel] = useState({})
 
+    const [hoveredElement, setHoveredElement] = useState(null)
+
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
 
@@ -334,7 +336,13 @@ function Dataset() {
                     key={element.id} 
                     onClick={() => setElementsIndex(idx)}>
                         {element.name}
-                        {idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}></span>}
+                        {idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
+                                                           style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
+                                                           onMouseEnter={() => {setHoveredElement(idx)}}
+                                                           onMouseLeave={() => {setHoveredElement(null)}}>
+                            {hoveredElement == idx && <div className="dataset-sidebar-element-label">{idToLabel[element.label].name}</div>}
+                            
+                        </span>}
                     </div>
                 ))}
                 {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}

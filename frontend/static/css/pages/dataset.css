@@ -16,6 +16,7 @@
 
 .dataset-elements {
     width: var(--dataset-elements-width);
+    z-index: 2;
 }
 
 .dataset-labels {
@@ -52,6 +53,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
+    z-index: 1;
 }
 
 .dataset-sidebar-color {
@@ -60,6 +62,7 @@
     border-radius: 8px;
     display: inline-block;
     margin-right: 10px;
+    position: relative;
 }
 
 .dataset-sidebar-color-element {
@@ -191,4 +194,12 @@
     width: 15px;
     margin-right: 10px;
     border-radius: 8px;
+}
+
+.dataset-sidebar-element-label {
+    position: absolute;
+    left: calc(100% + 10px);
+    background: var(--toolbar-dark);
+    padding: 5px 7px;
+    box-shadow: 0 0 0 1px var(--border);
 }
