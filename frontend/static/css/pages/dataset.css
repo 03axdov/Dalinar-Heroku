@@ -52,7 +52,7 @@
     align-items: center;
     white-space: nowrap;
     text-overflow: ellipsis;
-    overflow: hidden;
+    overflow: visible;
     z-index: 1;
 }
 
@@ -68,6 +68,10 @@
 .dataset-sidebar-color-element {
     margin-left: 10px;
     margin-right: 0;
+    overflow: visible;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 .dataset-sidebar-element:hover {
@@ -202,4 +206,23 @@
     background: var(--toolbar-dark);
     padding: 5px 7px;
     box-shadow: 0 0 0 1px var(--border);
+}
+
+.dataset-download-button {
+    width: 100%;
+    border-radius: 3px;
+    transition: 0.1s;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.dataset-download-button:hover {
+    background: var(--blue);
+}
+
+.dataset-download-icon {
+    height: 17px;
+    margin-right: 10px;
 }

@@ -328,6 +328,10 @@ function Dataset() {
             <div className="dataset-elements">
                 <p className="dataset-sidebar-title">Elements</p>
                 <div className="dataset-sidebar-button-container">
+                    <button className="sidebar-button dataset-download-button"><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>
+                </div>
+                
+                <div className="dataset-sidebar-button-container">
                     <button type="button" className="sidebar-button" onClick={folderInputClick}>+ Upload folder</button>
                     <button type="button" className="sidebar-button dataset-upload-button dataset-upload-files-button" onClick={fileInputClick}>+ Upload files</button>
                 </div>
@@ -335,7 +339,7 @@ function Dataset() {
                     <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
                     key={element.id} 
                     onClick={() => setElementsIndex(idx)}>
-                        {element.name}
+                        {(element.name.length < 20 ? element.name : element.name.substring(0, 20) + "...")}
                         {idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
                                                            style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
                                                            onMouseEnter={() => {setHoveredElement(idx)}}
