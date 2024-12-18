@@ -19,10 +19,11 @@ function Dataset() {
     const [createLabelColor, setCreateLabelColor] = useState("#07E5E9")
     const [createLabelKeybind, setCreateLabelKeybind] = useState("")
     
-    const [labelKeybinds, setLabelKeybinds] = useState({})
+    const [labelKeybinds, setLabelKeybinds] = useState({})  // Key: keybind, value: pointer to label
     const [idToLabel, setIdToLabel] = useState({})
 
     const [hoveredElement, setHoveredElement] = useState(null)
+    const [datasetMainLabelColor, setDatasetMainLabelColor] = useState("transparent") // Used to load image in low res first
 
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
@@ -60,7 +61,8 @@ function Dataset() {
             } else if (key === "ArrowUp" || key === "ArrowLeft") {
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
             } else if (labelKeybinds[key]) {
-                console.log(key)
+                console.log(labelKeybinds)
+                labelOnClick(labelKeybinds[key])
             }
         };
     
@@ -87,19 +89,7 @@ function Dataset() {
             setLabels(res.data.labels)
 
             // Update keybinds
-            if (res.data.labels) {
-                let tempObjKeys = {}
-                let tempObjIds = {}
-                for (let i=0; i < res.data.labels.length; i++) {
-                    if (res.data.labels[i].keybind) {
-                        tempObjKeys[res.data.labels[i].keybind] = res.data.labels[i].id
-                    }
-                    tempObjIds[res.data.labels[i].id] = res.data.labels[i]
-                }
-
-                setLabelKeybinds(tempObjKeys)
-                setIdToLabel(tempObjIds)
-            }
+            parseLabels(res.data.labels)
 
             setLoading(false)
         }).catch((err) => {
@@ -122,6 +112,7 @@ function Dataset() {
         
         if (IMAGE_FILE_EXTENSIONS.has(extension)) {
             return <img className="dataset-element-view-image" src={window.location.origin + element.file} />
+
         } else if (TEXT_FILE_EXTENSIONS.has(extension)) {
             return <p className="dataset-element-view-text"></p>
         } else {
@@ -204,6 +195,23 @@ function Dataset() {
     // LABEL FUNCTIONALITY
 
 
+    function parseLabels(labels) {
+        if (labels) {
+            let tempObjKeys = {}
+            let tempObjIds = {}
+            for (let i=0; i < labels.length; i++) {
+                if (labels[i].keybind) {
+                    tempObjKeys[labels[i].keybind] = labels[i]
+                }
+                tempObjIds[labels[i].id] = labels[i]
+            }
+
+            setLabelKeybinds(tempObjKeys)
+            setIdToLabel(tempObjIds)
+        }
+    }
+
+
     function getLabels() {
         setLoading(true)
         
@@ -215,6 +223,7 @@ function Dataset() {
             setLabels(res.data)
 
             console.log(res.data)
+            parseLabels(res.data)
 
             setLoading(false)
         }).catch((err) => {
@@ -283,10 +292,23 @@ function Dataset() {
             "id": elements[elementsIndex].id
         }
 
+        setLoading(true)
+
+        setDatasetMainLabelColor(label.color)
+        console.log(label.color)
+        setTimeout(() => {
+            setDatasetMainLabelColor("transparent")
+        }, 100)
+
         axios.post(URL, data, config)
         .then((res) => {
-            getDataset()    // Ineffective and temporary
+            console.log(res)
+            if (res.data) {
+                elements[elementsIndex] = res.data
+            }
             console.log("COMPLETE")
+            setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
+            setLoading(false)
         })
         .catch((err) => {
             alert(err)
@@ -338,12 +360,13 @@ function Dataset() {
                 {elements.map((element, idx) => (
                     <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
                     key={element.id} 
-                    onClick={() => setElementsIndex(idx)}>
+                    onClick={() => setElementsIndex(idx)}
+                    onMouseEnter={() => {setHoveredElement(idx)}}
+                    onMouseLeave={() => {setHoveredElement(null)}}>
                         {(element.name.length < 20 ? element.name : element.name.substring(0, 20) + "...")}
                         {idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
-                                                           style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
-                                                           onMouseEnter={() => {setHoveredElement(idx)}}
-                                                           onMouseLeave={() => {setHoveredElement(null)}}>
+                                                        style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
+                                                    >
                             {hoveredElement == idx && <div className="dataset-sidebar-element-label">{idToLabel[element.label].name}</div>}
                             
                         </span>}
@@ -353,6 +376,7 @@ function Dataset() {
             </div>
 
             <div className="dataset-main">
+                <div className="dataset-main-label-clicked" style={{background: datasetMainLabelColor}}></div>
                 {(elements.length == 0 && !loading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>Upload folder</button>}
                 {elements.length != 0 && <div className="dataset-element-view-container">
                     {getPreviewElement(elements[elementsIndex])}
@@ -409,6 +433,9 @@ function Dataset() {
                     <div className="dataset-sidebar-element" key={label.id} onClick={() => labelOnClick(label)}>
                         <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
                         {label.name}
+                        <div className="dataset-label-expanded">
+
+                        </div>
                     </div>
                 ))}
             </div>

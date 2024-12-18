@@ -27,7 +27,7 @@ class CreateElementSerializer(serializers.ModelSerializer):
 class EditElementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Element
-        fields = ("label")
+        fields = ("label",)
         
 # LABEL HANDLING
 

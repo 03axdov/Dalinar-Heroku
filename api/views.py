@@ -140,7 +140,7 @@ class EditElement(APIView):   # Currently only used for labelling
                     element.label = label
                     element.save()
                 
-                    return Response(None, status=status.HTTP_200_OK)
+                    return Response(ElementSerializer(element).data, status=status.HTTP_200_OK)
                 
                 else:
                     return Response({'Unauthorized': 'You can only edit your own elements.'}, status=status.HTTP_401_UNAUTHORIZED)
