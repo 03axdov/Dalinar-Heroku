@@ -24,6 +24,7 @@ function Dataset() {
 
     const [hoveredElement, setHoveredElement] = useState(null)
     const [datasetMainLabelColor, setDatasetMainLabelColor] = useState("transparent") // Used to load image in low res first
+    const [editingLabel, setEditingLabel] = useState(null) // Either null or pointer to label
 
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
@@ -340,8 +341,13 @@ function Dataset() {
     }
 
 
+    function closePopups() {
+        setEditingLabel(null)
+    }
+
+
     return (
-        <div className="dataset-container">
+        <div className="dataset-container" onClick={closePopups}>
 
             {/* Uploading folders / files to elements goes through these */}
             <input id="dataset-file-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFolderInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
@@ -376,7 +382,7 @@ function Dataset() {
             </div>
 
             <div className="dataset-main">
-                <div className="dataset-main-label-clicked" style={{background: datasetMainLabelColor}}></div>
+                <div title="Will show color of pressed label" className="dataset-main-label-clicked" style={{background: datasetMainLabelColor}}></div>
                 {(elements.length == 0 && !loading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>Upload folder</button>}
                 {elements.length != 0 && <div className="dataset-element-view-container">
                     {getPreviewElement(elements[elementsIndex])}
@@ -432,9 +438,21 @@ function Dataset() {
                 {labels.map((label) => (
                     <div className="dataset-sidebar-element" key={label.id} onClick={() => labelOnClick(label)}>
                         <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
-                        {label.name}
-                        <div className="dataset-label-expanded">
+                        {(label.name.length < 20 ? label.name : label.name.substring(0, 20) + "...")}
+                        <img title="Edit label" 
+                            className="dataset-sidebar-options" 
+                            src={window.location.origin + "/static/images/options.png"}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                if (editingLabel == label.id) {
+                                    setEditingLabel(null)
+                                } else {
+                                    setEditingLabel(label.id)
+                                }
 
+                            }}/>
+                        <div className="dataset-label-expanded" style={{display: (editingLabel == label.id ? "flex" : "none")}}>
+                            
                         </div>
                     </div>
                 ))}

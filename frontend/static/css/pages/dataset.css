@@ -54,6 +54,7 @@
     text-overflow: ellipsis;
     overflow: visible;
     z-index: 1;
+    position: relative;
 }
 
 .dataset-sidebar-color {
@@ -63,6 +64,21 @@
     display: inline-block;
     margin-right: 10px;
     position: relative;
+}
+
+.dataset-sidebar-options {
+    height: 20px;
+    width: 20px;
+    border-radius: 10px;
+    padding: 3px;
+    box-sizing: border-box;
+    display: inline-block;
+    margin-left: auto;
+    position: relative;
+}
+
+.dataset-sidebar-options:hover {
+    background: var(--sidebar-lighter)
 }
 
 .dataset-sidebar-color-element {
@@ -95,17 +111,21 @@
     position: relative;
 }
 
-.dataset-create-label-container {
+.dataset-create-label-container, .dataset-label-expanded {
     position: absolute;
     width: 300px;
     right: calc(100% + 20px);
     top: -10px;
     z-index: 2;
-    box-shadow: 0 0 10px black;
+    box-shadow: 0 0 0 1px var(--border);
     background: var(--sidebar);
     border-radius: 5px;
     box-sizing: border-box;
     padding: 30px 20px;
+}
+
+.dataset-label-expanded {
+    top: 0;
 }
 
 .dataset-create-label-form {
@@ -234,5 +254,6 @@
     right: 30px;
     width: 45px;
     height: 45px;
-    border-radius: 5px;
+    border-radius: 25px;
+    box-shadow: 0 0 0 2px var(--border);
 }
