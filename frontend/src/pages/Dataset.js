@@ -24,7 +24,11 @@ function Dataset() {
 
     const [hoveredElement, setHoveredElement] = useState(null)
     const [datasetMainLabelColor, setDatasetMainLabelColor] = useState("transparent") // Used to load image in low res first
+
     const [editingLabel, setEditingLabel] = useState(null) // Either null or pointer to label
+    const [editingLabelName, setEditingLabelName] = useState("")
+    const [editingLabelColor, setEditingLabelColor] = useState("")
+    const [editingLabelKeybind, setEditingLabelKeybind] = useState("")
 
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
@@ -235,14 +239,19 @@ function Dataset() {
     }
 
 
-    const handleKeyDown = (event) => {
+    const handleKeyDown = (event, type="creating-label") => {
         event.preventDefault(); // Prevent default behavior
     
         if (event.key == "ArrowUp" || event.key == "ArrowDown" || event.key == "ArrowLeft" || event.key == "ArrowRight") {
             return; // Binded to scrolling through elements already
         }
     
-        setCreateLabelKeybind(getUserPressKeycode(event));
+        if (type == "creating-label") {
+            setCreateLabelKeybind(getUserPressKeycode(event));
+        } else if (type == "editing-label") {
+            setEditingLabelKeybind(getUserPressKeycode(event));
+        }
+        
     };
 
     
@@ -261,7 +270,7 @@ function Dataset() {
         formData.append('dataset', dataset.id)
 
         const URL = window.location.origin + '/api/create-label/'
-        const config = {headers: {'Content-Type': 'multipart/form-data'}}
+        const config = {headers: {'Content-Type': 'application/json'}}
 
         axios.post(URL, formData, config)
         .then((data) => {
@@ -341,8 +350,52 @@ function Dataset() {
     }
 
 
-    function closePopups() {
-        setEditingLabel(null)
+    function editLabelOnSubmit(e) {
+        e.preventDefault()
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        let formData = new FormData()
+
+        formData.append("label", editingLabel)
+        formData.append('name', editingLabelName)
+        formData.append('color', editingLabelColor)
+        formData.append('keybind', editingLabelKeybind)
+
+        const URL = window.location.origin + '/api/edit-label/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        setLoading(true)
+        axios.post(URL, formData, config)
+        .then((data) => {
+            console.log("Success: ", data)
+            
+            getLabels()
+
+            setEditingLabel(null)
+
+        }).catch((error) => {
+            alert("Error: ", error)
+
+        }).finally(() => {
+            setLoading(false)
+        })
+    }
+
+
+    // FRONTEND FUNCTIONALITY
+
+
+    function closePopups(exception) {
+        if (exception != "editing-label") {
+            setEditingLabel(null)
+        }
+        if (exception != "create-label") {
+            setDisplayCreateLabel(false)
+        }
+        
     }
 
 
@@ -392,10 +445,16 @@ function Dataset() {
             <div className="dataset-labels">
                 <p className="dataset-sidebar-title">Labels</p>
                 <div className="dataset-sidebar-button-container">
-                    <button type="button" className="sidebar-button" onClick={() => {setDisplayCreateLabel(!displayCreateLabel)}}>
+                    <button type="button" className="sidebar-button" onClick={(e) => {
+                        e.stopPropagation()
+                        closePopups("create-label")
+                        setDisplayCreateLabel(!displayCreateLabel)
+                    }}>
                         {(displayCreateLabel ? "- Hide form" : "+ Add label")}
                     </button>
-                    <div className="dataset-create-label-container" style={{display: (displayCreateLabel ? "flex" : "none")}}>
+                    <div className="dataset-create-label-container" 
+                        style={{display: (displayCreateLabel ? "flex" : "none")}}
+                        onClick={(e) => e.stopPropagation()}>
                         <form className="dataset-create-label-form" onSubmit={createLabelSubmit}>
                             <div className="dataset-create-label-row">
                                 <label className="dataset-create-label-label" htmlFor="label-name-inp">Name</label>
@@ -444,16 +503,52 @@ function Dataset() {
                             src={window.location.origin + "/static/images/options.png"}
                             onClick={(e) => {
                                 e.stopPropagation()
+                                closePopups("editing-label")
                                 if (editingLabel == label.id) {
                                     setEditingLabel(null)
                                 } else {
+                                    setEditingLabelName(label.name)
+                                    setEditingLabelColor(label.color)
+                                    setEditingLabelKeybind(label.keybind)
                                     setEditingLabel(label.id)
                                 }
 
                             }}/>
-                        <div className="dataset-label-expanded" style={{display: (editingLabel == label.id ? "flex" : "none")}}>
-                            
-                        </div>
+                        {editingLabel == label.id && <div className="dataset-label-expanded" onClick={(e) => {e.stopPropagation()}}>
+                            <form className="dataset-create-label-form" onSubmit={editLabelOnSubmit}>
+                                <div className="dataset-create-label-row">
+                                    <label className="dataset-create-label-label" htmlFor="label-name-inp">Name</label>
+                                    <input id="label-name-inp" className="dataset-create-label-inp" type="text" placeholder="Name" value={editingLabelName} onChange={(e) => {
+                                        setEditingLabelName(e.target.value)
+                                    }}/>
+                                </div>
+                                
+                                <div className="dataset-create-label-row">
+                                    <label className="dataset-create-label-label" htmlFor="label-color-inp">Color</label>
+                                    <div className="create-label-color-container" style={{background: editingLabelColor}}>
+                                        <input id="label-color-inp" className="dataset-create-label-color" type="color" value={editingLabelColor} onChange={(e) => {
+                                            setEditingLabelColor(e.target.value)
+                                        }} />
+                                    </div>
+                                </div>
+
+                                <div className="dataset-create-label-row">
+                                    <label className="dataset-create-label-label" htmlFor="keybinding">Keybind</label>
+                                    <input
+                                        id="keybinding"
+                                        className="dataset-create-label-inp"
+                                        type="text"
+                                        value={editingLabelKeybind}
+                                        onKeyDown={(e) => {handleKeyDown(e, "editing-label")}}
+                                        placeholder="Press keys..."
+                                        readOnly
+                                    />
+                                </div>
+
+                                <button type="submit" className="create-label-submit">Save</button>
+                                
+                            </form>
+                        </div>}
                     </div>
                 ))}
             </div>

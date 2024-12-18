@@ -126,6 +126,8 @@
 
 .dataset-label-expanded {
     top: 0;
+    display: flex;
+    cursor: default;
 }
 
 .dataset-create-label-form {

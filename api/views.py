@@ -72,7 +72,7 @@ class GetDataset(APIView):
             return Response({'Unauthorized': 'Must be logged in to get datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         
-class CreateDatasetView(APIView):
+class CreateDataset(APIView):
     serializer_class = CreateDatasetSerializer
     parser_classes = [MultiPartParser, FormParser]
     
@@ -87,7 +87,7 @@ class CreateDatasetView(APIView):
     
 # ELEMENT HANDLING
 
-class CreateElementView(APIView):
+class CreateElement(APIView):
     serializer_class = CreateElementSerializer
     parser_classes = [MultiPartParser, FormParser]
     
@@ -179,9 +179,9 @@ class RemoveElementLabel(APIView):
         
 # LABEL HANDLING
 
-class CreateLabelView(APIView):
+class CreateLabel(APIView):
     serializer_class = CreateLabelSerializer
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [JSONParser]
     
     def post(self, request, format=None):
         data = self.request.data
@@ -223,3 +223,35 @@ class GetDatasetLabels(generics.ListAPIView):
             labels = Label.objects.filter(dataset=int(dataset))
     
         return labels
+    
+    
+class EditLabel(APIView):
+    serializer_class = EditLabelSerializer
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        label_id = request.data["label"]
+        name = request.data["name"]
+        color = request.data["color"]
+        keybind = request.data["keybind"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                label = Label.objects.get(id=label_id)
+                
+                if label.owner == user.profile:
+                    label.name = name
+                    label.color = color
+                    label.keybind = keybind
+                    label.save()
+                    
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only edit your own labels."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Label.DoesNotExist:
+                return Response({"Not found": "Could not find label with the id " + str(label_id + ".")}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to edit labels.'}, status=status.HTTP_401_UNAUTHORIZED)
