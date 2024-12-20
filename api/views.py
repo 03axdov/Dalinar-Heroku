@@ -255,3 +255,17 @@ class EditLabel(APIView):
                 return Response({"Not found": "Could not find label with the id " + str(label_id + ".")}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to edit labels.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class DeleteLabel(APIView):
+    serializer_class = LabelSerializer
+    
+    def post(self, request, format=None):
+        label_id = request.data["label"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            pass
+        else:
+            return Response({'Unauthorized': 'Must be logged in to edit labels.'}, status=status.HTTP_401_UNAUTHORIZED)

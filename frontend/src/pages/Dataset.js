@@ -546,6 +546,7 @@ function Dataset() {
                                 </div>
 
                                 <button type="submit" className="create-label-submit">Save</button>
+                                <button type="button" className="create-label-submit edit-label-delete">Delete</button>
                                 
                             </form>
                         </div>}

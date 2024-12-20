@@ -67,10 +67,10 @@
 }
 
 .dataset-sidebar-options {
-    height: 20px;
-    width: 20px;
-    border-radius: 10px;
-    padding: 3px;
+    height: 22px;
+    width: 22px;
+    border-radius: 11px;
+    padding: 4px;
     box-sizing: border-box;
     display: inline-block;
     margin-left: auto;
@@ -159,7 +159,7 @@
 
 .create-label-submit {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 10px;
     background: var(--gray);
 }
 
@@ -167,12 +167,21 @@
     background: var(--gray-dark);
 }
 
+.edit-label-delete {
+    margin-top: 5px;
+    background: var(--gray-darker);
+}
+
+.edit-label-delete:hover {
+    background: var(--gray-darker);
+}
+
 .dataset-create-label-color {
     opacity: 0;
 }
 
 .dataset-create-label-label {
-    color: var(--gray-text);
+    color: white;
     margin-right: 10px;
     min-width: 60px;
 }
@@ -259,3 +268,4 @@
     border-radius: 25px;
     box-shadow: 0 0 0 2px var(--border);
 }
+
