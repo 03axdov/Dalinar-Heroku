@@ -109,7 +109,7 @@ function Dataset() {
 
     // ELEMENT FUNCTIONALITY
 
-    const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp"])
+    const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "avif"])
     const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
 
     function getPreviewElement(element) {
@@ -152,9 +152,9 @@ function Dataset() {
             let file = files[i]
             totalSize += file.size
 
-            if (totalSize > 10 * 10**6) {
+            if (totalSize > 10 * 10**9) {
                 if (errorMessages) {errorMessages += "\n\n"}
-                errorMessages += "Stopped uploading after " + file.name + " as only 10 Megabytes can be uploaded at a time."
+                errorMessages += "Stopped uploading after " + file.name + " as only 1 Gigabyte can be uploaded at a time."
                 alert(errorMessages)
                 return
             }
@@ -164,9 +164,12 @@ function Dataset() {
                 if (errorMessages) {errorMessages += "\n\n"}
                 errorMessages += "Did not upload file with extension " + extension + " as this filetype is not supported."
 
-                if (i == files.length - 1) {alert(errorMessages)}
+                if (i == files.length - 1) {
+                    alert(errorMessages)
+                } else {
+                    continue
+                }
 
-                continue
             }
 
             let formData = new FormData()
@@ -384,6 +387,34 @@ function Dataset() {
         })
     }
 
+    function deleteLabel(label) {
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        let formData = new FormData()
+
+        formData.append("label", label.id)
+
+        const URL = window.location.origin + '/api/delete-label/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        setLoading(true)
+        axios.post(URL, formData, config)
+        .then((data) => {
+            console.log("Success: ", data)
+            
+            getLabels()
+
+        }).catch((error) => {
+            alert("Error: ", error)
+
+        }).finally(() => {
+            setLoading(false)
+        })
+    }
+
 
     // FRONTEND FUNCTIONALITY
 
@@ -546,7 +577,7 @@ function Dataset() {
                                 </div>
 
                                 <button type="submit" className="create-label-submit">Save</button>
-                                <button type="button" className="create-label-submit edit-label-delete">Delete</button>
+                                <button type="button" className="create-label-submit edit-label-delete" onClick={() => deleteLabel(label)}>Delete</button>
                                 
                             </form>
                         </div>}
