@@ -266,6 +266,18 @@ class DeleteLabel(APIView):
         user = self.request.user
         
         if user.is_authenticated:
-            pass
+            try:
+                label = Label.objects.get(id=label_id)
+                
+                if label.owner == user.profile:
+                    
+                    label.delete()
+                    
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only delete your own labels."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Label.DoesNotExist:
+                return Response({"Not found": "Could not find label with the id " + str(label_id + ".")}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to edit labels.'}, status=status.HTTP_401_UNAUTHORIZED)

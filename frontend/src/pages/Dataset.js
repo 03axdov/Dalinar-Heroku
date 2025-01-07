@@ -357,18 +357,50 @@ function Dataset() {
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';    
 
-        let formData = new FormData()
-
-        formData.append("label", editingLabel)
-        formData.append('name', editingLabelName)
-        formData.append('color', editingLabelColor)
-        formData.append('keybind', editingLabelKeybind)
+        let data = {
+            "label": editingLabel,
+            "name": editingLabelName,
+            "color": editingLabelColor,
+            "keybind": editingLabelKeybind
+        }
 
         const URL = window.location.origin + '/api/edit-label/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
         setLoading(true)
-        axios.post(URL, formData, config)
+        axios.post(URL, data, config)
+        .then((data) => {
+            console.log("Success: ", data)
+            
+            getLabels()
+
+            setEditingLabel(null)
+
+        }).catch((error) => {
+            alert("Error: ", error)
+
+        }).finally(() => {
+            setLoading(false)
+        })
+    }
+
+
+    function deleteLabel(e) {
+        e.preventDefault()
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        let data = {
+            "label": editingLabel
+        }
+
+        const URL = window.location.origin + '/api/delete-label/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        setLoading(true)
+        axios.post(URL, data, config)
         .then((data) => {
             console.log("Success: ", data)
             
@@ -546,7 +578,7 @@ function Dataset() {
                                 </div>
 
                                 <button type="submit" className="create-label-submit">Save</button>
-                                <button type="button" className="create-label-submit edit-label-delete">Delete</button>
+                                <button type="button" className="create-label-submit edit-label-delete" onClick={deleteLabel}>Delete</button>
                                 
                             </form>
                         </div>}

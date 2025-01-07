@@ -18,5 +18,6 @@ urlpatterns = [
     # LABEL HANDLING
     path("create-label/", CreateLabel.as_view(), name="create-label"),
     path("dataset-labels/", GetDatasetLabels.as_view(), name="dataset-labels"),
-    path("edit-label/", EditLabel.as_view(), name="edit-label")
+    path("edit-label/", EditLabel.as_view(), name="edit-label"),
+    path("delete-label/", DeleteLabel.as_view(), name="delete-label"),
 ]
