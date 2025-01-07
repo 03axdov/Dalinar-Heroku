@@ -587,6 +587,7 @@ function Dataset() {
                         </div>}
                     </div>
                 ))}
+                <button type="button" className="sidebar-button dataset-show-keybinds-button">Show Keybinds</button>
             </div>
         </div>
     )

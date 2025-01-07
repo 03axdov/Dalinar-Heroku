@@ -240,7 +240,7 @@
     font-size: 1.1rem;
 }
 
-.dataset-download-button {
+.dataset-download-button, .dataset-show-keybinds-button {
     width: 100%;
     border-radius: 3px;
     transition: 0.1s;
@@ -250,8 +250,14 @@
     justify-content: center;
 }
 
-.dataset-download-button:hover {
+.dataset-download-button:hover, .dataset-show-keybinds-button:hover {
     background: var(--blue);
+}
+
+.dataset-show-keybinds-button {
+    margin-top: auto;
+    margin-bottom: 20px;
+    width: calc(100% - 20px);
 }
 
 .dataset-download-icon {
