@@ -109,7 +109,7 @@ function Dataset() {
 
     // ELEMENT FUNCTIONALITY
 
-    const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp"])
+    const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "avif"])
     const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
 
     function getPreviewElement(element) {
@@ -152,9 +152,9 @@ function Dataset() {
             let file = files[i]
             totalSize += file.size
 
-            if (totalSize > 10 * 10**6) {
+            if (totalSize > 10 * 10**9) {
                 if (errorMessages) {errorMessages += "\n\n"}
-                errorMessages += "Stopped uploading after " + file.name + " as only 10 Megabytes can be uploaded at a time."
+                errorMessages += "Stopped uploading after " + file.name + " as only 1 Gigabyte can be uploaded at a time."
                 alert(errorMessages)
                 return
             }
@@ -164,9 +164,12 @@ function Dataset() {
                 if (errorMessages) {errorMessages += "\n\n"}
                 errorMessages += "Did not upload file with extension " + extension + " as this filetype is not supported."
 
-                if (i == files.length - 1) {alert(errorMessages)}
+                if (i == files.length - 1) {
+                    alert(errorMessages)
+                } else {
+                    continue
+                }
 
-                continue
             }
 
             let formData = new FormData()

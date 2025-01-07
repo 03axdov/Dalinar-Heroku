@@ -6,7 +6,7 @@ import axios from "axios"
 function CreateDataset() {
 
     const navigate = useNavigate()
-    const [type, setType] = useState("image")
+    const [type, setType] = useState("classification")
     const [name, setName] = useState("")
     const [description, setDescription] = useState("")
     const [image, setImage] = useState(null)
@@ -55,16 +55,16 @@ function CreateDataset() {
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Dataset type</p>
-                    <input type="radio" id="create-dataset-type-image" name="type" value="image" checked={type == "image"} onChange={(e) => {
+                    <input type="radio" id="create-dataset-type-image" name="type" value="classification" checked={type == "classification"} onChange={(e) => {
                         setType(e.target.value)
                         console.log(e.currentTarget.value)
                     }} />
-                    <label htmlFor="create-dataset-type-image" className="create-dataset-type-label">Image</label>
-                    <input type="radio" id="create-dataset-type-text" name="type" value="text" checked={type == "text"}  onChange={(e) => {
+                    <label htmlFor="create-dataset-type-image" className="create-dataset-type-label">Classification</label>
+                    <input type="radio" id="create-dataset-type-text" name="area" value="text" checked={type == "area"}  onChange={(e) => {
                         setType(e.target.value)
                         console.log(e.currentTarget.value)
                     }} />
-                    <label htmlFor="create-dataset-type-text" className="create-dataset-type-label">Text</label>
+                    <label htmlFor="create-dataset-type-text" className="create-dataset-type-label">Area</label>
                 </div>
 
                 <div className="create-dataset-label-inp">

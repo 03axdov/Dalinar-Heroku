@@ -270,7 +270,6 @@ class DeleteLabel(APIView):
                 label = Label.objects.get(id=label_id)
                 
                 if label.owner == user.profile:
-                    
                     label.delete()
                     
                     return Response(None, status=status.HTTP_200_OK)
@@ -280,4 +279,4 @@ class DeleteLabel(APIView):
             except Label.DoesNotExist:
                 return Response({"Not found": "Could not find label with the id " + str(label_id + ".")}, status=status.HTTP_404_NOT_FOUND)
         else:
-            return Response({'Unauthorized': 'Must be logged in to edit labels.'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'Unauthorized': 'Must be logged in to delete labels.'}, status=status.HTTP_401_UNAUTHORIZED)

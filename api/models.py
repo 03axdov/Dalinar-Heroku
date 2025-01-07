@@ -6,7 +6,7 @@ from django.core.validators import FileExtensionValidator
 import os
 
 
-ALLOWED_IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp"]
+ALLOWED_IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "avif"]
 ALLOWED_TEXT_FILE_EXTENSIONS = ["txt", "doc", "docx"]
 
 
@@ -43,10 +43,10 @@ class Dataset(models.Model):
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default="private")
     
     DATATYPE_CHOICES = [
-        ("image", "Image"),
-        ("text", "Text")
+        ("classification", "Classification"),
+        ("area", "Area")
     ]
-    datatype = models.CharField(max_length=10, choices=DATATYPE_CHOICES, default="image")
+    datatype = models.CharField(max_length=20, choices=DATATYPE_CHOICES, default="image")
     
     def __str__(self):
         return self.name
