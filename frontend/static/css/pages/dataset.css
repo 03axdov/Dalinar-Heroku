@@ -59,7 +59,9 @@
 
 .dataset-sidebar-color {
     height: 15px;
+    min-height: 15px;
     width: 15px;
+    min-width: 15px;
     border-radius: 8px;
     display: inline-block;
     margin-right: 10px;
@@ -73,12 +75,15 @@
     padding: 4px;
     box-sizing: border-box;
     display: inline-block;
-    margin-left: auto;
     position: relative;
 }
 
 .dataset-sidebar-options:hover {
     background: var(--sidebar-lighter)
+}
+
+.dataset-sidebar-options-margin {
+    margin-left: auto;
 }
 
 .dataset-sidebar-color-element {
@@ -275,3 +280,16 @@
     box-shadow: 0 0 0 2px var(--border);
 }
 
+.dataset-sidebar-label-keybind {
+    padding: 1px 5px;
+    background: var(--sidebar-button);
+    margin-left: auto;
+    margin-right: 5px;
+    border-radius: 3px;
+}
+
+.dataset-sidebar-label-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

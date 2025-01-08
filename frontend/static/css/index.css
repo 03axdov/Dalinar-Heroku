@@ -178,7 +178,7 @@ input[type="radio"]:checked {
     padding: 7px 15px;
     border-radius: 30px;
     color: white;
-    background: rgb(50, 50, 50);
+    background: var(--sidebar-button);
     width: 100%;
     box-sizing: border-box;
 }

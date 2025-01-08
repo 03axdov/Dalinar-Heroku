@@ -33,6 +33,14 @@ function Dataset() {
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
 
+    const [inputFocused, setInputFocused] = useState(false);  // Don't use keybinds if input is focused
+
+    function inputOnFocus() {
+        setInputFocused(true)
+    }
+    function inputOnBlur() {
+        setInputFocused(false)
+    }
 
     const navigate = useNavigate()
 
@@ -56,8 +64,9 @@ function Dataset() {
     // Handles user button presses
     useEffect(() => {
         const handleKeyDown = (event) => {
+            console.log("inputFocused:", inputFocused)
 
-            if (loading) {return};
+            if (loading || inputFocused) {return};  
 
             let key = getUserPressKeycode(event)
             
@@ -77,7 +86,7 @@ function Dataset() {
         return () => {
             window.removeEventListener("keydown", handleKeyDown, false);
         };
-    }, [loading, elements, elementsIndex])
+    }, [loading, elements, elementsIndex, inputFocused])
 
 
     function getDataset() {
@@ -493,9 +502,10 @@ function Dataset() {
                         <form className="dataset-create-label-form" onSubmit={createLabelSubmit}>
                             <div className="dataset-create-label-row">
                                 <label className="dataset-create-label-label" htmlFor="label-name-inp">Name</label>
-                                <input id="label-name-inp" className="dataset-create-label-inp" type="text" placeholder="Name" value={createLabelName} onChange={(e) => {
+                                <input id="label-name-inp" className="dataset-create-label-inp" type="text"
+                                       placeholder="Name" value={createLabelName} onChange={(e) => {
                                     setCreateLabelName(e.target.value)
-                                }}/>
+                                }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
                             </div>
                             
                             <div className="dataset-create-label-row">
@@ -503,7 +513,7 @@ function Dataset() {
                                 <div className="create-label-color-container" style={{background: createLabelColor}}>
                                     <input id="label-color-inp" className="dataset-create-label-color" type="color" value={createLabelColor} onChange={(e) => {
                                         setCreateLabelColor(e.target.value)
-                                    }} />
+                                    }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
                                 </div>
                             </div>
 
@@ -516,6 +526,7 @@ function Dataset() {
                                     value={createLabelKeybind}
                                     onKeyDown={handleKeyDown}
                                     placeholder="Press keys..."
+                                    onFocus={inputOnFocus} onBlur={inputOnBlur}
                                     readOnly
                                 />
                             </div>
@@ -532,9 +543,10 @@ function Dataset() {
                 {labels.map((label) => (
                     <div className="dataset-sidebar-element" key={label.id} onClick={() => labelOnClick(label)}>
                         <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
-                        {(label.name.length < 20 ? label.name : label.name.substring(0, 20) + "...")}
+                        <span className="dataset-sidebar-label-name">{label.name}</span>
+                        {label.keybind && <span title={"Keybind: " + label.keybind} className="dataset-sidebar-label-keybind">{label.keybind}</span>}
                         <img title="Edit label" 
-                            className="dataset-sidebar-options" 
+                            className={"dataset-sidebar-options" + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
                             src={window.location.origin + "/static/images/options.png"}
                             onClick={(e) => {
                                 e.stopPropagation()
@@ -555,7 +567,7 @@ function Dataset() {
                                     <label className="dataset-create-label-label" htmlFor="label-name-inp">Name</label>
                                     <input id="label-name-inp" className="dataset-create-label-inp" type="text" placeholder="Name" value={editingLabelName} onChange={(e) => {
                                         setEditingLabelName(e.target.value)
-                                    }}/>
+                                    }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
                                 </div>
                                 
                                 <div className="dataset-create-label-row">
@@ -563,7 +575,7 @@ function Dataset() {
                                     <div className="create-label-color-container" style={{background: editingLabelColor}}>
                                         <input id="label-color-inp" className="dataset-create-label-color" type="color" value={editingLabelColor} onChange={(e) => {
                                             setEditingLabelColor(e.target.value)
-                                        }} />
+                                        }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
                                     </div>
                                 </div>
 
@@ -576,6 +588,7 @@ function Dataset() {
                                         value={editingLabelKeybind}
                                         onKeyDown={(e) => {handleKeyDown(e, "editing-label")}}
                                         placeholder="Press keys..."
+                                        onFocus={inputOnFocus} onBlur={inputOnBlur}
                                         readOnly
                                     />
                                 </div>
@@ -587,7 +600,7 @@ function Dataset() {
                         </div>}
                     </div>
                 ))}
-                <button type="button" className="sidebar-button dataset-show-keybinds-button">Show Keybinds</button>
+
             </div>
         </div>
     )
