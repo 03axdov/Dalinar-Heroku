@@ -178,7 +178,7 @@
 }
 
 .edit-label-delete:hover {
-    background: var(--gray-darker);
+    background: rgb(165, 48, 48);
 }
 
 .dataset-create-label-color {
@@ -286,6 +286,10 @@
     margin-left: auto;
     margin-right: 5px;
     border-radius: 3px;
+}
+
+.dataset-sidebar-label-keybind:hover {
+    box-shadow: 0 0 0 1px white;
 }
 
 .dataset-sidebar-label-name {

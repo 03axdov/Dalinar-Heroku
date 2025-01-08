@@ -51,3 +51,16 @@
     margin: 0;
     margin-bottom: 10px;
 }
+
+.download-popup-container {
+    width: 850px;
+    max-width: 95%;
+    height: 500px;
+    max-height: 95%;
+    border-radius: 5px;
+    background: var(--toolbar);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+}

@@ -1,5 +1,6 @@
 import React, {useEffect, useState, useRef} from "react"
 import { useParams, useNavigate } from "react-router-dom";
+import DownloadPopup from "../components/DownloadPopup"
 import axios from "axios"
 
 // The default page. Login not required.
@@ -29,6 +30,8 @@ function Dataset() {
     const [editingLabelName, setEditingLabelName] = useState("")
     const [editingLabelColor, setEditingLabelColor] = useState("")
     const [editingLabelKeybind, setEditingLabelKeybind] = useState("")
+
+    const [showDownloadPopup, setShowDownloadPopup] = useState(false)
 
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
@@ -446,6 +449,8 @@ function Dataset() {
     return (
         <div className="dataset-container" onClick={closePopups}>
 
+            {showDownloadPopup && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup}><div>Test</div></DownloadPopup>}
+            
             {/* Uploading folders / files to elements goes through these */}
             <input id="dataset-file-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFolderInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
             <input id="dataset-file-upload-inp" type="file" className="hidden" multiple ref={hiddenFileInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
@@ -453,7 +458,7 @@ function Dataset() {
             <div className="dataset-elements">
                 <p className="dataset-sidebar-title">Elements</p>
                 <div className="dataset-sidebar-button-container">
-                    <button className="sidebar-button dataset-download-button"><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>
+                    <button className="sidebar-button dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>
                 </div>
                 
                 <div className="dataset-sidebar-button-container">
@@ -544,7 +549,7 @@ function Dataset() {
                     <div className="dataset-sidebar-element" key={label.id} onClick={() => labelOnClick(label)}>
                         <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
                         <span className="dataset-sidebar-label-name">{label.name}</span>
-                        {label.keybind && <span title={"Keybind: " + label.keybind} className="dataset-sidebar-label-keybind">{label.keybind}</span>}
+                        {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} className="dataset-sidebar-label-keybind">{label.keybind.toUpperCase()}</span>}
                         <img title="Edit label" 
                             className={"dataset-sidebar-options" + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
                             src={window.location.origin + "/static/images/options.png"}
