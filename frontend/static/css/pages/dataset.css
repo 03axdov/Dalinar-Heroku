@@ -46,6 +46,7 @@
     font-size: 0.9rem;
     width: 100%;
     padding: 5px 10px;
+    height: 32px;
     box-sizing: border-box;
     display: flex;
     flex-direction: row;
@@ -85,6 +86,8 @@
 .dataset-sidebar-options-margin {
     margin-left: auto;
 }
+
+
 
 .dataset-sidebar-color-element {
     margin-left: 10px;
@@ -292,8 +295,20 @@
     box-shadow: 0 0 0 1px white;
 }
 
-.dataset-sidebar-label-name {
+.dataset-sidebar-label-name, .dataset-sidebar-element-name {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
+
+.dataset-sidebar-element-name-edit {
+    max-width: calc(100% - 25px);
+    background: rgb(0,0,0,0.2);
+    border: none;
+    outline: none;
+    display: inline-block;
+    padding: 0 5px;
+    font-size: 0.9rem;
+    padding: 0;
+}
+

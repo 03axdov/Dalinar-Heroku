@@ -3,6 +3,9 @@ import { useParams, useNavigate } from "react-router-dom";
 import DownloadPopup from "../components/DownloadPopup"
 import axios from "axios"
 
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+
 // The default page. Login not required.
 function Dataset() {
 
@@ -30,6 +33,9 @@ function Dataset() {
     const [editingLabelName, setEditingLabelName] = useState("")
     const [editingLabelColor, setEditingLabelColor] = useState("")
     const [editingLabelKeybind, setEditingLabelKeybind] = useState("")
+
+    const [editingElement, setEditingElement] = useState(null)
+    const [editingElementName, setEditingElementName] = useState("")
 
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
 
@@ -432,6 +438,33 @@ function Dataset() {
     }
 
 
+    // DOWNLOAD FUNCTIONALITY
+
+    async function labelFoldersDownload() {
+        console.log(dataset)
+
+        const zip = new JSZip();
+
+        // Adding a folder and a file within it
+        const folder = zip.folder(dataset.name);
+
+        if (dataset.datatype == "image") {
+            for (let i=0; i < elements.length; i++) {
+                const response = await fetch(elements[i].file);
+                const blob = await response.blob();
+                folder.file(elements[i].name, blob);
+            }
+            
+
+            // Generate the ZIP file and trigger download
+            const zipBlob = await folder.generateAsync({ type: "blob" });
+            saveAs(zipBlob, dataset.name + ".zip");
+
+        }
+        
+    }
+
+
     // FRONTEND FUNCTIONALITY
 
 
@@ -442,14 +475,19 @@ function Dataset() {
         if (exception != "create-label") {
             setDisplayCreateLabel(false)
         }
-        
+        if (exception != "editing-element") {
+            setEditingElement(null)
+        }
     }
 
 
     return (
         <div className="dataset-container" onClick={closePopups}>
 
-            {showDownloadPopup && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup}><div>Test</div></DownloadPopup>}
+            {showDownloadPopup && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup}>
+                <button type="button" onClick={labelFoldersDownload}>Label Folders</button>
+                <button type="button">Label Filenames</button>
+            </DownloadPopup>}
             
             {/* Uploading folders / files to elements goes through these */}
             <input id="dataset-file-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFolderInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
@@ -471,13 +509,37 @@ function Dataset() {
                     onClick={() => setElementsIndex(idx)}
                     onMouseEnter={() => {setHoveredElement(idx)}}
                     onMouseLeave={() => {setHoveredElement(null)}}>
-                        {(element.name.length < 20 ? element.name : element.name.substring(0, 20) + "...")}
-                        {idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
+
+                        {editingElement != element.id && <span className="dataset-sidebar-element-name">{element.name}</span>}
+                        {editingElement == element.id && <input className="dataset-sidebar-element-name-edit" type="text" value={editingElementName} onChange={(e) => {
+                            setEditingElementName(e.target.value)
+                        }} onClick={(e) => {
+                            e.stopPropagation()
+                        }} onFocus={inputOnFocus} onBlur={inputOnBlur}></input>}
+
+                        {(editingElement != element.id && idToLabel[element.label]) && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
                                                         style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
                                                     >
-                            {hoveredElement == idx && <div className="dataset-sidebar-element-label">{idToLabel[element.label].name}</div>}
+                            
                             
                         </span>}
+
+                        {hoveredElement == idx && <div className="dataset-sidebar-element-label">{idToLabel[element.label].name}</div>}
+
+                        {(hoveredElement == idx || editingElement == element.id) && <img title="Rename element" 
+                            className="dataset-sidebar-options dataset-sidebar-options-margin"
+                            src={window.location.origin + "/static/images/edit.png"}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                setEditingElementName(element.name)
+                                if (editingElement != element.id) {
+                                    setEditingElement(element.id)
+                                } else {
+                                    setEditingElement(null)
+                                }
+                                
+                        }}/>}
+                        
                     </div>
                 ))}
                 {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
