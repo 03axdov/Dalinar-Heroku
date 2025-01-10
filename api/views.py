@@ -119,7 +119,7 @@ class CreateElement(APIView):
             return Response({"Bad Request": "An error occured while creating element"}, status=status.HTTP_400_BAD_REQUEST)
         
         
-class EditElement(APIView):   # Currently only used for labelling
+class EditElementLabel(APIView):   # Currently only used for labelling
     serializer_class = EditElementSerializer
     parser_classes = [JSONParser]
 
@@ -138,6 +138,39 @@ class EditElement(APIView):   # Currently only used for labelling
                 label = Label.objects.get(id=label_id)
                 if element.owner == user.profile:
                     element.label = label
+                    element.save()
+                
+                    return Response(ElementSerializer(element).data, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({'Unauthorized': 'You can only edit your own elements.'}, status=status.HTTP_401_UNAUTHORIZED)
+            except Element.DoesNotExist or Label.DoesNotExist:
+                if found_element: return Response({'Not found': 'Could not find label with the id ' + str(label_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'Not found': 'Could not find element with the id ' + str(element_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to edit elements.'}, status=status.HTTP_401_UNAUTHORIZED)
+      
+      
+class EditElement(APIView):
+    serializer_class = EditElementSerializer
+    parser_classes = [JSONParser]
+
+    def post(self, request, format=None):   # A put request may fit better, post for now
+        name = request.data["name"]
+        element_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            found_element = False
+            try:
+                element = Element.objects.get(id=element_id)
+                found_element = True
+                
+                if element.owner == user.profile:
+                    if name:
+                        element.name = name
+                        
                     element.save()
                 
                     return Response(ElementSerializer(element).data, status=status.HTTP_200_OK)

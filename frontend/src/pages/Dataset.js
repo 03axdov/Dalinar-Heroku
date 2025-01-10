@@ -36,6 +36,7 @@ function Dataset() {
 
     const [editingElement, setEditingElement] = useState(null)
     const [editingElementName, setEditingElementName] = useState("")
+    const [editingElementIdx, setEditingElementIdx] = useState(null)
 
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
 
@@ -218,6 +219,40 @@ function Dataset() {
     }
 
 
+    function updateElementName() {
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';
+
+        const URL = window.location.origin + '/api/edit-element/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        const data = {
+            "name": editingElementName,
+            "id": editingElement
+        }
+
+        setLoading(true)
+
+        axios.post(URL, data, config)
+        .then((res) => {
+            console.log(res)
+            if (res.data) {
+                elements[editingElementIdx] = res.data
+            }
+            console.log("COMPLETE")
+            setEditingElementIdx(null)
+            setEditingElement(null)
+            setLoading(false)
+
+        })
+        .catch((err) => {
+            alert(err)
+            console.log(err)
+        })
+    }
+
+
     // LABEL FUNCTIONALITY
 
 
@@ -315,7 +350,7 @@ function Dataset() {
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';
 
-        const URL = window.location.origin + '/api/edit-element/'
+        const URL = window.location.origin + '/api/edit-element-label/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
         const data = {
@@ -477,6 +512,7 @@ function Dataset() {
         }
         if (exception != "editing-element") {
             setEditingElement(null)
+            setEditingElementIdx(null)
         }
     }
 
@@ -515,7 +551,10 @@ function Dataset() {
                             setEditingElementName(e.target.value)
                         }} onClick={(e) => {
                             e.stopPropagation()
-                        }} onFocus={inputOnFocus} onBlur={inputOnBlur}></input>}
+                        }} onFocus={inputOnFocus} onBlur={() => {
+                            inputOnBlur()
+                            updateElementName()
+                        }}></input>}
 
                         {(editingElement != element.id && idToLabel[element.label]) && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
                                                         style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
@@ -534,8 +573,10 @@ function Dataset() {
                                 setEditingElementName(element.name)
                                 if (editingElement != element.id) {
                                     setEditingElement(element.id)
+                                    setEditingElementIdx(idx)
                                 } else {
                                     setEditingElement(null)
+                                    setEditingElementIdx(null)
                                 }
                                 
                         }}/>}
