@@ -312,3 +312,39 @@
     padding: 0;
 }
 
+.download-element {
+    background: var(--toolbar-dark);
+    height: 90%;
+    width: 47%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 20px;
+    box-sizing: border-box;
+    border-radius: 3px;
+}
+
+.download-element:hover {
+    box-shadow: 0 0 0 1px rgb(100,100,100);
+    cursor: pointer;
+}
+
+.download-element-title {
+    font-size: 1.3rem;
+    padding: 0 5px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid var(--border);
+}
+
+.download-element-description {
+    font-size: 0.9rem;
+    text-align: justify;
+    margin: 0;
+    color: rgb(210,210,210);
+    line-height: 1.3;
+}
+
+.download-element-image {
+    width: 100%;
+    margin-top: 20px;
+}

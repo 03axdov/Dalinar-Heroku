@@ -499,6 +499,10 @@ function Dataset() {
         
     }
 
+    async function labelFilenamesDownload() {
+        
+    }
+
 
     // FRONTEND FUNCTIONALITY
 
@@ -521,8 +525,23 @@ function Dataset() {
         <div className="dataset-container" onClick={closePopups}>
 
             {showDownloadPopup && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup}>
-                <button type="button" onClick={labelFoldersDownload}>Label Folders</button>
-                <button type="button">Label Filenames</button>
+                <div title="Download .zip file" className="download-element" onClick={labelFoldersDownload}>
+                    <p className="download-element-title">Folders for labels</p>
+                    <p className="download-element-description">
+                        Every label will have its own folder containing the elements with that label.
+                    </p>
+
+                    <img className="download-element-image" src={window.location.origin + "/static/images/folders.jpg"} />
+                </div>
+                <div title="Download .zip file" className="download-element">
+                    <p className="download-element-title">Labels as filenames</p>
+                    <p className="download-element-description">
+                        One big folder, with every element named after its label and number, e.g. label1_1.png, label1_2.png, etc.
+                    </p>
+
+                    <img className="download-element-image" src={window.location.origin + "/static/images/folders.jpg"} />
+                </div>
+
             </DownloadPopup>}
             
             {/* Uploading folders / files to elements goes through these */}
