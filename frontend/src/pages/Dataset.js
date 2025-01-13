@@ -11,7 +11,7 @@ function Dataset() {
 
     const { id } = useParams();
     const [dataset, setDataset] = useState(null)
-    const [elements, setElements] = useState([])
+    const [elements, setElements] = useState([])    // Label points to label id
     const [labels, setLabels] = useState([])
 
     const [elementsIndex, setElementsIndex] = useState(0)
@@ -476,23 +476,36 @@ function Dataset() {
     // DOWNLOAD FUNCTIONALITY
 
     async function labelFoldersDownload() {
-        console.log(dataset)
-
         const zip = new JSZip();
 
-        // Adding a folder and a file within it
-        const folder = zip.folder(dataset.name);
+        const labelToFolder = {
+
+        }
 
         if (dataset.datatype == "image") {
             for (let i=0; i < elements.length; i++) {
+
+                let label = idToLabel[elements[i].label]
+                if (!labelToFolder[label.id]) {
+                    labelToFolder[label.id] = zip.folder(label.name)
+                }
+
                 const response = await fetch(elements[i].file);
                 const blob = await response.blob();
-                folder.file(elements[i].name, blob);
+
+                let extension = elements[i].file.split(".").pop()
+                let filename = elements[i].name
+
+                if (filename.split(".").pop() != extension) {
+                    filename += "." + extension
+                }
+
+                labelToFolder[label.id].file(filename, blob);
             }
             
 
             // Generate the ZIP file and trigger download
-            const zipBlob = await folder.generateAsync({ type: "blob" });
+            const zipBlob = await zip.generateAsync({ type: "blob" });
             saveAs(zipBlob, dataset.name + ".zip");
 
         }
@@ -500,7 +513,40 @@ function Dataset() {
     }
 
     async function labelFilenamesDownload() {
-        
+        const zip = new JSZip();
+
+        const labelToNbr = {
+
+        }
+
+        if (dataset.datatype == "image") {
+            for (let i=0; i < elements.length; i++) {
+
+                let label = idToLabel[elements[i].label]
+                if (!labelToNbr[label.id]) {
+                    labelToNbr[label.id] = 0
+                }
+
+                const response = await fetch(elements[i].file);
+                const blob = await response.blob();
+
+                let extension = elements[i].file.split(".").pop()
+                let filename = label.name + "_" + labelToNbr[label.id]
+
+                if (filename.split(".").pop() != extension) {
+                    filename += "." + extension
+                }
+
+                zip.file(filename, blob);
+                labelToNbr[label.id] += 1
+            }
+            
+
+            // Generate the ZIP file and trigger download
+            const zipBlob = await zip.generateAsync({ type: "blob" });
+            saveAs(zipBlob, dataset.name + ".zip");
+
+        }
     }
 
 
@@ -533,7 +579,7 @@ function Dataset() {
 
                     <img className="download-element-image" src={window.location.origin + "/static/images/folders.jpg"} />
                 </div>
-                <div title="Download .zip file" className="download-element">
+                <div title="Download .zip file" className="download-element" onClick={labelFilenamesDownload}>
                     <p className="download-element-title">Labels as filenames</p>
                     <p className="download-element-description">
                         One big folder, with every element named after its label and number, e.g. label1_1.png, label1_2.png, etc.
@@ -565,7 +611,7 @@ function Dataset() {
                     onMouseEnter={() => {setHoveredElement(idx)}}
                     onMouseLeave={() => {setHoveredElement(null)}}>
 
-                        {editingElement != element.id && <span className="dataset-sidebar-element-name">{element.name}</span>}
+                        {editingElement != element.id && <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>}
                         {editingElement == element.id && <input className="dataset-sidebar-element-name-edit" type="text" value={editingElementName} onChange={(e) => {
                             setEditingElementName(e.target.value)
                         }} onClick={(e) => {
@@ -670,7 +716,7 @@ function Dataset() {
                 {labels.map((label) => (
                     <div className="dataset-sidebar-element" key={label.id} onClick={() => labelOnClick(label)}>
                         <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
-                        <span className="dataset-sidebar-label-name">{label.name}</span>
+                        <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
                         {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} className="dataset-sidebar-label-keybind">{label.keybind.toUpperCase()}</span>}
                         <img title="Edit label" 
                             className={"dataset-sidebar-options" + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
