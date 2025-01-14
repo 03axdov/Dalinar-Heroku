@@ -242,7 +242,8 @@ function Dataset() {
     }
 
 
-    function updateElementName() {
+    function updateElement(e) {
+        e.preventDefault()
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';
@@ -633,15 +634,11 @@ function Dataset() {
                     onMouseEnter={() => {setHoveredElement(idx)}}
                     onMouseLeave={() => {setHoveredElement(null)}}>
 
-                        {editingElement != element.id && <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>}
-                        {editingElement == element.id && <input className="dataset-sidebar-element-name-edit" type="text" value={editingElementName} onChange={(e) => {
-                            setEditingElementName(e.target.value)
-                        }} onClick={(e) => {
-                            e.stopPropagation()
-                        }} onFocus={inputOnFocus} onBlur={() => {
-                            inputOnBlur()
-                            updateElementName()
-                        }}></input>}
+                        {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={window.location.origin + "/static/images/image.png"}/>}
+                        {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={window.location.origin + "/static/images/text.png"}/>}
+
+                        <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
+                        
 
                         {(editingElement != element.id && idToLabel[element.label]) && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
                                                         style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
@@ -650,11 +647,11 @@ function Dataset() {
                             
                         </span>}
 
-                        {hoveredElement == idx && element.label && <div className="dataset-sidebar-element-label">{idToLabel[element.label].name}</div>}
+                        {hoveredElement == idx && element.label && editingElement != element.id && <div className="dataset-sidebar-element-label">{idToLabel[element.label].name}</div>}
 
-                        {(hoveredElement == idx || editingElement == element.id) && <img title="Rename element" 
+                        {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
                             className="dataset-sidebar-options dataset-sidebar-options-margin"
-                            src={window.location.origin + "/static/images/edit.png"}
+                            src={window.location.origin + "/static/images/options.png"}
                             onClick={(e) => {
                                 e.stopPropagation()
                                 setEditingElementName(element.name)
@@ -667,6 +664,25 @@ function Dataset() {
                                 }
                                 
                         }}/>}
+
+                        {editingElement == element.id && <div className="dataset-element-expanded" onClick={(e) => {e.stopPropagation()}}>
+                            <form className="dataset-edit-element-form" onSubmit={updateElement}>
+                                <div className="dataset-create-label-row">
+                                    <label className="dataset-create-label-label" htmlFor="text">Name</label>
+                                    <input id="element-name-inp" className="dataset-create-label-inp" type="text" value={editingElementName} onChange={(e) => {
+                                        setEditingElementName(e.target.value)
+                                    }} onClick={(e) => {
+                                        e.stopPropagation()
+                                    }} onFocus={inputOnFocus} onBlur={() => {
+                                        inputOnBlur()
+                                    }}></input>
+                                </div>
+
+                                <button type="submit" className="edit-element-submit">Apply</button>
+                                <button type="button" className="edit-element-submit edit-element-delete">Delete</button>
+                            </form>
+                            
+                        </div>}
                         
                     </div>
                 ))}
