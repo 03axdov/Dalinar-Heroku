@@ -13,6 +13,8 @@ function Dataset() {
     const [dataset, setDataset] = useState(null)
     const [elements, setElements] = useState([])    // Label points to label id
     const [labels, setLabels] = useState([])
+    
+    const [currentText, setCurrentText] = useState("") // Used to display text files
 
     const [elementsIndex, setElementsIndex] = useState(0)
 
@@ -106,6 +108,7 @@ function Dataset() {
         })
         .then((res) => {
             setDataset(res.data)
+            console.log(res.data)
 
             console.log(res.data.elements)
 
@@ -138,7 +141,23 @@ function Dataset() {
             return <img className="dataset-element-view-image" src={window.location.origin + element.file} />
 
         } else if (TEXT_FILE_EXTENSIONS.has(extension)) {
-            return <p className="dataset-element-view-text"></p>
+            
+            fetch(element.file)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text()
+            })
+            .then(text => {
+                setCurrentText(text)
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+
+            return <p className="dataset-element-view-text">{currentText}</p> // Process the text content
+            
         } else {
             return <div className="extension-not-found">File of type .{extension} could not be rendered.</div>
         }
@@ -169,12 +188,14 @@ function Dataset() {
         let totalSize = 0
         for (let i=0; i < files.length; i++) {
             let file = files[i]
+            
             totalSize += file.size
 
             if (totalSize > 10 * 10**9) {
                 if (errorMessages) {errorMessages += "\n\n"}
                 errorMessages += "Stopped uploading after " + file.name + " as only 1 Gigabyte can be uploaded at a time."
                 alert(errorMessages)
+                getDataset()
                 return
             }
 
@@ -185,6 +206,8 @@ function Dataset() {
 
                 if (i == files.length - 1) {
                     alert(errorMessages)
+                    getDataset()
+                    break
                 } else {
                     continue
                 }
@@ -236,7 +259,6 @@ function Dataset() {
 
         axios.post(URL, data, config)
         .then((res) => {
-            console.log(res)
             if (res.data) {
                 elements[editingElementIdx] = res.data
             }
@@ -482,33 +504,33 @@ function Dataset() {
 
         }
 
-        if (dataset.datatype == "image") {
-            for (let i=0; i < elements.length; i++) {
 
-                let label = idToLabel[elements[i].label]
-                if (!labelToFolder[label.id]) {
-                    labelToFolder[label.id] = zip.folder(label.name)
-                }
+        for (let i=0; i < elements.length; i++) {
 
-                const response = await fetch(elements[i].file);
-                const blob = await response.blob();
-
-                let extension = elements[i].file.split(".").pop()
-                let filename = elements[i].name
-
-                if (filename.split(".").pop() != extension) {
-                    filename += "." + extension
-                }
-
-                labelToFolder[label.id].file(filename, blob);
+            let label = idToLabel[elements[i].label]
+            if (!labelToFolder[label.id]) {
+                labelToFolder[label.id] = zip.folder(label.name)
             }
-            
 
-            // Generate the ZIP file and trigger download
-            const zipBlob = await zip.generateAsync({ type: "blob" });
-            saveAs(zipBlob, dataset.name + ".zip");
+            const response = await fetch(elements[i].file);
+            const blob = await response.blob();
 
+            let extension = elements[i].file.split(".").pop()
+            let filename = elements[i].name
+
+            if (filename.split(".").pop() != extension) {
+                filename += "." + extension
+            }
+
+            labelToFolder[label.id].file(filename, blob);
         }
+        
+
+        // Generate the ZIP file and trigger download
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        saveAs(zipBlob, dataset.name + ".zip");
+
+        
         
     }
 
@@ -519,34 +541,34 @@ function Dataset() {
 
         }
 
-        if (dataset.datatype == "image") {
-            for (let i=0; i < elements.length; i++) {
 
-                let label = idToLabel[elements[i].label]
-                if (!labelToNbr[label.id]) {
-                    labelToNbr[label.id] = 0
-                }
+        for (let i=0; i < elements.length; i++) {
 
-                const response = await fetch(elements[i].file);
-                const blob = await response.blob();
-
-                let extension = elements[i].file.split(".").pop()
-                let filename = label.name + "_" + labelToNbr[label.id]
-
-                if (filename.split(".").pop() != extension) {
-                    filename += "." + extension
-                }
-
-                zip.file(filename, blob);
-                labelToNbr[label.id] += 1
+            let label = idToLabel[elements[i].label]
+            if (!labelToNbr[label.id]) {
+                labelToNbr[label.id] = 0
             }
-            
 
-            // Generate the ZIP file and trigger download
-            const zipBlob = await zip.generateAsync({ type: "blob" });
-            saveAs(zipBlob, dataset.name + ".zip");
+            const response = await fetch(elements[i].file);
+            const blob = await response.blob();
 
+            let extension = elements[i].file.split(".").pop()
+            let filename = label.name + "_" + labelToNbr[label.id]
+
+            if (filename.split(".").pop() != extension) {
+                filename += "." + extension
+            }
+
+            zip.file(filename, blob);
+            labelToNbr[label.id] += 1
         }
+        
+
+        // Generate the ZIP file and trigger download
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        saveAs(zipBlob, dataset.name + ".zip");
+
+        
     }
 
 
@@ -628,7 +650,7 @@ function Dataset() {
                             
                         </span>}
 
-                        {hoveredElement == idx && <div className="dataset-sidebar-element-label">{idToLabel[element.label].name}</div>}
+                        {hoveredElement == idx && element.label && <div className="dataset-sidebar-element-label">{idToLabel[element.label].name}</div>}
 
                         {(hoveredElement == idx || editingElement == element.id) && <img title="Rename element" 
                             className="dataset-sidebar-options dataset-sidebar-options-margin"

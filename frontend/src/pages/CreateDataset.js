@@ -55,12 +55,12 @@ function CreateDataset() {
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Dataset type</p>
-                    <input type="radio" id="create-dataset-type-image" name="type" value="classification" checked={type == "classification"} onChange={(e) => {
+                    <input type="radio" id="create-dataset-type-image" name="classification" value="classification" checked={type == "classification"} onChange={(e) => {
                         setType(e.target.value)
                         console.log(e.currentTarget.value)
                     }} />
                     <label htmlFor="create-dataset-type-image" className="create-dataset-type-label">Classification</label>
-                    <input type="radio" id="create-dataset-type-text" name="area" value="text" checked={type == "area"}  onChange={(e) => {
+                    <input type="radio" id="create-dataset-type-text" name="area" value="area" checked={type == "area"}  onChange={(e) => {
                         setType(e.target.value)
                         console.log(e.currentTarget.value)
                     }} />
