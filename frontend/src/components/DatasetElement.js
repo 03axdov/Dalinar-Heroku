@@ -11,14 +11,20 @@ function DatasetElement({dataset}) {
         win.focus();
     }
 
+    console.log(dataset)
+
     return (
         <div className="dataset-element" onClick={onClick} >
             <div className="dataset-element-header">
-            <img className="dataset-element-icon dataset-element-icon-type" src={window.location.origin + "/static/images/dataset.png"}/>
-                <p className="dataset-element-name">{dataset.name}</p>
-                <img className="dataset-element-icon dataset-element-options" src={window.location.origin + "/static/images/options.png"} onClick={(e) => {
-                    e.stopPropagation()
-                }}/>
+                
+            {dataset.datatype == "classification" && <img title="Classfication" className="dataset-element-icon dataset-element-icon-type" src={window.location.origin + "/static/images/classification.png"}/>}
+            {dataset.datatype == "area" && <img title="Area" className="dataset-element-icon dataset-element-icon-type" src={window.location.origin + "/static/images/area.svg"}/>}
+            
+            <p className="dataset-element-name">{dataset.name}</p>
+
+            <img title="Edit dataset" className="dataset-element-icon dataset-element-options" src={window.location.origin + "/static/images/options.png"} onClick={(e) => {
+                e.stopPropagation()
+            }}/>
             </div>
             
             {dataset.image && <img className="dataset-element-image" src={dataset.image}/>}
