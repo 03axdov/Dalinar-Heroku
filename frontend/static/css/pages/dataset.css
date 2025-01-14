@@ -127,7 +127,6 @@
     z-index: 2;
     box-shadow: 0 0 0 1px var(--border);
     background: var(--sidebar);
-    border-radius: 5px;
     box-sizing: border-box;
     padding: 30px 20px;
 }

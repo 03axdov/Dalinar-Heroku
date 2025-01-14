@@ -76,7 +76,6 @@ function Dataset() {
     // Handles user button presses
     useEffect(() => {
         const handleKeyDown = (event) => {
-            console.log("inputFocused:", inputFocused)
 
             if (loading || inputFocused) {return};  
 
@@ -87,7 +86,6 @@ function Dataset() {
             } else if (key === "ArrowUp" || key === "ArrowLeft") {
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
             } else if (labelKeybinds[key]) {
-                console.log(labelKeybinds)
                 labelOnClick(labelKeybinds[key])
             }
         };
@@ -108,9 +106,6 @@ function Dataset() {
         })
         .then((res) => {
             setDataset(res.data)
-            console.log(res.data)
-
-            console.log(res.data.elements)
 
             setElements(res.data.elements)
             setLabels(res.data.labels)
@@ -275,6 +270,41 @@ function Dataset() {
         })
     }
 
+    function deleteElement(e) {
+        e.preventDefault()
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        let data = {
+            "element": editingElement
+        }
+
+        const URL = window.location.origin + '/api/delete-element/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        setLoading(true)
+        axios.post(URL, data, config)
+        .then((data) => {
+            console.log("Success: ", data)
+
+            if (elementsIndex != 0) {
+                setElementsIndex(elementsIndex - 1)
+            }
+            
+            getDataset()
+
+            setEditingElement(null)
+
+        }).catch((error) => {
+            alert("Error: ", error)
+
+        }).finally(() => {
+            setLoading(false)
+        })
+    }
+
 
     // LABEL FUNCTIONALITY
 
@@ -306,7 +336,6 @@ function Dataset() {
         .then((res) => {
             setLabels(res.data)
 
-            console.log(res.data)
             parseLabels(res.data)
 
             setLoading(false)
@@ -384,18 +413,17 @@ function Dataset() {
         setLoading(true)
 
         setDatasetMainLabelColor(label.color)
-        console.log(label.color)
         setTimeout(() => {
             setDatasetMainLabelColor("transparent")
         }, 100)
 
         axios.post(URL, data, config)
         .then((res) => {
-            console.log(res)
+
             if (res.data) {
                 elements[elementsIndex] = res.data
             }
-            console.log("COMPLETE")
+
             setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
             setLoading(false)
         })
@@ -420,7 +448,6 @@ function Dataset() {
         axios.post(URL, data, config)
         .then((res) => {
             getDataset()    // Ineffective and temporary
-            console.log("COMPLETE")
         })
         .catch((err) => {
             alert(err)
@@ -679,7 +706,7 @@ function Dataset() {
                                 </div>
 
                                 <button type="submit" className="edit-element-submit">Apply</button>
-                                <button type="button" className="edit-element-submit edit-element-delete">Delete</button>
+                                <button type="button" className="edit-element-submit edit-element-delete" onClick={deleteElement}>Delete</button>
                             </form>
                             
                         </div>}

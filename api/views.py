@@ -210,6 +210,31 @@ class RemoveElementLabel(APIView):
             return Response({'Unauthorized': 'Must be logged in to edit elements.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         
+class DeleteElement(APIView):
+    serializer_class = ElementSerializer
+    
+    def post(self, request, format=None):
+        element_id = request.data["element"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                element = Element.objects.get(id=element_id)
+                
+                if element.owner == user.profile:
+                    element.delete()
+                    
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only delete your own elements."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Label.DoesNotExist:
+                return Response({"Not found": "Could not find element with the id " + str(element_id + ".")}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to delete elements.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
 # LABEL HANDLING
 
 class CreateLabel(APIView):
