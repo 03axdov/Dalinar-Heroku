@@ -447,14 +447,19 @@ function Dataset() {
 
         axios.post(URL, data, config)
         .then((res) => {
-            getDataset()    // Ineffective and temporary
+            console.log(res)
+
+            let tempElements = [...elements]
+            tempElements[elementsIndex].label = null
+
+            console.log(tempElements)
+            setElements(tempElements)
         })
         .catch((err) => {
             alert(err)
             console.log(err)
         })
     }
-
 
     function editLabelOnSubmit(e) {
         e.preventDefault()
@@ -627,7 +632,7 @@ function Dataset() {
                         Every label will have its own folder containing the elements with that label.
                     </p>
 
-                    <img className="download-element-image" src={window.location.origin + "/static/images/folders.jpg"} />
+                    <img className="download-element-image" src={window.location.origin + "/static/images/downloadFolders.jpg"} />
                 </div>
                 <div title="Download .zip file" className="download-element" onClick={labelFilenamesDownload}>
                     <p className="download-element-title">Labels as filenames</p>
@@ -635,7 +640,7 @@ function Dataset() {
                         One big folder, with every element named after its label and number, e.g. label1_1.png, label1_2.png, etc.
                     </p>
 
-                    <img className="download-element-image" src={window.location.origin + "/static/images/folders.jpg"} />
+                    <img className="download-element-image" src={window.location.origin + "/static/images/downloadFilenames.jpg"} />
                 </div>
 
             </DownloadPopup>}
@@ -667,7 +672,7 @@ function Dataset() {
                         <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
                         
 
-                        {(editingElement != element.id && idToLabel[element.label]) && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
+                        {element.label && idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
                                                         style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
                                                     >
                             
@@ -685,6 +690,7 @@ function Dataset() {
                                 if (editingElement != element.id) {
                                     setEditingElement(element.id)
                                     setEditingElementIdx(idx)
+                                    closePopups("editing-element")
                                 } else {
                                     setEditingElement(null)
                                     setEditingElementIdx(null)
@@ -695,7 +701,7 @@ function Dataset() {
                         {editingElement == element.id && <div className="dataset-element-expanded" onClick={(e) => {e.stopPropagation()}}>
                             <form className="dataset-edit-element-form" onSubmit={updateElement}>
                                 <div className="dataset-create-label-row">
-                                    <label className="dataset-create-label-label" htmlFor="text">Name</label>
+                                    <label className="dataset-create-label-label" htmlFor="element-name-inp">Name</label>
                                     <input id="element-name-inp" className="dataset-create-label-inp" type="text" value={editingElementName} onChange={(e) => {
                                         setEditingElementName(e.target.value)
                                     }} onClick={(e) => {
@@ -739,26 +745,26 @@ function Dataset() {
                         onClick={(e) => e.stopPropagation()}>
                         <form className="dataset-create-label-form" onSubmit={createLabelSubmit}>
                             <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" htmlFor="label-name-inp">Name</label>
-                                <input id="label-name-inp" className="dataset-create-label-inp" type="text"
+                                <label className="dataset-create-label-label" htmlFor="label-create-name-inp">Name</label>
+                                <input id="label-create-name-inp" className="dataset-create-label-inp" type="text"
                                        placeholder="Name" value={createLabelName} onChange={(e) => {
                                     setCreateLabelName(e.target.value)
                                 }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
                             </div>
                             
                             <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" htmlFor="label-color-inp">Color</label>
+                                <label className="dataset-create-label-label" htmlFor="label-create-color-inp">Color</label>
                                 <div className="create-label-color-container" style={{background: createLabelColor}}>
-                                    <input id="label-color-inp" className="dataset-create-label-color" type="color" value={createLabelColor} onChange={(e) => {
+                                    <input id="label-create-color-inp" className="dataset-create-label-color" type="color" value={createLabelColor} onChange={(e) => {
                                         setCreateLabelColor(e.target.value)
                                     }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
                                 </div>
                             </div>
 
                             <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" htmlFor="keybinding">Keybind</label>
+                                <label className="dataset-create-label-label" htmlFor="label-create-keybinding">Keybind</label>
                                 <input
-                                    id="keybinding"
+                                    id="label-create-keybinding"
                                     className="dataset-create-label-inp"
                                     type="text"
                                     value={createLabelKeybind}
