@@ -36,8 +36,10 @@
     height: 100%;
     margin-top: 10px;
     object-fit: cover;
+    overflow-clip-margin: unset;
     border-radius: 5px;
     background: var(--background-dark);
+    display: block;
 }
 
 .dataset-element-header {
@@ -46,6 +48,7 @@
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    position: relative;
 }
 
 .dataset-element-icon {

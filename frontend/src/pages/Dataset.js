@@ -648,7 +648,7 @@ function Dataset() {
             {/* Uploading folders / files to elements goes through these */}
             <input id="dataset-file-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFolderInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
             <input id="dataset-file-upload-inp" type="file" className="hidden" multiple ref={hiddenFileInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
-
+            
             <div className="dataset-elements">
                 <p className="dataset-sidebar-title">Elements</p>
                 <div className="dataset-sidebar-button-container">
@@ -659,6 +659,7 @@ function Dataset() {
                     <button type="button" className="sidebar-button" onClick={folderInputClick}>+ Upload folder</button>
                     <button type="button" className="sidebar-button dataset-upload-button dataset-upload-files-button" onClick={fileInputClick}>+ Upload files</button>
                 </div>
+                
                 {elements.map((element, idx) => (
                     <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
                     key={element.id} 

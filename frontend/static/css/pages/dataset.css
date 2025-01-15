@@ -52,7 +52,6 @@
     flex-direction: row;
     align-items: center;
     white-space: nowrap;
-    text-overflow: ellipsis;
     overflow: visible;
     z-index: 1;
     position: relative;
@@ -289,6 +288,7 @@
     right: 30px;
     width: 45px;
     height: 45px;
+    z-index: 1;
     border-radius: 25px;
     box-shadow: 0 0 0 2px var(--border);
 }
