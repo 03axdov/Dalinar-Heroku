@@ -6,6 +6,9 @@ import axios from "axios"
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 
+
+const TOOLBAR_HEIGHT = 60
+
 // The default page. Login not required.
 function Dataset() {
 
@@ -19,6 +22,9 @@ function Dataset() {
     const [elementsIndex, setElementsIndex] = useState(0)
 
     const [loading, setLoading] = useState(true)
+
+    const [elementLabelTop, setElementLabelTop] = useState(0)
+    const [elementEditTop, setElementEditTop] = useState(0)
     
     const [displayCreateLabel, setDisplayCreateLabel] = useState(false)
     const [createLabelName, setCreateLabelName] = useState("")
@@ -650,77 +656,91 @@ function Dataset() {
             <input id="dataset-file-upload-inp" type="file" className="hidden" multiple ref={hiddenFileInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
             
             <div className="dataset-elements">
-                <p className="dataset-sidebar-title">Elements</p>
-                <div className="dataset-sidebar-button-container">
-                    <button className="sidebar-button dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>
-                </div>
-                
-                <div className="dataset-sidebar-button-container">
-                    <button type="button" className="sidebar-button" onClick={folderInputClick}>+ Upload folder</button>
-                    <button type="button" className="sidebar-button dataset-upload-button dataset-upload-files-button" onClick={fileInputClick}>+ Upload files</button>
-                </div>
-                
-                {elements.map((element, idx) => (
-                    <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
-                    key={element.id} 
-                    onClick={() => setElementsIndex(idx)}
-                    onMouseEnter={() => {setHoveredElement(idx)}}
-                    onMouseLeave={() => {setHoveredElement(null)}}>
-
-                        {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={window.location.origin + "/static/images/image.png"}/>}
-                        {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={window.location.origin + "/static/images/text.png"}/>}
-
-                        <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
-                        
-
-                        {element.label && idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
-                                                        style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
-                                                    >
-                            
-                            
-                        </span>}
-
-                        {hoveredElement == idx && element.label && editingElement != element.id && <div className="dataset-sidebar-element-label">{idToLabel[element.label].name}</div>}
-
-                        {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
-                            className="dataset-sidebar-options dataset-sidebar-options-margin"
-                            src={window.location.origin + "/static/images/options.png"}
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                setEditingElementName(element.name)
-                                if (editingElement != element.id) {
-                                    setEditingElement(element.id)
-                                    setEditingElementIdx(idx)
-                                    closePopups("editing-element")
-                                } else {
-                                    setEditingElement(null)
-                                    setEditingElementIdx(null)
-                                }
-                                
-                        }}/>}
-
-                        {editingElement == element.id && <div className="dataset-element-expanded" onClick={(e) => {e.stopPropagation()}}>
-                            <form className="dataset-edit-element-form" onSubmit={updateElement}>
-                                <div className="dataset-create-label-row">
-                                    <label className="dataset-create-label-label" htmlFor="element-name-inp">Name</label>
-                                    <input id="element-name-inp" className="dataset-create-label-inp" type="text" value={editingElementName} onChange={(e) => {
-                                        setEditingElementName(e.target.value)
-                                    }} onClick={(e) => {
-                                        e.stopPropagation()
-                                    }} onFocus={inputOnFocus} onBlur={() => {
-                                        inputOnBlur()
-                                    }}></input>
-                                </div>
-
-                                <button type="submit" className="edit-element-submit">Apply</button>
-                                <button type="button" className="edit-element-submit edit-element-delete" onClick={deleteElement}>Delete</button>
-                            </form>
-                            
-                        </div>}
-                        
+                <div className="dataset-elements-scrollable">
+                    <p className="dataset-sidebar-title">Elements</p>
+                    <div className="dataset-sidebar-button-container">
+                        <button className="sidebar-button dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>
                     </div>
-                ))}
-                {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
+                    
+                    <div className="dataset-sidebar-button-container">
+                        <button type="button" className="sidebar-button" onClick={folderInputClick}>+ Upload folder</button>
+                        <button type="button" className="sidebar-button dataset-upload-button dataset-upload-files-button" onClick={fileInputClick}>+ Upload files</button>
+                    </div>
+                    
+                    {elements.map((element, idx) => (
+                        <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
+                        key={element.id} 
+                        onClick={() => setElementsIndex(idx)}
+                        onMouseEnter={(e) => {
+                            setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                            setHoveredElement(idx)
+                        }}
+                        onMouseLeave={() => {
+                            setHoveredElement(null)
+                        }}>
+
+                            {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={window.location.origin + "/static/images/image.png"}/>}
+                            {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={window.location.origin + "/static/images/text.png"}/>}
+
+                            <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
+                            
+
+                            {element.label && idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
+                                                            style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
+                                                        >
+                                
+                                
+                            </span>}
+
+                            {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
+                                className="dataset-sidebar-options dataset-sidebar-options-margin"
+                                src={window.location.origin + "/static/images/options.png"}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    setEditingElementName(element.name)
+                                    if (editingElement != element.id) {
+                                        setElementEditTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                        setEditingElement(element.id)
+                                        setEditingElementIdx(idx)
+                                        closePopups("editing-element")
+                                    } else {
+                                        setEditingElement(null)
+                                        setEditingElementIdx(null)
+                                    }
+                                    
+                            }}/>}
+
+            
+                            
+                        </div>
+                    ))}
+                    {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
+                </div>
+                
+                {/* Shows an element's label */}
+                {hoveredElement != null && elements[hoveredElement].label && !editingElement &&
+                    <div className="dataset-sidebar-element-label" style={{top: elementLabelTop}}>{idToLabel[elements[hoveredElement].label].name}</div>
+                }
+
+                {/* Editing element */}
+                {editingElement && <div className="dataset-element-expanded" style={{top: elementEditTop}} onClick={(e) => {e.stopPropagation()}}>
+                    <form className="dataset-edit-element-form" onSubmit={updateElement}>
+                        <div className="dataset-create-label-row">
+                            <label className="dataset-create-label-label" htmlFor="element-name-inp">Name</label>
+                            <input id="element-name-inp" className="dataset-create-label-inp" type="text" value={editingElementName} onChange={(e) => {
+                                setEditingElementName(e.target.value)
+                            }} onClick={(e) => {
+                                e.stopPropagation()
+                            }} onFocus={inputOnFocus} onBlur={() => {
+                                inputOnBlur()
+                            }}></input>
+                        </div>
+
+                        <button type="submit" className="edit-element-submit">Apply</button>
+                        <button type="button" className="edit-element-submit edit-element-delete" onClick={deleteElement}>Delete</button>
+                    </form>       
+                </div>}
+
             </div>
 
             <div className="dataset-main">

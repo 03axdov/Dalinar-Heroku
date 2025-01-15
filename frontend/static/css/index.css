@@ -196,3 +196,7 @@ input {
 .gray-text {
     color: var(--gray-text)
 }
+
+.visible {
+    display: block;
+}
