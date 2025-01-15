@@ -24,7 +24,7 @@ function Dataset() {
     const [loading, setLoading] = useState(true)
 
     const [elementLabelTop, setElementLabelTop] = useState(0)
-    const [elementEditTop, setElementEditTop] = useState(0)
+    const [editExpandedTop, setEditExpandedTop] = useState(0)
     
     const [displayCreateLabel, setDisplayCreateLabel] = useState(false)
     const [createLabelName, setCreateLabelName] = useState("")
@@ -699,7 +699,7 @@ function Dataset() {
                                     e.stopPropagation()
                                     setEditingElementName(element.name)
                                     if (editingElement != element.id) {
-                                        setElementEditTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                        setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
                                         setEditingElement(element.id)
                                         setEditingElementIdx(idx)
                                         closePopups("editing-element")
@@ -723,7 +723,7 @@ function Dataset() {
                 }
 
                 {/* Editing element */}
-                {editingElement && <div className="dataset-element-expanded" style={{top: elementEditTop}} onClick={(e) => {e.stopPropagation()}}>
+                {editingElement && <div className="dataset-element-expanded" style={{top: editExpandedTop}} onClick={(e) => {e.stopPropagation()}}>
                     <form className="dataset-edit-element-form" onSubmit={updateElement}>
                         <div className="dataset-create-label-row">
                             <label className="dataset-create-label-label" htmlFor="element-name-inp">Name</label>
@@ -752,119 +752,128 @@ function Dataset() {
             </div>
 
             <div className="dataset-labels">
-                <p className="dataset-sidebar-title">Labels</p>
-                <div className="dataset-sidebar-button-container">
-                    <button type="button" className="sidebar-button" onClick={(e) => {
-                        e.stopPropagation()
-                        closePopups("create-label")
-                        setDisplayCreateLabel(!displayCreateLabel)
-                    }}>
-                        {(displayCreateLabel ? "- Hide form" : "+ Add label")}
-                    </button>
-                    <div className="dataset-create-label-container" 
-                        style={{display: (displayCreateLabel ? "flex" : "none")}}
-                        onClick={(e) => e.stopPropagation()}>
-                        <form className="dataset-create-label-form" onSubmit={createLabelSubmit}>
-                            <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" htmlFor="label-create-name-inp">Name</label>
-                                <input id="label-create-name-inp" className="dataset-create-label-inp" type="text"
-                                       placeholder="Name" value={createLabelName} onChange={(e) => {
-                                    setCreateLabelName(e.target.value)
+                <div className="dataset-labels-scrollable">
+                    <p className="dataset-sidebar-title">Labels</p>
+                    <div className="dataset-sidebar-button-container">
+                        <button type="button" className="sidebar-button" onClick={(e) => {
+                            e.stopPropagation()
+                            closePopups("create-label")
+                            setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                            setDisplayCreateLabel(!displayCreateLabel)
+                        }}>
+                            {(displayCreateLabel ? "- Hide form" : "+ Add label")}
+                        </button>
+                        
+                    </div>
+                    <div className="dataset-sidebar-element" onClick={removeCurrentElementLabel}>
+                        <img className="dataset-sidebar-icon" src={window.location.origin + "/static/images/cross.svg"}/>
+                        Clear label
+                    </div>
+                    {labels.map((label) => (
+                        <div className="dataset-sidebar-element" key={label.id} onClick={() => labelOnClick(label)}>
+                            <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
+                            <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
+                            {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} className="dataset-sidebar-label-keybind">{label.keybind.toUpperCase()}</span>}
+                            <img title="Edit label" 
+                                className={"dataset-sidebar-options" + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
+                                src={window.location.origin + "/static/images/options.png"}
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    closePopups("editing-label")
+                                    if (editingLabel == label.id) {
+                                        setEditingLabel(null)
+                                    } else {
+                                        setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                        setEditingLabelName(label.name)
+                                        setEditingLabelColor(label.color)
+                                        setEditingLabelKeybind(label.keybind)
+                                        setEditingLabel(label.id)
+                                    }
+
+                                }}/>
+                            
+                        </div>
+                    ))}
+                </div>
+
+                <div className="dataset-create-label-container" 
+                    style={{display: (displayCreateLabel ? "flex" : "none"), top: editExpandedTop}}
+                    onClick={(e) => e.stopPropagation()}>
+                    <form className="dataset-create-label-form" onSubmit={createLabelSubmit}>
+                        <div className="dataset-create-label-row">
+                            <label className="dataset-create-label-label" htmlFor="label-create-name-inp">Name</label>
+                            <input id="label-create-name-inp" className="dataset-create-label-inp" type="text"
+                                placeholder="Name" value={createLabelName} onChange={(e) => {
+                                setCreateLabelName(e.target.value)
+                            }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
+                        </div>
+                        
+                        <div className="dataset-create-label-row">
+                            <label className="dataset-create-label-label" htmlFor="label-create-color-inp">Color</label>
+                            <div className="create-label-color-container" style={{background: createLabelColor}}>
+                                <input id="label-create-color-inp" className="dataset-create-label-color" type="color" value={createLabelColor} onChange={(e) => {
+                                    setCreateLabelColor(e.target.value)
                                 }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
                             </div>
-                            
-                            <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" htmlFor="label-create-color-inp">Color</label>
-                                <div className="create-label-color-container" style={{background: createLabelColor}}>
-                                    <input id="label-create-color-inp" className="dataset-create-label-color" type="color" value={createLabelColor} onChange={(e) => {
-                                        setCreateLabelColor(e.target.value)
-                                    }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
-                                </div>
-                            </div>
+                        </div>
 
-                            <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" htmlFor="label-create-keybinding">Keybind</label>
-                                <input
-                                    id="label-create-keybinding"
-                                    className="dataset-create-label-inp"
-                                    type="text"
-                                    value={createLabelKeybind}
-                                    onKeyDown={handleKeyDown}
-                                    placeholder="Press keys..."
-                                    onFocus={inputOnFocus} onBlur={inputOnBlur}
-                                    readOnly
-                                />
-                            </div>
+                        <div className="dataset-create-label-row">
+                            <label className="dataset-create-label-label" htmlFor="label-create-keybinding">Keybind</label>
+                            <input
+                                id="label-create-keybinding"
+                                className="dataset-create-label-inp"
+                                type="text"
+                                value={createLabelKeybind}
+                                onKeyDown={handleKeyDown}
+                                placeholder="Press keys..."
+                                onFocus={inputOnFocus} onBlur={inputOnBlur}
+                                readOnly
+                            />
+                        </div>
 
-                            <button type="submit" className="create-label-submit">Create</button>
-                            
-                        </form>
-                    </div>
+                        <button type="submit" className="create-label-submit">Create</button>
+                        
+                    </form>
                 </div>
-                <div className="dataset-sidebar-element" onClick={removeCurrentElementLabel}>
-                    <img className="dataset-sidebar-icon" src={window.location.origin + "/static/images/cross.svg"}/>
-                    Clear label
-                </div>
-                {labels.map((label) => (
-                    <div className="dataset-sidebar-element" key={label.id} onClick={() => labelOnClick(label)}>
-                        <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
-                        <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
-                        {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} className="dataset-sidebar-label-keybind">{label.keybind.toUpperCase()}</span>}
-                        <img title="Edit label" 
-                            className={"dataset-sidebar-options" + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
-                            src={window.location.origin + "/static/images/options.png"}
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                closePopups("editing-label")
-                                if (editingLabel == label.id) {
-                                    setEditingLabel(null)
-                                } else {
-                                    setEditingLabelName(label.name)
-                                    setEditingLabelColor(label.color)
-                                    setEditingLabelKeybind(label.keybind)
-                                    setEditingLabel(label.id)
-                                }
+                
+                {/* Editing label */}
+                {editingLabel && <div className="dataset-label-expanded" style={{top: editExpandedTop}} onClick={(e) => {e.stopPropagation()}}>
+                    <form className="dataset-create-label-form" onSubmit={editLabelOnSubmit}>
+                        <div className="dataset-create-label-row">
+                            <label className="dataset-create-label-label" htmlFor="label-name-inp">Name</label>
+                            <input id="label-name-inp" className="dataset-create-label-inp" type="text" placeholder="Name" value={editingLabelName} onChange={(e) => {
+                                setEditingLabelName(e.target.value)
+                            }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
+                        </div>
+                        
+                        <div className="dataset-create-label-row">
+                            <label className="dataset-create-label-label" htmlFor="label-color-inp">Color</label>
+                            <div className="create-label-color-container" style={{background: editingLabelColor}}>
+                                <input id="label-color-inp" className="dataset-create-label-color" type="color" value={editingLabelColor} onChange={(e) => {
+                                    setEditingLabelColor(e.target.value)
+                                }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
+                            </div>
+                        </div>
 
-                            }}/>
-                        {editingLabel == label.id && <div className="dataset-label-expanded" onClick={(e) => {e.stopPropagation()}}>
-                            <form className="dataset-create-label-form" onSubmit={editLabelOnSubmit}>
-                                <div className="dataset-create-label-row">
-                                    <label className="dataset-create-label-label" htmlFor="label-name-inp">Name</label>
-                                    <input id="label-name-inp" className="dataset-create-label-inp" type="text" placeholder="Name" value={editingLabelName} onChange={(e) => {
-                                        setEditingLabelName(e.target.value)
-                                    }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
-                                </div>
-                                
-                                <div className="dataset-create-label-row">
-                                    <label className="dataset-create-label-label" htmlFor="label-color-inp">Color</label>
-                                    <div className="create-label-color-container" style={{background: editingLabelColor}}>
-                                        <input id="label-color-inp" className="dataset-create-label-color" type="color" value={editingLabelColor} onChange={(e) => {
-                                            setEditingLabelColor(e.target.value)
-                                        }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
-                                    </div>
-                                </div>
+                        <div className="dataset-create-label-row">
+                            <label className="dataset-create-label-label" htmlFor="keybinding">Keybind</label>
+                            <input
+                                id="keybinding"
+                                className="dataset-create-label-inp"
+                                type="text"
+                                value={editingLabelKeybind}
+                                onKeyDown={(e) => {handleKeyDown(e, "editing-label")}}
+                                placeholder="Press keys..."
+                                onFocus={inputOnFocus} onBlur={inputOnBlur}
+                                readOnly
+                            />
+                        </div>
 
-                                <div className="dataset-create-label-row">
-                                    <label className="dataset-create-label-label" htmlFor="keybinding">Keybind</label>
-                                    <input
-                                        id="keybinding"
-                                        className="dataset-create-label-inp"
-                                        type="text"
-                                        value={editingLabelKeybind}
-                                        onKeyDown={(e) => {handleKeyDown(e, "editing-label")}}
-                                        placeholder="Press keys..."
-                                        onFocus={inputOnFocus} onBlur={inputOnBlur}
-                                        readOnly
-                                    />
-                                </div>
-
-                                <button type="submit" className="create-label-submit">Save</button>
-                                <button type="button" className="create-label-submit edit-label-delete" onClick={deleteLabel}>Delete</button>
-                                
-                            </form>
-                        </div>}
-                    </div>
-                ))}
+                        <button type="submit" className="create-label-submit">Save</button>
+                        <button type="button" className="create-label-submit edit-label-delete" onClick={deleteLabel}>Delete</button>
+                        
+                    </form>
+                    </div>}
 
             </div>
         </div>

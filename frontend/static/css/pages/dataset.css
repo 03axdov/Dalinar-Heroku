@@ -15,7 +15,7 @@
     position: relative;
 }
 
-.dataset-elements-scrollable {
+.dataset-elements-scrollable, .dataset-labels-scrollable {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -138,8 +138,7 @@
 .dataset-create-label-container, .dataset-label-expanded, .dataset-element-expanded {
     position: absolute;
     width: 300px;
-    right: calc(100% + 20px);
-    top: -10px;
+    right: calc(100% + 10px);
     z-index: 2;
     box-shadow: 0 0 0 1px var(--border);
     background: var(--sidebar);
