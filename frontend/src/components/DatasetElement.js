@@ -24,6 +24,8 @@ function DatasetElement({dataset}) {
 
             <img title="Edit dataset" className="dataset-element-icon dataset-element-options" src={window.location.origin + "/static/images/options.png"} onClick={(e) => {
                 e.stopPropagation()
+
+                navigate("/edit-dataset/" + dataset.id)
             }}/>
             </div>
             

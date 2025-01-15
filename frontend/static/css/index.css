@@ -192,3 +192,7 @@ input {
     font-size: 1rem;
     font-family: 'Open Sans', sans-serif; /* 1 */
 }
+
+.gray-text {
+    color: var(--gray-text)
+}
