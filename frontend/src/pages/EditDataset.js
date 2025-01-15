@@ -32,7 +32,6 @@ function EditDataset() {
             setName(dataset.name)
             setOriginalName(dataset.name)
             setDescription(dataset.description)
-            setImage(dataset.image)
             setVisibility(dataset.visibility)
 
         }).catch((err) => {
@@ -55,18 +54,20 @@ function EditDataset() {
         let formData = new FormData()
 
         formData.append('name', name)
-        formData.append('datatype', type)
         formData.append('description', description)
-        formData.append('image', image)
+        if (image) {
+            formData.append('image', image)
+        } else {formData.append("image", "")}
         formData.append("visibility", visibility)
+        formData.append("id", id)
 
-        const URL = window.location.origin + '/api/create-dataset/'
+        const URL = window.location.origin + '/api/edit-dataset/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
 
         axios.post(URL, formData, config)
         .then((data) => {
             console.log("Success:", data);
-            navigate("/home")
+            navigate("/datasets/" + id)
         }).catch((error) => {
             alert("An error occurred.")
             console.log("Error: ", error)
@@ -81,14 +82,14 @@ function EditDataset() {
 
                 <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="name">Dataset name <span className="create-dataset-required">(required)</span></label>
-                    <input className="create-dataset-inp" name="name" type="text" required placeholder={name} value={name} onChange={(e) => {
+                    <input className="create-dataset-inp" id="name" type="text" required placeholder={name} value={name} onChange={(e) => {
                         setName(e.target.value)
                     }} />
                 </div>
 
                 <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="description">Description</label>
-                    <input className="create-dataset-inp create-dataset-full-width" name="description" placeholder="description" type="text" value={description} onChange={(e) => {
+                    <input className="create-dataset-inp create-dataset-full-width" id="description" placeholder="description" type="text" value={description} onChange={(e) => {
                         setDescription(e.target.value)
                     }} />
                 </div>
@@ -106,8 +107,8 @@ function EditDataset() {
                 </div>
 
                 <div className="create-dataset-label-inp">
-                    <label className="create-dataset-label" htmlFor="image">Image</label>
-                    <input type="file" accept="image/*" name="image" className="create-dataset-file-inp" onChange={(e) => {
+                    <label className="create-dataset-label" htmlFor="image">New Image</label>
+                    <input type="file" accept="image/*" id="image" className="create-dataset-file-inp" onChange={(e) => {
                         if (e.target.files[0]) {
                             setImage(e.target.files[0])
                         }

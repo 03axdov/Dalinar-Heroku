@@ -85,6 +85,41 @@ class CreateDataset(APIView):
         return Response({'Bad Request': 'An error occurred while creating dataset'}, status=status.HTTP_400_BAD_REQUEST)
     
     
+class EditDataset(APIView):
+    serializer_class = CreateDatasetSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, format=None):   # A put request may fit better, post for now
+        name = request.data["name"]
+        description = request.data["description"]
+        image = request.data["image"]
+        visibility = request.data["visibility"]
+        dataset_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+                
+                if dataset.owner == user.profile:
+                    if name: dataset.name = name
+                    if description: dataset.description = description
+                    if image: dataset.image = image
+                    if visibility: dataset.visibility = visibility
+                        
+                    dataset.save()
+                
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({'Unauthorized': 'You can only edit your own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
+            except Dataset.DoesNotExist:
+                return Response({'Not found': 'Could not find dataset with the id ' + str(dataset_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to edit datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    
 # ELEMENT HANDLING
 
 class CreateElement(APIView):
@@ -162,10 +197,8 @@ class EditElement(APIView):
         user = self.request.user
         
         if user.is_authenticated:
-            found_element = False
             try:
                 element = Element.objects.get(id=element_id)
-                found_element = True
                 
                 if element.owner == user.profile:
                     if name:
@@ -177,8 +210,7 @@ class EditElement(APIView):
                 
                 else:
                     return Response({'Unauthorized': 'You can only edit your own elements.'}, status=status.HTTP_401_UNAUTHORIZED)
-            except Element.DoesNotExist or Label.DoesNotExist:
-                if found_element: return Response({'Not found': 'Could not find label with the id ' + str(label_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+            except Element.DoesNotExist:
                 return Response({'Not found': 'Could not find element with the id ' + str(element_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to edit elements.'}, status=status.HTTP_401_UNAUTHORIZED)
