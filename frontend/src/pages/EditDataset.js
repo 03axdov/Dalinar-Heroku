@@ -116,7 +116,7 @@ function EditDataset() {
                 </div>
 
                 <div className="create-dataset-buttons">
-                    <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Cancel</button>
+                    <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Back to home</button>
                     <button type="submit" className="create-dataset-submit">Save changes</button>
                 </div>
                 

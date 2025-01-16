@@ -746,11 +746,31 @@ function Dataset() {
             </div>
 
             <div className="dataset-main">
-                <div title="Will show color of pressed label" className="dataset-main-label-clicked" style={{background: datasetMainLabelColor}}></div>
-                {(elements.length == 0 && !loading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>Upload folder</button>}
-                {elements.length != 0 && <div className="dataset-element-view-container">
-                    {getPreviewElement(elements[elementsIndex])}
-                </div>}
+                <div className="dataset-main-toolbar">
+                    {dataset && <div className="dataset-title-container" title={"Dataset: " + dataset.name}>
+                        {dataset.datatype == "classification" && <img className="dataset-title-icon" src={window.location.origin + "/static/images/classification.png"}/>}
+                        {dataset.datatype == "area" && <img className="dataset-title-icon" src={window.location.origin + "/static/images/area.svg"}/>}
+                        
+                        <p className="dataset-title">{dataset && dataset.name}</p>
+                    </div>}
+
+                    {dataset && <button type="button" className="dataset-title-button" onClick={() => {
+                        navigate("/edit-dataset/" + dataset.id)
+                    }}>
+                        <img className="dataset-title-edit-icon" src={window.location.origin + "/static/images/edit.png"}/>
+                        Edit dataset
+                    </button>}
+                    
+                    <div title="Will show color of pressed label" className="dataset-main-label-clicked" style={{background: datasetMainLabelColor}}></div>
+                </div>
+                
+                <div className="dataset-main-display">
+                    {(elements.length == 0 && !loading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>Upload folder</button>}
+                    {elements.length != 0 && <div className="dataset-element-view-container">
+                        {getPreviewElement(elements[elementsIndex])}
+                    </div>}
+                </div>
+                
             </div>
 
             <div className="dataset-labels">

@@ -46,9 +46,75 @@
 .dataset-main {
     width: calc(100% - var(--dataset-elements-width) - var(--dataset-labels-width));
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: start;
     align-items: center;
     position: relative;
+}
+
+.dataset-main-toolbar {
+    height: 50px;
+    width: 100%;
+    background: var(--toolbar);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.dataset-main-display {
+    width: 100%;
+    height: 100%;
+    max-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+.dataset-main-label-clicked {
+    margin-right: 10px;
+    margin-left: auto;
+    width: 30px;
+    height: 30px;
+    z-index: 1;
+    border-radius: 15px;
+    box-shadow: 0 0 0 2px var(--border);
+}
+
+.dataset-title {
+    font-size: 1.4rem;
+    margin: 0;
+}
+
+.dataset-title-container {
+    height: 35px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    background: var(--toolbar-light);
+    padding: 0 10px;
+    border-radius: 3px;
+    cursor: default;
+}
+
+.dataset-title-button {
+    height: 35px;
+    background: var(--sidebar-button);
+    border-radius: 3px;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.dataset-title-icon {
+    height: 22px;
+    margin-right: 10px;
+}
+
+.dataset-title-edit-icon {
+    height: 20px;
+    margin-right: 10px;
 }
 
 .dataset-sidebar-title {
@@ -304,16 +370,6 @@
     margin-right: 10px;
 }
 
-.dataset-main-label-clicked {
-    position: absolute;
-    top: 20px;
-    right: 30px;
-    width: 45px;
-    height: 45px;
-    z-index: 1;
-    border-radius: 25px;
-    box-shadow: 0 0 0 2px var(--border);
-}
 
 .dataset-sidebar-label-keybind {
     padding: 1px 5px;
@@ -398,3 +454,4 @@
     width: 15px;
     height: auto;
 }
+

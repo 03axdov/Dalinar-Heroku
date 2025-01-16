@@ -8,6 +8,7 @@ function Home() {
     const navigate = useNavigate()
 
     const [datasets, setDatasets] = useState([])
+    const [loading, setLoading] = useState(true)
     const [description, setDescription] = useState("")
     const [name, setName] = useState("")
 
@@ -16,6 +17,7 @@ function Home() {
     }, [])
 
     const getDatasets = () => {
+        setLoading(true)
         axios({
             method: 'GET',
             url: window.location.origin + '/api/my-datasets/',
@@ -30,6 +32,8 @@ function Home() {
         }).catch((err) => {
             alert("An error occured while loading your datasets.")
             console.log(err)
+        }).finally(() => {
+            setLoading(false)
         })
 
     }
@@ -47,7 +51,7 @@ function Home() {
                     {datasets.map((dataset) => (
                         <DatasetElement dataset={dataset} key={dataset.id} />
                     ))}
-                    {datasets.length == 0 && <p>You don't have any datasets. Click <span className="link" onClick={() => {
+                    {!loading && datasets.length == 0 && <p>You don't have any datasets. Click <span className="link" onClick={() => {
                         navigate("/create-dataset")
                     }}>here</span> to create one.</p>}
                 </div>
