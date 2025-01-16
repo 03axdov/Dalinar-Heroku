@@ -67,7 +67,7 @@ function EditDataset() {
         axios.post(URL, formData, config)
         .then((data) => {
             console.log("Success:", data);
-            navigate("/datasets/" + id)
+            navigate("/home")
         }).catch((error) => {
             alert("An error occurred.")
             console.log("Error: ", error)

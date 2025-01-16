@@ -38,7 +38,9 @@ class DatasetListPublic(generics.ListAPIView):
     permission_classes = [AllowAny]
     
     def get_queryset(self):
-        datasets = Dataset.objects.filter(visibility="public")
+        search = self.request.GET.get("search")
+        if search == None: search = ""
+        datasets = Dataset.objects.filter(Q(visibility="public") & Q(name__contains=search))
         return datasets
 
 
