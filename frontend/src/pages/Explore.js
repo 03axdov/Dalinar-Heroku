@@ -3,8 +3,7 @@ import DatasetElement from "../components/DatasetElement"
 import { useNavigate } from "react-router-dom"
 import axios from 'axios'
 
-// This is the personal view. /home
-function Home() {
+function Explore() {
     const navigate = useNavigate()
 
     const [datasets, setDatasets] = useState([])
@@ -18,7 +17,7 @@ function Home() {
         setLoading(true)
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/my-datasets/',
+            url: window.location.origin + '/api/datasets/',
         })
         .then((res) => {
             if (res.data) {
@@ -36,22 +35,19 @@ function Home() {
 
     }
 
-    return <div className="home-container">
-        <div className="home-sidebar">
+    return <div className="explore-container">
+        <div className="explore-sidebar">
             <button className="sidebar-button" onClick={() => {
                 navigate("/create-dataset")
             }}>+ Create dataset</button>
         </div>
-        <div className="home-non-sidebar">
+        <div className="explore-non-sidebar">
             <div>
-                <h2 className="my-datasets-title">My Datasets</h2>
+                <h2 className="explore-datasets-title">Public Datasets</h2>
                 <div className="my-datasets-container">
                     {datasets.map((dataset) => (
-                        <DatasetElement dataset={dataset} key={dataset.id} />
+                        <DatasetElement dataset={dataset} key={dataset.id} isPublic={true} />
                     ))}
-                    {!loading && datasets.length == 0 && <p>You don't have any datasets. Click <span className="link" onClick={() => {
-                        navigate("/create-dataset")
-                    }}>here</span> to create one.</p>}
                 </div>
                 
             </div>
@@ -62,4 +58,4 @@ function Home() {
     </div>
 }
 
-export default Home
+export default Explore

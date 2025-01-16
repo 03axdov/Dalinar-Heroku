@@ -32,6 +32,16 @@ class GetCurrentProfile(APIView):
 
 # DATASET HANDLING
 
+
+class DatasetListPublic(generics.ListAPIView):
+    serializer_class = DatasetSerializer
+    permission_classes = [AllowAny]
+    
+    def get_queryset(self):
+        datasets = Dataset.objects.filter(visibility="public")
+        return datasets
+
+
 class DatasetListProfile(generics.ListCreateAPIView):
     serializer_class = DatasetSerializer
     permission_classes  = [IsAuthenticated]

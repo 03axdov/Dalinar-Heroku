@@ -9,6 +9,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, setShowAccountPopup}) {
         <nav id="toolbar">
             <img id="toolbar-logo" src={window.location.origin + "/static/images/logoWhite.svg"} onClick={() => navigate("/")}/>
             <p className="toolbar-text toolbar-title" onClick={() => navigate("/")}>Dalinar</p>
+
             <p className="toolbar-text" onClick={() => {
                 if (!loadingCurrentProfile && currentProfile.user !== "") {
                     navigate("/home")
@@ -17,6 +18,13 @@ function Toolbar({currentProfile, loadingCurrentProfile, setShowAccountPopup}) {
                 }
                 
             }}>Home</p>
+
+<           p className="toolbar-text" onClick={() => {
+
+                navigate("/explore")
+
+                
+            }}>Explore</p>
 
             {!loadingCurrentProfile && currentProfile.user === "" &&
                 <div className="toolbar-auth">

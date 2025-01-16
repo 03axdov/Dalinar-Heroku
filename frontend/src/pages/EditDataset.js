@@ -8,7 +8,7 @@ function EditDataset() {
 
     const navigate = useNavigate()
     const { id } = useParams();
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     const [originalName, setOriginalName] = useState("")
     const [name, setName] = useState("")
@@ -96,11 +96,11 @@ function EditDataset() {
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Dataset visibility</p>
-                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={visibility == "private"} onChange={(e) => {
+                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={!loading && visibility == "private"} onChange={(e) => {
                         setVisibility(e.target.value)
                     }} />
                     <label htmlFor="create-dataset-visibility-private" className="create-dataset-type-label">Private</label>
-                    <input type="radio" id="create-dataset-visibility-public" name="visibility" value="public" checked={visibility == "public"}  onChange={(e) => {
+                    <input type="radio" id="create-dataset-visibility-public" name="visibility" value="public" checked={!loading && visibility == "public"}  onChange={(e) => {
                         setVisibility(e.target.value)
                     }} />
                     <label htmlFor="create-dataset-visibility-public" className="create-dataset-type-label">Public</label>

@@ -1,11 +1,11 @@
-.home-container {
+.explore-container {
     display: flex;
     flex-direction: row;
     height: 100%;
     width: 100%;
 }
 
-.home-sidebar {
+.explore-sidebar {
     width: var(--home-sidebar-width);
     height: 100%;
     display: flex;
@@ -18,7 +18,7 @@
     overflow-y: auto;
 }
 
-.home-non-sidebar {
+.explore-non-sidebar {
     width: calc(100% - var(--home-sidebar-width));
     padding-left: 50px;
     padding-top: 20px;
@@ -27,7 +27,7 @@
     box-sizing: border-box;
 }
 
-.my-datasets-title {
+.explore-datasets-title {
     font-size: 2rem;
     margin: 0;
     font-weight: 500;
@@ -36,16 +36,4 @@
 
     border-bottom: 1px solid white;
     display: inline-block;
-}
-
-.my-datasets-container {
-    margin-top: 20px;
-    width: 100%;
-    padding-right: 20px;
-    display: flex;
-    flex-direction: row;
-    justify-content: start;
-    align-items: center;
-    flex-wrap: wrap;
-    box-sizing: border-box;
 }
