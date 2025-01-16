@@ -11,8 +11,6 @@ function DatasetElement({dataset, isPublic=false}) {
         win.focus();
     }
 
-    console.log(isPublic)
-
     return (
         <div className="dataset-element" onClick={onClick} >
             <div className="dataset-element-header">
@@ -33,7 +31,7 @@ function DatasetElement({dataset, isPublic=false}) {
             {dataset.image && <img className="dataset-element-image" src={dataset.image}/>}
             
 
-            <p className="dataset-element-date">{formattedDate}</p>
+            <p className="dataset-element-date">{(!isPublic ? formattedDate : dataset.downloaders.length + " download" + (dataset.downloaders.length != 1 ? "s" : ""))}</p>
             <p className="dataset-element-count">{dataset.elements.length + " element" + (dataset.elements.length != 1 ? "s" : "")}</p>
 
 

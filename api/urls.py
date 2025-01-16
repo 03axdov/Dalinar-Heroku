@@ -11,6 +11,7 @@ urlpatterns = [
     path("datasets/<int:id>", GetDataset.as_view(), name="get-dataset"),
     path("create-dataset/", CreateDataset.as_view(), name="create-dataset"),
     path("edit-dataset/", EditDataset.as_view(), name="edit-dataset"),
+    path("download-dataset/", DownloadDataset.as_view(), name="download-dataset"),
 
     # ELEMENT HANDLING
     path("create-element/", CreateElement.as_view(), name="create-element"),

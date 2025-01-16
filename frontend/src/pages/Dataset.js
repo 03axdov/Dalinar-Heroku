@@ -572,7 +572,23 @@ function Dataset() {
         const zipBlob = await zip.generateAsync({ type: "blob" });
         saveAs(zipBlob, dataset.name + ".zip");
 
-        
+        const URL = window.location.origin + '/api/download-dataset/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": dataset.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            console.log("Incremented download count.")
+        }).catch((error) => {
+            console.log("Error:" + error)
+        })
         
     }
 
@@ -747,11 +763,11 @@ function Dataset() {
 
             <div className="dataset-main">
                 <div className="dataset-main-toolbar">
-                    {dataset && <div className="dataset-title-container" title={"Dataset: " + dataset.name}>
-                        {dataset.datatype == "classification" && <img className="dataset-title-icon" src={window.location.origin + "/static/images/classification.png"}/>}
-                        {dataset.datatype == "area" && <img className="dataset-title-icon" src={window.location.origin + "/static/images/area.svg"}/>}
+                    {dataset && <div className="dataset-title-container">
+                        {dataset.datatype == "classification" && <img title="Type: Classification" className="dataset-title-icon" src={window.location.origin + "/static/images/classification.png"}/>}
+                        {dataset.datatype == "area" && <img title="Type: Area" className="dataset-title-icon" src={window.location.origin + "/static/images/area.svg"}/>}
                         
-                        <p className="dataset-title">{dataset && dataset.name}</p>
+                        <p className="dataset-title" title={"Dataset: " + dataset.name}>{dataset && dataset.name}</p>
                     </div>}
 
                     {dataset && <button type="button" className="dataset-title-button" onClick={() => {
