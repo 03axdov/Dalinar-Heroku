@@ -47,6 +47,9 @@ function Home() {
                     {datasets.map((dataset) => (
                         <DatasetElement dataset={dataset} key={dataset.id} />
                     ))}
+                    {datasets.length == 0 && <p>You don't have any datasets. Click <span className="link" onClick={() => {
+                        navigate("/create-dataset")
+                    }}>here</span> to create one.</p>}
                 </div>
                 
             </div>

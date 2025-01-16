@@ -200,3 +200,12 @@ input {
 .visible {
     display: block;
 }
+
+.link {
+    color: var(--blue);
+    cursor: pointer;
+}
+
+.link:hover {
+    text-decoration: underline;
+}

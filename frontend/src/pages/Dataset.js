@@ -50,6 +50,7 @@ function Dataset() {
 
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
+    const pageRef = useRef(null)
 
     const [inputFocused, setInputFocused] = useState(false);  // Don't use keybinds if input is focused
 
@@ -187,6 +188,8 @@ function Dataset() {
 
         let errorMessages = ""
         let totalSize = 0
+        
+        let AXIOS_OUTSTANDING = files.length
         for (let i=0; i < files.length; i++) {
             let file = files[i]
             
@@ -231,7 +234,8 @@ function Dataset() {
                 errorMessages += "Did not upload file with extension ." + extension + " as this filetype is not supported."
                 console.log("Error: ", error)
             }).finally(() => {
-                if (i == files.length - 1) {
+                AXIOS_OUTSTANDING -= 1
+                if (AXIOS_OUTSTANDING == 0) {
                     getDataset()
                     if (errorMessages) {
                         alert(errorMessages)
@@ -627,9 +631,10 @@ function Dataset() {
         }
     }
 
+    console.log(pageRef.current)
 
     return (
-        <div className="dataset-container" onClick={closePopups}>
+        <div className="dataset-container" onClick={closePopups} ref={pageRef}>
 
             {showDownloadPopup && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup}>
                 <div title="Download .zip file" className="download-element" onClick={labelFoldersDownload}>
