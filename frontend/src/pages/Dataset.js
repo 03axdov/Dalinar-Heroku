@@ -50,6 +50,7 @@ function Dataset() {
 
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
+
     const pageRef = useRef(null)
 
     const [inputFocused, setInputFocused] = useState(false);  // Don't use keybinds if input is focused
@@ -457,12 +458,10 @@ function Dataset() {
 
         axios.post(URL, data, config)
         .then((res) => {
-            console.log(res)
 
             let tempElements = [...elements]
             tempElements[elementsIndex].label = null
 
-            console.log(tempElements)
             setElements(tempElements)
         })
         .catch((err) => {
@@ -631,8 +630,6 @@ function Dataset() {
         }
     }
 
-    console.log(pageRef.current)
-
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef}>
 
@@ -728,7 +725,7 @@ function Dataset() {
                 }
 
                 {/* Editing element */}
-                {editingElement && <div className="dataset-element-expanded" style={{top: editExpandedTop}} onClick={(e) => {e.stopPropagation()}}>
+                {editingElement && <div className="dataset-element-expanded" style={{top: Math.min(editExpandedTop, pageRef.current.getBoundingClientRect().height - 275 + TOOLBAR_HEIGHT)}} onClick={(e) => {e.stopPropagation()}}>
                     <form className="dataset-edit-element-form" onSubmit={updateElement}>
                         <div className="dataset-create-label-row">
                             <label className="dataset-create-label-label" htmlFor="element-name-inp">Name</label>
@@ -842,7 +839,7 @@ function Dataset() {
                 </div>
                 
                 {/* Editing label */}
-                {editingLabel && <div className="dataset-label-expanded" style={{top: editExpandedTop}} onClick={(e) => {e.stopPropagation()}}>
+                {editingLabel && <div className="dataset-label-expanded" style={{top: Math.min(editExpandedTop, pageRef.current.getBoundingClientRect().height - 375 + TOOLBAR_HEIGHT)}} onClick={(e) => {e.stopPropagation()}}>
                     <form className="dataset-create-label-form" onSubmit={editLabelOnSubmit}>
                         <div className="dataset-create-label-row">
                             <label className="dataset-create-label-label" htmlFor="label-name-inp">Name</label>
