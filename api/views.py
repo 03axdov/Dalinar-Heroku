@@ -71,6 +71,7 @@ class GetDataset(APIView):
                     
                     datasetSerialized = self.serializer_class(dataset)
                     data = datasetSerialized.data
+                    data["ownername"] = dataset.owner.name
                     
                     return Response(data, status=status.HTTP_200_OK)
                     

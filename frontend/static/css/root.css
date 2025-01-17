@@ -60,3 +60,20 @@
 ::-webkit-scrollbar-corner {
     background: rgba(31, 31, 31, 0);
 }
+
+input::-webkit-input-placeholder {
+    color: gray;
+}
+input::-moz-placeholder {
+    color: gray;
+}
+input:-ms-input-placeholder {
+    color: gray;
+}
+input::placeholder {
+    color: gray;
+}
+input::placeholder {
+    -webkit-font-smoothing: antialiased; /* For WebKit browsers */
+    -moz-osx-font-smoothing: grayscale; /* For Firefox on macOS */
+}

@@ -209,3 +209,7 @@ input {
 .link:hover {
     text-decoration: underline;
 }
+
+.default-cursor {
+    cursor: default!important;
+}

@@ -6,7 +6,7 @@ function DatasetElement({dataset, isPublic=false}) {
     const navigate = useNavigate()
 
     function onClick() {
-        const URL = window.location.origin + "/datasets/" + dataset.id
+        const URL = window.location.origin + "/datasets/" + (isPublic ? "public/" : "") +  dataset.id
         var win = window.open(URL, '_blank');
         win.focus();
     }

@@ -171,13 +171,13 @@
 }
 
 .dataset-sidebar-options-margin {
-    margin-left: auto;
+    margin-left: 0;
 }
 
 
 
 .dataset-sidebar-color-element {
-    margin-left: 10px;
+    margin-left: auto;
     margin-right: 5px;
     overflow: visible;
     display: flex;
@@ -455,3 +455,6 @@
     height: auto;
 }
 
+.dataset-ownername {
+    margin-left: 5px;
+}

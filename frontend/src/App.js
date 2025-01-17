@@ -10,6 +10,7 @@ import EditDataset from "./pages/EditDataset"
 import Dataset from "./pages/Dataset"
 import axios from "axios"
 import Explore from "./pages/Explore"
+import PublicDataset from "./pages/PublicDataset"
 
 
 export default function App() {
@@ -60,6 +61,7 @@ export default function App() {
                     <Route path="/create-dataset" element={<CreateDataset />}/>
                     <Route path="/edit-dataset/:id" element={<EditDataset />}/>
                     <Route path="/datasets/:id" element={<Dataset />}/>
+                    <Route path="/datasets/public/:id" element={<PublicDataset />}/>
                 </Routes>
             </div>
             
