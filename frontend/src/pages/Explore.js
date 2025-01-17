@@ -8,7 +8,7 @@ function Explore() {
 
     const [datasets, setDatasets] = useState([])
 
-    const [sort, setSort] = useState("downloads")
+    const [sort, setSort] = useState("")
     const [search, setSearch] = useState("")
 
     const [loading, setLoading] = useState(true)
@@ -29,6 +29,9 @@ function Explore() {
             } else {
                 setDatasets([])
             }
+            if (!sort) {
+                setSort("downloads")
+            }
 
         }).catch((err) => {
             alert("An error occured while loading your datasets.")
@@ -38,6 +41,41 @@ function Explore() {
         })
 
     }
+
+    useEffect(() => {
+        if (datasets.length) {
+            let tempDatasets = [...datasets]
+
+            console.log(sort)
+            tempDatasets.sort((d1, d2) => {
+                if (sort == "downloads") {
+                    return d2.downloaders.length - d1.downloaders.length
+                } else if (sort == "alphabetical") {
+                    return d1.name.localeCompare(d2.name)
+                } else if (sort == "date") {
+                    return new Date(d2.created_at) - new Date(d1.created_at)
+                }
+            })
+    
+            setDatasets(tempDatasets)
+        }
+        
+    }, [sort])
+
+
+    // Search input timing
+    useEffect(() => {
+        // Set a timeout to update debounced value after 500ms
+        const handler = setTimeout(() => {
+          getDatasets()
+        }, 350);
+    
+        // Cleanup the timeout if inputValue changes before delay
+        return () => {
+          clearTimeout(handler);
+        };
+      }, [search]);
+
 
     return <div className="explore-container">
         <div className="explore-non-sidebar">
@@ -53,9 +91,13 @@ function Explore() {
                         <option value="date">Date</option>
                     </select>
                     
-                    <input type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
-                            setSearch(e.target.value)
-                    }} /> 
+                    <div className="explore-datasets-search-container">
+                        <input type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
+                                setSearch(e.target.value)
+                        }} /> 
+                        <img className="explore-datasets-search-icon" src={window.location.origin + "/static/images/search.png"} />
+                    </div>
+                    
 
 
                     

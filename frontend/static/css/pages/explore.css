@@ -66,13 +66,14 @@
 }
 
 .explore-datasets-search {
-    margin-left: 20px;
+
     height: 36px;
+    font-size: 1.1rem;
     box-sizing: border-box;
     outline: none;
     border: none;
     background: var(--background-dark);
-    padding-left: 10px;
+    padding-left: 36px;
     border: 1px solid var(--border);
     border-radius: 3px;
     width: 300px;
@@ -82,4 +83,19 @@
     height: 18px;
     width: 18px;
     margin-right: 5px;
+}
+
+.explore-datasets-search-container {
+    height: auto;
+    margin-left: 20px;
+    width: auto;
+    position: relative;
+}
+
+.explore-datasets-search-icon {
+    position: absolute;
+    left: 10px;
+    height: 16px;
+    width: 16px;
+    top: 10px;
 }
