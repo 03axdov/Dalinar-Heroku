@@ -79,10 +79,36 @@ class GetDataset(APIView):
                     return Response({'Not found': 'No public dataset or dataset belonging to you was found with the id ' + str(dataset_id) + '.'}, status=status.HTTP_404_NOT_FOUND)        
             
             else:
-                return Response({'Bad Request': 'Name parameter not found in call to GetDataset.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({'Bad Request': 'Id parameter not found in call to GetDataset.'}, status=status.HTTP_400_BAD_REQUEST)
             
         else:
             return Response({'Unauthorized': 'Must be logged in to get datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class GetDatasetPublic(APIView):
+    serializer_class = DatasetSerializer
+    lookup_url_kwarg = 'id' 
+    
+    def get(self, request, *args, **kwargs):
+
+        dataset_id = kwargs[self.lookup_url_kwarg]
+            
+        if dataset_id != None:
+            try:
+                dataset = Dataset.objects.get(Q(id=dataset_id) & Q(Q(visibility = "public")))
+                
+                datasetSerialized = self.serializer_class(dataset)
+                data = datasetSerialized.data
+                data["ownername"] = dataset.owner.name
+                
+                return Response(data, status=status.HTTP_200_OK)
+                
+            except Dataset.DoesNotExist:
+                return Response({'Not found': 'No public dataset was found with the id ' + str(dataset_id) + '.'}, status=status.HTTP_404_NOT_FOUND)        
+        
+        else:
+            return Response({'Bad Request': 'Id parameter not found in call to GetDataset.'}, status=status.HTTP_400_BAD_REQUEST)
+
         
         
 class CreateDataset(APIView):

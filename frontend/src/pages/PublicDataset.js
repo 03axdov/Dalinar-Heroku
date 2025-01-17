@@ -82,7 +82,7 @@ function PublicDataset() {
     function getDataset() {
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/datasets/' + id,
+            url: window.location.origin + '/api/datasets/public/' + id,
         })
         .then((res) => {
             setDataset(res.data)
@@ -139,86 +139,6 @@ function PublicDataset() {
     }
 
 
-    function folderInputClick() {
-        if (hiddenFolderInputRef.current) {
-            hiddenFolderInputRef.current.click();
-        }
-    }
-
-    function fileInputClick() {
-        if (hiddenFileInputRef.current) {
-            hiddenFileInputRef.current.click();
-        }
-    }
-
-
-    function elementFilesUploaded(e) {
-        let files = e.target.files
-
-        axios.defaults.withCredentials = true;
-        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-        axios.defaults.xsrfCookieName = 'csrftoken';    
-
-        let errorMessages = ""
-        let totalSize = 0
-        
-        let AXIOS_OUTSTANDING = files.length
-        for (let i=0; i < files.length; i++) {
-            let file = files[i]
-            
-            totalSize += file.size
-
-            if (totalSize > 10 * 10**9) {
-                if (errorMessages) {errorMessages += "\n\n"}
-                errorMessages += "Stopped uploading after " + file.name + " as only 1 Gigabyte can be uploaded at a time."
-                alert(errorMessages)
-                getDataset()
-                return
-            }
-
-            let extension = file.name.split(".").pop()
-            if (!IMAGE_FILE_EXTENSIONS.has(extension) && !TEXT_FILE_EXTENSIONS.has(extension)) {
-                if (errorMessages) {errorMessages += "\n\n"}
-                errorMessages += "Did not upload file with extension " + extension + " as this filetype is not supported."
-
-                if (i == files.length - 1) {
-                    alert(errorMessages)
-                    getDataset()
-                    break
-                } else {
-                    continue
-                }
-
-            }
-
-            let formData = new FormData()
-
-            formData.append('file', file)
-            formData.append('dataset', dataset.id)
-
-            const URL = window.location.origin + '/api/create-element/'
-            const config = {headers: {'Content-Type': 'multipart/form-data'}}
-
-            axios.post(URL, formData, config)
-            .then((data) => {
-                console.log("Success: ", data)
-            }).catch((error) => {
-                if (errorMessages) {errorMessages += "\n\n"}
-                errorMessages += "Did not upload file with extension ." + extension + " as this filetype is not supported."
-                console.log("Error: ", error)
-            }).finally(() => {
-                AXIOS_OUTSTANDING -= 1
-                if (AXIOS_OUTSTANDING == 0) {
-                    getDataset()
-                    if (errorMessages) {
-                        alert(errorMessages)
-                    }
-                }
-            })
-        }
-
-    }
-
     // LABEL FUNCTIONALITY
 
     function parseLabels(labels) {
@@ -237,28 +157,32 @@ function PublicDataset() {
     }
 
 
-    function getLabels() {
-        setLoading(true)
-        
-        axios({
-            method: 'GET',
-            url: window.location.origin + '/api/dataset-labels?dataset=' + id,
-        })
-        .then((res) => {
-            setLabels(res.data)
+    // DOWNLOAD FUNCTIONALITY
 
-            parseLabels(res.data)
+    function downloadAPICall() {
+        const URL = window.location.origin + '/api/download-dataset/'
+        const config = {headers: {'Content-Type': 'application/json'}}
 
-            setLoading(false)
-        }).catch((err) => {
-            alert("An error occured when loading labels for dataset with id " + id + ".")
-            console.log(err)
-            setLoading(false)
+        let data = {
+            "id": dataset.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            console.log("Incremented download count.")
+        }).catch((error) => {
+            if (error.status == 401) {
+                console.log("Did not increment download counter as user is not signed in.")
+            } else {
+                console.log("Error: ", error)
+            }
+            
         })
     }
-
-
-    // DOWNLOAD FUNCTIONALITY
 
     async function labelFoldersDownload() {
         const zip = new JSZip();
@@ -293,23 +217,7 @@ function PublicDataset() {
         const zipBlob = await zip.generateAsync({ type: "blob" });
         saveAs(zipBlob, dataset.name + ".zip");
 
-        const URL = window.location.origin + '/api/download-dataset/'
-        const config = {headers: {'Content-Type': 'application/json'}}
-
-        let data = {
-            "id": dataset.id
-        }
-
-        axios.defaults.withCredentials = true;
-        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-        axios.defaults.xsrfCookieName = 'csrftoken';    
-
-        axios.post(URL, data, config)
-        .then((data) => {
-            console.log("Incremented download count.")
-        }).catch((error) => {
-            console.log("Error:" + error)
-        })
+        downloadAPICall()
         
     }
 
@@ -347,7 +255,7 @@ function PublicDataset() {
         const zipBlob = await zip.generateAsync({ type: "blob" });
         saveAs(zipBlob, dataset.name + ".zip");
 
-        
+        downloadAPICall()
     }
 
 
@@ -433,7 +341,6 @@ function PublicDataset() {
                 </div>
                 
                 <div className="dataset-main-display">
-                    {(elements.length == 0 && !loading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>Upload folder</button>}
                     {elements.length != 0 && <div className="dataset-element-view-container">
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}
