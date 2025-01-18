@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react"
 import DatasetElement from "../components/DatasetElement"
+import DatasetElementLoading from "../components/DatasetElementLoading"
 import { useNavigate } from "react-router-dom"
 import axios from 'axios'
 
 // This is the personal view. /home
-function Home() {
+function Home({currentProfile}) {
     const navigate = useNavigate()
 
     const [datasets, setDatasets] = useState([])
@@ -36,6 +37,8 @@ function Home() {
 
     }
 
+    console.log(currentProfile)
+
     return <div className="home-container">
         <div className="home-sidebar">
             <button className="sidebar-button" onClick={() => {
@@ -52,6 +55,9 @@ function Home() {
                     {!loading && datasets.length == 0 && <p>You don't have any datasets. Click <span className="link" onClick={() => {
                         navigate("/create-dataset")
                     }}>here</span> to create one.</p>}
+                    {loading && currentProfile.datasetsCount !== null && [...Array(currentProfile.datasetsCount)].map((e, i) => (
+                        <DatasetElementLoading key={i}/>
+                    ))}
                 </div>
                 
             </div>

@@ -10,6 +10,8 @@ function Explore() {
 
     const [sort, setSort] = useState("")
     const [search, setSearch] = useState("")
+    const [showClassification, setShowClassification] = useState(true)
+    const [showArea, setShowArea] = useState(true)
 
     const [loading, setLoading] = useState(true)
 
@@ -98,14 +100,24 @@ function Explore() {
                         <img className="explore-datasets-search-icon" src={window.location.origin + "/static/images/search.png"} />
                     </div>
                     
+                    <div className="explore-datasets-types-container">
+                        <label htmlFor="classification" className="explore-label">Classification</label>
+                        <input className="explore-datasets-checkbox" type="checkbox" id="classification" name="classification" checked={showClassification} onChange={() => {
+                            setShowClassification(!showClassification)
+                        }}/>
 
+                        <label htmlFor="area" className="explore-label area-label">Area</label>
+                        <input className="explore-datasets-checkbox" type="checkbox" id="area" name="area" checked={showArea} onChange={() => {
+                            setShowArea(!showArea)
+                        }}/>        
+                    </div>
 
                     
                 </div>
                 
                 <div className="my-datasets-container">
                     {datasets.map((dataset) => (
-                        <DatasetElement dataset={dataset} key={dataset.id} isPublic={true} />
+                        ((dataset.datatype == "classification" ? showClassification : showArea) ? <DatasetElement dataset={dataset} key={dataset.id} isPublic={true} /> : "")
                     ))}
                 </div>
                 

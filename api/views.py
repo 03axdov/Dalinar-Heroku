@@ -24,8 +24,9 @@ class GetCurrentProfile(APIView):
         if request.user.id == None:
             return Response('', status=status.HTTP_200_OK)
         profile = request.user.profile
-        profile = ProfileSerializer(profile)
-        data = profile.data
+        profileSerialized = ProfileSerializer(profile)
+        data = profileSerialized.data
+        data["datasetsCount"] = profile.datasets.count()
         
         return Response(data, status=status.HTTP_200_OK)
 

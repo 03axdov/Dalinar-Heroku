@@ -97,3 +97,23 @@
     width: 16px;
     top: 10px;
 }
+
+.explore-datasets-types-container {
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin-left: 20px;
+}
+
+.explore-datasets-checkbox {
+    background: var(--toolbar-light);
+}
+
+.area-label {
+    margin-left: 20px;
+}
+
+.explore-label {
+    user-select: none;
+}

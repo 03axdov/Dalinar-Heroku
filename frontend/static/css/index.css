@@ -128,7 +128,7 @@ button:hover {
 input[type=checkbox] {
     appearance: none;
     -webkit-appearance: none;
-    width: 20px;
+    width: 24px;
     height: 24px;
 
     padding: 0;
@@ -138,7 +138,7 @@ input[type=checkbox] {
 }
 
 input[type="checkbox"]:checked {
-    background: url("../images/checked.png");
+    background: url("../images/checked.jpg");
     background-repeat: no-repeat;
     background-size: cover;
 }

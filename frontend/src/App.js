@@ -57,7 +57,7 @@ export default function App() {
                 <Routes>
                     <Route path="/" element={<Landing />}/>
                     <Route path="/explore" element={<Explore />}/>
-                    <Route path="/home" element={<Home />}/>
+                    <Route path="/home" element={<Home currentProfile={currentProfile}/>}/>
                     <Route path="/create-dataset" element={<CreateDataset />}/>
                     <Route path="/edit-dataset/:id" element={<EditDataset />}/>
                     <Route path="/datasets/:id" element={<Dataset />}/>

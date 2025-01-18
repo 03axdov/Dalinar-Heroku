@@ -54,6 +54,7 @@
 
 .dataset-main-toolbar {
     height: 50px;
+    min-height: 50px;
     width: 100%;
     background: var(--toolbar);
     box-sizing: border-box;
