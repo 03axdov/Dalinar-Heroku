@@ -683,7 +683,7 @@ function Dataset({currentProfile}) {
                         Every label will have its own folder containing the elements with that label.
                     </p>
 
-                    <img className="download-element-image" src={window.location.origin + "/static/images/downloadFolders.jpg"} />
+                    <img className="download-element-image" src={window.location.origin + "/static/images/foldersAsLabels.jpg"} />
                 </div>
                 <div title="Download .zip file" className="download-element" onClick={labelFilenamesDownload}>
                     <p className="download-element-title">Labels as filenames</p>
@@ -691,7 +691,7 @@ function Dataset({currentProfile}) {
                         One big folder, with every element named after its label and number, e.g. label1_1.png, label1_2.png, etc.
                     </p>
 
-                    <img className="download-element-image" src={window.location.origin + "/static/images/downloadFilenames.jpg"} />
+                    <img className="download-element-image" src={window.location.origin + "/static/images/filenamesAsLabels.jpg"} />
                 </div>
 
             </DownloadPopup>}

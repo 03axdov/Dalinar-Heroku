@@ -12,6 +12,8 @@ function CreateDataset() {
     const [image, setImage] = useState(null)
     const [visibility, setVisibility] = useState("private")
 
+    const [uploadDropdownVisible, setUploadDropdownVisible] = useState(true)
+
     function formOnSubmit(e) {
         e.preventDefault()
 
@@ -87,18 +89,58 @@ function CreateDataset() {
                 </div>
 
                 <div className="create-dataset-label-inp">
-                    <label className="create-dataset-label" htmlFor="image">Image <span className="create-dataset-required">(required)</span></label>
-                    <input type="file" accept="image/*" name="image" required className="create-dataset-file-inp" onChange={(e) => {
+                    <label className="create-dataset-label" htmlFor="create-dataset-image">Image <span className="create-dataset-required">(required)</span></label>
+                    <input type="file" accept="image/*" id="create-dataset-image" name="image" required className="create-dataset-file-inp" onChange={(e) => {
                         if (e.target.files[0]) {
                             setImage(e.target.files[0])
                         }
                     }} />
                 </div>
 
-                <div className="expand-upload-form-button">Upload dataset <span className="create-dataset-required">(optional)</span> <img className="expand-upload-icon" src={window.location.origin + "/static/images/down.svg"} /></div>
-                <div className="expand-upload-form">
-                    <p className="create-dataset-description">By uploading a dataset, this dataset will be instantiated with the elements and labels provided.</p>
-                </div>
+                <h1 className="create-dataset-title create-dataset-subtitle upload-dataset-title" onClick={() => {
+                        setUploadDropdownVisible(!uploadDropdownVisible)
+                    }}>Upload dataset 
+                    <span className="create-dataset-title-optional">(optional)</span>
+                    <img style={{rotate: (uploadDropdownVisible ? "180deg" : "0deg")}} className="upload-dataset-dropdown" src={window.location.origin + "/static/images/down.svg"}/>
+                </h1>
+                
+                {uploadDropdownVisible && <div className="upload-dataset-form">
+                    <p className="create-dataset-description" >By uploading a dataset, this dataset will be created with the elements and labels provided. You can upload several datasets, of two different types seen below.</p>
+                
+                    <div className="upload-dataset-types-container">
+                        <div className="upload-dataset-type-col">
+                            <p className="upload-dataset-type-title">Folders as labels</p>
+                            <p className="upload-dataset-type-description">
+                                Will create labels for all subfolders in the uploaded folder, with elements in each subfolder belonging to that label.
+                            </p>
+
+                            <div className="upload-dataset-type-image-container">
+                                <img className="upload-dataset-type-image" src={window.location.origin + "/static/images/foldersAsLabels.jpg"} />
+                            </div>
+                            
+                            <div className="upload-dataset-label-inp">
+                                <label className="create-dataset-label" htmlFor="foldersAsLabelsInp">Datasets</label>
+                                <input type="file" id="foldersAsLabelsInp" name="foldersAsLabels" className="create-dataset-file-inp"/>
+                            </div>
+                        </div>
+
+                        <div className="upload-dataset-type-col">
+                            <p className="upload-dataset-type-title">Filenames as labels</p>
+                            <p className="upload-dataset-type-description">
+                                Will create labels for every filename before the character '_' with such files belonging to that label, e.g. label1_2 will be read as belonging to label 1.
+                            </p>
+
+                            <div className="upload-dataset-type-image-container">
+                                <img className="upload-dataset-type-image" src={window.location.origin + "/static/images/filenamesAsLabels.jpg"} />
+                            </div>
+
+                            <div className="upload-dataset-label-inp">
+                                <label className="create-dataset-label" htmlFor="filenameAsLabelsInp">Datasets</label>
+                                <input type="file" id="filenameAsLabelsInp" name="filenameAsLabels" className="create-dataset-file-inp"/>
+                            </div>
+                        </div>
+                    </div>
+                </div>}
 
                 <div className="create-dataset-buttons">
                     <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Cancel</button>
