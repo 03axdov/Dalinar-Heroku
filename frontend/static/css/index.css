@@ -176,7 +176,7 @@ input[type="radio"]:checked {
 
 .sidebar-button {
     padding: 7px 15px;
-    border-radius: 30px;
+    border-radius: 5px;
     color: white;
     background: var(--sidebar-button);
     width: 100%;

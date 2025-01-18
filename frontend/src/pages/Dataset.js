@@ -10,7 +10,7 @@ import { saveAs } from "file-saver";
 const TOOLBAR_HEIGHT = 60
 
 // The default page. Login not required.
-function Dataset() {
+function Dataset({currentProfile}) {
 
     const { id } = useParams();
     const [dataset, setDataset] = useState(null)
@@ -68,6 +68,14 @@ function Dataset() {
         getDataset()
     }, [])
 
+    useEffect(() => {
+        if (currentProfile && dataset) {
+            if (currentProfile.user != dataset.owner) {
+                navigate("/datasets/public/" + id)
+            }
+        }
+    }, [currentProfile, dataset])
+
 
     function getUserPressKeycode(event) {
         const keys = [];
@@ -116,19 +124,38 @@ function Dataset() {
             setDataset(res.data)
 
             setElements(res.data.elements)
+
             setLabels(res.data.labels)
 
             // Update keybinds
             parseLabels(res.data.labels)
 
+            // preloadImages(res.data.elements)
             setLoading(false)
         }).catch((err) => {
             navigate("/")
             alert("An error occured when loading dataset with id " + id + ".")
 
             console.log(err)
+            
             setLoading(false)
+            preloadImages(res.data.elements)
         })
+    }
+
+    const preloadImage = (src) => {
+        console.log(src)
+        const img = new Image();
+        img.src = src;
+    };
+
+    function preloadImages(elements) {
+        for (let i=0; i < elements.length; i++) {
+            let extension = elements[i].file.split(".").pop()
+            if (IMAGE_FILE_EXTENSIONS.has(extension)) {
+                preloadImage(elements[i].file)
+            }
+        }
     }
 
 

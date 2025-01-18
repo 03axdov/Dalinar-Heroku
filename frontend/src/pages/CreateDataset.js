@@ -87,12 +87,17 @@ function CreateDataset() {
                 </div>
 
                 <div className="create-dataset-label-inp">
-                    <label className="create-dataset-label" htmlFor="image">Image</label>
-                    <input type="file" accept="image/*" name="image" className="create-dataset-file-inp" onChange={(e) => {
+                    <label className="create-dataset-label" htmlFor="image">Image <span className="create-dataset-required">(required)</span></label>
+                    <input type="file" accept="image/*" name="image" required className="create-dataset-file-inp" onChange={(e) => {
                         if (e.target.files[0]) {
                             setImage(e.target.files[0])
                         }
                     }} />
+                </div>
+
+                <div className="expand-upload-form-button">Upload dataset <span className="create-dataset-required">(optional)</span> <img className="expand-upload-icon" src={window.location.origin + "/static/images/down.svg"} /></div>
+                <div className="expand-upload-form">
+                    <p className="create-dataset-description">By uploading a dataset, this dataset will be instantiated with the elements and labels provided.</p>
                 </div>
 
                 <div className="create-dataset-buttons">

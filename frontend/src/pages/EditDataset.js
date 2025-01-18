@@ -15,6 +15,7 @@ function EditDataset() {
     const [description, setDescription] = useState("")
     const [image, setImage] = useState(null)
     const [visibility, setVisibility] = useState("private")
+    const [type, setType] = useState("")
 
     useEffect(() => {
         getDataset()
@@ -33,6 +34,7 @@ function EditDataset() {
             setOriginalName(dataset.name)
             setDescription(dataset.description)
             setVisibility(dataset.visibility)
+            setType(dataset.datatype)
 
         }).catch((err) => {
             navigate("/")
@@ -81,10 +83,18 @@ function EditDataset() {
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
 
                 <div className="create-dataset-label-inp">
-                    <label className="create-dataset-label" htmlFor="name">Dataset name <span className="create-dataset-required">(required)</span></label>
+                    <label className="create-dataset-label" htmlFor="name">Dataset name</label>
                     <input className="create-dataset-inp" id="name" type="text" required placeholder={name} value={name} onChange={(e) => {
                         setName(e.target.value)
                     }} />
+                </div>
+
+                <div className="create-dataset-label-inp">
+                    <p className="create-dataset-label create-dataset-type edit-dataset-deactivated">Dataset type <span className="create-dataset-required">(unchangeable)</span></p>
+                    <input type="radio" id="create-dataset-type-image" name="classification" value="classification" className="edit-dataset-deactivated" checked={type == "classification"} unselectable={"true"} />
+                    <label htmlFor="create-dataset-type-image" className="edit-dataset-deactivated create-dataset-type-label">Classification</label>
+                    <input type="radio" id="create-dataset-type-text" name="area" value="area" className="edit-dataset-deactivated" checked={type == "area"} unselectable={"true"} />
+                    <label htmlFor="create-dataset-type-text" className="edit-dataset-deactivated create-dataset-type-label">Area</label>
                 </div>
 
                 <div className="create-dataset-label-inp">

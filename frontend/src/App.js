@@ -60,7 +60,7 @@ export default function App() {
                     <Route path="/home" element={<Home currentProfile={currentProfile}/>}/>
                     <Route path="/create-dataset" element={<CreateDataset />}/>
                     <Route path="/edit-dataset/:id" element={<EditDataset />}/>
-                    <Route path="/datasets/:id" element={<Dataset />}/>
+                    <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile}/>}/>
                     <Route path="/datasets/public/:id" element={<PublicDataset />}/>
                 </Routes>
             </div>

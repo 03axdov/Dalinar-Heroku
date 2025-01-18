@@ -106,3 +106,30 @@
     margin-left: 20px;
 
 }
+
+.edit-dataset-deactivated {
+    opacity: 0.6;
+    cursor: default!important;
+}
+
+.expand-upload-form-button {
+    font-size: 1.3rem;
+    margin-top: 40px;
+    color: #bdbdbd;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.expand-upload-form-button:hover {
+    cursor: pointer;
+    color: white;
+}
+
+.expand-upload-icon {
+    height: 20px;
+    width: 20px;
+    margin-left: 10px;
+}

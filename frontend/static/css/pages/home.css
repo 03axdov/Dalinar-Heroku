@@ -49,3 +49,12 @@
     flex-wrap: wrap;
     box-sizing: border-box;
 }
+
+.sidebar-button-margin {
+    margin-top: 10px;
+}
+
+.home-sidebar-button-icon {
+    height: 17px;
+    margin-right: 10px;
+}

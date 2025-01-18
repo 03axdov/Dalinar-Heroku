@@ -80,6 +80,26 @@ function Explore() {
 
 
     return <div className="explore-container">
+        <div className="home-sidebar">
+            <p className="explore-sidebar-title">Types</p>
+
+            <div className="explore-datasets-types-container">
+                <div className="explore-datasets-type">
+                    <input className="explore-datasets-checkbox" type="checkbox" id="classification" name="classification" checked={showClassification} onChange={() => {
+                        setShowClassification(!showClassification)
+                    }}/>
+                    <label htmlFor="classification" className="explore-label">Classification</label>
+                </div>
+                
+                <div className="explore-datasets-type"> 
+                    <input className="explore-datasets-checkbox" type="checkbox" id="area" name="area" checked={showArea} onChange={() => {
+                        setShowArea(!showArea)
+                    }}/> 
+                    <label htmlFor="area" className="explore-label">Area</label>
+                </div>
+                       
+            </div>
+        </div>
         <div className="explore-non-sidebar">
             <div>
                 <div className="explore-datasets-title-container">
@@ -98,18 +118,6 @@ function Explore() {
                                 setSearch(e.target.value)
                         }} /> 
                         <img className="explore-datasets-search-icon" src={window.location.origin + "/static/images/search.png"} />
-                    </div>
-                    
-                    <div className="explore-datasets-types-container">
-                        <label htmlFor="classification" className="explore-label">Classification</label>
-                        <input className="explore-datasets-checkbox" type="checkbox" id="classification" name="classification" checked={showClassification} onChange={() => {
-                            setShowClassification(!showClassification)
-                        }}/>
-
-                        <label htmlFor="area" className="explore-label area-label">Area</label>
-                        <input className="explore-datasets-checkbox" type="checkbox" id="area" name="area" checked={showArea} onChange={() => {
-                            setShowArea(!showArea)
-                        }}/>        
                     </div>
 
                     

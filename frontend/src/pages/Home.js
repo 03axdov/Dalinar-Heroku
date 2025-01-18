@@ -37,13 +37,13 @@ function Home({currentProfile}) {
 
     }
 
-    console.log(currentProfile)
-
     return <div className="home-container">
+        
         <div className="home-sidebar">
             <button className="sidebar-button" onClick={() => {
                 navigate("/create-dataset")
             }}>+ Create dataset</button>
+
         </div>
         <div className="home-non-sidebar">
             <div>
