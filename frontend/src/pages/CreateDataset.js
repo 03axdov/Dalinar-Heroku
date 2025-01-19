@@ -1,4 +1,4 @@
-import React, {useState} from "react"
+import React, {useState, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 
@@ -12,7 +12,12 @@ function CreateDataset() {
     const [image, setImage] = useState(null)
     const [visibility, setVisibility] = useState("private")
 
-    const [uploadDropdownVisible, setUploadDropdownVisible] = useState(true)
+    const [uploadDropdownVisible, setUploadDropdownVisible] = useState(false)
+
+    const [uploadedFoldersAsLabels, setUploadedFoldersAsLabels] = useState([])
+
+    const hiddenFolderInputRef = useRef(null)
+    const hiddenFilenamesInputRef = useRef(null)
 
     function formOnSubmit(e) {
         e.preventDefault()
@@ -40,6 +45,51 @@ function CreateDataset() {
             alert("An error occurred.")
             console.log("Error: ", error)
         })
+    }
+
+    function folderInputClick() {
+        if (hiddenFolderInputRef.current) {
+            hiddenFolderInputRef.current.click();
+        }
+    }
+
+    function filenamesInputClick() {
+        if (hiddenFilenamesInputRef.current) {
+            hiddenFilenamesInputRef.current.click();
+        }
+    }
+
+    console.log(uploadedFoldersAsLabels)
+
+    function uploadFoldersAsLabels(e) {
+        try {
+            let files = e.target.files
+            console.log(files)
+            
+            let obj = {}    // Label name as key and value as an array of elements
+            for (let i=0; i < files.length; i++) {
+                let file = files[i]
+                if (i == 0) {
+                    let temp = [...uploadedFoldersAsLabels]
+                    temp.push(file.webkitRelativePath.split("/")[0])
+                    setUploadedFoldersAsLabels(temp)
+                }
+                let subfolder = file.webkitRelativePath.split("/")[1]
+                
+                if (obj[subfolder] == null) {obj[subfolder] = []}
+                obj[subfolder].push(file)
+            }
+
+            console.log(obj)
+
+        } catch (e) {
+            alert("Error: ", e + ". This may be due to incorrect formatting of uploaded dataset.")
+        }
+
+    }
+
+    function uploadFilenamesAsLabels(e) {
+        
     }
 
     return (
@@ -108,6 +158,10 @@ function CreateDataset() {
                     <p className="create-dataset-description" >By uploading a dataset, this dataset will be created with the elements and labels provided. You can upload several datasets, of two different types seen below.</p>
                 
                     <div className="upload-dataset-types-container">
+                        {/* Uploading datasets goes through these */}
+                        <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFolderInputRef} onChange={(e) => uploadFoldersAsLabels(e)}/>
+                        <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFilenamesInputRef} onChange={(e) => uploadFilenamesAsLabels(e)}/>
+
                         <div className="upload-dataset-type-col">
                             <p className="upload-dataset-type-title">Folders as labels</p>
                             <p className="upload-dataset-type-description">
@@ -118,11 +172,16 @@ function CreateDataset() {
                                 <img className="upload-dataset-type-image" src={window.location.origin + "/static/images/foldersAsLabels.jpg"} />
                             </div>
                             
-                            <div className="upload-dataset-label-inp">
-                                <label className="create-dataset-label" htmlFor="foldersAsLabelsInp">Datasets</label>
-                                <input type="file" id="foldersAsLabelsInp" name="foldersAsLabels" className="create-dataset-file-inp"/>
-                            </div>
+                            <button type="button" className="upload-dataset-button" onClick={folderInputClick}>
+                                <img className="upload-dataset-button-icon" src={window.location.origin + "/static/images/upload.svg"} />
+                                Upload dataset
+                            </button>
+
+                            {uploadedFoldersAsLabels.map((e, i) => (
+                                <p key={i} className="uploaded-dataset-element">{e}</p>
+                            ))}
                         </div>
+                        
 
                         <div className="upload-dataset-type-col">
                             <p className="upload-dataset-type-title">Filenames as labels</p>
@@ -134,10 +193,10 @@ function CreateDataset() {
                                 <img className="upload-dataset-type-image" src={window.location.origin + "/static/images/filenamesAsLabels.jpg"} />
                             </div>
 
-                            <div className="upload-dataset-label-inp">
-                                <label className="create-dataset-label" htmlFor="filenameAsLabelsInp">Datasets</label>
-                                <input type="file" id="filenameAsLabelsInp" name="filenameAsLabels" className="create-dataset-file-inp"/>
-                            </div>
+                            <button type="button" className="upload-dataset-button" onClick={filenamesInputClick}>
+                                <img className="upload-dataset-button-icon" src={window.location.origin + "/static/images/upload.svg"} />
+                                Upload dataset
+                            </button>
                         </div>
                     </div>
                 </div>}
