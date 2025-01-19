@@ -11,6 +11,9 @@ function Home({currentProfile}) {
     const [datasets, setDatasets] = useState([])
     const [loading, setLoading] = useState(true)
 
+    const [sort, setSort] = useState("")
+    const [search, setSearch] = useState("")
+
     useEffect(() => {
         getDatasets()
     }, [])
@@ -19,13 +22,16 @@ function Home({currentProfile}) {
         setLoading(true)
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/my-datasets/',
+            url: window.location.origin + '/api/my-datasets/' + (search ? "?search=" + search : ""),
         })
         .then((res) => {
             if (res.data) {
                 setDatasets(res.data)
             } else {
                 setDatasets([])
+            }
+            if (!sort) {
+                setSort("downloads")
             }
 
         }).catch((err) => {
@@ -37,6 +43,41 @@ function Home({currentProfile}) {
 
     }
 
+    useEffect(() => {
+        if (datasets.length) {
+            let tempDatasets = [...datasets]
+
+            console.log(sort)
+            tempDatasets.sort((d1, d2) => {
+                if (sort == "downloads") {
+                    return d2.downloaders.length - d1.downloaders.length
+                } else if (sort == "alphabetical") {
+                    return d1.name.localeCompare(d2.name)
+                } else if (sort == "date") {
+                    return new Date(d2.created_at) - new Date(d1.created_at)
+                }
+            })
+    
+            setDatasets(tempDatasets)
+        }
+        
+    }, [sort])
+
+
+    // Search input timing
+    useEffect(() => {
+        // Set a timeout to update debounced value after 500ms
+        const handler = setTimeout(() => {
+            getDatasets()
+        }, 350);
+    
+        // Cleanup the timeout if inputValue changes before delay
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [search]);
+
+
     return <div className="home-container">
         
         <div className="home-sidebar">
@@ -47,7 +88,24 @@ function Home({currentProfile}) {
         </div>
         <div className="home-non-sidebar">
             <div>
-                <h2 className="my-datasets-title">My Datasets</h2>
+                <div className="explore-datasets-title-container">
+                    <h2 className="my-datasets-title">My Datasets</h2>
+                    <select title="Sort by" className="explore-datasets-sort" value={sort} onChange={(e) => {
+                            setSort(e.target.value)
+                        }}>
+                        <option value="downloads">Downloads</option>
+                        <option value="alphabetical">Alphabetical</option>
+                        <option value="date">Date</option>
+                    </select>
+                    
+                    <div className="explore-datasets-search-container">
+                        <input type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
+                                setSearch(e.target.value)
+                        }} /> 
+                        <img className="explore-datasets-search-icon" src={window.location.origin + "/static/images/search.png"} />
+                    </div>
+                </div>
+                
                 <div className="my-datasets-container">
                     {datasets.map((dataset) => (
                         <DatasetElement dataset={dataset} key={dataset.id} />
@@ -55,7 +113,7 @@ function Home({currentProfile}) {
                     {!loading && datasets.length == 0 && <p>You don't have any datasets. Click <span className="link" onClick={() => {
                         navigate("/create-dataset")
                     }}>here</span> to create one.</p>}
-                    {loading && currentProfile.datasetsCount !== null && [...Array(currentProfile.datasetsCount)].map((e, i) => (
+                    {loading && datasets.length == 0 && currentProfile.datasetsCount !== null && [...Array(currentProfile.datasetsCount)].map((e, i) => (
                         <DatasetElementLoading key={i}/>
                     ))}
                 </div>

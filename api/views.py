@@ -55,6 +55,10 @@ class DatasetListProfile(generics.ListCreateAPIView):
         user = self.request.user
         profile = user.profile
         datasets = profile.datasets
+        
+        search = self.request.GET.get("search")
+        if (search):
+            datasets = datasets.filter(Q(name__contains=search))
 
         return datasets
 

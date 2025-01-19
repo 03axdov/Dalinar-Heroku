@@ -31,7 +31,8 @@ function DatasetElement({dataset, isPublic=false}) {
             {dataset.image && <img className="dataset-element-image" src={dataset.image}/>}
             
 
-            <p className="dataset-element-date">{(!isPublic ? formattedDate : dataset.downloaders.length + " download" + (dataset.downloaders.length != 1 ? "s" : ""))}</p>
+            {/* <p className="dataset-element-date">{(!isPublic ? formattedDate : dataset.downloaders.length + " download" + (dataset.downloaders.length != 1 ? "s" : ""))}</p> */}
+            <p className="dataset-element-date">{dataset.downloaders.length + " download" + (dataset.downloaders.length != 1 ? "s" : "")}</p>
             <p className="dataset-element-count">{dataset.elements.length + " element" + (dataset.elements.length != 1 ? "s" : "")}</p>
 
 

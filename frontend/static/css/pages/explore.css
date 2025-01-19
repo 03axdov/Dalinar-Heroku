@@ -36,6 +36,8 @@
 
     border-bottom: 1px solid white;
     display: inline-block;
+    width: 270px;
+    box-sizing: border-box;
 }
 
 .explore-datasets-title-container {
