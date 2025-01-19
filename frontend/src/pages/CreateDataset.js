@@ -15,6 +15,9 @@ function CreateDataset() {
     const [uploadDropdownVisible, setUploadDropdownVisible] = useState(false)
 
     const [uploadedFoldersAsLabels, setUploadedFoldersAsLabels] = useState([])
+    const [uploadedFilenamesAsLabels, setUploadedFilenamesAsLabels] = useState([])
+
+    const [uploadedDatasets, setUploadedDatasets] = useState({}) // Labels as keys, with the value as an array of files with that label
 
     const hiddenFolderInputRef = useRef(null)
     const hiddenFilenamesInputRef = useRef(null)
@@ -59,14 +62,11 @@ function CreateDataset() {
         }
     }
 
-    console.log(uploadedFoldersAsLabels)
-
     function uploadFoldersAsLabels(e) {
         try {
             let files = e.target.files
-            console.log(files)
             
-            let obj = {}    // Label name as key and value as an array of elements
+            let tempObj = {...uploadedDatasets}    // Label name as key and value as an array of elements
             for (let i=0; i < files.length; i++) {
                 let file = files[i]
                 if (i == 0) {
@@ -74,13 +74,14 @@ function CreateDataset() {
                     temp.push(file.webkitRelativePath.split("/")[0])
                     setUploadedFoldersAsLabels(temp)
                 }
-                let subfolder = file.webkitRelativePath.split("/")[1]
+                let label = file.webkitRelativePath.split("/")[1].toLowerCase()
                 
-                if (obj[subfolder] == null) {obj[subfolder] = []}
-                obj[subfolder].push(file)
+                if (tempObj[label] == null) {tempObj[label] = []}
+                tempObj[label].push(file)
             }
 
-            console.log(obj)
+            console.log(tempObj)
+            setUploadedDatasets(tempObj)
 
         } catch (e) {
             alert("Error: ", e + ". This may be due to incorrect formatting of uploaded dataset.")
@@ -89,7 +90,30 @@ function CreateDataset() {
     }
 
     function uploadFilenamesAsLabels(e) {
-        
+        try {
+            let files = e.target.files
+            
+            let tempObj = {...uploadedDatasets}    // Label name as key and value as an array of elements
+
+            for (let i=0; i < files.length; i++) {
+                let file = files[i]
+                if (i == 0) {
+                    let temp = [...uploadedFilenamesAsLabels]
+                    temp.push(file.webkitRelativePath.split("/")[0])
+                    setUploadedFilenamesAsLabels(temp)
+                }
+                let label = file.name.split("_")[0].toLowerCase()
+
+                if (tempObj[label] == null) {tempObj[label] = []}
+                tempObj[label].push(file)
+            }
+
+            console.log(tempObj)
+            setUploadedDatasets(tempObj)
+
+        } catch (e) {
+            alert("Error: ", e + ". This may be due to incorrect formatting of uploaded dataset.")
+        }
     }
 
     return (
@@ -155,7 +179,12 @@ function CreateDataset() {
                 </h1>
                 
                 {uploadDropdownVisible && <div className="upload-dataset-form">
-                    <p className="create-dataset-description" >By uploading a dataset, this dataset will be created with the elements and labels provided. You can upload several datasets, of two different types seen below.</p>
+                    <p className="create-dataset-description" >
+                        By uploading a dataset, this dataset will be created with the elements and labels provided. 
+                        You can upload several datasets, of two different types seen below.
+                        Note that improper formatting of uploaded datasets (see instructions below) may result in errors or incorrect labels.
+                        Also note that label names will be set to lowercase.
+                    </p>
                 
                     <div className="upload-dataset-types-container">
                         {/* Uploading datasets goes through these */}
@@ -177,9 +206,12 @@ function CreateDataset() {
                                 Upload dataset
                             </button>
 
-                            {uploadedFoldersAsLabels.map((e, i) => (
-                                <p key={i} className="uploaded-dataset-element">{e}</p>
-                            ))}
+                            <div className="uploaded-dataset-element-container">
+                                {uploadedFoldersAsLabels.map((e, i) => (
+                                    <p title={e} key={i} className="uploaded-dataset-element">{e}</p>
+                                ))}
+                            </div>
+                            
                         </div>
                         
 
@@ -197,6 +229,12 @@ function CreateDataset() {
                                 <img className="upload-dataset-button-icon" src={window.location.origin + "/static/images/upload.svg"} />
                                 Upload dataset
                             </button>
+
+                            <div className="uploaded-dataset-element-container">
+                                {uploadedFilenamesAsLabels.map((e, i) => (
+                                    <p title={e} key={i} className="uploaded-dataset-element">{e}</p>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>}
