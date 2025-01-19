@@ -79,7 +79,11 @@ function EditDataset() {
     return (
         <div className="create-dataset-container">
             <form className="create-dataset-form" onSubmit={formOnSubmit}>
-                <h1 className="create-dataset-title">Edit dataset — <span className="gray-text">{originalName}</span></h1>
+                <div className="edit-dataset-title-container">
+                    <h1 className="create-dataset-title"><span className="gray-text">Edit dataset — </span>{originalName}</h1>
+                    <button type="button" className="edit-dataset-delete">Delete dataset</button>
+                </div>
+                
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
 
                 <div className="create-dataset-label-inp">

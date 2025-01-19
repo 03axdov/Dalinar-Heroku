@@ -276,7 +276,7 @@
 }
 
 .edit-label-delete:hover, .edit-element-delete:hover {
-    background: rgb(165, 48, 48);
+    background: var(--delete-red);
 }
 
 .dataset-create-label-color {

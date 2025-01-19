@@ -42,6 +42,8 @@
     --dataset-labels-width: 185px;
 
     --gray-text: rgb(180,180,180);
+
+    --delete-red: rgb(165, 48, 48);
 }
 
 ::-webkit-scrollbar {

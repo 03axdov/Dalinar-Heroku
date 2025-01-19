@@ -9,7 +9,7 @@
     justify-content: center;
 }
 
-.account-popup-container {
+.account-popup-container, .confirm-popup-container {
     width: 450px;
     border-radius: 5px;
     background: var(--toolbar);

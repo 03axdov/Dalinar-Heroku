@@ -126,69 +126,74 @@ class CreateDataset(APIView):
         data = request.data
         data_dict = dict(data)
         
-        serializer = self.serializer_class(data=data)
-        if serializer.is_valid():
-            dataset_instance = serializer.save(owner=request.user.profile)
-            
-            labels = data_dict["labels"]
-            if labels:
-                create_element = CreateElement.as_view()
-                create_label = CreateLabel.as_view()
-                edit_element_label = EditElementLabel.as_view()
+        user = request.user
+        
+        if user.is_authenticated:
+            serializer = self.serializer_class(data=data)
+            if serializer.is_valid():
+                dataset_instance = serializer.save(owner=request.user.profile)
                 
-                factory = APIRequestFactory()
-                for label in labels:
-                    elements = data_dict[label]
+                labels = data_dict["labels"]
+                if labels:
+                    create_element = CreateElement.as_view()
+                    create_label = CreateLabel.as_view()
+                    edit_element_label = EditElementLabel.as_view()
                     
-                    label_request = factory.post('/create-label/', data=json.dumps({"name": label,
-                                                                                         "dataset": dataset_instance.id, 
-                                                                                         "color": "#ffffff",
-                                                                                         "keybind": ""}), content_type='application/json')
-                    label_request.user = request.user
-                    
-                    label_response = create_label(label_request)
-                    if label_response.status_code != 200:
-                        return Response(
-                            {'Bad Request': f'Error creating label {label}'},
-                            status=label_response.status_code
-                        )
-                    
-                    label_id = label_response.data["instance"].id
-                    for element in elements:
-                        element_request = factory.post("/create-element/", data={
-                            "file": element,
-                            "dataset": dataset_instance.id,
-                        }, format="multipart")
-                        element_request.user = request.user
+                    factory = APIRequestFactory()
+                    for label in labels:
+                        elements = data_dict[label]
                         
-                        element_response = create_element(element_request)
-                        if element_response.status_code != 200:
+                        label_request = factory.post('/create-label/', data=json.dumps({"name": label,
+                                                                                            "dataset": dataset_instance.id, 
+                                                                                            "color": "#ffffff",
+                                                                                            "keybind": ""}), content_type='application/json')
+                        label_request.user = request.user
+                        
+                        label_response = create_label(label_request)
+                        if label_response.status_code != 200:
                             return Response(
-                                {'Bad Request': 'Error creating element'},
-                                status=element_response.status_code
+                                {'Bad Request': f'Error creating label {label}'},
+                                status=label_response.status_code
                             )
                         
-                        print(element_response.data)
-                        element_id = element_response.data["instance"].id
-                        print(f"element_id: {element_id}")
-                        print(f"label_id: {label_id}")
-                        
-                        label_element_request = factory.post("/edit-element-label/", data=json.dumps({
-                            "label": label_id,
-                            "id": element_id
-                            }), content_type='application/json')
-                        label_element_request.user = request.user
-                        
-                        label_element_response = edit_element_label(label_element_request)
-                        if label_element_response.status_code != 200:
-                            return Response(
-                                {'Bad Request': 'Error labelling element'},
-                                status=label_element_response.status_code
-                            )
-                        
-
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response({'Bad Request': 'An error occurred while creating dataset'}, status=status.HTTP_400_BAD_REQUEST)
+                        label_id = label_response.data["instance"].id
+                        for element in elements:
+                            element_request = factory.post("/create-element/", data={
+                                "file": element,
+                                "dataset": dataset_instance.id,
+                            }, format="multipart")
+                            element_request.user = request.user
+                            
+                            element_response = create_element(element_request)
+                            if element_response.status_code != 200:
+                                return Response(
+                                    {'Bad Request': 'Error creating element'},
+                                    status=element_response.status_code
+                                )
+                            
+                            print(element_response.data)
+                            element_id = element_response.data["instance"].id
+                            print(f"element_id: {element_id}")
+                            print(f"label_id: {label_id}")
+                            
+                            label_element_request = factory.post("/edit-element-label/", data=json.dumps({
+                                "label": label_id,
+                                "id": element_id
+                                }), content_type='application/json')
+                            label_element_request.user = request.user
+                            
+                            label_element_response = edit_element_label(label_element_request)
+                            if label_element_response.status_code != 200:
+                                return Response(
+                                    {'Bad Request': 'Error labelling element'},
+                                    status=label_element_response.status_code
+                                )
+                else:            
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'Bad Request': 'An error occurred while creating dataset'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to create datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
     
     
 class EditDataset(APIView):
@@ -245,7 +250,32 @@ class DownloadDataset(APIView):
                 return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Unauthorized": "Did not increase download count as user is not signed in."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class DeleteDataset(APIView):
+    serializer_class = DatasetSerializer
     
+    def post(self, request, format=None):
+        dataset_id = request.data["dataset"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+                
+                if dataset.owner == user.profile:
+                    dataset.delete()
+                    
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only delete your own datasets."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Dataset.DoesNotExist:
+                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id + ".")}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to delete datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
     
 # ELEMENT HANDLING
 
