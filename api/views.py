@@ -11,6 +11,7 @@ from django.db.models import Q, Count
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.urls import resolve
 import json
+from rest_framework.test import APIRequestFactory
 
 from .serializers import *
 from .models import *
@@ -119,15 +120,68 @@ class CreateDataset(APIView):
     
     def post(self, request, format=None):
         data = request.data
-        print(data)
-        labels = data["keys"]
-        if labels:
-            for label in labels:
-                elements = data[label]
+        data_dict = dict(data)
         
         serializer = self.serializer_class(data=data)
         if serializer.is_valid():
-            serializer.save(owner=request.user.profile)
+            dataset_instance = serializer.save(owner=request.user.profile)
+            
+            labels = data_dict["labels"]
+            if labels:
+                create_element = CreateElement.as_view()
+                create_label = CreateLabel.as_view()
+                edit_element_label = EditElementLabel.as_view()
+                
+                factory = APIRequestFactory()
+                for label in labels:
+                    elements = data_dict[label]
+                    
+                    label_request = factory.post('/create-label/', data=json.dumps({"name": label,
+                                                                                         "dataset": dataset_instance.id, 
+                                                                                         "color": "#ffffff",
+                                                                                         "keybind": ""}), content_type='application/json')
+                    label_request.user = request.user
+                    
+                    label_response = create_label(label_request)
+                    if label_response.status_code != 200:
+                        return Response(
+                            {'Bad Request': f'Error creating label {label}'},
+                            status=label_response.status_code
+                        )
+                    
+                    label_id = label_response.data["instance"].id
+                    for element in elements:
+                        element_request = factory.post("/create-element/", data={
+                            "file": element,
+                            "dataset": dataset_instance.id,
+                        }, format="multipart")
+                        element_request.user = request.user
+                        
+                        element_response = create_element(element_request)
+                        if element_response.status_code != 200:
+                            return Response(
+                                {'Bad Request': 'Error creating element'},
+                                status=element_response.status_code
+                            )
+                        
+                        print(element_response.data)
+                        element_id = element_response.data["instance"].id
+                        print(f"element_id: {element_id}")
+                        print(f"label_id: {label_id}")
+                        
+                        label_element_request = factory.post("/edit-element-label/", data=json.dumps({
+                            "label": label_id,
+                            "id": element_id
+                            }), content_type='application/json')
+                        label_element_request.user = request.user
+                        
+                        label_element_response = edit_element_label(label_element_request)
+                        if label_element_response.status_code != 200:
+                            return Response(
+                                {'Bad Request': 'Error labelling element'},
+                                status=label_element_response.status_code
+                            )
+                        
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response({'Bad Request': 'An error occurred while creating dataset'}, status=status.HTTP_400_BAD_REQUEST)
@@ -210,8 +264,8 @@ class CreateElement(APIView):
                 
                 if user.profile == dataset.owner:
                 
-                    serializer.save(owner=request.user.profile)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
+                    instance = serializer.save(owner=request.user.profile)
+                    return Response({"data": serializer.data, "instance": instance}, status=status.HTTP_200_OK)
                 
                 else:
                     return Response({'Unauthorized': 'You can only add elements to your own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -354,11 +408,9 @@ class CreateLabel(APIView):
             user = self.request.user
             
             if user.is_authenticated:
-                
                 if user.profile == dataset.owner:
-                
-                    serializer.save(owner=request.user.profile)
-                    return Response(serializer.data, status=status.HTTP_200_OK)
+                    instance = serializer.save(owner=request.user.profile)
+                    return Response({"data": serializer.data, "instance": instance}, status=status.HTTP_200_OK)
                 
                 else:
                     return Response({'Unauthorized': 'Users can only add labels to their  own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)

@@ -118,7 +118,7 @@ function EditDataset() {
 
                 <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="image">New Image</label>
-                    <input type="file" accept="image/*" id="image" className="create-dataset-file-inp" onChange={(e) => {
+                    <input type="file" accept="image/png, image/jpeg, image/webp" id="image" className="create-dataset-file-inp" onChange={(e) => {
                         if (e.target.files[0]) {
                             setImage(e.target.files[0])
                         }

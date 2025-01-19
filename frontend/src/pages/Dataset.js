@@ -840,7 +840,7 @@ function Dataset({currentProfile}) {
                             <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
                             {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} className="dataset-sidebar-label-keybind">{label.keybind.toUpperCase()}</span>}
                             <img title="Edit label" 
-                                className={"dataset-sidebar-options" + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
+                                className={"dataset-sidebar-options " + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
                                 src={window.location.origin + "/static/images/options.png"}
                                 onClick={(e) => {
                                     e.stopPropagation()

@@ -22,7 +22,7 @@ function CreateDataset() {
     const hiddenFolderInputRef = useRef(null)
     const hiddenFilenamesInputRef = useRef(null)
 
-    const INVALID_LABELS = new Set(["name", "datatype", "description", "image", "visibility"]) // Would impact formData below, temporary fix
+    const INVALID_LABELS = new Set(["name", "datatype", "description", "image", "visibility", "labels"]) // Would impact formData below, temporary fix
 
     function formOnSubmit(e) {
         e.preventDefault()
@@ -41,7 +41,7 @@ function CreateDataset() {
         formData.append("visibility", visibility)
 
         Object.entries(uploadedDatasets).forEach(([key, fileList]) => {
-            formData.append("keys", key)
+            formData.append("labels", key)
             fileList.forEach((file) => {
                 formData.append(key, file)
             })

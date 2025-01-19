@@ -15,7 +15,7 @@ function DatasetElement({dataset, isPublic=false}) {
         <div className="dataset-element" onClick={onClick} >
             <div className="dataset-element-header">
                     
-                {dataset.datatype == "classification" && <img title="Classfication" className="dataset-element-icon dataset-element-icon-type" src={window.location.origin + "/static/images/classification.png"}/>}
+                {dataset.datatype == "classification" && <img title="Classification" className="dataset-element-icon dataset-element-icon-type" src={window.location.origin + "/static/images/classification.png"}/>}
                 {dataset.datatype == "area" && <img title="Area" className="dataset-element-icon dataset-element-icon-type" src={window.location.origin + "/static/images/area.svg"}/>}
                 
                 <p className="dataset-element-name">{dataset.name}</p>
