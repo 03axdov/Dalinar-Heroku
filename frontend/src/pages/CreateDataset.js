@@ -22,6 +22,8 @@ function CreateDataset() {
     const hiddenFolderInputRef = useRef(null)
     const hiddenFilenamesInputRef = useRef(null)
 
+    const INVALID_LABELS = new Set(["name", "datatype", "description", "image", "visibility"]) // Would impact formData below, temporary fix
+
     function formOnSubmit(e) {
         e.preventDefault()
 
@@ -31,11 +33,19 @@ function CreateDataset() {
 
         let formData = new FormData()
 
+
         formData.append('name', name)
         formData.append('datatype', type)
         formData.append('description', description)
         formData.append('image', image)
         formData.append("visibility", visibility)
+
+        Object.entries(uploadedDatasets).forEach(([key, fileList]) => {
+            formData.append("keys", key)
+            fileList.forEach((file) => {
+                formData.append(key, file)
+            })
+        })
 
         const URL = window.location.origin + '/api/create-dataset/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
@@ -75,6 +85,10 @@ function CreateDataset() {
                     setUploadedFoldersAsLabels(temp)
                 }
                 let label = file.webkitRelativePath.split("/")[1].toLowerCase()
+                if (INVALID_LABELS.has(label)) {
+                    alert("Invalid label: ", label + ". Labels cannot be one of " + INVALID_LABELS)
+                    continue
+                }
                 
                 if (tempObj[label] == null) {tempObj[label] = []}
                 tempObj[label].push(file)
@@ -103,6 +117,10 @@ function CreateDataset() {
                     setUploadedFilenamesAsLabels(temp)
                 }
                 let label = file.name.split("_")[0].toLowerCase()
+                if (INVALID_LABELS.has(label)) {
+                    alert("Invalid label: ", label + ". Labels cannot be one of " + INVALID_LABELS)
+                    continue
+                }
 
                 if (tempObj[label] == null) {tempObj[label] = []}
                 tempObj[label].push(file)
@@ -164,7 +182,7 @@ function CreateDataset() {
 
                 <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="create-dataset-image">Image <span className="create-dataset-required">(required)</span></label>
-                    <input type="file" accept="image/*" id="create-dataset-image" name="image" required className="create-dataset-file-inp" onChange={(e) => {
+                    <input type="file" accept="image/png, image/jpeg, image/webp" id="create-dataset-image" name="image" required className="create-dataset-file-inp" onChange={(e) => {
                         if (e.target.files[0]) {
                             setImage(e.target.files[0])
                         }

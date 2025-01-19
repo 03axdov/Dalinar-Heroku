@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from django.db.models import Q, Count
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.urls import resolve
+import json
 
 from .serializers import *
 from .models import *
@@ -117,7 +118,14 @@ class CreateDataset(APIView):
     parser_classes = [MultiPartParser, FormParser]
     
     def post(self, request, format=None):
-        serializer = self.serializer_class(data=request.data)
+        data = request.data
+        print(data)
+        labels = data["keys"]
+        if labels:
+            for label in labels:
+                elements = data[label]
+        
+        serializer = self.serializer_class(data=data)
         if serializer.is_valid():
             serializer.save(owner=request.user.profile)
 
