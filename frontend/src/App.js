@@ -72,7 +72,7 @@ export default function App() {
                     <Route path="/explore" element={<Explore />}/>
                     <Route path="/home" element={<Home currentProfile={currentProfile}/>}/>
                     <Route path="/create-dataset" element={<CreateDataset />}/>
-                    <Route path="/edit-dataset/:id" element={<EditDataset />}/>
+                    <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} />}/>
                     <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup}/>}/>
                     <Route path="/datasets/public/:id" element={<PublicDataset />}/>
                 </Routes>

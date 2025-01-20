@@ -4,7 +4,7 @@ import axios from "axios"
 import { useParams } from "react-router-dom";
 
 
-function EditDataset() {
+function EditDataset({activateConfirmPopup}) {
 
     const navigate = useNavigate()
     const { id } = useParams();
@@ -76,12 +76,41 @@ function EditDataset() {
         })
     }
 
+
+    function deleteDatasetInner() {
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        let data = {
+            "dataset": id
+        }
+
+        const URL = window.location.origin + '/api/delete-dataset/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            navigate("/home")
+
+        }).catch((error) => {
+            alert("Error: ", error)
+
+        })
+    }
+
+    function deleteDataset(e) {
+        e.preventDefault()
+
+        activateConfirmPopup("Are you sure you want to delete the dataset " + originalName + "? This action cannot be undone.", deleteDatasetInner)
+    }
+
     return (
         <div className="create-dataset-container">
             <form className="create-dataset-form" onSubmit={formOnSubmit}>
                 <div className="edit-dataset-title-container">
                     <h1 className="create-dataset-title"><span className="gray-text">Edit dataset — </span>{originalName}</h1>
-                    <button type="button" className="edit-dataset-delete">Delete dataset</button>
+                    <button type="button" className="edit-dataset-delete" onClick={deleteDataset}>Delete dataset</button>
                 </div>
                 
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>

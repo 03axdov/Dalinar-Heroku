@@ -76,10 +76,12 @@
 
 .confirm-popup-message {
     margin: 0;
+    font-size: 1.1rem;
+    text-align: justify;
 }
 
 .confirm-popup-buttons {
-    margin-top: 20px;
+    margin-top: 40px;
     width: 100%;
     display: flex;
     flex-direction: row;
