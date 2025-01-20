@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom"
 
 import Toolbar from "./components/Toolbar"
 import AccountPopup from "./components/AccountPopup"
+import ConfirmPopup from "./components/ConfirmPopup"
 import Home from "./pages/Home"
 import Landing from "./pages/Landing"
 import CreateDataset from "./pages/CreateDataset"
@@ -23,6 +24,10 @@ export default function App() {
     const [updateProfile, setUpdateProfile] = useState(0) // Increase by 1 whenever currentProfile must be updated
 
     const [showAccountPopup, setShowAccountPopup] = useState(false)
+
+    const [showConfirmPopup, setShowConfirmPopup] = useState(false)
+    const [confirmPopupOnConfirm, setConfirmPopupOnConfirm] = useState(() => {})
+    const [confirmPopupMessage, setConfirmPopupMessage] = useState("")
 
 
     useEffect(() => {
@@ -48,10 +53,18 @@ export default function App() {
     }
 
 
+    function activateConfirmPopup(message, onConfirm) {
+        setConfirmPopupMessage(message)
+        setConfirmPopupOnConfirm(() => onConfirm)
+        setShowConfirmPopup(true)
+    }
+
+
     return (
         <div id="main">
             {showAccountPopup && <AccountPopup setShowAccountPopup={setShowAccountPopup} message={"Please sign in to access the homepage."}/>}
             <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile} setShowAccountPopup={setShowAccountPopup}></Toolbar>
+            {showConfirmPopup && <ConfirmPopup setShowConfirmPopup={setShowConfirmPopup} message={confirmPopupMessage} onConfirm={confirmPopupOnConfirm} />}
 
             <div id="app">
                 <Routes>
@@ -60,7 +73,7 @@ export default function App() {
                     <Route path="/home" element={<Home currentProfile={currentProfile}/>}/>
                     <Route path="/create-dataset" element={<CreateDataset />}/>
                     <Route path="/edit-dataset/:id" element={<EditDataset />}/>
-                    <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile}/>}/>
+                    <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup}/>}/>
                     <Route path="/datasets/public/:id" element={<PublicDataset />}/>
                 </Routes>
             </div>

@@ -156,7 +156,7 @@ class CreateDataset(APIView):
                                 status=label_response.status_code
                             )
                         
-                        label_id = label_response.data["instance"].id
+                        label_id = label_response.data["id"]
                         for element in elements:
                             element_request = factory.post("/create-element/", data={
                                 "file": element,
@@ -172,7 +172,7 @@ class CreateDataset(APIView):
                                 )
                             
                             print(element_response.data)
-                            element_id = element_response.data["instance"].id
+                            element_id = element_response.data["id"]
                             print(f"element_id: {element_id}")
                             print(f"label_id: {label_id}")
                             
@@ -299,7 +299,7 @@ class CreateElement(APIView):
                 if user.profile == dataset.owner:
                 
                     instance = serializer.save(owner=request.user.profile)
-                    return Response({"data": serializer.data, "instance": instance}, status=status.HTTP_200_OK)
+                    return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
                 
                 else:
                     return Response({'Unauthorized': 'You can only add elements to your own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -444,7 +444,7 @@ class CreateLabel(APIView):
             if user.is_authenticated:
                 if user.profile == dataset.owner:
                     instance = serializer.save(owner=request.user.profile)
-                    return Response({"data": serializer.data, "instance": instance}, status=status.HTTP_200_OK)
+                    return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
                 
                 else:
                     return Response({'Unauthorized': 'Users can only add labels to their  own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)

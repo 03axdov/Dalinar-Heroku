@@ -10,7 +10,7 @@ import { saveAs } from "file-saver";
 const TOOLBAR_HEIGHT = 60
 
 // The default page. Login not required.
-function Dataset({currentProfile}) {
+function Dataset({currentProfile, activateConfirmPopup}) {
 
     const { id } = useParams();
     const [dataset, setDataset] = useState(null)
@@ -532,9 +532,7 @@ function Dataset({currentProfile}) {
     }
 
 
-    function deleteLabel(e) {
-        e.preventDefault()
-
+    function deleteLabelInner() {
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';    
@@ -549,7 +547,6 @@ function Dataset({currentProfile}) {
         setLoading(true)
         axios.post(URL, data, config)
         .then((data) => {
-            console.log("Success: ", data)
             
             getLabels()
 
@@ -561,6 +558,12 @@ function Dataset({currentProfile}) {
         }).finally(() => {
             setLoading(false)
         })
+    }
+
+    function deleteLabel(e) {
+        e.preventDefault()
+
+        activateConfirmPopup("Are you sure you want to delete this label? This action cannot be undone.", deleteLabelInner)
     }
 
 

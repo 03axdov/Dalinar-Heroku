@@ -73,3 +73,31 @@
     height: calc(100% - var(--toolbar-height));
     box-sizing: border-box;
 }
+
+.confirm-popup-message {
+    margin: 0;
+}
+
+.confirm-popup-buttons {
+    margin-top: 20px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.confirm-popup-cancel {
+    background: var(--sidebar-button);
+}
+
+.confirm-popup-cancel:hover {
+    background: var(--sidebar-button-hover);
+}
+
+.confirm-popup-confirm {
+    background: var(--sidebar-button-hover);
+}
+
+.confirm-popup-confirm:hover {
+    background: var(--delete-red);
+}

@@ -1,18 +1,21 @@
 import React from "react"
 
-function ConfirmPopup({setShowConfirmPopup, message}) {
+function ConfirmPopup({setShowConfirmPopup, message, onConfirm}) {
 
     return (
-        <div className="popup" onClick={() => setShowAccountPopup(false)}>
+        <div className="popup" onClick={() => setShowConfirmPopup(false)}>
             <div className="confirm-popup-container" onClick={(e) => {
                 e.stopPropagation()
             }}>
                 <p className="confirm-popup-message">{message}</p>
 
                 <div className="confirm-popup-buttons">
-                    <button className="confirm-popup-cancel">Cancel</button>
+                    <button className="confirm-popup-cancel" onClick={() => setShowConfirmPopup(false)}>Cancel</button>
 
-                    <button className="confirm-popup-confirm">Confirm</button>
+                    <button className="confirm-popup-confirm" onClick={() => {
+                        onConfirm()
+                        setShowConfirmPopup(false)
+                    }}>Confirm</button>
                 </div>
                 
             </div>
