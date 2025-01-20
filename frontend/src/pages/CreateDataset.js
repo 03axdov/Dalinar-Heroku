@@ -11,6 +11,7 @@ function CreateDataset() {
     const [description, setDescription] = useState("")
     const [image, setImage] = useState(null)
     const [visibility, setVisibility] = useState("private")
+    const [keywords, setKeywords] = useState(["test", "test2"])
 
     const [uploadDropdownVisible, setUploadDropdownVisible] = useState(false)
 
@@ -179,6 +180,27 @@ function CreateDataset() {
                     }} />
                     <label htmlFor="create-dataset-visibility-public" className="create-dataset-type-label">Public</label>
                 </div>
+
+                <div className="create-dataset-label-inp">
+                    <label className="create-dataset-label">Keywords <span className="create-dataset-required">({keywords.length}/5)</span></label>
+
+                    <div className="create-dataset-keywords-inp-container">
+                        <input type="text" className="create-dataset-keywords-inp" />
+                        <button type="button" className="create-dataset-keywords-button">
+                            <img className="create-dataset-keywords-icon" src={window.location.origin + "/static/images/plus.png"} />
+                            Add
+                        </button>
+                    </div>
+                    
+                </div>
+
+                {keywords.length > 0 && <div className="create-dataset-keywords-container">
+                    {keywords.map((e, i) => (
+                        <div key={i} className="create-dataset-keyword-element">
+                            {e}
+                        </div>
+                    ))}
+                </div>}
 
                 <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="create-dataset-image">Image <span className="create-dataset-required">(required)</span></label>

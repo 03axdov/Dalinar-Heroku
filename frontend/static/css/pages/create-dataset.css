@@ -61,6 +61,62 @@
     width: 100%;
 }
 
+.create-dataset-keywords-inp-container {
+    width: 400px;
+    padding: 5px 10px;
+    margin-left: 20px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: 'Open Sans', sans-serif; /* 1 */
+    box-sizing: border-box;
+    outline: none;
+    background: var(--background-dark);
+    color: white;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.create-dataset-keywords-inp {
+    width: 100%;
+    height: 100%;
+    background: none;
+    border: none;
+    outline: none;
+}
+
+.create-dataset-keywords-button {
+    white-space: nowrap;
+    background: var(--sidebar-button);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.create-dataset-keywords-icon {
+    height: 15px;
+    width: 15px;
+    margin-right: 5px;
+}
+
+.create-dataset-keywords-container {
+    width: 100%;
+    height: 30px;
+    margin-top: 5px;
+    display: flex;
+    flex-direction: row;
+}
+
+.create-dataset-keyword-element {
+    padding: 3px 7px;
+    background: var(--sidebar-button);
+    margin-right: 10px;
+    border-radius: 3px;
+    font-size: 0.9rem;
+}
+
 .create-dataset-buttons {
     width: 100%;
     display: flex;

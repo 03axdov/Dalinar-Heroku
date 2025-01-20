@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.core.validators import FileExtensionValidator
 import os
+from django.core.validators import MaxLengthValidator
 
 
 ALLOWED_IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "avif"]
@@ -36,6 +37,11 @@ class Dataset(models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="datasets")
     image = models.ImageField(upload_to='images/', null=True)
     downloaders = models.ManyToManyField(Profile, related_name="downloaded_datasets", blank=True)
+    keywords = models.JSONField(
+        default=list,
+        validators=[MaxLengthValidator(5)],
+        help_text="A list of up to 5 keywords for the dataset."
+    )
     
     VISIBILITY_CHOICES = [
         ("private", "Private"),
