@@ -16,6 +16,8 @@ function EditDataset({activateConfirmPopup}) {
     const [image, setImage] = useState(null)
     const [visibility, setVisibility] = useState("private")
     const [type, setType] = useState("")
+    const [keywords, setKeywords] = useState([])
+    const [keywordCurrent, setKeywordCurrent] = useState("")
 
     useEffect(() => {
         getDataset()
@@ -62,6 +64,7 @@ function EditDataset({activateConfirmPopup}) {
         } else {formData.append("image", "")}
         formData.append("visibility", visibility)
         formData.append("id", id)
+        formData.append("keywords", JSON.stringify(keywords))
 
         const URL = window.location.origin + '/api/edit-dataset/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
@@ -148,6 +151,47 @@ function EditDataset({activateConfirmPopup}) {
                     }} />
                     <label htmlFor="create-dataset-visibility-public" className="create-dataset-type-label">Public</label>
                 </div>
+
+                <div className="create-dataset-label-inp">
+                    <label className="create-dataset-label">Keywords <span className="create-dataset-required">({keywords.length}/3)</span></label>
+
+                    <div className="create-dataset-keywords-inp-container">
+                        <input type="text" className="create-dataset-keywords-inp" value={keywordCurrent} onChange={(e) => {
+                            setKeywordCurrent(e.target.value)
+                        }} />
+                        <button type="button" className="create-dataset-keywords-button" onClick={() => {
+                            if (keywords.length < 3) {
+                                if (!keywords.includes(keywordCurrent.toLowerCase()) && keywordCurrent.length > 0) {
+                                    let temp = [...keywords]
+                                    temp.push(keywordCurrent.toLowerCase())
+                                    setKeywords(temp)
+                                    setKeywordCurrent("")
+                                }
+                                
+                            } else {
+                                alert("You can only add three keywords.")
+                            }
+                            
+                        }}>
+                            <img className="create-dataset-keywords-icon" src={window.location.origin + "/static/images/plus.png"} />
+                            Add
+                        </button>
+                    </div>
+                    
+                </div>
+
+                {keywords.length > 0 && <div className="create-dataset-keywords-container">
+                    {keywords.map((e, i) => (
+                        <div key={i} className="create-dataset-keyword-element">
+                            {e}
+                            <img className="create-dataset-keyword-element-remove" src={window.location.origin + "/static/images/cross.svg"} onClick={() => {
+                                let temp = [...keywords]
+                                temp = temp.filter((keyword) => keyword != e)
+                                setKeywords(temp)
+                            }}/>
+                        </div>
+                    ))}
+                </div>}
 
                 <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="image">New Image</label>

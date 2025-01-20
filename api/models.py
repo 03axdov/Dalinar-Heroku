@@ -39,8 +39,8 @@ class Dataset(models.Model):
     downloaders = models.ManyToManyField(Profile, related_name="downloaded_datasets", blank=True)
     keywords = models.JSONField(
         default=list,
-        validators=[MaxLengthValidator(5)],
-        help_text="A list of up to 5 keywords for the dataset."
+        validators=[MaxLengthValidator(3)],
+        help_text="A list of up to 3 keywords for the dataset."
     )
     
     VISIBILITY_CHOICES = [

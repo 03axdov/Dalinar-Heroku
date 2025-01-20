@@ -1,9 +1,10 @@
-import React, {useState} from "react"
+import React, {useState, useEffect} from "react"
 import {useNavigate} from "react-router-dom"
 
 function DatasetElement({dataset, isPublic=false}) {
 
     const [showDescription, setShowDescription] = useState(false)
+    const [keywords, setKeywords] = useState([])
 
     const formattedDate = new Date(dataset.created_at).toLocaleDateString("en-US")
     const navigate = useNavigate()
@@ -13,6 +14,15 @@ function DatasetElement({dataset, isPublic=false}) {
         var win = window.open(URL, '_blank');
         win.focus();
     }
+
+    useEffect(() => {
+        
+        if (dataset.keywords.length > 0) {
+            setKeywords(JSON.parse(dataset.keywords))
+        }
+    }, [dataset])
+
+    
 
     return (
         <div className="dataset-element" onClick={onClick} onMouseEnter={() => setShowDescription(true)} onMouseLeave={() => {setShowDescription(false)}} >
@@ -35,6 +45,11 @@ function DatasetElement({dataset, isPublic=false}) {
                 {dataset.image && <img className="dataset-element-image" src={dataset.image}/>}
                 {showDescription && dataset.description && <div className="dataset-element-description-container">
                     <p className="dataset-element-description">{dataset.description}</p>
+                    {keywords.length > 0 && <div className="dataset-element-keywords-container">
+                        {keywords.map((e, i) => (
+                            <div title={e} key={i} className="dataset-element-keyword">{e}</div>
+                        ))}
+                    </div>}
                 </div>}
             </div>
             

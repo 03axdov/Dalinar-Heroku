@@ -11,7 +11,8 @@ function CreateDataset() {
     const [description, setDescription] = useState("")
     const [image, setImage] = useState(null)
     const [visibility, setVisibility] = useState("private")
-    const [keywords, setKeywords] = useState(["test", "test2"])
+    const [keywordCurrent, setKeywordCurrent] = useState("")
+    const [keywords, setKeywords] = useState([])
 
     const [uploadDropdownVisible, setUploadDropdownVisible] = useState(false)
 
@@ -40,6 +41,7 @@ function CreateDataset() {
         formData.append('description', description)
         formData.append('image', image)
         formData.append("visibility", visibility)
+        formData.append("keywords", JSON.stringify(keywords))
 
         Object.entries(uploadedDatasets).forEach(([key, fileList]) => {
             formData.append("labels", key)
@@ -182,11 +184,26 @@ function CreateDataset() {
                 </div>
 
                 <div className="create-dataset-label-inp">
-                    <label className="create-dataset-label">Keywords <span className="create-dataset-required">({keywords.length}/5)</span></label>
+                    <label className="create-dataset-label">Keywords <span className="create-dataset-required">({keywords.length}/3)</span></label>
 
                     <div className="create-dataset-keywords-inp-container">
-                        <input type="text" className="create-dataset-keywords-inp" />
-                        <button type="button" className="create-dataset-keywords-button">
+                        <input type="text" className="create-dataset-keywords-inp" value={keywordCurrent} onChange={(e) => {
+                            setKeywordCurrent(e.target.value)
+                        }} />
+                        <button type="button" className="create-dataset-keywords-button" onClick={() => {
+                            if (keywords.length < 3) {
+                                if (!keywords.includes(keywordCurrent.toLowerCase()) && keywordCurrent.length > 0) {
+                                    let temp = [...keywords]
+                                    temp.push(keywordCurrent.toLowerCase())
+                                    setKeywords(temp)
+                                    setKeywordCurrent("")
+                                }
+                                
+                            } else {
+                                alert("You can only add three keywords.")
+                            }
+                            
+                        }}>
                             <img className="create-dataset-keywords-icon" src={window.location.origin + "/static/images/plus.png"} />
                             Add
                         </button>
@@ -198,6 +215,11 @@ function CreateDataset() {
                     {keywords.map((e, i) => (
                         <div key={i} className="create-dataset-keyword-element">
                             {e}
+                            <img className="create-dataset-keyword-element-remove" src={window.location.origin + "/static/images/cross.svg"} onClick={() => {
+                                let temp = [...keywords]
+                                temp = temp.filter((keyword) => keyword != e)
+                                setKeywords(temp)
+                            }}/>
                         </div>
                     ))}
                 </div>}

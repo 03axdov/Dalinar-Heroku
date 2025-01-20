@@ -81,7 +81,9 @@ function Explore() {
 
     return <div className="explore-container">
         <div className="home-sidebar">
-            <p className="explore-sidebar-title">Types</p>
+            <button className="sidebar-button" onClick={() => {
+                window.location = window.location.origin + "/create-dataset"
+            }}>+ Create dataset</button>
 
             <div className="explore-datasets-types-container">
                 <div className="explore-datasets-type">
@@ -91,7 +93,7 @@ function Explore() {
                     <label htmlFor="classification" className="explore-label">Classification</label>
                 </div>
                 
-                <div className="explore-datasets-type"> 
+                <div className="explore-datasets-type no-margin"> 
                     <input className="explore-datasets-checkbox" type="checkbox" id="area" name="area" checked={showArea} onChange={() => {
                         setShowArea(!showArea)
                     }}/> 
@@ -99,6 +101,11 @@ function Explore() {
                 </div>
                        
             </div>
+
+            <div className="explore-keyword-inp-container">
+                <input type="text" className="explore-keyword-inp" placeholder="Search keywords" />
+            </div>
+            
         </div>
         <div className="explore-non-sidebar">
             <div>

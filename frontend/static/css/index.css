@@ -217,3 +217,7 @@ input {
 .unselectable {
     user-select: none;
 }
+
+.no-margin {
+    margin: 0!important;
+}

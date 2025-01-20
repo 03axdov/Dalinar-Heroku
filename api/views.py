@@ -126,6 +126,8 @@ class CreateDataset(APIView):
         data = request.data
         data_dict = dict(data)
         
+        print(data)
+        
         user = request.user
         
         if user.is_authenticated:
@@ -133,8 +135,8 @@ class CreateDataset(APIView):
             if serializer.is_valid():
                 dataset_instance = serializer.save(owner=request.user.profile)
                 
-                labels = data_dict["labels"]
-                if labels:
+                if "labels" in data_dict.keys():
+                    labels = data_dict["labels"]
                     create_element = CreateElement.as_view()
                     create_label = CreateLabel.as_view()
                     edit_element_label = EditElementLabel.as_view()
@@ -206,6 +208,7 @@ class EditDataset(APIView):
         image = request.data["image"]
         visibility = request.data["visibility"]
         dataset_id = request.data["id"]
+        keywords = request.data["keywords"]
         
         user = self.request.user
         
@@ -214,10 +217,11 @@ class EditDataset(APIView):
                 dataset = Dataset.objects.get(id=dataset_id)
                 
                 if dataset.owner == user.profile:
-                    if name: dataset.name = name
-                    if description: dataset.description = description
-                    if image: dataset.image = image
-                    if visibility: dataset.visibility = visibility
+                    dataset.name = name
+                    dataset.description = description   
+                    if image: dataset.image = image # As optional 
+                    dataset.visibility = visibility
+                    dataset.keywords = keywords
                         
                     dataset.save()
                 
