@@ -830,11 +830,34 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     </div>}
 
                     {showDatasetDescription && dataset.description && <div className="dataset-description-display-container">
+
                         <div className="dataset-description-header">
+                            {dataset.name}
+                        </div>
+
+                        <div className="dataset-description-row">
                             <div className="dataset-description-image-container">
                                 <img className="dataset-description-image" src={dataset.image} />
                             </div>
                         </div>
+
+                        <div className="dataset-description-stats">
+                            {dataset.downloaders && <div className="dataset-description-stats-element">
+                                <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/download.svg"}/>
+                                {dataset.downloaders.length + (dataset.downloaders.length == 1 ? " download" : " downloads")}
+                            </div>}
+
+                            {elements && <div className="dataset-description-stats-element">
+                                <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/text.png"}/>
+                                {elements.length + (elements.length == 1 ? " element" : " elements")}
+                            </div>}
+
+                            {labels && <div className="dataset-description-stats-element">
+                                <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/image.png"}/>
+                                {labels.length + (labels.length == 1 ? " label" : " labels")}
+                            </div>}
+                         </div>
+
                         <div className="dataset-description-display">
                             {(dataset.description ? dataset.description : "This dataset does not have a description.")}
                         </div>

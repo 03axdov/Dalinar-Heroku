@@ -31,8 +31,7 @@ function PublicDataset() {
 
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
 
-    const hiddenFolderInputRef = useRef(null);
-    const hiddenFileInputRef = useRef(null);
+    const [showDatasetDescription, setShowDatasetDescription] = useState(false)
 
     const pageRef = useRef(null)
 
@@ -63,9 +62,11 @@ function PublicDataset() {
 
             let key = getUserPressKeycode(event)
             
-            if (key === "ArrowDown" || key === "ArrowRight") {    
+            if (key === "ArrowDown" || key === "ArrowRight") {
+                setShowDatasetDescription(false)    
                 setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
             } else if (key === "ArrowUp" || key === "ArrowLeft") {
+                setShowDatasetDescription(false)
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
             }
         };
@@ -294,7 +295,10 @@ function PublicDataset() {
                     {elements.map((element, idx) => (
                         <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
                         key={element.id} 
-                        onClick={() => setElementsIndex(idx)}
+                        onClick={() => {
+                            setShowDatasetDescription(false)
+                            setElementsIndex(idx)
+                        }}
                         onMouseEnter={(e) => {
                             setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
                             setHoveredElement(idx)
@@ -331,11 +335,13 @@ function PublicDataset() {
 
             <div className="dataset-main">
                 <div className="dataset-main-toolbar">
-                    {dataset && <div className="dataset-title-container">
+                    {dataset && <div className="dataset-title-container unselectable" onClick={() => {setShowDatasetDescription(!showDatasetDescription)}}>
                         {dataset.datatype == "classification" && <img title="Type: Classification" className="dataset-title-icon" src={window.location.origin + "/static/images/classification.png"}/>}
                         {dataset.datatype == "area" && <img title="Type: Area" className="dataset-title-icon" src={window.location.origin + "/static/images/area.svg"}/>}
                         
-                        <p className="dataset-title" title={"Dataset: " + dataset.name}>{dataset && dataset.name}</p>
+                        <p className="dataset-title" title={(!showDatasetDescription ? "Show description" : "Hide description")}>{dataset && dataset.name}</p>
+
+                        <img className="dataset-title-expand-icon" src={window.location.origin + "/static/images/" + (!showDatasetDescription ? "plus.png" : "minus.png")} />
                     </div>}
                     {dataset && <p className="dataset-ownername gray-text">created by {dataset.ownername}</p>}
                 </div>
@@ -343,6 +349,39 @@ function PublicDataset() {
                 <div className="dataset-main-display">
                     {elements.length != 0 && <div className="dataset-element-view-container">
                         {getPreviewElement(elements[elementsIndex])}
+                    </div>}
+
+                    {showDatasetDescription && dataset.description && <div className="dataset-description-display-container">
+                        <div className="dataset-description-header">
+                            {dataset.name}
+                        </div>
+
+                        <div className="dataset-description-row">
+                            <div className="dataset-description-image-container">
+                                <img className="dataset-description-image" src={dataset.image} />
+                            </div>
+                        </div>
+
+                        <div className="dataset-description-stats">
+                            {dataset.downloaders && <div className="dataset-description-stats-element">
+                                <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/download.svg"}/>
+                                {dataset.downloaders.length + (dataset.downloaders.length == 1 ? " download" : " downloads")}
+                            </div>}
+
+                            {elements && <div className="dataset-description-stats-element">
+                                <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/text.png"}/>
+                                {elements.length + (elements.length == 1 ? " element" : " elements")}
+                            </div>}
+
+                            {labels && <div className="dataset-description-stats-element">
+                                <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/image.png"}/>
+                                {labels.length + (labels.length == 1 ? " label" : " labels")}
+                            </div>}
+                        </div>
+
+                        <div className="dataset-description-display">
+                            {(dataset.description ? dataset.description : "This dataset does not have a description.")}
+                        </div>
                     </div>}
                 </div>
                 
