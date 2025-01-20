@@ -48,6 +48,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
 
+    const [showDatasetDescription, setShowDatasetDescription] = useState(false)
+
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
 
@@ -69,10 +71,13 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     }, [])
 
     useEffect(() => {
-        if (currentProfile && dataset) {
-            if (currentProfile.user != dataset.owner) {
-                navigate("/datasets/public/" + id)
+        if (currentProfile && dataset && !loading) {
+            if (currentProfile.user && dataset.owner) {
+                if (currentProfile.user != dataset.owner) {
+                    navigate("/datasets/public/" + id)
+                }
             }
+            
         }
     }, [currentProfile, dataset])
 
@@ -98,8 +103,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             let key = getUserPressKeycode(event)
             
             if (key === "ArrowDown" || key === "ArrowRight") {    
+                setShowDatasetDescription(false)
                 setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
             } else if (key === "ArrowUp" || key === "ArrowLeft") {
+                setShowDatasetDescription(false)
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
             } else if (labelKeybinds[key]) {
                 labelOnClick(labelKeybinds[key])
@@ -116,6 +123,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
 
     function getDataset() {
+        setLoading(true)
         axios({
             method: 'GET',
             url: window.location.origin + '/api/datasets/' + id,
@@ -131,15 +139,15 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             parseLabels(res.data.labels)
 
             // preloadImages(res.data.elements)
-            setLoading(false)
         }).catch((err) => {
             navigate("/")
             alert("An error occured when loading dataset with id " + id + ".")
 
             console.log(err)
-            
+
+            // preloadImages(res.data.elements)
+        }).finally(() => {
             setLoading(false)
-            preloadImages(res.data.elements)
         })
     }
 
@@ -718,7 +726,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     {elements.map((element, idx) => (
                         <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
                         key={element.id} 
-                        onClick={() => setElementsIndex(idx)}
+                        onClick={() => {
+                            setShowDatasetDescription(false)
+                            setElementsIndex(idx)
+                        }}
                         onMouseEnter={(e) => {
                             setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
                             setHoveredElement(idx)
@@ -793,11 +804,13 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
             <div className="dataset-main">
                 <div className="dataset-main-toolbar">
-                    {dataset && <div className="dataset-title-container">
+                    {dataset && <div className="dataset-title-container unselectable" onClick={() => {setShowDatasetDescription(!showDatasetDescription)}}>
                         {dataset.datatype == "classification" && <img title="Type: Classification" className="dataset-title-icon" src={window.location.origin + "/static/images/classification.png"}/>}
                         {dataset.datatype == "area" && <img title="Type: Area" className="dataset-title-icon" src={window.location.origin + "/static/images/area.svg"}/>}
                         
-                        <p className="dataset-title" title={"Dataset: " + dataset.name}>{dataset && dataset.name}</p>
+                        <p className="dataset-title" title={(!showDatasetDescription ? "Show description" : "Hide description")}>{dataset && dataset.name}</p>
+
+                        <img className="dataset-title-expand-icon" src={window.location.origin + "/static/images/" + (!showDatasetDescription ? "plus.png" : "minus.png")} />
                     </div>}
 
                     {dataset && <button type="button" className="dataset-title-button" onClick={() => {
@@ -814,6 +827,17 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     {(elements.length == 0 && !loading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>Upload folder</button>}
                     {elements.length != 0 && <div className="dataset-element-view-container">
                         {getPreviewElement(elements[elementsIndex])}
+                    </div>}
+
+                    {showDatasetDescription && dataset.description && <div className="dataset-description-display-container">
+                        <div className="dataset-description-header">
+                            <div className="dataset-description-image-container">
+                                <img className="dataset-description-image" src={dataset.image} />
+                            </div>
+                        </div>
+                        <div className="dataset-description-display">
+                            {(dataset.description ? dataset.description : "This dataset does not have a description.")}
+                        </div>
                     </div>}
                 </div>
                 

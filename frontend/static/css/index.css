@@ -213,3 +213,7 @@ input {
 .default-cursor {
     cursor: default!important;
 }
+
+.unselectable {
+    user-select: none;
+}

@@ -70,8 +70,61 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
+.dataset-description-display-container {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    background: var(--background);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 40px;
+    box-sizing: border-box;
+}
+
+.dataset-title-expand-icon {
+    height: 17px;
+    width: 17px;
+    margin-left: 15px;
+}
+
+.dataset-description-header {
+    width: 800px;
+    margin-top: 40px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    height: 250px;
+}
+
+.dataset-description-display {
+    width: 800px;
+    max-width: 95%;
+    margin-top: 40px;
+    background: var(--background-light);
+    text-align: justify;
+    padding: 20px;
+    box-sizing: border-box;
+    font-size: 1.1rem;
+    border-radius: 5px;
+}
+
+.dataset-description-image-container {
+    padding: 20px;
+    border-radius: 5px;
+    background: var(--background-light);
+}
+
+.dataset-description-image {
+    height: 100%;
+    border-radius: 5px;
+}
 
 .dataset-main-label-clicked {
     margin-right: 10px;
@@ -97,6 +150,11 @@
     padding: 0 10px;
     border-radius: 3px;
     cursor: default;
+}
+
+.dataset-title-container:hover {
+    background: var(--toolbar-lighter);
+    cursor: pointer;
 }
 
 .dataset-title-button {
@@ -439,13 +497,14 @@
 }
 
 .dataset-element-view-text {
-    width: 750px;
+    width: 800px;
     max-width: 95%;
     position: absolute;
     top: 100px;
     background: var(--background-light);
     text-align: justify;
     padding: 20px;
+    box-sizing: border-box;
     font-size: 1.1rem;
     border-radius: 5px;
 }
