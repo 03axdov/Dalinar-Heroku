@@ -53,11 +53,9 @@ function DatasetElement({dataset, isPublic=false}) {
                 </div>}
             </div>
             
-            
-
-            {/* <p className="dataset-element-date">{(!isPublic ? formattedDate : dataset.downloaders.length + " download" + (dataset.downloaders.length != 1 ? "s" : ""))}</p> */}
             <p className="dataset-element-date">{dataset.downloaders.length + " download" + (dataset.downloaders.length != 1 ? "s" : "")}</p>
             <p className="dataset-element-count">{dataset.elements.length + " element" + (dataset.elements.length != 1 ? "s" : "")}</p>
+            <p className="dataset-element-labels">{dataset.labels.length + " label" + (dataset.labels.length != 1 ? "s" : "")}</p>
 
 
         </div>

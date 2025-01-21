@@ -56,6 +56,10 @@ function Explore({checkLoggedIn}) {
                     return d1.name.localeCompare(d2.name)
                 } else if (sort == "date") {
                     return new Date(d2.created_at) - new Date(d1.created_at)
+                } else if (sort == "elements") {
+                    return d2.elements.length - d1.elements.length
+                } else if (sort == "labels") {
+                    return d2.labels.length - d1.labels.length
                 }
             })
     
@@ -112,6 +116,8 @@ function Explore({checkLoggedIn}) {
                         setSort(e.target.value)
                     }}>
                         <option value="downloads">Downloads</option>
+                        <option value="elements">Elements</option>
+                        <option value="labels">Labels</option>
                         <option value="alphabetical">Alphabetical</option>
                         <option value="date">Date</option>
                     </select>

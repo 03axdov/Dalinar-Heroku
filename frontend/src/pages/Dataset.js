@@ -834,29 +834,35 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                         <div className="dataset-description-image-container">
                             <div className="dataset-description-name">{dataset.name}</div>
                             <img className="dataset-description-image" src={dataset.image} />
+
+                            <div className="dataset-description-stats">
+                                {dataset.downloaders && <div className="dataset-description-stats-element">
+                                    <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/download.svg"}/>
+                                    {dataset.downloaders.length + (dataset.downloaders.length == 1 ? " download" : " downloads")}
+                                </div>}
+
+                                {elements && <div className="dataset-description-stats-element">
+                                    <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/text.png"}/>
+                                    {elements.length + (elements.length == 1 ? " element" : " elements")}
+                                </div>}
+
+                                {labels && <div className="dataset-description-stats-element">
+                                    <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/label.png"}/>
+                                    {labels.length + (labels.length == 1 ? " label" : " labels")}
+                                </div>}
+                            </div>
                         </div>
-
-
-                        <div className="dataset-description-stats">
-                            {dataset.downloaders && <div className="dataset-description-stats-element">
-                                <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/download.svg"}/>
-                                {dataset.downloaders.length + (dataset.downloaders.length == 1 ? " download" : " downloads")}
-                            </div>}
-
-                            {elements && <div className="dataset-description-stats-element">
-                                <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/text.png"}/>
-                                {elements.length + (elements.length == 1 ? " element" : " elements")}
-                            </div>}
-
-                            {labels && <div className="dataset-description-stats-element">
-                                <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/image.png"}/>
-                                {labels.length + (labels.length == 1 ? " label" : " labels")}
-                            </div>}
-                         </div>
 
                         <div className="dataset-description-display">
                             {(dataset.description ? dataset.description : "This dataset does not have a description.")}
                         </div>
+
+                        {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">
+                            <span className="gray-text dataset-description-keywords-title">Keywords: </span>
+                            {JSON.parse(dataset.keywords).map((e, i) => (
+                                <div title={e} className="dataset-description-keyword" key={i}>{e}</div>
+                        ))}
+                        </div>}
                     </div>}
                 </div>
                 
