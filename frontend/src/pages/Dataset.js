@@ -831,15 +831,11 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
                     {showDatasetDescription && dataset.description && <div className="dataset-description-display-container">
 
-                        <div className="dataset-description-header">
-                            {dataset.name}
+                        <div className="dataset-description-image-container">
+                            <div className="dataset-description-name">{dataset.name}</div>
+                            <img className="dataset-description-image" src={dataset.image} />
                         </div>
 
-                        <div className="dataset-description-row">
-                            <div className="dataset-description-image-container">
-                                <img className="dataset-description-image" src={dataset.image} />
-                            </div>
-                        </div>
 
                         <div className="dataset-description-stats">
                             {dataset.downloaders && <div className="dataset-description-stats-element">
