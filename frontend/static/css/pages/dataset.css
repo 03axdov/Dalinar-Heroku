@@ -46,6 +46,7 @@
 .dataset-main {
     width: calc(100% - var(--dataset-elements-width) - var(--dataset-labels-width));
     display: flex;
+    height: 100%;
     flex-direction: column;
     justify-content: start;
     align-items: center;
@@ -71,6 +72,12 @@
     align-items: center;
     justify-content: center;
     position: relative;
+    overflow: auto;
+}
+
+.dataset-main-display::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
 }
 
 .dataset-description-display-container {
@@ -446,9 +453,22 @@
     position: relative;
 }
 
+.dataset-element-view-image-container {
+    width: 90%;
+    height: 85%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+.dataset-element-view-image-inner {
+    max-width: 100%;
+    max-height: 100%;
+}
+
 .dataset-element-view-image {
-    max-width: 90%;
-    max-height: 85%;
+    height: 100%;
     box-shadow: 0 0 50px 0 var(--background-shadow);
 }
 

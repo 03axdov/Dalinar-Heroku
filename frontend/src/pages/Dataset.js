@@ -133,9 +133,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             url: window.location.origin + '/api/datasets/' + id,
         })
         .then((res) => {
-            if (res.data.datatype == "area") {
-                navigate("/datasets/area/" + id)
-            }
             setDataset(res.data)
 
             setElements(res.data.elements)
@@ -183,7 +180,9 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         const extension = element.file.split(".").pop()
         
         if (IMAGE_FILE_EXTENSIONS.has(extension)) {
-            return <img className="dataset-element-view-image" src={window.location.origin + element.file} />
+            return <div className="dataset-element-view-image-container">
+                <div className="dataset-element-view-image-inner"><img className="dataset-element-view-image" src={window.location.origin + element.file} /></div>
+            </div>
 
         } else if (TEXT_FILE_EXTENSIONS.has(extension)) {
             

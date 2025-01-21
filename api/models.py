@@ -55,6 +55,8 @@ class Dataset(models.Model):
     ]
     datatype = models.CharField(max_length=20, choices=DATATYPE_CHOICES, default="image")
     
+    area_points = models.JSONField(default=list)  # Store as a list of [x, y] points, only used if datatype is "area"
+    
     def __str__(self):
         return self.name
 
