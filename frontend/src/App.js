@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import { Routes, Route } from "react-router-dom"
+import { Routes, Route, useNavigate } from "react-router-dom"
 
 import Toolbar from "./components/Toolbar"
 import AccountPopup from "./components/AccountPopup"
@@ -16,6 +16,7 @@ import PublicDataset from "./pages/PublicDataset"
 
 export default function App() {
 
+    const navigate = useNavigate()
     const [currentProfile, setCurrentProfile] = useState({
         "user": "",
         "name": ""
@@ -59,17 +60,25 @@ export default function App() {
         setShowConfirmPopup(true)
     }
 
+    function checkLoggedIn(toNavigate) {
+        if (!loadingCurrentProfile && currentProfile.user !== "") {
+            navigate(toNavigate)
+        } else if (!loadingCurrentProfile) {
+            setShowAccountPopup(true)
+        }
+    }
+
 
     return (
         <div id="main">
             {showAccountPopup && <AccountPopup setShowAccountPopup={setShowAccountPopup} message={"Please sign in to access the homepage."}/>}
-            <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile} setShowAccountPopup={setShowAccountPopup}></Toolbar>
+            <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile} checkLoggedIn={checkLoggedIn}></Toolbar>
             {showConfirmPopup && <ConfirmPopup setShowConfirmPopup={setShowConfirmPopup} message={confirmPopupMessage} onConfirm={confirmPopupOnConfirm} />}
 
             <div id="app">
                 <Routes>
                     <Route path="/" element={<Landing />}/>
-                    <Route path="/explore" element={<Explore />}/>
+                    <Route path="/explore" element={<Explore checkLoggedIn={checkLoggedIn}/>}/>
                     <Route path="/home" element={<Home currentProfile={currentProfile}/>}/>
                     <Route path="/create-dataset" element={<CreateDataset />}/>
                     <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} />}/>

@@ -3,7 +3,7 @@ import DatasetElement from "../components/DatasetElement"
 import { useNavigate } from "react-router-dom"
 import axios from 'axios'
 
-function Explore() {
+function Explore({checkLoggedIn}) {
     const navigate = useNavigate()
 
     const [datasets, setDatasets] = useState([])
@@ -82,7 +82,7 @@ function Explore() {
     return <div className="explore-container">
         <div className="home-sidebar">
             <button className="sidebar-button" onClick={() => {
-                window.location = window.location.origin + "/create-dataset"
+                checkLoggedIn("/create-dataset")
             }}>+ Create dataset</button>
 
             <div className="explore-datasets-types-container">
@@ -101,10 +101,6 @@ function Explore() {
                 </div>
                        
             </div>
-
-            <div className="explore-keyword-inp-container">
-                <input type="text" className="explore-keyword-inp" placeholder="Search keywords" />
-            </div>
             
         </div>
         <div className="explore-non-sidebar">
@@ -121,7 +117,7 @@ function Explore() {
                     </select>
                     
                     <div className="explore-datasets-search-container">
-                        <input type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
+                        <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
                                 setSearch(e.target.value)
                         }} /> 
                         <img className="explore-datasets-search-icon" src={window.location.origin + "/static/images/search.png"} />

@@ -43,7 +43,14 @@ class DatasetListPublic(generics.ListAPIView):
     def get_queryset(self):
         search = self.request.GET.get("search")
         if search == None: search = ""
-        datasets = Dataset.objects.filter(Q(visibility="public") & Q(name__contains=search))
+        datasets = Dataset.objects.filter(Q(visibility="public") & (
+            # Search handling
+            Q(name__icontains=search) | (
+                Q(
+                    keywords__icontains=search
+                )
+            )
+        ))
         return datasets
 
 
@@ -58,7 +65,11 @@ class DatasetListProfile(generics.ListCreateAPIView):
         
         search = self.request.GET.get("search")
         if (search):
-            datasets = datasets.filter(Q(name__contains=search))
+            datasets = datasets.filter(Q(name__contains=search) | (
+                Q(
+                    keywords__icontains=search
+                )
+            ))
 
         return datasets
 

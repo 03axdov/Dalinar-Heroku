@@ -2,7 +2,7 @@ import React from "react"
 import {useNavigate} from "react-router-dom"
 
 // The default page. Login not required.
-function Toolbar({currentProfile, loadingCurrentProfile, setShowAccountPopup}) {
+function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn}) {
     const navigate = useNavigate()
 
     return (
@@ -11,12 +11,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, setShowAccountPopup}) {
             <p className="toolbar-text toolbar-title" onClick={() => navigate("/")}>Dalinar</p>
 
             <p className="toolbar-text" onClick={() => {
-                if (!loadingCurrentProfile && currentProfile.user !== "") {
-                    navigate("/home")
-                } else if (!loadingCurrentProfile) {
-                    setShowAccountPopup(true)
-                }
-                
+                checkLoggedIn("/home")
             }}>Home</p>
 
 <           p className="toolbar-text" onClick={() => {

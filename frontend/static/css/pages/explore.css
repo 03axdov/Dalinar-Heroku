@@ -111,25 +111,6 @@
     border-bottom: 1px solid var(--border);
 }
 
-.explore-keyword-inp-container {
-    width: 100%;
-    height: auto;
-    position: relative;
-}
-
-.explore-keyword-inp {
-    height: 32px;
-    margin-top: 20px;
-    padding-left: 10px;
-    width: 100%;
-    font-size: 1rem;
-    box-sizing: border-box;
-    outline: none;
-    background: var(--background-dark);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-}
-
 .explore-datasets-type {
     margin-bottom: 10px;
     display: flex;
