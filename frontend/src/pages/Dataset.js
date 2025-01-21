@@ -71,6 +71,12 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     }, [])
 
     useEffect(() => {
+        if (dataset) {
+            setShowDatasetDescription(false)
+        }
+    }, [elementsIndex])
+
+    useEffect(() => {
         if (currentProfile && dataset && !loading) {
             if (currentProfile.user && dataset.owner) {
                 if (currentProfile.user != dataset.owner) {
@@ -103,10 +109,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             let key = getUserPressKeycode(event)
             
             if (key === "ArrowDown" || key === "ArrowRight") {    
-                setShowDatasetDescription(false)
                 setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
             } else if (key === "ArrowUp" || key === "ArrowLeft") {
-                setShowDatasetDescription(false)
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
             } else if (labelKeybinds[key]) {
                 labelOnClick(labelKeybinds[key])
@@ -129,6 +133,9 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             url: window.location.origin + '/api/datasets/' + id,
         })
         .then((res) => {
+            if (res.data.datatype == "area") {
+                navigate("/datasets/area/" + id)
+            }
             setDataset(res.data)
 
             setElements(res.data.elements)
@@ -727,7 +734,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                         <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
                         key={element.id} 
                         onClick={() => {
-                            setShowDatasetDescription(false)
                             setElementsIndex(idx)
                         }}
                         onMouseEnter={(e) => {
@@ -742,14 +748,13 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                             {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={window.location.origin + "/static/images/text.png"}/>}
 
                             <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
-                            
 
-                            {element.label && idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
+                            {dataset && dataset.datatype == "classification" && element.label && idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
                                                             style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
                                                         >
-                                
-                                
                             </span>}
+
+                            {dataset && dataset.datatype == "area" && element.label && <img className="dataset-sidebar-labelled dataset-sidebar-color-element" src={window.location.origin + "/static/images/label.png"} />}
 
                             {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
                                 className="dataset-sidebar-options dataset-sidebar-options-margin"
@@ -858,7 +863,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                         </div>
 
                         {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">
-                            <span className="gray-text dataset-description-keywords-title">Keywords: </span>
+                            {JSON.parse(dataset.keywords).length > 0 && <span className="gray-text dataset-description-keywords-title">Keywords: </span>}
                             {JSON.parse(dataset.keywords).map((e, i) => (
                                 <div title={e} className="dataset-description-keyword" key={i}>{e}</div>
                         ))}

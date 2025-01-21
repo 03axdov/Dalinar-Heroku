@@ -83,6 +83,7 @@ export default function App() {
                     <Route path="/create-dataset" element={<CreateDataset />}/>
                     <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} />}/>
                     <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup}/>}/>
+                    <Route path="/datasets/area/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup}/>}/>
                     <Route path="/datasets/public/:id" element={<PublicDataset />}/>
                 </Routes>
             </div>

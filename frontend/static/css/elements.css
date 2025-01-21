@@ -22,9 +22,12 @@
 .dataset-element-name {
     font-size: 1.1rem;
     margin: 0;
-    overflow: hidden; /* Hide overflow content */
-    text-overflow: ellipsis; /* Add ellipsis for truncated text */
-    word-break: break-word; /* Break long words onto the next line */
+    margin-left: 10px;
+    margin-right: 10px;
+    max-width: 100%;
+    overflow: hidden; 
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .dataset-element-date {

@@ -31,7 +31,7 @@ function PublicDataset() {
 
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
 
-    const [showDatasetDescription, setShowDatasetDescription] = useState(false)
+    const [showDatasetDescription, setShowDatasetDescription] = useState(true)  // True for public datasets
 
     const pageRef = useRef(null)
 
@@ -54,6 +54,12 @@ function PublicDataset() {
         return keys.join('+')
     }
 
+    useEffect(() => {
+        if (dataset) {
+            setShowDatasetDescription(false)
+        }
+    }, [elementsIndex])
+
     // Handles user button presses
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -63,10 +69,8 @@ function PublicDataset() {
             let key = getUserPressKeycode(event)
             
             if (key === "ArrowDown" || key === "ArrowRight") {
-                setShowDatasetDescription(false)    
                 setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
             } else if (key === "ArrowUp" || key === "ArrowLeft") {
-                setShowDatasetDescription(false)
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
             }
         };
@@ -296,8 +300,9 @@ function PublicDataset() {
                         <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
                         key={element.id} 
                         onClick={() => {
-                            setShowDatasetDescription(false)
+                            
                             setElementsIndex(idx)
+                            
                         }}
                         onMouseEnter={(e) => {
                             setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
@@ -351,7 +356,7 @@ function PublicDataset() {
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}
 
-                    {showDatasetDescription && dataset.description && <div className="dataset-description-display-container">
+                    {showDatasetDescription && dataset && dataset.description && <div className="dataset-description-display-container">
 
                         <div className="dataset-description-image-container">
                             <div className="dataset-description-name">{dataset.name}</div>
@@ -380,7 +385,7 @@ function PublicDataset() {
                         </div>
 
                         {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">
-                            <span className="gray-text dataset-description-keywords-title">Keywords: </span>
+                            {JSON.parse(dataset.keywords).length > 0 && <span className="gray-text dataset-description-keywords-title">Keywords: </span>}
                             {JSON.parse(dataset.keywords).map((e, i) => (
                                 <div title={e} className="dataset-description-keyword" key={i}>{e}</div>
                         ))}

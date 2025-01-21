@@ -286,7 +286,7 @@
     position: relative;
 }
 
-.dataset-sidebar-color {
+.dataset-sidebar-color, .dataset-sidebar-labelled {
     height: 15px;
     min-height: 15px;
     width: 15px;
@@ -314,8 +314,6 @@
 .dataset-sidebar-options-margin {
     margin-left: auto;
 }
-
-
 
 .dataset-sidebar-color-element {
     margin-left: auto;

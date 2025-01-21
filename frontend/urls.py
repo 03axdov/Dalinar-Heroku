@@ -9,5 +9,6 @@ urlpatterns = [
     path("create-dataset/", index),
     path("edit-dataset/<int:id>", index),
     path("datasets/<int:id>", index),
+    path("datasets/area/<int:id>", index),
     path("datasets/public/<int:id>", index_no_login)
 ]
