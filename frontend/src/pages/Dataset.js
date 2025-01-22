@@ -32,7 +32,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const [createLabelKeybind, setCreateLabelKeybind] = useState("")
     
     const [labelKeybinds, setLabelKeybinds] = useState({})  // Key: keybind, value: pointer to label
-    const [idToLabel, setIdToLabel] = useState({})
+    const [idToLabel, setIdToLabel] = useState({})  // Key: id, value: label
 
     const [hoveredElement, setHoveredElement] = useState(null)
     const [datasetMainLabelColor, setDatasetMainLabelColor] = useState("transparent") // Used to load image in low res first
@@ -67,19 +67,33 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
     const DOT_SIZE = 22
 
+    const [redraw, setRedraw] = useState(false);
+
+    useEffect(() => {
+        if (!dataset || dataset.datatype !== "area") return;
+        if (elements.length < 1 || !canvasRefs.current.every((canvas) => canvas)) return;
+
+        setRedraw(!redraw); // Enable drawing once everything is ready
+    }, [dataset, elements, elementsIndex]);
+
     useEffect(() => {
         if (!dataset || dataset.datatype != "area") {return}
         if (elements.length < 1) {return}
+        if (!canvasRefs.current.length) return;
         let areas = elements[elementsIndex].areas
 
         canvasRefs.current.forEach((canvas, idx) => {
+            console.log("REACHED")
             if (!canvas) return; // Skip if canvas is undefined
 
             const ctx = canvas.getContext("2d");
-            const container = canvas.parentNode; // Parent div contains the canvas and points
 
             const dpr = window.devicePixelRatio || 1;
-
+            
+            const width = canvas.offsetWidth * dpr;
+            const height = canvas.offsetHeight * dpr;
+            canvas.width = width;
+            canvas.height = height;
             ctx.scale(dpr, dpr);
         
             // Get the points for the current area
@@ -89,13 +103,16 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         
             // Convert percentage-based coordinates to pixel values
             const percentageToPixels = (point) => ({
-                x: (point[0] / 100) * canvas.width + 2, // Adjust for the dot's width
-                y: (point[1] / 100) * canvas.height + 2, // Adjust for the dot's height
+                x: (point[0] / 100) * canvas.width + 9, // Adjust for the dot's width
+                y: (point[1] / 100) * canvas.height + 9, // Adjust for the dot's height
             });
         
             // Draw lines between points
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
-            ctx.lineWidth = 2 / dpr;
+            
+            ctx.fillStyle = "blue";
+            ctx.lineWidth = 5;
+            
             ctx.beginPath();
         
             points.forEach((point, idx) => {
@@ -106,10 +123,16 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     ctx.lineTo(x, y);
                 }
             });
+
+            if (points.length > 1) {    // Close area
+                const { x, y } = percentageToPixels(points[0]);
+                ctx.lineTo(x, y);
+            }
         
             ctx.stroke();
+            ctx.closePath();
         });
-      }, [elements, elementsIndex]);   // When element areas update
+      }, [redraw, canvasRefs]);   // When element areas update
     
 
     // End of primarily Area Dataset Functionality
@@ -233,6 +256,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const handleImageClick = (event) => {
         const imageElement = elementRef.current;
 
+        console.log("CLICKED")
+
         if (imageElement && labelSelected) {    // Only update point if a label is selected
             let areas = elements[elementsIndex].areas
 
@@ -315,9 +340,9 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         if (!area) {return}
         let points = JSON.parse(area.area_points)
         return <div key={area.id}>
-            <canvas ref={(el) => (canvasRefs.current[idx] = el)} className="dataset-element-view-canvas" style={{width:"100%", height:"100%", top: 0, left: 0, position: "absolute"}}></canvas>
+            <canvas onClick={handleImageClick} ref={(el) => (canvasRefs.current[idx] = el)} className="dataset-element-view-canvas" style={{zIndex: 1, width:"100%", height:"100%", top: 0, left: 0, position: "absolute"}}></canvas>
             {points.map((point, idx) => (
-                <div className="dataset-element-view-point" key={idx} style={{top: point[1] + "%", left: point[0] + "%"}}></div>
+                <div className="dataset-element-view-point" key={idx} style={{top: point[1] + "%", left: point[0] + "%", "background": (idToLabel[area.label].color)}}></div>
             ))}
         </div>
     }
