@@ -16,6 +16,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const [dataset, setDataset] = useState(null)
     const [elements, setElements] = useState([])    // Label points to label id
     const [labels, setLabels] = useState([])
+
+    const [points, setPoints] = useState([]) // For Area datasets
     
     const [currentText, setCurrentText] = useState("") // Used to display text files
 
@@ -54,6 +56,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const hiddenFileInputRef = useRef(null);
 
     const pageRef = useRef(null)
+    const elementRef = useRef(null)
 
     const [inputFocused, setInputFocused] = useState(false);  // Don't use keybinds if input is focused
 
@@ -173,6 +176,21 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
     // ELEMENT FUNCTIONALITY
 
+    // For Area datasets
+    const handleImageClick = (event) => {
+        const imageElement = elementRef.current;
+        if (imageElement) {
+          const boundingRect = imageElement.getBoundingClientRect();
+          const clickX = Math.max(0, event.clientX - boundingRect.left - 5); // X coordinate relative to image
+          const clickY = Math.max(0, event.clientY - boundingRect.top - 5);  // Y coordinate relative to image
+          console.log(`Clicked at: [${clickX}, ${clickY}]`);
+
+          let temp = [...points]
+          temp.push([clickX, clickY])
+          setPoints(temp)
+        }
+      };
+
     const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "avif"])
     const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
 
@@ -182,12 +200,15 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         if (IMAGE_FILE_EXTENSIONS.has(extension)) {
             if (dataset.datatype == "classification") {
                 return <div className="dataset-element-view-image-container">
-                        <img className="dataset-element-view-image" src={window.location.origin + element.file} />
+                        <img ref={elementRef} className="dataset-element-view-image" src={window.location.origin + element.file} />
                 </div>
             } else {
                 return <div className="dataset-element-view-image-container">
                     <div className="dataset-element-view-image-wrapper">
-                        <img className="dataset-element-view-image-full" src={window.location.origin + element.file} />
+                        <img ref={elementRef} className="dataset-element-view-image" src={window.location.origin + element.file} onClick={handleImageClick}/>
+                        {points.map((point, idx) => (
+                            <div className="dataset-element-view-point" key={idx} style={{top: point[1], left: point[0]}}></div>
+                        ))}
                     </div>
                 </div>
             }
@@ -838,7 +859,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 
                 <div className="dataset-main-display">
                     {(elements.length == 0 && !loading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>Upload folder</button>}
-                    {elements.length != 0 && <div className="dataset-element-view-container">
+                    {elements.length != 0 && !showDatasetDescription && <div className="dataset-element-view-container">
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}
 

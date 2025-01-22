@@ -352,7 +352,7 @@ function PublicDataset() {
                 </div>
                 
                 <div className="dataset-main-display">
-                    {elements.length != 0 && <div className="dataset-element-view-container">
+                    {elements.length != 0 && !showDatasetDescription && <div className="dataset-element-view-container">
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}
 
