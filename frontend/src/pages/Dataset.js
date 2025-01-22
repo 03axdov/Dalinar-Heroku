@@ -62,9 +62,55 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const [labelSelected, setLabelSelected] = useState(null)
     const [points, setPoints] = useState([]) // For Area datasets
 
-
+    const canvasRefs = useRef([])
     const elementRef = useRef(null)
 
+    const DOT_SIZE = 22
+
+    useEffect(() => {
+        if (!dataset || dataset.datatype != "area") {return}
+        if (elements.length < 1) {return}
+        let areas = elements[elementsIndex].areas
+
+        canvasRefs.current.forEach((canvas, idx) => {
+            if (!canvas) return; // Skip if canvas is undefined
+
+            const ctx = canvas.getContext("2d");
+            const container = canvas.parentNode; // Parent div contains the canvas and points
+
+            const dpr = window.devicePixelRatio || 1;
+
+            ctx.scale(dpr, dpr);
+        
+            // Get the points for the current area
+            const area = areas[idx];
+            if (!area) return;
+            const points = JSON.parse(area.area_points);
+        
+            // Convert percentage-based coordinates to pixel values
+            const percentageToPixels = (point) => ({
+                x: (point[0] / 100) * canvas.width + 2, // Adjust for the dot's width
+                y: (point[1] / 100) * canvas.height + 2, // Adjust for the dot's height
+            });
+        
+            // Draw lines between points
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+            ctx.lineWidth = 2 / dpr;
+            ctx.beginPath();
+        
+            points.forEach((point, idx) => {
+                const { x, y } = percentageToPixels(point);
+                if (idx === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+        
+            ctx.stroke();
+        });
+      }, [elements, elementsIndex]);   // When element areas update
+    
 
     // End of primarily Area Dataset Functionality
 
@@ -198,8 +244,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             }
 
             const boundingRect = imageElement.getBoundingClientRect();
-            const clickX = Math.max(0, event.clientX - boundingRect.left - 11); // X coordinate relative to image, the offset depends on size of dot
-            const clickY = Math.max(0, event.clientY - boundingRect.top - 11);  // Y coordinate relative to image
+            const clickX = Math.max(0, event.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
+            const clickY = Math.max(0, event.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
 
             const clickXPercent = Math.round((clickX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
             const clickYPercent = Math.round((clickY / boundingRect.height) * 100 * 10) / 10
@@ -260,14 +306,16 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         }
       };
 
+
     const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "avif"])
     const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
 
 
-    function getPoints(area) {
+    function getPoints(area, idx) {
         if (!area) {return}
         let points = JSON.parse(area.area_points)
         return <div key={area.id}>
+            <canvas ref={(el) => (canvasRefs.current[idx] = el)} className="dataset-element-view-canvas" style={{width:"100%", height:"100%", top: 0, left: 0, position: "absolute"}}></canvas>
             {points.map((point, idx) => (
                 <div className="dataset-element-view-point" key={idx} style={{top: point[1] + "%", left: point[0] + "%"}}></div>
             ))}
@@ -288,7 +336,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     <div className="dataset-element-view-image-wrapper">
                         <img ref={elementRef} className="dataset-element-view-image" src={window.location.origin + element.file} onClick={handleImageClick}/>
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
-                            getPoints(area)
+                            getPoints(area, idx)
                         ))}
                     </div>
                 </div>
