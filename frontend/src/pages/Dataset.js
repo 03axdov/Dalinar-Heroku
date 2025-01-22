@@ -181,27 +181,67 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         }
     }
 
-    console.log(elements)
-
     // ELEMENT FUNCTIONALITY
 
     // For Area datasets
     const handleImageClick = (event) => {
         const imageElement = elementRef.current;
-        if (imageElement) {
+        if (imageElement && labelSelected) {    // Only update point if a label is selected
           const boundingRect = imageElement.getBoundingClientRect();
           const clickX = Math.max(0, event.clientX - boundingRect.left - 11); // X coordinate relative to image, the offset depends on size of dot
           const clickY = Math.max(0, event.clientY - boundingRect.top - 11);  // Y coordinate relative to image
-          console.log(`Clicked at: [${clickX}, ${clickY}]`);
 
-          let temp = [...points]
-          temp.push([clickX, clickY])
-          setPoints(temp)
+          const clickXPercent = Math.round((clickX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
+          const clickYPercent = Math.round((clickY / boundingRect.height) * 100 * 10) / 10
+
+          console.log(`Clicked at: [${clickXPercent}, ${clickYPercent}]`);
+
+          axios.defaults.withCredentials = true;
+          axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+          axios.defaults.xsrfCookieName = 'csrftoken';
+  
+          const URL = window.location.origin + '/api/create-area/'
+          const config = {headers: {'Content-Type': 'application/json'}}
+  
+          const data = {
+              "element": elements[elementsIndex].id,
+              "label": labelSelected,
+              "area_points": JSON.stringify([clickXPercent, clickYPercent])
+          }
+  
+          axios.post(URL, data, config)
+          .then((res) => {
+              console.log(res.data)
+
+              let temp = [...elements]
+              temp[elementsIndex].areas.push(res.data)
+              setElements(temp)
+              
+          })
+          .catch((err) => {
+              alert(err)
+              console.log(err)
+          })
         }
       };
 
     const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "avif"])
     const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
+
+
+    function getPoints(area) {
+        console.log(area)
+        if (!area) {return}
+        let points = JSON.parse(area.area_points)
+        console.log(points)
+        console.log(points.length)
+        return <div>
+            {points.map((point, idx) => (
+                <div className="dataset-element-view-point" key={idx} style={{top: point[1] + "%", left: point[0] + "%"}}></div>
+            ))}
+        </div>
+    }
+
 
     function getPreviewElement(element) {
         const extension = element.file.split(".").pop()
@@ -215,8 +255,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 return <div className="dataset-element-view-image-container">
                     <div className="dataset-element-view-image-wrapper">
                         <img ref={elementRef} className="dataset-element-view-image" src={window.location.origin + element.file} onClick={handleImageClick}/>
-                        {points.map((point, idx) => (
-                            <div className="dataset-element-view-point" key={idx} style={{top: point[1], left: point[0]}}></div>
+                        {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
+                            getPoints(area)
                         ))}
                     </div>
                 </div>

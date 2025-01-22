@@ -27,4 +27,7 @@ urlpatterns = [
     path("dataset-labels/", GetDatasetLabels.as_view(), name="dataset-labels"),
     path("edit-label/", EditLabel.as_view(), name="edit-label"),
     path("delete-label/", DeleteLabel.as_view(), name="delete-label"),
+    
+    # AREA HANDLING
+    path("create-area/", CreateArea.as_view(), name="create-area")
 ]

@@ -550,7 +550,7 @@ class CreateArea(APIView):
     
     def post(self, request, format=None):
         data = self.request.data
-        serializer = self.serializer_class(data={"label": label, "element": element, "points": json.dumps(data["points"])})
+        serializer = self.serializer_class(data={"label": data["label"], "element": data["element"], "area_points": data["area_points"]})
             
         user = self.request.user
         
@@ -570,7 +570,7 @@ class CreateArea(APIView):
                     
                     if serializer.is_valid():
                         serializer.save()
-                        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+                        return Response(serializer.data, status=status.HTTP_200_OK)
                     
                     else:
                         return Response({"Bad Request": "An error occured while creating area. Invalid input."}, status=status.HTTP_400_BAD_REQUEST)
@@ -583,4 +583,6 @@ class CreateArea(APIView):
         
         user = self.request.user
         
-    
+
+class EditArea(APIView):
+    pass
