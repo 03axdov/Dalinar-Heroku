@@ -585,4 +585,28 @@ class CreateArea(APIView):
         
 
 class EditArea(APIView):
-    pass
+    serializer_class = AreaSerializer
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        area_id = request.data["area"]
+        area_points = request.data["area_points"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                area = Area.objects.get(id=area_id)
+                
+                if area.element.owner == user.profile:
+                    area.area_points = area_points
+                    area.save()
+                    
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only edit areas belonging to your own elements."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Area.DoesNotExist:
+                return Response({"Not found": "Could not find area with the id " + str(area_id + ".")}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to edit areas.'}, status=status.HTTP_401_UNAUTHORIZED)

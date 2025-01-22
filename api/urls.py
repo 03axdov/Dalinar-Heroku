@@ -29,5 +29,6 @@ urlpatterns = [
     path("delete-label/", DeleteLabel.as_view(), name="delete-label"),
     
     # AREA HANDLING
-    path("create-area/", CreateArea.as_view(), name="create-area")
+    path("create-area/", CreateArea.as_view(), name="create-area"),
+    path("edit-area/", EditArea.as_view(), name="edit-area")
 ]
