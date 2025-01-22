@@ -16,8 +16,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const [dataset, setDataset] = useState(null)
     const [elements, setElements] = useState([])    // Label points to label id
     const [labels, setLabels] = useState([])
-
-    const [points, setPoints] = useState([]) // For Area datasets
     
     const [currentText, setCurrentText] = useState("") // Used to display text files
 
@@ -56,9 +54,19 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const hiddenFileInputRef = useRef(null);
 
     const pageRef = useRef(null)
-    const elementRef = useRef(null)
 
     const [inputFocused, setInputFocused] = useState(false);  // Don't use keybinds if input is focused
+
+
+    // Area Dataset Functionality
+    const [labelSelected, setLabelSelected] = useState(null)
+    const [points, setPoints] = useState([]) // For Area datasets
+
+
+    const elementRef = useRef(null)
+
+
+    // End of primarily Area Dataset Functionality
 
     function inputOnFocus() {
         setInputFocused(true)
@@ -126,7 +134,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         return () => {
             window.removeEventListener("keydown", handleKeyDown, false);
         };
-    }, [loading, elements, elementsIndex, inputFocused])
+    }, [loading, elements, elementsIndex, inputFocused, labelSelected])
 
 
     function getDataset() {
@@ -173,6 +181,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         }
     }
 
+    console.log(elements)
 
     // ELEMENT FUNCTIONALITY
 
@@ -181,8 +190,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         const imageElement = elementRef.current;
         if (imageElement) {
           const boundingRect = imageElement.getBoundingClientRect();
-          const clickX = Math.max(0, event.clientX - boundingRect.left - 5); // X coordinate relative to image
-          const clickY = Math.max(0, event.clientY - boundingRect.top - 5);  // Y coordinate relative to image
+          const clickX = Math.max(0, event.clientX - boundingRect.left - 11); // X coordinate relative to image, the offset depends on size of dot
+          const clickY = Math.max(0, event.clientY - boundingRect.top - 11);  // Y coordinate relative to image
           console.log(`Clicked at: [${clickX}, ${clickY}]`);
 
           let temp = [...points]
@@ -480,39 +489,51 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
 
     function labelOnClick(label) {
-        axios.defaults.withCredentials = true;
-        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-        axios.defaults.xsrfCookieName = 'csrftoken';
-
-        const URL = window.location.origin + '/api/edit-element-label/'
-        const config = {headers: {'Content-Type': 'application/json'}}
-
-        const data = {
-            "label": label.id,
-            "id": elements[elementsIndex].id
-        }
-
-        setLoading(true)
-
-        setDatasetMainLabelColor(label.color)
-        setTimeout(() => {
-            setDatasetMainLabelColor("transparent")
-        }, 100)
-
-        axios.post(URL, data, config)
-        .then((res) => {
-
-            if (res.data) {
-                elements[elementsIndex] = res.data
+        console.log(label)
+        if (dataset.datatype == "classification") {
+            axios.defaults.withCredentials = true;
+            axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+            axios.defaults.xsrfCookieName = 'csrftoken';
+    
+            const URL = window.location.origin + '/api/edit-element-label/'
+            const config = {headers: {'Content-Type': 'application/json'}}
+    
+            const data = {
+                "label": label.id,
+                "id": elements[elementsIndex].id
             }
-
-            setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
-            setLoading(false)
-        })
-        .catch((err) => {
-            alert(err)
-            console.log(err)
-        })
+    
+            setLoading(true)
+    
+            setDatasetMainLabelColor(label.color)
+            setTimeout(() => {
+                setDatasetMainLabelColor("transparent")
+            }, 100)
+    
+            axios.post(URL, data, config)
+            .then((res) => {
+    
+                if (res.data) {
+                    elements[elementsIndex] = res.data
+                }
+    
+                setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
+                setLoading(false)
+            })
+            .catch((err) => {
+                alert(err)
+                console.log(err)
+            })
+        } else if (dataset.datatype == "area") {
+            if (labelSelected != label.id) {
+                setLabelSelected(label.id)
+            } else {
+                console.log("A")
+                setLabelSelected(null)
+            }
+            
+        }
+        
     }
 
     function removeCurrentElementLabel() {
@@ -783,7 +804,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                                                         >
                             </span>}
 
-                            {dataset && dataset.datatype == "area" && element.label && <img className="dataset-sidebar-labelled dataset-sidebar-color-element" src={window.location.origin + "/static/images/label.png"} />}
+                            {dataset && dataset.datatype == "area" && element.label && <img className="dataset-sidebar-labelled dataset-sidebar-color-element" src={window.location.origin + "/static/images/labelSidebar.png"} />}
 
                             {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
                                 className="dataset-sidebar-options dataset-sidebar-options-margin"
@@ -921,7 +942,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                         Clear label
                     </div>
                     {labels.map((label) => (
-                        <div className="dataset-sidebar-element" key={label.id} onClick={() => labelOnClick(label)}>
+                        <div className={"dataset-sidebar-element " + (dataset.datatype == "area" && labelSelected == label.id ? "dataset-sidebar-element-selected" : "")} key={label.id} onClick={() => labelOnClick(label)}>
                             <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
                             <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
                             {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} className="dataset-sidebar-label-keybind">{label.keybind.toUpperCase()}</span>}

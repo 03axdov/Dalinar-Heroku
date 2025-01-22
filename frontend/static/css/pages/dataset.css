@@ -481,11 +481,12 @@
 
 .dataset-element-view-point {
     position: absolute;
-    width: 10px;
-    height: 10px;
-    border-radius: 5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 11px;
     z-index: 1;
-    background: rgb(255, 0, 255);
+    background: red;
+    border: 7px solid rgb(0,0,0,0.8);
 }
 
 .dataset-upload-files-button {
@@ -556,6 +557,10 @@
 
 .dataset-sidebar-label-keybind:hover {
     box-shadow: 0 0 0 1px white;
+}
+
+.dataset-sidebar-element-selected .dataset-sidebar-label-keybind {
+    background: var(--sidebar-button-hover)!important;
 }
 
 .dataset-sidebar-label-name, .dataset-sidebar-element-name {

@@ -71,7 +71,7 @@ class Label(models.Model):
     keybind = models.CharField(max_length=20, blank=True)
         
     def __str__(self):
-        return self.name
+        return self.name + " - " + self.dataset.name
 
 
 # ELEMENTS
@@ -85,7 +85,7 @@ class Element(models.Model):
     label = models.ForeignKey(Label, on_delete=models.SET_NULL, related_name="labels", blank=True, null=True)
     
     def __str__(self):
-        return self.name
+        return self.name + " - " + self.dataset.name
     
     def save(self, *args, **kwargs):
         # If a new file is uploaded
@@ -103,4 +103,4 @@ class Area(models.Model):   # Only used for datasets of datatype "area"
     area_points = models.JSONField(default=list)  # Store as a list of [x, y] points
     
     def __str__(self):
-        return "Area for " + self.label.name + ", " + str(self.area_points)
+        return "Element: " + self.element.name + ", Label: " + self.label.name + ". Points: " + str(self.area_points)

@@ -2,6 +2,15 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import *
 
+
+# MISCELLANEOUS
+
+class AreaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Area
+        fields = "__all__"
+
+
 # PROFILE HANDLING
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -13,6 +22,8 @@ class ProfileSerializer(serializers.ModelSerializer):
 # ELEMENT HANDLING
 
 class ElementSerializer(serializers.ModelSerializer):
+    areas = AreaSerializer(many=True, read_only=True)  # Use the related_name for the areas
+    
     class Meta:
         model = Element
         fields = "__all__"
@@ -65,12 +76,3 @@ class CreateDatasetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
         fields = ("name", "description", "visibility", "image", "datatype", "keywords")
-        
-        
-# MISCELLANEOUS
-
-class AreaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Area
-        fields = "__all__"
-        
