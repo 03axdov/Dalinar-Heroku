@@ -55,8 +55,6 @@ class Dataset(models.Model):
     ]
     datatype = models.CharField(max_length=20, choices=DATATYPE_CHOICES, default="image")
     
-    area_points = models.JSONField(default=list)  # Store as a list of [x, y] points, only used if datatype is "area"
-    
     def __str__(self):
         return self.name
 
@@ -96,3 +94,13 @@ class Element(models.Model):
             self.name = os.path.basename(self.file.name)
             print(self.file.name)
         super().save(*args, **kwargs)
+
+
+# MISCELLANEOUS
+class Area(models.Model):   # Only used for datasets of datatype "area"
+    label = models.ForeignKey(Label, on_delete=models.CASCADE, related_name="areas", null=True)
+    element = models.ForeignKey(Element, on_delete=models.CASCADE, related_name="areas", null=True)
+    area_points = models.JSONField(default=list)  # Store as a list of [x, y] points
+    
+    def __str__(self):
+        return "Area for " + self.label.name + ", " + str(self.area_points)

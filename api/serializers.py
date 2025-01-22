@@ -66,3 +66,11 @@ class CreateDatasetSerializer(serializers.ModelSerializer):
         model = Dataset
         fields = ("name", "description", "visibility", "image", "datatype", "keywords")
         
+        
+# MISCELLANEOUS
+
+class AreaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Area
+        fields = "__all__"
+        

@@ -540,3 +540,47 @@ class DeleteLabel(APIView):
                 return Response({"Not found": "Could not find label with the id " + str(label_id + ".")}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to delete labels.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+# MISCELLANEOUS
+
+class CreateArea(APIView):
+    serializer_class = AreaSerializer
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        data = self.request.data
+        serializer = self.serializer_class(data={"label": label, "element": element, "points": json.dumps(data["points"])})
+            
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                label_id = data["label"]
+                label = Label.objects.get(id=label_id)
+                
+                try:
+                    element_id = data["element"]
+                    element = Element.objects.get(id=element_id)
+                    
+                    if user.profile != element.owner:
+                        return Response({'Unauthorized': 'Users can only create areas for their own element.'}, status=status.HTTP_401_UNAUTHORIZED)
+                    if user.profile != label.owner:
+                        return Response({'Unauthorized': 'Users can only create areas for their own labels.'}, status=status.HTTP_401_UNAUTHORIZED)
+                    
+                    if serializer.is_valid():
+                        serializer.save()
+                        return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+                    
+                    else:
+                        return Response({"Bad Request": "An error occured while creating area. Invalid input."}, status=status.HTTP_400_BAD_REQUEST)
+                except Element.DoesNotExist:
+                    return Response({"Not found": "Could not find element with the id " + str(element_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+            except Label.DoesNotExist:
+                return Response({"Not found": "Could not find label with the id " + str(label_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Users must be logged in to create labels.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        user = self.request.user
+        
+    
