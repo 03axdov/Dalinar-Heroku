@@ -60,30 +60,21 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
     // Area Dataset Functionality
     const [labelSelected, setLabelSelected] = useState(null)
-    const [points, setPoints] = useState([]) // For Area datasets
+    const [updateArea, setUpdateArea] = useState(false)
+
+    const [pointSelected, setPointSelected] = useState(null) // True when user is dragging a point
 
     const canvasRefs = useRef([])
     const elementRef = useRef(null)
 
     const DOT_SIZE = 22
 
-    const [redraw, setRedraw] = useState(false);
-
     useEffect(() => {
-        if (!dataset || dataset.datatype !== "area") return;
-        if (elements.length < 1 || !canvasRefs.current.every((canvas) => canvas)) return;
-
-        setRedraw(!redraw); // Enable drawing once everything is ready
-    }, [dataset, elements, elementsIndex]);
-
-    useEffect(() => {
-        if (!dataset || dataset.datatype != "area") {return}
         if (elements.length < 1) {return}
         if (!canvasRefs.current.length) return;
         let areas = elements[elementsIndex].areas
 
         canvasRefs.current.forEach((canvas, idx) => {
-            console.log("REACHED")
             if (!canvas) return; // Skip if canvas is undefined
 
             const ctx = canvas.getContext("2d");
@@ -103,15 +94,15 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         
             // Convert percentage-based coordinates to pixel values
             const percentageToPixels = (point) => ({
-                x: (point[0] / 100) * canvas.width + 9, // Adjust for the dot's width
-                y: (point[1] / 100) * canvas.height + 9, // Adjust for the dot's height
+                x: (point[0] / 100) * canvas.width + DOT_SIZE / 2, // Adjust for the dot's width
+                y: (point[1] / 100) * canvas.height + DOT_SIZE / 2, // Adjust for the dot's height
             });
         
             // Draw lines between points
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
             
-            ctx.fillStyle = "blue";
             ctx.lineWidth = 5;
+            ctx.strokeStyle = idToLabel[area.label].color; // Set the line color here
             
             ctx.beginPath();
         
@@ -123,16 +114,11 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     ctx.lineTo(x, y);
                 }
             });
-
-            if (points.length > 1) {    // Close area
-                const { x, y } = percentageToPixels(points[0]);
-                ctx.lineTo(x, y);
-            }
         
             ctx.stroke();
             ctx.closePath();
         });
-      }, [redraw, canvasRefs]);   // When element areas update
+      }, [elements, elementsIndex, canvasRefs, updateArea]);   // When element areas update
     
 
     // End of primarily Area Dataset Functionality
@@ -256,8 +242,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const handleImageClick = (event) => {
         const imageElement = elementRef.current;
 
-        console.log("CLICKED")
-
         if (imageElement && labelSelected) {    // Only update point if a label is selected
             let areas = elements[elementsIndex].areas
 
@@ -274,9 +258,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
             const clickXPercent = Math.round((clickX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
             const clickYPercent = Math.round((clickY / boundingRect.height) * 100 * 10) / 10
-
-            console.log(`Clicked at: [${clickXPercent}, ${clickYPercent}]`);
-            console.log(prevAreaIdx)
 
             axios.defaults.withCredentials = true;
             axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -336,13 +317,38 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
 
 
+    function pointOnDrag(e, area, pointIdx) {
+        if (!pointSelected) {return}
+        const imageElement = elementRef.current;
+        const boundingRect = imageElement.getBoundingClientRect();
+
+        const clickX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
+        const clickY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
+
+        const newX = Math.round((clickX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
+        const newY = Math.round((clickY / boundingRect.height) * 100 * 10) / 10
+
+        console.log("x: " + newX + ", y: " + newY)
+
+    }
+
+
     function getPoints(area, idx) {
         if (!area) {return}
         let points = JSON.parse(area.area_points)
         return <div key={area.id}>
             <canvas onClick={handleImageClick} ref={(el) => (canvasRefs.current[idx] = el)} className="dataset-element-view-canvas" style={{zIndex: 1, width:"100%", height:"100%", top: 0, left: 0, position: "absolute"}}></canvas>
             {points.map((point, idx) => (
-                <div className="dataset-element-view-point" key={idx} style={{top: point[1] + "%", left: point[0] + "%", "background": (idToLabel[area.label].color)}}></div>
+                <div className="dataset-element-view-point" key={idx} 
+                    style={{top: point[1] + "%", left: point[0] + "%", "background": (idToLabel[area.label].color)}} 
+                    onClick={(e) => {
+                        setPointSelected(point.id)
+                        console.log("POINT CLICKED")
+                    }}
+                    onMouseDown={(e) => setPointSelected(true)}
+                    onMouseUp={(e) => setPointSelected(false)}
+                    onMouseMove={(e) => pointOnDrag(e, area, idx)}
+                ></div>
             ))}
         </div>
     }
@@ -358,8 +364,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 </div>
             } else {
                 return <div className="dataset-element-view-image-container">
-                    <div className="dataset-element-view-image-wrapper">
-                        <img ref={elementRef} className="dataset-element-view-image" src={window.location.origin + element.file} onClick={handleImageClick}/>
+                    <div className="dataset-element-view-image-wrapper" onClick={(e) => {console.log("WRAPPER CLICKED")}}>
+                        <img onLoad={() => setUpdateArea(!updateArea)} ref={elementRef} className="dataset-element-view-image" src={window.location.origin + element.file} onClick={handleImageClick}/>
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
                             getPoints(area, idx)
                         ))}
