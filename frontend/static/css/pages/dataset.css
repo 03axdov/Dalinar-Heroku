@@ -486,6 +486,7 @@
     border-radius: 11px;
     z-index: 1;
     border: 7px solid rgb(0,0,0,0.8);
+    cursor: pointer;
 }
 
 .dataset-element-view-point-selected {

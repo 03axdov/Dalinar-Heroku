@@ -1034,7 +1034,9 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                                     
                             }}/>}
 
-            
+                            {element.areas.map((area, idx) => (
+                                <div key={idx}></div>
+                            ))}
                             
                         </div>
                     ))}
@@ -1147,10 +1149,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                         </button>
                         
                     </div>
-                    <div className="dataset-sidebar-element" onClick={removeCurrentElementLabel}>
+                    {dataset && dataset.datatype=="classification" && <div className="dataset-sidebar-element" onClick={removeCurrentElementLabel}>
                         <img className="dataset-sidebar-icon" src={window.location.origin + "/static/images/cross.svg"}/>
                         Clear label
-                    </div>
+                    </div>}
                     {labels.map((label) => (
                         <div className={"dataset-sidebar-element " + (dataset.datatype == "area" && labelSelected == label.id ? "dataset-sidebar-element-selected" : "")} key={label.id} onClick={() => labelOnClick(label)}>
                             <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>

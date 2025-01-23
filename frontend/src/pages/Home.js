@@ -116,9 +116,10 @@ function Home({currentProfile}) {
                     {datasets.map((dataset) => (
                         <DatasetElement dataset={dataset} key={dataset.id} />
                     ))}
-                    {!loading && datasets.length == 0 && <p>You don't have any datasets. Click <span className="link" onClick={() => {
+                    {!loading && datasets.length == 0 && search.length == 0 && <p>You don't have any datasets. Click <span className="link" onClick={() => {
                         navigate("/create-dataset")
                     }}>here</span> to create one.</p>}
+                    {!loading && datasets.length == 0 && search.length > 0 && <p className="gray-text">No such datasets found.</p>}
                     {loading && datasets.length == 0 && currentProfile.datasetsCount !== null && [...Array(currentProfile.datasetsCount)].map((e, i) => (
                         <DatasetElementLoading key={i}/>
                     ))}
