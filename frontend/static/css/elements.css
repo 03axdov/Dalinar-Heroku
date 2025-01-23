@@ -90,6 +90,10 @@
     height: 24px;
 }
 
+.dataset-element-icon-empty {
+    width: 24px;
+}
+
 .dataset-element-options {
     padding: 5px;
     border-radius: 12px;

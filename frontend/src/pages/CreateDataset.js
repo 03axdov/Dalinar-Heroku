@@ -97,7 +97,6 @@ function CreateDataset() {
                 tempObj[label].push(file)
             }
 
-            console.log(tempObj)
             setUploadedDatasets(tempObj)
 
         } catch (e) {
@@ -129,7 +128,6 @@ function CreateDataset() {
                 tempObj[label].push(file)
             }
 
-            console.log(tempObj)
             setUploadedDatasets(tempObj)
 
         } catch (e) {
@@ -154,12 +152,10 @@ function CreateDataset() {
                     <p className="create-dataset-label create-dataset-type">Dataset type</p>
                     <input type="radio" id="create-dataset-type-image" name="classification" value="classification" checked={type == "classification"} onChange={(e) => {
                         setType(e.target.value)
-                        console.log(e.currentTarget.value)
                     }} />
                     <label htmlFor="create-dataset-type-image" className="create-dataset-type-label">Classification</label>
                     <input type="radio" id="create-dataset-type-text" name="area" value="area" checked={type == "area"}  onChange={(e) => {
                         setType(e.target.value)
-                        console.log(e.currentTarget.value)
                     }} />
                     <label htmlFor="create-dataset-type-text" className="create-dataset-type-label">Area</label>
                 </div>
@@ -233,14 +229,14 @@ function CreateDataset() {
                     }} />
                 </div>
 
-                <h1 className="create-dataset-title create-dataset-subtitle upload-dataset-title" onClick={() => {
+                { type == "classification" && <h1 className="create-dataset-title create-dataset-subtitle upload-dataset-title" onClick={() => {
                         setUploadDropdownVisible(!uploadDropdownVisible)
                     }}>Upload dataset 
                     <span className="create-dataset-title-optional">(optional)</span>
                     <img style={{rotate: (uploadDropdownVisible ? "180deg" : "0deg")}} className="upload-dataset-dropdown" src={window.location.origin + "/static/images/down.svg"}/>
-                </h1>
+                </h1>}
                 
-                {uploadDropdownVisible && <div className="upload-dataset-form">
+                {uploadDropdownVisible && type == "classification" && <div className="upload-dataset-form">
                     <p className="create-dataset-description" >
                         By uploading a dataset, this dataset will be created with the elements and labels provided. 
                         You can upload several datasets, of two different types seen below.

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import DatasetElement from "../components/DatasetElement"
+import DatasetElementLoading from "../components/DatasetElementLoading"
 import { useNavigate } from "react-router-dom"
 import axios from 'axios'
 
@@ -135,6 +136,10 @@ function Explore({checkLoggedIn}) {
                 <div className="my-datasets-container">
                     {datasets.map((dataset) => (
                         ((dataset.datatype == "classification" ? showClassification : showArea) ? <DatasetElement dataset={dataset} key={dataset.id} isPublic={true} /> : "")
+                    ))}
+
+                    {loading && datasets.length == 0 && [...Array(4)].map((e, i) => (
+                        <DatasetElementLoading key={i} isPublic={true}/>
                     ))}
                 </div>
                 

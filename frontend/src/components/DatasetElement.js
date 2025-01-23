@@ -38,7 +38,7 @@ function DatasetElement({dataset, isPublic=false}) {
 
                     navigate("/edit-dataset/" + dataset.id)
                 }}/>}
-                {isPublic && <span></span>} {/* As the container is flex space-between */}
+                {isPublic && <span className="dataset-element-icon-empty"></span>} {/* As the container is flex space-between */}
             </div>
             
             <div className="dataset-element-image-container">

@@ -33,7 +33,11 @@ function PublicDataset() {
 
     const [showDatasetDescription, setShowDatasetDescription] = useState(true)  // True for public datasets
 
+    const [updateArea, setUpdateArea] = useState(false)
+
     const pageRef = useRef(null)
+    const elementRef = useRef(null)
+    const canvasRefs = useRef([])
 
     const navigate = useNavigate()
 
@@ -41,6 +45,63 @@ function PublicDataset() {
         getDataset()
     }, [])
 
+    const DOT_SIZE = 22
+    
+    useEffect(() => {
+        if (elements.length < 1) {return}
+        if (!canvasRefs.current.length) return;
+        let areas = elements[elementsIndex].areas
+
+        canvasRefs.current.forEach((canvas, idx) => {
+            if (!canvas) return; // Skip if canvas is undefined
+
+            const ctx = canvas.getContext("2d");
+
+            const dpr = window.devicePixelRatio || 1;
+            
+            const width = canvas.offsetWidth * dpr;
+            const height = canvas.offsetHeight * dpr;
+            canvas.width = width;
+            canvas.height = height;
+            ctx.scale(dpr, dpr);
+        
+            // Get the points for the current area
+            const area = areas[idx];
+            if (!area) return;
+            const points = JSON.parse(area.area_points);
+        
+            // Convert percentage-based coordinates to pixel values
+            const percentageToPixels = (point) => ({
+                x: (point[0] / 100) * canvas.width + DOT_SIZE / 2, // Adjust for the dot's width
+                y: (point[1] / 100) * canvas.height + DOT_SIZE / 2, // Adjust for the dot's height
+            });
+        
+            // Draw lines between points
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+            
+            ctx.lineWidth = 5;
+            ctx.strokeStyle = idToLabel[area.label].color; // Set the line color here
+            
+            ctx.beginPath();
+        
+            points.forEach((point, idx) => {
+                const { x, y } = percentageToPixels(point);
+                if (idx === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            });
+
+            if (points.length > 1) {
+                const { x, y } = percentageToPixels(points[0]);
+                ctx.lineTo(x, y);
+            }
+        
+            ctx.stroke();
+            ctx.closePath();
+        });
+    }, [elements, elementsIndex, canvasRefs, updateArea]);   // When element areas update
 
     function getUserPressKeycode(event) {
         const keys = [];
@@ -109,6 +170,29 @@ function PublicDataset() {
     }
 
 
+    // AREA FUNCTIONALITY
+
+    function getPoints(area, areaIdx) {
+        if (!area) {return}
+        let points = JSON.parse(area.area_points)
+        return <div key={area.id}>
+            <canvas ref={(el) => (canvasRefs.current[areaIdx] = el)} 
+                    className="dataset-element-view-canvas" 
+                    style={{zIndex: 1, width:"100%", height:"100%", top: 0, left: 0, position: "absolute"}}></canvas>
+            {points.map((point, idx) => (
+                <div title="Click to drag" 
+                    className="dataset-element-view-point"
+                    key={idx} 
+                    style={{top: point[1] + "%", 
+                            left: point[0] + "%", 
+                            "background": (idToLabel[area.label].color)}} 
+                    
+                ></div>
+            ))}
+        </div>
+    }
+
+
     // ELEMENT FUNCTIONALITY
 
     const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "avif"])
@@ -118,7 +202,20 @@ function PublicDataset() {
         const extension = element.file.split(".").pop()
         
         if (IMAGE_FILE_EXTENSIONS.has(extension)) {
-            return <img className="dataset-element-view-image" src={window.location.origin + element.file} />
+            if (dataset.datatype == "classification") {
+                return <div className="dataset-element-view-image-container">
+                        <img ref={elementRef} className="dataset-element-view-image" src={window.location.origin + element.file} />
+                </div>
+            } else {
+                return <div className="dataset-element-view-image-container">
+                    <div className="dataset-element-view-image-wrapper">
+                        <img onLoad={() => setUpdateArea(!updateArea)} ref={elementRef} className="dataset-element-view-image" src={window.location.origin + element.file} />
+                        {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
+                            getPoints(area, idx)
+                        ))}
+                    </div>
+                </div>
+            }
 
         } else if (TEXT_FILE_EXTENSIONS.has(extension)) {
             

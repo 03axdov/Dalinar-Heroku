@@ -10,12 +10,12 @@ function DatasetElementLoading({isPublic=false}) {
                 <p className="dataset-element-name"></p>
 
                 {!isPublic && <img className="dataset-element-icon dataset-element-options" src={window.location.origin + "/static/images/options.png"} />}
-                {isPublic && <span></span>} {/* As the container is flex space-between */}
+                {isPublic && <span className="dataset-element-icon"></span>} {/* As the container is flex space-between */}
             </div>
             
-            <div className="dataset-element-image"></div>
-        
-
+            <div className="dataset-element-image-container">
+                <div className="dataset-element-image"></div>
+            </div>
 
         </div>
     )
