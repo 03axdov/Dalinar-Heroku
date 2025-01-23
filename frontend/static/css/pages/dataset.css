@@ -488,6 +488,10 @@
     border: 7px solid rgb(0,0,0,0.8);
 }
 
+.dataset-element-view-point-selected {
+    box-shadow: 0 0 0 3px rgb(0,0,0,0.8);
+}
+
 .dataset-upload-files-button {
     margin-top: 10px;
 }

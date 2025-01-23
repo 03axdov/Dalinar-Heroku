@@ -58,12 +58,14 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const [inputFocused, setInputFocused] = useState(false);  // Don't use keybinds if input is focused
 
 
-    // Area Dataset Functionality
+    // AREA DATASET FUNCTIONALITY
     const [labelSelected, setLabelSelected] = useState(null)
     const [updateArea, setUpdateArea] = useState(false)
 
     const [pointSelected, setPointSelected] = useState([-1,-1]) // ID of area, idx of point
     const [pointSelectedCoords, setPointSelectedCoords] = useState([0,0])   // x,y of selected point (%)
+    const [pointSelectedArea, setPointSelectedArea] = useState(null)
+    const [pointSelectedPrevAreaIdx, setPointSelectedPrevAreaIdx] = useState(null)
 
     const canvasRefs = useRef([])
     const elementRef = useRef(null)
@@ -115,14 +117,102 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     ctx.lineTo(x, y);
                 }
             });
+
+            if (points.length > 1) {
+                const { x, y } = percentageToPixels(points[0]);
+                ctx.lineTo(x, y);
+            }
         
             ctx.stroke();
             ctx.closePath();
         });
       }, [elements, elementsIndex, canvasRefs, updateArea]);   // When element areas update
-    
 
-    // End of primarily Area Dataset Functionality
+
+      function updatePoints(area, newPoint, pointIdx, remove=false) {
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';
+
+        const URL = window.location.origin + '/api/edit-area/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let updatedPoints = JSON.parse(area.area_points)
+        if (!remove) {
+            updatedPoints[pointIdx] = [newPoint[0], newPoint[1]]
+        } else {
+            updatedPoints.splice(pointIdx, 1)
+        }
+
+
+        const data = {
+            "area": area.id,
+            "area_points": JSON.stringify(updatedPoints)
+        }
+
+        axios.post(URL, data, config)
+        .then((res) => {
+            let temp = [...elements]
+            temp[elementsIndex].areas[pointSelectedPrevAreaIdx].area_points = JSON.stringify(updatedPoints)
+            setElements(temp)
+            
+        })
+        .catch((err) => {
+            alert(err)
+            console.log(err)
+        }).finally(() => {
+            setPointSelected([-1,-1])
+        })
+    }
+
+
+    function pointOnDrag(e) {
+        if (pointSelected[0] == -1 || pointSelected[1] == -1) {return}
+        const imageElement = elementRef.current;
+        const boundingRect = imageElement.getBoundingClientRect();
+
+        const clickX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
+        const clickY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
+
+        const newX = Math.round((clickX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
+        const newY = Math.round((clickY / boundingRect.height) * 100 * 10) / 10
+
+        setPointSelectedCoords([newX, newY])
+
+    }
+
+    function getPoints(area, areaIdx) {
+        if (!area) {return}
+        let points = JSON.parse(area.area_points)
+        return <div key={area.id}>
+            <canvas onClick={handleImageClick} ref={(el) => (canvasRefs.current[areaIdx] = el)} 
+                    className="dataset-element-view-canvas" 
+                    style={{zIndex: 1, width:"100%", height:"100%", top: 0, left: 0, position: "absolute", display: (pointSelected[0] != -1 || pointSelected[1] != -1 ? "none" : "block")}}></canvas>
+            {points.map((point, idx) => (
+                <div title="Click to drag" 
+                    className={"dataset-element-view-point " + ((pointSelected[0] == area.id && pointSelected[1] == idx) ? "dataset-element-view-point-selected" : "")} 
+                    key={idx} 
+                    style={{top: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[1] : point[1]) + "%", 
+                            left: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[0] : point[0]) + "%", 
+                            "background": (idToLabel[area.label].color)}} 
+                    onClick={(e) => {
+                        console.log("MOUSE DOWN")
+                        if (pointSelected[0] != area.id || pointSelected[1] != idx) {
+                            setPointSelectedCoords([point[0], point[1]])
+                            setPointSelectedPrevAreaIdx(areaIdx)
+                            setPointSelectedArea(area)
+                            setPointSelected([area.id, idx])
+                        } else {
+                            updatePoints(area, pointSelectedCoords, idx)
+                        }
+                    }}
+                    
+                ></div>
+            ))}
+        </div>
+    }
+
+    // END OF DATATYPE AREA FUNCTIONALITY
 
     function inputOnFocus() {
         setInputFocused(true)
@@ -181,6 +271,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
             } else if (labelKeybinds[key]) {
                 labelOnClick(labelKeybinds[key])
+            } else if (key === "Backspace" || key === "Delete") {  // For datatype area, deleting points
+                if (pointSelected[0] != -1 || pointSelected[1] != -1) {
+                    updatePoints(pointSelectedArea, [], pointSelected[1], true) // Remove point
+                }
             }
         };
     
@@ -190,7 +284,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         return () => {
             window.removeEventListener("keydown", handleKeyDown, false);
         };
-    }, [loading, elements, elementsIndex, inputFocused, labelSelected])
+    }, [loading, elements, elementsIndex, inputFocused, labelSelected, pointSelected])
 
 
     function getDataset() {
@@ -316,80 +410,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
     const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "avif"])
     const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
-
-
-    function updatePoints(area, newPoint, pointIdx, prevAreaIdx) {
-        axios.defaults.withCredentials = true;
-        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-        axios.defaults.xsrfCookieName = 'csrftoken';
-
-        const URL = window.location.origin + '/api/edit-area/'
-        const config = {headers: {'Content-Type': 'application/json'}}
-
-        let updatedPoints = JSON.parse(area.area_points)
-        updatedPoints[pointIdx] = [newPoint[0], newPoint[1]]
-
-        const data = {
-            "area": area.id,
-            "area_points": JSON.stringify(updatedPoints)
-        }
-
-        axios.post(URL, data, config)
-        .then((res) => {
-            let temp = [...elements]
-            temp[elementsIndex].areas[prevAreaIdx].area_points = JSON.stringify(updatedPoints)
-            setElements(temp)
-            
-        })
-        .catch((err) => {
-            alert(err)
-            console.log(err)
-        }).finally(() => {
-            setPointSelected([-1,-1])
-        })
-    }
-
-
-    function pointOnDrag(e) {
-        if (pointSelected[0] == -1 || pointSelected[1] == -1) {return}
-        const imageElement = elementRef.current;
-        const boundingRect = imageElement.getBoundingClientRect();
-
-        const clickX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
-        const clickY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
-
-        const newX = Math.round((clickX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
-        const newY = Math.round((clickY / boundingRect.height) * 100 * 10) / 10
-
-        setPointSelectedCoords([newX, newY])
-
-    }
-
-
-    function getPoints(area, areaIdx) {
-        if (!area) {return}
-        let points = JSON.parse(area.area_points)
-        return <div key={area.id}>
-            <canvas onClick={handleImageClick} ref={(el) => (canvasRefs.current[areaIdx] = el)} className="dataset-element-view-canvas" style={{zIndex: 1, width:"100%", height:"100%", top: 0, left: 0, position: "absolute"}}></canvas>
-            {points.map((point, idx) => (
-                <div title="Click to drag" className="dataset-element-view-point" key={idx} 
-                    style={{top: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[1] : point[1]) + "%", 
-                            left: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[0] : point[0]) + "%", 
-                            "background": (idToLabel[area.label].color)}} 
-                    onClick={(e) => {
-                        console.log("MOUSE DOWN")
-                        if (pointSelected[0] != area.id || pointSelected[1] != idx) {
-                            setPointSelectedCoords([point[0], point[1]])
-                            setPointSelected([area.id, idx])
-                        } else {
-                            updatePoints(area, pointSelectedCoords, idx, areaIdx)
-                        }
-                    }}
-                    
-                ></div>
-            ))}
-        </div>
-    }
 
 
     function getPreviewElement(element) {
@@ -627,11 +647,13 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     }
 
 
+    const INVALID_KEYBINDS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Backspace", "Delete"])
+
     const handleKeyDown = (event, type="creating-label") => {
         event.preventDefault(); // Prevent default behavior
     
-        if (event.key == "ArrowUp" || event.key == "ArrowDown" || event.key == "ArrowLeft" || event.key == "ArrowRight") {
-            return; // Binded to scrolling through elements already
+        if (INVALID_KEYBINDS.has(event.key)) {
+            return;
         }
     
         if (type == "creating-label") {
