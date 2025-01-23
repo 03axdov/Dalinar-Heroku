@@ -62,7 +62,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const [labelSelected, setLabelSelected] = useState(null)
     const [updateArea, setUpdateArea] = useState(false)
 
-    const [pointSelected, setPointSelected] = useState(null) // True when user is dragging a point
+    const [pointSelected, setPointSelected] = useState([-1,-1]) // ID of area, idx of point
+    const [pointSelectedCoords, setPointSelectedCoords] = useState([0,0])   // x,y of selected point (%)
 
     const canvasRefs = useRef([])
     const elementRef = useRef(null)
@@ -317,8 +318,40 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
 
 
-    function pointOnDrag(e, area, pointIdx) {
-        if (!pointSelected) {return}
+    function updatePoints(area, newPoint, pointIdx, prevAreaIdx) {
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';
+
+        const URL = window.location.origin + '/api/edit-area/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let updatedPoints = JSON.parse(area.area_points)
+        updatedPoints[pointIdx] = [newPoint[0], newPoint[1]]
+
+        const data = {
+            "area": area.id,
+            "area_points": JSON.stringify(updatedPoints)
+        }
+
+        axios.post(URL, data, config)
+        .then((res) => {
+            let temp = [...elements]
+            temp[elementsIndex].areas[prevAreaIdx].area_points = JSON.stringify(updatedPoints)
+            setElements(temp)
+            
+        })
+        .catch((err) => {
+            alert(err)
+            console.log(err)
+        }).finally(() => {
+            setPointSelected([-1,-1])
+        })
+    }
+
+
+    function pointOnDrag(e) {
+        if (pointSelected[0] == -1 || pointSelected[1] == -1) {return}
         const imageElement = elementRef.current;
         const boundingRect = imageElement.getBoundingClientRect();
 
@@ -328,26 +361,31 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         const newX = Math.round((clickX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
         const newY = Math.round((clickY / boundingRect.height) * 100 * 10) / 10
 
-        console.log("x: " + newX + ", y: " + newY)
+        setPointSelectedCoords([newX, newY])
 
     }
 
 
-    function getPoints(area, idx) {
+    function getPoints(area, areaIdx) {
         if (!area) {return}
         let points = JSON.parse(area.area_points)
         return <div key={area.id}>
-            <canvas onClick={handleImageClick} ref={(el) => (canvasRefs.current[idx] = el)} className="dataset-element-view-canvas" style={{zIndex: 1, width:"100%", height:"100%", top: 0, left: 0, position: "absolute"}}></canvas>
+            <canvas onClick={handleImageClick} ref={(el) => (canvasRefs.current[areaIdx] = el)} className="dataset-element-view-canvas" style={{zIndex: 1, width:"100%", height:"100%", top: 0, left: 0, position: "absolute"}}></canvas>
             {points.map((point, idx) => (
-                <div className="dataset-element-view-point" key={idx} 
-                    style={{top: point[1] + "%", left: point[0] + "%", "background": (idToLabel[area.label].color)}} 
+                <div title="Click to drag" className="dataset-element-view-point" key={idx} 
+                    style={{top: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[1] : point[1]) + "%", 
+                            left: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[0] : point[0]) + "%", 
+                            "background": (idToLabel[area.label].color)}} 
                     onClick={(e) => {
-                        setPointSelected(point.id)
-                        console.log("POINT CLICKED")
+                        console.log("MOUSE DOWN")
+                        if (pointSelected[0] != area.id || pointSelected[1] != idx) {
+                            setPointSelectedCoords([point[0], point[1]])
+                            setPointSelected([area.id, idx])
+                        } else {
+                            updatePoints(area, pointSelectedCoords, idx, areaIdx)
+                        }
                     }}
-                    onMouseDown={(e) => setPointSelected(true)}
-                    onMouseUp={(e) => setPointSelected(false)}
-                    onMouseMove={(e) => pointOnDrag(e, area, idx)}
+                    
                 ></div>
             ))}
         </div>
@@ -364,7 +402,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 </div>
             } else {
                 return <div className="dataset-element-view-image-container">
-                    <div className="dataset-element-view-image-wrapper" onClick={(e) => {console.log("WRAPPER CLICKED")}}>
+                    <div className="dataset-element-view-image-wrapper" onMouseMove={(e) => pointOnDrag(e)}>
                         <img onLoad={() => setUpdateArea(!updateArea)} ref={elementRef} className="dataset-element-view-image" src={window.location.origin + element.file} onClick={handleImageClick}/>
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
                             getPoints(area, idx)
