@@ -180,7 +180,7 @@ function PublicDataset() {
                     className="dataset-element-view-canvas" 
                     style={{zIndex: 1, width:"100%", height:"100%", top: 0, left: 0, position: "absolute"}}></canvas>
             {points.map((point, idx) => (
-                <div title="Click to drag" 
+                <div
                     className="dataset-element-view-point"
                     key={idx} 
                     style={{top: point[1] + "%", 
@@ -360,7 +360,6 @@ function PublicDataset() {
         downloadAPICall()
     }
 
-
     // FRONTEND FUNCTIONALITY
 
     return (
@@ -414,22 +413,19 @@ function PublicDataset() {
 
                             <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
                             
-
-                            {element.label && idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
-                                                            style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
-                                                        >
-                                
+                            {dataset && dataset.datatype == "classification" && element.label && idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
+                                style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
+                                >
                                 
                             </span>}
-
-                            
+     
                         </div>
                     ))}
                     {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
                 </div>
                 
                 {/* Shows an element's label */}
-                {hoveredElement != null && elements[hoveredElement].label &&
+                {dataset && dataset.datatype == "classification" && hoveredElement != null && elements[hoveredElement].label &&
                     <div className="dataset-sidebar-element-label" style={{top: elementLabelTop}}>{idToLabel[elements[hoveredElement].label].name}</div>
                 }
 
