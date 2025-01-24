@@ -6,8 +6,8 @@
 > A Machine Learning website for data labeling and model creation. Currently in development using Python Django and Javascript React.
 
 <h1>Current Functionality</h1>
-The goal is to implement both functionality for dataset creation and machine learning model building in the website.
+The goal is to implement both functionality for dataset creation and machine learning model building in the website. Functionality shown in the videos below but not interacted with (such as creating and editing datasets) is working.
 
-<h2>Classification Dataset Creation</h2>
+https://github.com/user-attachments/assets/73daaa99-2bf3-4aec-9036-04f58ed50fe0
 
-https://github.com/user-attachments/assets/0cb50b78-314e-4edc-abc9-d0ef4fbcd2eb
+https://github.com/user-attachments/assets/b5a44565-d709-4f2e-a145-3056c212124b
