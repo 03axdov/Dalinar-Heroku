@@ -543,7 +543,7 @@
 }
 
 .dataset-element-view-point-label-selected {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     box-shadow: 0 0 0 2px rgb(0,0,0,0.8);
 }
 
@@ -705,4 +705,15 @@ canvas {
 .download-area-text {
     margin-top: auto;
     margin-bottom: 20px;
+}
+
+.dataset-delete-area {
+    cursor: pointer;
+}
+
+.dataset-area-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 5px;
 }

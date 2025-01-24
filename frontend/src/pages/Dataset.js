@@ -127,7 +127,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             ctx.stroke();
             ctx.closePath();
         });
-    }, [elements, elementsIndex, canvasRefs, updateArea]);   // When element areas update
+    }, [elements, elementsIndex, canvasRefs, updateArea, labels]);   // When element areas update
 
 
     function updatePoints(area, newPoint, pointIdx, remove=false) {
@@ -313,7 +313,38 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             }
             
         }
-      };
+    };
+
+    function deleteArea(area, elementIdx, areaIdx) {
+
+        console.log("elementIdx: " + elementIdx)
+        console.log("areaIdx: " + areaIdx)
+        
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';
+
+        const URL = window.location.origin + '/api/delete-area/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        const data = {
+            "area": area.id,
+        }
+
+        axios.post(URL, data, config)
+        .then((res) => {
+            let temp = [...elements]
+            temp[elementIdx].areas.splice(areaIdx, 1)
+            setElements(temp)
+            
+        })
+        .catch((err) => {
+            alert(err)
+            console.log(err)
+        })
+    }
+
 
     // END OF DATATYPE AREA FUNCTIONALITY
 
@@ -1108,17 +1139,20 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                                 }}/>}
                             </div>
 
-                            {element.areas.map((area, idx) => (
+                            {element.areas.map((area, areaIdx) => (
                                 <div className="dataset-sidebar-element-area" 
                                     title={"Area: " + idToLabel[area.label].name}
                                     onMouseEnter={(e) => setHoveredAreaId(area.id)}
                                     onMouseLeave={(e) => setHoveredAreaId(null)}
-                                    key={idx}>
+                                    key={areaIdx}>
                                         <span className="dataset-sidebar-color dataset-sidebar-color-element dataset-sidebar-area-color" 
                                             style={{background: (idToLabel[area.label].color ? idToLabel[area.label].color : "transparent")}}>
                                         </span>
-                                        {idToLabel[area.label].name}
-                                        {area.area_points && <span title={"Points: " + JSON.parse(area.area_points).length} className="dataset-sidebar-label-keybind no-box-shadow">{JSON.parse(area.area_points).length}</span>}
+                                        <span className="dataset-area-name">{idToLabel[area.label].name}</span>
+                                        <span title={"Points: " + JSON.parse(area.area_points).length} className="dataset-sidebar-label-keybind no-box-shadow">{JSON.parse(area.area_points).length}</span>
+                                        <img title="Delete area" className="dataset-sidebar-options dataset-delete-area" src={window.location.origin + "/static/images/cross.svg"} onClick={(e) => {
+                                            deleteArea(area, idx, areaIdx)
+                                        }}/>
                                 </div>
                             ))}
 
