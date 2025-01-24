@@ -61,6 +61,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     // AREA DATASET FUNCTIONALITY
     const [labelSelected, setLabelSelected] = useState(null)
     const [updateArea, setUpdateArea] = useState(false)
+    const [hoveredAreaId, setHoveredAreaId] = useState(null)
 
     const [pointSelected, setPointSelected] = useState([-1,-1]) // ID of area, idx of point
     const [pointSelectedCoords, setPointSelectedCoords] = useState([0,0])   // x,y of selected point (%)
@@ -126,10 +127,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             ctx.stroke();
             ctx.closePath();
         });
-      }, [elements, elementsIndex, canvasRefs, updateArea]);   // When element areas update
+    }, [elements, elementsIndex, canvasRefs, updateArea]);   // When element areas update
 
 
-      function updatePoints(area, newPoint, pointIdx, remove=false) {
+    function updatePoints(area, newPoint, pointIdx, remove=false) {
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';
@@ -152,8 +153,14 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
         axios.post(URL, data, config)
         .then((res) => {
+            console.log(res)
             let temp = [...elements]
-            temp[elementsIndex].areas[pointSelectedPrevAreaIdx].area_points = JSON.stringify(updatedPoints)
+            if (res.data.deleted == false) {
+                temp[elementsIndex].areas[pointSelectedPrevAreaIdx].area_points = JSON.stringify(updatedPoints)
+            } else {
+                temp[elementsIndex].areas.splice(pointSelectedPrevAreaIdx, 1)
+            }
+            
             setElements(temp)
             
         })
@@ -207,7 +214,9 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     }}
                     
                 >
-                    {idx == 0 && pointSelected[1] != idx && <div title={idToLabel[area.label].name} className="dataset-element-view-point-label"
+                    {idx == 0 && pointSelected[1] != idx && <div 
+                    title={idToLabel[area.label].name} 
+                    className={"dataset-element-view-point-label " + (hoveredAreaId == area.id ? "dataset-element-view-point-label-selected" : "")}
                     style={{background: idToLabel[area.label].color, color: getTextColor(idToLabel[area.label].color)}}
                     onClick={(e) => e.stopPropagation()}>
                         {idToLabel[area.label].name}
@@ -231,6 +240,80 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         // Return white or black depending on luminance
         return luminance < 0.5 ? 'white' : 'black';
     }
+
+    // For Area datasets
+    const handleImageClick = (event) => {
+        const imageElement = elementRef.current;
+
+        if (imageElement && labelSelected) {    // Only update point if a label is selected
+            let areas = elements[elementsIndex].areas
+
+            let prevAreaIdx = -1
+            for (let i=0; i < areas.length; i++) {
+                if (areas[i].label == labelSelected) {
+                    prevAreaIdx = i
+                }
+            }
+
+            const boundingRect = imageElement.getBoundingClientRect();
+            const clickX = Math.max(0, event.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
+            const clickY = Math.max(0, event.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
+
+            const clickXPercent = Math.round((clickX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
+            const clickYPercent = Math.round((clickY / boundingRect.height) * 100 * 10) / 10
+
+            axios.defaults.withCredentials = true;
+            axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+            axios.defaults.xsrfCookieName = 'csrftoken';
+    
+            if (prevAreaIdx == -1) {    // Create new area for this label and element
+                const URL = window.location.origin + '/api/create-area/'
+                const config = {headers: {'Content-Type': 'application/json'}}
+        
+                const data = {
+                    "element": elements[elementsIndex].id,
+                    "label": labelSelected,
+                    "area_points": JSON.stringify([[clickXPercent, clickYPercent]])
+                }
+        
+                axios.post(URL, data, config)
+                .then((res) => {
+                    let temp = [...elements]
+                    temp[elementsIndex].areas.push(res.data)
+                    setElements(temp)
+                    
+                })
+                .catch((err) => {
+                    alert(err)
+                    console.log(err)
+                })
+            } else {    // Update existing area for this label and element
+                const URL = window.location.origin + '/api/edit-area/'
+                const config = {headers: {'Content-Type': 'application/json'}}
+
+                let updatedPoints = JSON.parse(areas[prevAreaIdx].area_points)
+                updatedPoints.push([clickXPercent, clickYPercent])
+        
+                const data = {
+                    "area": areas[prevAreaIdx].id,
+                    "area_points": JSON.stringify(updatedPoints)
+                }
+        
+                axios.post(URL, data, config)
+                .then((res) => {
+                    let temp = [...elements]
+                    temp[elementsIndex].areas[prevAreaIdx].area_points = JSON.stringify(updatedPoints)
+                    setElements(temp)
+                    
+                })
+                .catch((err) => {
+                    alert(err)
+                    console.log(err)
+                })
+            }
+            
+        }
+      };
 
     // END OF DATATYPE AREA FUNCTIONALITY
 
@@ -352,80 +435,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     }
 
     // ELEMENT FUNCTIONALITY
-
-    // For Area datasets
-    const handleImageClick = (event) => {
-        const imageElement = elementRef.current;
-
-        if (imageElement && labelSelected) {    // Only update point if a label is selected
-            let areas = elements[elementsIndex].areas
-
-            let prevAreaIdx = -1
-            for (let i=0; i < areas.length; i++) {
-                if (areas[i].label == labelSelected) {
-                    prevAreaIdx = i
-                }
-            }
-
-            const boundingRect = imageElement.getBoundingClientRect();
-            const clickX = Math.max(0, event.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
-            const clickY = Math.max(0, event.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
-
-            const clickXPercent = Math.round((clickX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
-            const clickYPercent = Math.round((clickY / boundingRect.height) * 100 * 10) / 10
-
-            axios.defaults.withCredentials = true;
-            axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-            axios.defaults.xsrfCookieName = 'csrftoken';
-    
-            if (prevAreaIdx == -1) {    // Create new area for this label and element
-                const URL = window.location.origin + '/api/create-area/'
-                const config = {headers: {'Content-Type': 'application/json'}}
-        
-                const data = {
-                    "element": elements[elementsIndex].id,
-                    "label": labelSelected,
-                    "area_points": JSON.stringify([[clickXPercent, clickYPercent]])
-                }
-        
-                axios.post(URL, data, config)
-                .then((res) => {
-                    let temp = [...elements]
-                    temp[elementsIndex].areas.push(res.data)
-                    setElements(temp)
-                    
-                })
-                .catch((err) => {
-                    alert(err)
-                    console.log(err)
-                })
-            } else {    // Update existing area for this label and element
-                const URL = window.location.origin + '/api/edit-area/'
-                const config = {headers: {'Content-Type': 'application/json'}}
-
-                let updatedPoints = JSON.parse(areas[prevAreaIdx].area_points)
-                updatedPoints.push([clickXPercent, clickYPercent])
-        
-                const data = {
-                    "area": areas[prevAreaIdx].id,
-                    "area_points": JSON.stringify(updatedPoints)
-                }
-        
-                axios.post(URL, data, config)
-                .then((res) => {
-                    let temp = [...elements]
-                    temp[elementsIndex].areas[prevAreaIdx].area_points = JSON.stringify(updatedPoints)
-                    setElements(temp)
-                    
-                })
-                .catch((err) => {
-                    alert(err)
-                    console.log(err)
-                })
-            }
-            
-        }
-      };
 
 
     const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "avif"])
@@ -981,6 +990,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     </p>
 
                     <img className="download-element-image" src={window.location.origin + "/static/images/foldersAsLabels.jpg"} />
+
+                    {dataset && dataset.datatype == "area" && <div className="download-element-description download-area-text">
+                        The dataset will also contain a .csv file, representing the areas of each element.
+                    </div>}
                 </div>
                 <div title="Download .zip file" className="download-element" onClick={labelFilenamesDownload}>
                     <p className="download-element-title">Labels as filenames</p>
@@ -989,6 +1002,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     </p>
 
                     <img className="download-element-image" src={window.location.origin + "/static/images/filenamesAsLabels.jpg"} />
+
+                    {dataset && dataset.datatype == "area" && <div className="download-element-description download-area-text">
+                        The dataset will also contain a .csv file, representing the areas of each element.
+                    </div>}
                 </div>
 
             </DownloadPopup>}
@@ -1072,8 +1089,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
                                 <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
 
-                                {dataset && dataset.datatype == "area" && element.label && <img className="dataset-sidebar-labelled dataset-sidebar-color-element" src={window.location.origin + "/static/images/labelSidebar.png"} />}
-
                                 {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
                                     className="dataset-sidebar-options dataset-sidebar-options-margin"
                                     src={window.location.origin + "/static/images/options.png"}
@@ -1095,11 +1110,15 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
                             {element.areas.map((area, idx) => (
                                 <div className="dataset-sidebar-element-area" 
+                                    title={"Area: " + idToLabel[area.label].name}
+                                    onMouseEnter={(e) => setHoveredAreaId(area.id)}
+                                    onMouseLeave={(e) => setHoveredAreaId(null)}
                                     key={idx}>
                                         <span className="dataset-sidebar-color dataset-sidebar-color-element dataset-sidebar-area-color" 
                                             style={{background: (idToLabel[area.label].color ? idToLabel[area.label].color : "transparent")}}>
                                         </span>
                                         {idToLabel[area.label].name}
+                                        {area.area_points && <span title={"Points: " + JSON.parse(area.area_points).length} className="dataset-sidebar-label-keybind no-box-shadow">{JSON.parse(area.area_points).length}</span>}
                                 </div>
                             ))}
 

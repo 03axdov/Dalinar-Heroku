@@ -599,10 +599,15 @@ class EditArea(APIView):
                 area = Area.objects.get(id=area_id)
                 
                 if area.element.owner == user.profile:
-                    area.area_points = area_points
-                    area.save()
-                    
-                    return Response(None, status=status.HTTP_200_OK)
+                    if len(json.loads(area_points)) > 0:
+                        area.area_points = area_points
+                        area.save()
+                        
+                        return Response({"deleted": False}, status=status.HTTP_200_OK)
+                    else:
+                        area.delete()
+                        
+                        return Response({"deleted": True}, status=status.HTTP_200_OK)
                 
                 else:
                     return Response({"Unauthorized": "You can only edit areas belonging to your own elements."}, status=status.HTTP_401_UNAUTHORIZED)

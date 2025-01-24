@@ -316,6 +316,11 @@
     overflow: visible;
     z-index: 1;
     position: relative;
+    cursor: default;
+}
+
+.dataset-sidebar-element-area:hover {
+    background: var(--sidebar-slightly-light);
 }
 
 .dataset-sidebar-color, .dataset-sidebar-labelled {
@@ -537,6 +542,11 @@
     user-select: none;
 }
 
+.dataset-element-view-point-label-selected {
+    font-size: 1.1rem;
+    box-shadow: 0 0 0 2px rgb(0,0,0,0.8);
+}
+
 .dataset-upload-files-button {
     margin-top: 10px;
 }
@@ -690,4 +700,9 @@
 
 canvas {
     pointer-events: none;
+}
+
+.download-area-text {
+    margin-top: auto;
+    margin-bottom: 20px;
 }
