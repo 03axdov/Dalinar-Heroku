@@ -294,6 +294,30 @@
     position: relative;
 }
 
+.dataset-sidebar-element-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.dataset-sidebar-element-area {
+    font-size: 0.9rem;
+    width: 100%;
+    padding: 5px 10px;
+    padding-left: 30px;
+    height: 32px;
+    min-height: 32px;
+    max-height: 32px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    white-space: nowrap;
+    overflow: visible;
+    z-index: 1;
+    position: relative;
+}
+
 .dataset-sidebar-color, .dataset-sidebar-labelled {
     height: 15px;
     min-height: 15px;
@@ -335,6 +359,11 @@
 .dataset-sidebar-element:hover {
     background: var(--sidebar-light);
     cursor: pointer;
+}
+
+.dataset-sidebar-area-color {
+    margin-left: 0;
+    margin-right: 5px;
 }
 
 .dataset-sidebar-element-selected {
@@ -493,6 +522,21 @@
     box-shadow: 0 0 0 3px rgb(0,0,0,0.8);
 }
 
+.dataset-element-view-point-label {
+    max-width: 125px;
+    box-sizing: border-box;
+    padding: 0 7px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: absolute;
+    top: -33px;
+    left: -11px;
+    cursor: default;
+    user-select: none;
+}
+
 .dataset-upload-files-button {
     margin-top: 10px;
 }
@@ -642,4 +686,8 @@
 
 .dataset-ownername {
     margin-left: 5px;
+}
+
+canvas {
+    pointer-events: none;
 }

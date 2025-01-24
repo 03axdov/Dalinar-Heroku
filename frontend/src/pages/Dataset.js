@@ -185,7 +185,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         if (!area) {return}
         let points = JSON.parse(area.area_points)
         return <div key={area.id}>
-            <canvas onClick={handleImageClick} ref={(el) => (canvasRefs.current[areaIdx] = el)} 
+            <canvas ref={(el) => (canvasRefs.current[areaIdx] = el)} 
                     className="dataset-element-view-canvas" 
                     style={{zIndex: 1, width:"100%", height:"100%", top: 0, left: 0, position: "absolute", display: (pointSelected[0] != -1 || pointSelected[1] != -1 ? "none" : "block")}}></canvas>
             {points.map((point, idx) => (
@@ -196,7 +196,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                             left: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[0] : point[0]) + "%", 
                             "background": (idToLabel[area.label].color)}} 
                     onClick={(e) => {
-                        console.log("MOUSE DOWN")
                         if (pointSelected[0] != area.id || pointSelected[1] != idx) {
                             setPointSelectedCoords([point[0], point[1]])
                             setPointSelectedPrevAreaIdx(areaIdx)
@@ -207,9 +206,30 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                         }
                     }}
                     
-                ></div>
+                >
+                    {idx == 0 && pointSelected[1] != idx && <div title={idToLabel[area.label].name} className="dataset-element-view-point-label"
+                    style={{background: idToLabel[area.label].color, color: getTextColor(idToLabel[area.label].color)}}
+                    onClick={(e) => e.stopPropagation()}>
+                        {idToLabel[area.label].name}
+                    </div>}
+                </div>
             ))}
         </div>
+    }
+
+    function getTextColor(hex) {
+        // Convert hex to RGB
+        const r = parseInt(hex.slice(1, 3), 16) / 255;
+        const g = parseInt(hex.slice(3, 5), 16) / 255;
+        const b = parseInt(hex.slice(5, 7), 16) / 255;
+      
+        // Apply gamma correction
+        const gammaCorrect = (c) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      
+        const luminance = 0.2126 * gammaCorrect(r) + 0.7152 * gammaCorrect(g) + 0.0722 * gammaCorrect(b);
+      
+        // Return white or black depending on luminance
+        return luminance < 0.5 ? 'white' : 'black';
     }
 
     // END OF DATATYPE AREA FUNCTIONALITY
@@ -738,7 +758,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             if (labelSelected != label.id) {
                 setLabelSelected(label.id)
             } else {
-                console.log("A")
                 setLabelSelected(null)
             }
             
@@ -990,7 +1009,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                         <button type="button" className="sidebar-button dataset-upload-button dataset-upload-files-button" onClick={fileInputClick}>+ Upload files</button>
                     </div>
                     
-                    {elements.map((element, idx) => (
+                    {dataset && dataset.datatype == "classification" && elements.map((element, idx) => (
                         <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
                         key={element.id} 
                         onClick={() => {
@@ -1009,12 +1028,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
                             <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
 
-                            {dataset && dataset.datatype == "classification" && element.label && idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
+                            {element.label && idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
                                                             style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
                                                         >
                             </span>}
-
-                            {dataset && dataset.datatype == "area" && element.label && <img className="dataset-sidebar-labelled dataset-sidebar-color-element" src={window.location.origin + "/static/images/labelSidebar.png"} />}
 
                             {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
                                 className="dataset-sidebar-options dataset-sidebar-options-margin"
@@ -1033,18 +1050,66 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                                     }
                                     
                             }}/>}
+                            
+                        </div>
+                    ))}
+                    {dataset && dataset.datatype == "area" && elements.map((element, idx) => (
+                        <div className="dataset-sidebar-element-container" key={element.id} >
+                            <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
+                            onClick={() => {
+                                setElementsIndex(idx)
+                            }}
+                            onMouseEnter={(e) => {
+                                setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                setHoveredElement(idx)
+                            }}
+                            onMouseLeave={() => {
+                                setHoveredElement(null)
+                            }}>
+
+                                {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={window.location.origin + "/static/images/image.png"}/>}
+                                {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={window.location.origin + "/static/images/text.png"}/>}
+
+                                <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
+
+                                {dataset && dataset.datatype == "area" && element.label && <img className="dataset-sidebar-labelled dataset-sidebar-color-element" src={window.location.origin + "/static/images/labelSidebar.png"} />}
+
+                                {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
+                                    className="dataset-sidebar-options dataset-sidebar-options-margin"
+                                    src={window.location.origin + "/static/images/options.png"}
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        setEditingElementName(element.name)
+                                        if (editingElement != element.id) {
+                                            setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                            setEditingElement(element.id)
+                                            setEditingElementIdx(idx)
+                                            closePopups("editing-element")
+                                        } else {
+                                            setEditingElement(null)
+                                            setEditingElementIdx(null)
+                                        }
+                                        
+                                }}/>}
+                            </div>
 
                             {element.areas.map((area, idx) => (
-                                <div key={idx}></div>
+                                <div className="dataset-sidebar-element-area" 
+                                    key={idx}>
+                                        <span className="dataset-sidebar-color dataset-sidebar-color-element dataset-sidebar-area-color" 
+                                            style={{background: (idToLabel[area.label].color ? idToLabel[area.label].color : "transparent")}}>
+                                        </span>
+                                        {idToLabel[area.label].name}
+                                </div>
                             ))}
-                            
+
                         </div>
                     ))}
                     {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
                 </div>
                 
                 {/* Shows an element's label */}
-                {hoveredElement != null && elements[hoveredElement].label && !editingElement &&
+                {dataset && dataset.datatype == "classification" && hoveredElement != null && elements[hoveredElement].label && !editingElement &&
                     <div className="dataset-sidebar-element-label" style={{top: elementLabelTop}}>{idToLabel[elements[hoveredElement].label].name}</div>
                 }
 
