@@ -351,6 +351,38 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     }
 
 
+    // For creating the CSV file that is downloaded for area datasets
+    function createCSV() {
+        let headers = "Filenames"
+        for (let i=0; i < labels.length; i++) {
+            headers += "," + labels[i].name
+        }
+
+        let rows = []
+        for (let i=0; i < elements.length; i++) {
+            let element = elements[i]
+            let currentRow = element.name
+
+            let labelIdToIdx = {}
+            let labels = []
+            for (let j=0; j < labels.length; j++) {
+                labels.push([])
+                labelIdToIdx[labels[j].id] = j
+            }
+
+            for (let j=0; j < element.areas.length; j++) {
+                let area = element.areas[j]
+                let labelIdx = labelIdToIdx[area.label]
+                labels[labelIdx] = JSON.parse(area.area_points)
+            }
+
+            rows.push(currentRow + "," + labels.join(","))
+        }
+
+        return [headers, ...rows].join('\n'); // Combine headers and rows
+    }
+
+
     // END OF DATATYPE AREA FUNCTIONALITY
 
     function inputOnFocus() {
