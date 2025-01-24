@@ -7,6 +7,7 @@
 
 <h1>Current Functionality</h1>
 The goal is to implement both functionality for dataset creation and machine learning model building in the website. Functionality shown in the videos below but not interacted with (such as creating and editing datasets) is working.
+<br><br>
 
 https://github.com/user-attachments/assets/73daaa99-2bf3-4aec-9036-04f58ed50fe0
 
