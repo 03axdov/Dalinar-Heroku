@@ -194,7 +194,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         return <div key={area.id}>
             <canvas ref={(el) => (canvasRefs.current[areaIdx] = el)} 
                     className="dataset-element-view-canvas" 
-                    style={{zIndex: 1, width:"100%", height:"100%", top: 0, left: 0, position: "absolute", display: (pointSelected[0] != -1 || pointSelected[1] != -1 ? "none" : "block")}}></canvas>
+                    style={{zIndex: 1, width:"100%", 
+                            height:"100%", top: 0, 
+                            left: 0, position: "absolute", 
+                            display: (pointSelected[0] == area.id ? "none" : "block")}}></canvas>
             {points.map((point, idx) => (
                 <div title="Click to drag" 
                     className={"dataset-element-view-point " + ((pointSelected[0] == area.id && pointSelected[1] == idx) ? "dataset-element-view-point-selected" : "")} 
@@ -214,10 +217,12 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     }}
                     
                 >
-                    {idx == 0 && pointSelected[1] != idx && <div 
+                    {idx == 0 && <div 
                     title={idToLabel[area.label].name} 
                     className={"dataset-element-view-point-label " + (hoveredAreaId == area.id ? "dataset-element-view-point-label-selected" : "")}
-                    style={{background: idToLabel[area.label].color, color: getTextColor(idToLabel[area.label].color)}}
+                    style={{background: idToLabel[area.label].color, 
+                            color: getTextColor(idToLabel[area.label].color),
+                            display: ((pointSelected[0] == area.id && pointSelected[1] == 0) ? "none" : "block")}}
                     onClick={(e) => e.stopPropagation()}>
                         {idToLabel[area.label].name}
                     </div>}
