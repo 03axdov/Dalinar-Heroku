@@ -1,9 +1,11 @@
 <h1>Dalinar</h1>
 <div align="left">
-  <img src="https://github.com/user-attachments/assets/aca21f09-0ba8-4a50-98fc-fce669975d0d" height="250px" width="250px">
+  
+  <img src="https://github.com/user-attachments/assets/31462586-fa5a-443c-a729-1b147b6c857e" />
+  
 </div>
 
-> A Machine Learning website for data labeling and model creation. Currently in development using Python Django and Javascript React.
+> A Machine Learning website for data labeling and model creation. Currently in development using Python Django and Javascript React. Data labelling (both classification and area) are currently functioning.
 
 <h1>Current Functionality</h1>
 The goal is to implement both functionality for dataset creation and machine learning model building in the website. Functionality shown in the videos below but not interacted with (such as creating and editing datasets) is working.
