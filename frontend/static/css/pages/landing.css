@@ -26,6 +26,7 @@
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    padding: 0;
 }
 
 .landing-title {
@@ -38,8 +39,11 @@
     display: inline-block;
 }
 
-.landing-header-image {
+.landing-header-image-container {
     width: 90%;
-    box-shadow: 0 0 50px rgba(25, 25, 25);
+}
+
+.landing-header-image {
+    box-shadow: 0 0 50px rgb(30,30,30);
     border: 1px solid var(--border);
 }
