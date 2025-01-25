@@ -326,7 +326,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         console.log("elementIdx: " + elementIdx)
         console.log("areaIdx: " + areaIdx)
         
-
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';
@@ -342,6 +341,9 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         .then((res) => {
             let temp = [...elements]
             temp[elementIdx].areas.splice(areaIdx, 1)
+
+            setHoveredAreaId(null)
+
             setElements(temp)
             
         })
@@ -1333,7 +1335,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                                     className="dataset-sidebar-label-keybind no-box-shadow border"
                                     style={{borderColor: (idToLabel[area.label].color)}}>{JSON.parse(area.area_points).length}</span>
                                     <img title="Delete area" className="dataset-sidebar-options dataset-delete-area" src={window.location.origin + "/static/images/cross.svg"} onClick={(e) => {
-                                        deleteArea(area, idx, areaIdx)
+                                        deleteArea(area, elementsIndex, areaIdx)
                                     }}/>
                             </div>
                         ))}
