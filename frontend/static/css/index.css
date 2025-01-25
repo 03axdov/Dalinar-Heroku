@@ -56,6 +56,7 @@ html, body {
 #toolbar-logo {
     height: 40px;
     width: 40px;
+    border-radius: 3px;
     object-fit: cover;
     cursor: pointer;
 }
@@ -167,6 +168,7 @@ input[type="radio"]:checked {
 .truncate {
     display: -webkit-box; /* Use flexbox for webkit-based browsers */
     -webkit-line-clamp: 3; /* Limit the number of lines */
+    line-clamp: 3; /* Standard property for compatibility */
     -webkit-box-orient: vertical; /* Set box orientation to vertical */
     overflow: hidden; /* Hide overflow content */
     text-overflow: ellipsis; /* Add ellipsis for truncated text */

@@ -105,7 +105,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             // Draw lines between points
             ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
             
-            ctx.lineWidth = 5;
+            ctx.lineWidth = 3;
             ctx.strokeStyle = idToLabel[area.label].color; // Set the line color here
             
             ctx.beginPath();
@@ -1388,7 +1388,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                         ))}
                     </div>
 
-                    {dataset && dataset.datatype == "area" && <div className="dataset-areas-container">
+                    {dataset && dataset.datatype == "area" && elements.length > 0 && <div className="dataset-areas-container">
                         {elements[elementsIndex].areas.map((area, areaIdx) => (
                             <div className={"dataset-sidebar-element-area " + (selectedAreaIdx == areaIdx ? "dataset-sidebar-element-selected" : "")} 
                                 title={"Area: " + idToLabel[area.label].name}

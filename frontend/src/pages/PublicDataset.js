@@ -79,7 +79,7 @@ function PublicDataset() {
                 // Draw lines between points
                 ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
                 
-                ctx.lineWidth = 5;
+                ctx.lineWidth = 3;
                 ctx.strokeStyle = idToLabel[area.label].color; // Set the line color here
                 
                 ctx.beginPath();
