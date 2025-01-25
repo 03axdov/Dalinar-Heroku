@@ -11,6 +11,7 @@ const TOOLBAR_HEIGHT = 60
 
 // The default page. Login not required.
 function PublicDataset() {
+    const navigate = useNavigate()
 
     const { id } = useParams();
     const [dataset, setDataset] = useState(null)
@@ -39,69 +40,159 @@ function PublicDataset() {
     const elementRef = useRef(null)
     const canvasRefs = useRef([])
 
-    const navigate = useNavigate()
+    const [hoveredAreaId, setHoveredAreaId] = useState(null)
+
+
+    // AREA FUNCTIONALITY
+
+    const DOT_SIZE = 22
+    
+    useEffect(() => {
+            if (elements.length < 1) {return}
+            if (!canvasRefs.current.length) return;
+            let areas = elements[elementsIndex].areas
+    
+            canvasRefs.current.forEach((canvas, idx) => {
+                if (!canvas) return; // Skip if canvas is undefined
+    
+                const ctx = canvas.getContext("2d");
+    
+                const dpr = window.devicePixelRatio || 1;
+                
+                const width = canvas.offsetWidth * dpr;
+                const height = canvas.offsetHeight * dpr;
+                canvas.width = width;
+                canvas.height = height;
+                ctx.scale(dpr, dpr);
+            
+                // Get the points for the current area
+                const area = areas[idx];
+                if (!area) return;
+                const points = JSON.parse(area.area_points);
+            
+                // Convert percentage-based coordinates to pixel values
+                const percentageToPixels = (point) => ({
+                    x: (point[0] / 100) * canvas.width + DOT_SIZE / 2, // Adjust for the dot's width
+                    y: (point[1] / 100) * canvas.height + DOT_SIZE / 2, // Adjust for the dot's height
+                });
+            
+                // Draw lines between points
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+                
+                ctx.lineWidth = 5;
+                ctx.strokeStyle = idToLabel[area.label].color; // Set the line color here
+                
+                ctx.beginPath();
+            
+                points.forEach((point, idx) => {
+                    const { x, y } = percentageToPixels(point);
+                    if (idx === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                });
+    
+                if (points.length > 1) {
+                    const { x, y } = percentageToPixels(points[0]);
+                    ctx.lineTo(x, y);
+                }
+            
+                ctx.stroke();
+                ctx.closePath();
+            });
+    }, [elements, elementsIndex, canvasRefs, updateArea]);   // When element areas update
+
+
+    function getTextColor(hex) {
+        // Convert hex to RGB
+        const r = parseInt(hex.slice(1, 3), 16) / 255;
+        const g = parseInt(hex.slice(3, 5), 16) / 255;
+        const b = parseInt(hex.slice(5, 7), 16) / 255;
+      
+        // Apply gamma correction
+        const gammaCorrect = (c) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      
+        const luminance = 0.2126 * gammaCorrect(r) + 0.7152 * gammaCorrect(g) + 0.0722 * gammaCorrect(b);
+      
+        // Return white or black depending on luminance
+        return luminance < 0.5 ? 'white' : 'black';
+    }
+
+
+    // For creating the JSON file that is downloaded for area datasets
+    function createJSON() {
+        let headers = "Filenames"
+        for (let i=0; i < labels.length; i++) {
+            headers += "," + labels[i].name
+        }
+
+        let res = {}
+        let occurences = {}
+        for (let i=0; i < elements.length; i++) {
+            let temp = {}
+            let element = elements[i]
+
+            let name = element.name
+            if (occurences[name]) {
+                name += "_" + (occurences[name] + 1)
+            }
+
+            for (let j=0; j < labels.length; j++) {
+                temp[labels[j].name] = []
+            }
+
+            for (let j=0; j < element.areas.length; j++) {
+                let area = element.areas[j]
+                temp[idToLabel[area.label].name] = JSON.parse(area.area_points)
+            }
+
+            res[name] = temp
+        }
+
+        return JSON.stringify(res); // Combine headers and rows
+    }
+
+    function getPoints(area, areaIdx) {
+        if (!area) {return}
+        let points = JSON.parse(area.area_points)
+        return <div key={area.id} className={(hoveredAreaId && hoveredAreaId != area.id ? "display-none" : "")}>
+            <canvas ref={(el) => (canvasRefs.current[areaIdx] = el)} 
+                    className={"dataset-element-view-canvas " + 
+                        (hoveredAreaId ? "dataset-element-view-canvas-background" : "")} 
+                    style={{zIndex: 1, width:"100%", 
+                            height:"100%", top: 0, 
+                            left: 0, position: "absolute"}}></canvas>
+            {points.map((point, idx) => (
+                <div title="Click to drag" 
+                    className="dataset-element-view-point"
+                    key={idx} 
+                    style={{top: point[1] + "%", 
+                            left: point[0] + "%", 
+                            "background": (idToLabel[area.label].color),
+                            cursor: "default"}}     
+                >
+                    {idx == 0 && <div 
+                    title={idToLabel[area.label].name} 
+                    className="dataset-element-view-point-label"
+                    style={{background: idToLabel[area.label].color, 
+                            color: getTextColor(idToLabel[area.label].color)}}
+                    onClick={(e) => e.stopPropagation()}>
+                        {idToLabel[area.label].name}
+                    </div>}
+                </div>
+            ))}
+        </div>
+    }
+
+
+    // END OF AREA FUNCTIONALITY
+
 
     useEffect(() => {
         getDataset()
     }, [])
 
-    const DOT_SIZE = 22
-    
-    useEffect(() => {
-        if (elements.length < 1) {return}
-        if (!canvasRefs.current.length) return;
-        let areas = elements[elementsIndex].areas
-
-        canvasRefs.current.forEach((canvas, idx) => {
-            if (!canvas) return; // Skip if canvas is undefined
-
-            const ctx = canvas.getContext("2d");
-
-            const dpr = window.devicePixelRatio || 1;
-            
-            const width = canvas.offsetWidth * dpr;
-            const height = canvas.offsetHeight * dpr;
-            canvas.width = width;
-            canvas.height = height;
-            ctx.scale(dpr, dpr);
-        
-            // Get the points for the current area
-            const area = areas[idx];
-            if (!area) return;
-            const points = JSON.parse(area.area_points);
-        
-            // Convert percentage-based coordinates to pixel values
-            const percentageToPixels = (point) => ({
-                x: (point[0] / 100) * canvas.width + DOT_SIZE / 2, // Adjust for the dot's width
-                y: (point[1] / 100) * canvas.height + DOT_SIZE / 2, // Adjust for the dot's height
-            });
-        
-            // Draw lines between points
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
-            
-            ctx.lineWidth = 5;
-            ctx.strokeStyle = idToLabel[area.label].color; // Set the line color here
-            
-            ctx.beginPath();
-        
-            points.forEach((point, idx) => {
-                const { x, y } = percentageToPixels(point);
-                if (idx === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-            });
-
-            if (points.length > 1) {
-                const { x, y } = percentageToPixels(points[0]);
-                ctx.lineTo(x, y);
-            }
-        
-            ctx.stroke();
-            ctx.closePath();
-        });
-    }, [elements, elementsIndex, canvasRefs, updateArea]);   // When element areas update
 
     function getUserPressKeycode(event) {
         const keys = [];
@@ -167,29 +258,6 @@ function PublicDataset() {
             console.log(err)
             setLoading(false)
         })
-    }
-
-
-    // AREA FUNCTIONALITY
-
-    function getPoints(area, areaIdx) {
-        if (!area) {return}
-        let points = JSON.parse(area.area_points)
-        return <div key={area.id}>
-            <canvas ref={(el) => (canvasRefs.current[areaIdx] = el)} 
-                    className="dataset-element-view-canvas" 
-                    style={{zIndex: 1, width:"100%", height:"100%", top: 0, left: 0, position: "absolute"}}></canvas>
-            {points.map((point, idx) => (
-                <div
-                    className="dataset-element-view-point"
-                    key={idx} 
-                    style={{top: point[1] + "%", 
-                            left: point[0] + "%", 
-                            "background": (idToLabel[area.label].color)}} 
-                    
-                ></div>
-            ))}
-        </div>
     }
 
 
@@ -360,29 +428,79 @@ function PublicDataset() {
         downloadAPICall()
     }
 
+    async function areaDatasetDownload() {
+        const zip = new JSZip();
+
+        for (let i=0; i < elements.length; i++) {
+            const response = await fetch(elements[i].file);
+            const blob = await response.blob();
+
+            zip.file(elements[i].name, blob);
+        }
+
+        const jsonContent = createJSON();
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        zip.file(dataset.name + ".json", blob)
+        
+        // Generate the ZIP file and trigger download
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        saveAs(zipBlob, dataset.name + ".zip");
+
+        const URL = window.location.origin + '/api/download-dataset/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": dataset.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            console.log("Incremented download count.")
+        }).catch((error) => {
+            console.log("Error:" + error)
+        })
+    }
+
     // FRONTEND FUNCTIONALITY
 
     return (
         <div className="dataset-container" ref={pageRef}>
 
-            {showDownloadPopup && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup}>
-                <div title="Download .zip file" className="download-element" onClick={labelFoldersDownload}>
-                    <p className="download-element-title">Folders for labels</p>
-                    <p className="download-element-description">
-                        Every label will have its own folder containing the elements with that label.
-                    </p>
+{showDownloadPopup && dataset && dataset.datatype == "classification" && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup} isArea={dataset && dataset.datatype == "area"}>
+                    <div title="Download .zip file" className="download-element" onClick={labelFoldersDownload}>
+                        <p className="download-element-title">Folders for labels</p>
+                        <p className="download-element-description">
+                            Every label will have its own folder containing the elements with that label.
+                        </p>
 
-                    <img className="download-element-image" src={window.location.origin + "/static/images/foldersAsLabels.jpg"} />
-                </div>
-                <div title="Download .zip file" className="download-element" onClick={labelFilenamesDownload}>
-                    <p className="download-element-title">Labels as filenames</p>
+                        <img className="download-element-image" src={window.location.origin + "/static/images/foldersAsLabels.jpg"} />
+
+                    </div>
+                    <div title="Download .zip file" className="download-element" onClick={labelFilenamesDownload}>
+                        <p className="download-element-title">Labels as filenames</p>
+                        <p className="download-element-description">
+                            One big folder, with every element named after its label and number, e.g. label1_1.png, label1_2.png, etc.
+                        </p>
+
+                        <img className="download-element-image" src={window.location.origin + "/static/images/filenamesAsLabels.jpg"} />
+
+
+                    </div>
+            </DownloadPopup>}
+
+            {showDownloadPopup && dataset && dataset.datatype == "area" && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup} isArea={dataset && dataset.datatype == "area"}><div title="Download .zip file" className="download-element download-element-area" onClick={areaDatasetDownload}>
+                    <p className="download-element-title">Download Dataset</p>
                     <p className="download-element-description">
-                        One big folder, with every element named after its label and number, e.g. label1_1.png, label1_2.png, etc.
+                        Will download as one big folder, with elements retaining their original filenames. A .json file ({dataset.name}.json) will contain the areas of each element.
                     </p>
 
                     <img className="download-element-image" src={window.location.origin + "/static/images/filenamesAsLabels.jpg"} />
+                
                 </div>
-
             </DownloadPopup>}
             
             <div className="dataset-elements">
@@ -493,13 +611,32 @@ function PublicDataset() {
                 <div className="dataset-labels-scrollable">
                     <p className="dataset-sidebar-title">Labels</p>
    
-                    {labels.map((label) => (
-                        <div className="dataset-sidebar-element default-cursor" key={label.id}>
-                            <span className="dataset-sidebar-color" title={(label.color ? label.color : "No color")} style={{background: (label.color ? label.color : "transparent")}}></span>
-                            <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
-                            
-                        </div>
-                    ))}
+                    <div className={"dataset-labels-container " + ((dataset && dataset.datatype == "area") ? "dataset-labels-container-area" : "")}>
+                        {labels.map((label) => (
+                            <div className="dataset-sidebar-element default-cursor" key={label.id}>
+                                <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
+                                <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {dataset && dataset.datatype == "area" && <div className="dataset-areas-container dataset-areas-container-public">
+                        {elements[elementsIndex].areas.map((area, areaIdx) => (
+                            <div className="dataset-sidebar-element-area" 
+                                title={"Area: " + idToLabel[area.label].name}
+                                onMouseEnter={(e) => setHoveredAreaId(area.id)}
+                                onMouseLeave={(e) => setHoveredAreaId(null)}
+                                key={areaIdx}
+                                >
+                                    <img className="dataset-element-area-icon" src={window.location.origin + "/static/images/area.svg"} />
+                                    <span className="dataset-area-name">{idToLabel[area.label].name}</span>
+                                    <span title={"Points: " + JSON.parse(area.area_points).length} 
+                                    className="dataset-sidebar-label-keybind no-box-shadow border"
+                                    style={{borderColor: (idToLabel[area.label].color)}}>{JSON.parse(area.area_points).length}</span>
+                                    
+                            </div>
+                        ))}
+                    </div>}
                 </div>
                 
 

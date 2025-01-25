@@ -359,35 +359,37 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     }
 
 
-    // For creating the CSV file that is downloaded for area datasets
-    function createCSV() {
+    // For creating the JSON file that is downloaded for area datasets
+    function createJSON() {
         let headers = "Filenames"
         for (let i=0; i < labels.length; i++) {
             headers += "," + labels[i].name
         }
 
-        let rows = []
+        let res = {}
+        let occurences = {}
         for (let i=0; i < elements.length; i++) {
+            let temp = {}
             let element = elements[i]
-            let currentRow = element.name
 
-            let labelIdToIdx = {}
-            let labels = []
+            let name = element.name
+            if (occurences[name]) {
+                name += "_" + (occurences[name] + 1)
+            }
+
             for (let j=0; j < labels.length; j++) {
-                labels.push([])
-                labelIdToIdx[labels[j].id] = j
+                temp[labels[j].name] = []
             }
 
             for (let j=0; j < element.areas.length; j++) {
                 let area = element.areas[j]
-                let labelIdx = labelIdToIdx[area.label]
-                labels[labelIdx] = JSON.parse(area.area_points)
+                temp[idToLabel[area.label].name] = JSON.parse(area.area_points)
             }
 
-            rows.push(currentRow + "," + labels.join(","))
+            res[name] = temp
         }
 
-        return [headers, ...rows].join('\n'); // Combine headers and rows
+        return JSON.stringify(res); // Combine headers and rows
     }
 
 
@@ -957,7 +959,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
         }
 
-
         for (let i=0; i < elements.length; i++) {
 
             let label = idToLabel[elements[i].label]
@@ -977,7 +978,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
             labelToFolder[label.id].file(filename, blob);
         }
-        
 
         // Generate the ZIP file and trigger download
         const zipBlob = await zip.generateAsync({ type: "blob" });
@@ -1031,13 +1031,66 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             zip.file(filename, blob);
             labelToNbr[label.id] += 1
         }
-        
 
         // Generate the ZIP file and trigger download
         const zipBlob = await zip.generateAsync({ type: "blob" });
         saveAs(zipBlob, dataset.name + ".zip");
 
+        const URL = window.location.origin + '/api/download-dataset/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": dataset.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            console.log("Incremented download count.")
+        }).catch((error) => {
+            console.log("Error:" + error)
+        })
         
+    }
+
+    async function areaDatasetDownload() {
+        const zip = new JSZip();
+
+        for (let i=0; i < elements.length; i++) {
+            const response = await fetch(elements[i].file);
+            const blob = await response.blob();
+
+            zip.file(elements[i].name, blob);
+        }
+
+        const jsonContent = createJSON();
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        zip.file(dataset.name + ".json", blob)
+        
+        // Generate the ZIP file and trigger download
+        const zipBlob = await zip.generateAsync({ type: "blob" });
+        saveAs(zipBlob, dataset.name + ".zip");
+
+        const URL = window.location.origin + '/api/download-dataset/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": dataset.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            console.log("Incremented download count.")
+        }).catch((error) => {
+            console.log("Error:" + error)
+        })
     }
 
 
@@ -1060,33 +1113,39 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef}>
 
-            {showDownloadPopup && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup}>
-                <div title="Download .zip file" className="download-element" onClick={labelFoldersDownload}>
-                    <p className="download-element-title">Folders for labels</p>
-                    <p className="download-element-description">
-                        Every label will have its own folder containing the elements with that label.
-                    </p>
+            {showDownloadPopup && dataset && dataset.datatype == "classification" && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup} isArea={dataset && dataset.datatype == "area"}>
+                    <div title="Download .zip file" className="download-element" onClick={labelFoldersDownload}>
+                        <p className="download-element-title">Folders for labels</p>
+                        <p className="download-element-description">
+                            Every label will have its own folder containing the elements with that label.
+                        </p>
 
-                    <img className="download-element-image" src={window.location.origin + "/static/images/foldersAsLabels.jpg"} />
+                        <img className="download-element-image" src={window.location.origin + "/static/images/foldersAsLabels.jpg"} />
 
-                    {dataset && dataset.datatype == "area" && <div className="download-element-description download-area-text">
-                        The dataset will also contain a .csv file, representing the areas of each element.
-                    </div>}
-                </div>
-                <div title="Download .zip file" className="download-element" onClick={labelFilenamesDownload}>
-                    <p className="download-element-title">Labels as filenames</p>
+                    </div>
+                    <div title="Download .zip file" className="download-element" onClick={labelFilenamesDownload}>
+                        <p className="download-element-title">Labels as filenames</p>
+                        <p className="download-element-description">
+                            One big folder, with every element named after its label and number, e.g. label1_1.png, label1_2.png, etc.
+                        </p>
+
+                        <img className="download-element-image" src={window.location.origin + "/static/images/filenamesAsLabels.jpg"} />
+
+
+                    </div>
+            </DownloadPopup>}
+
+            {showDownloadPopup && dataset && dataset.datatype == "area" && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup} isArea={dataset && dataset.datatype == "area"}><div title="Download .zip file" className="download-element download-element-area" onClick={areaDatasetDownload}>
+                    <p className="download-element-title">Download Dataset</p>
                     <p className="download-element-description">
-                        One big folder, with every element named after its label and number, e.g. label1_1.png, label1_2.png, etc.
+                        Will download as one big folder, with elements retaining their original filenames. A .json file ({dataset.name}.json) will contain the areas of each element.
                     </p>
 
                     <img className="download-element-image" src={window.location.origin + "/static/images/filenamesAsLabels.jpg"} />
-
-                    {dataset && dataset.datatype == "area" && <div className="download-element-description download-area-text">
-                        The dataset will also contain a .csv file, representing the areas of each element.
-                    </div>}
+                
                 </div>
-
             </DownloadPopup>}
+            
             
             {/* Uploading folders / files to elements goes through these */}
             <input id="dataset-file-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFolderInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
