@@ -251,7 +251,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const handleImageClick = (event) => {
         const imageElement = elementRef.current;
 
-        if (imageElement && labelSelected) {    // Only update point if a label is selected
+        console.log("CLICKED: " + selectedAreaIdx)
+
+        if (imageElement && ((selectedAreaIdx !== null) || labelSelected)) {    // Only update point if a label is selected
+            
             let areas = elements[elementsIndex].areas
 
             const boundingRect = imageElement.getBoundingClientRect();
@@ -280,6 +283,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     let temp = [...elements]
                     temp[elementsIndex].areas.push(res.data)
 
+                    setLabelSelected(null)
                     setSelectedAreaIdx(temp[elementsIndex].areas.length - 1)
                     setSelectedArea(res.data)
 
@@ -1333,7 +1337,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                                 onMouseLeave={(e) => setHoveredAreaId(null)}
                                 key={areaIdx}
                                 onClick={() => {
-                                    if (areaIdx != selectedAreaIdx) {
+                                    if (areaIdx === null || areaIdx != selectedAreaIdx) {
                                         setLabelSelected(null)
                                         setSelectedArea(area)
                                         setSelectedAreaIdx(areaIdx)
