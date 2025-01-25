@@ -11,7 +11,7 @@ function Home({currentProfile}) {
     const [datasets, setDatasets] = useState([])
     const [loading, setLoading] = useState(true)
 
-    const [sort, setSort] = useState("")
+    const [sort, setSort] = useState("downloads")
     const [search, setSearch] = useState("")
 
     useEffect(() => {
@@ -25,13 +25,11 @@ function Home({currentProfile}) {
             url: window.location.origin + '/api/my-datasets/' + (search ? "?search=" + search : ""),
         })
         .then((res) => {
+            console.log("GOT DATASETS")
             if (res.data) {
-                setDatasets(res.data)
+                setDatasets(sortDatasets(res.data))
             } else {
                 setDatasets([])
-            }
-            if (!sort) {
-                setSort("downloads")
             }
 
         }).catch((err) => {
@@ -43,34 +41,55 @@ function Home({currentProfile}) {
 
     }
 
-    useEffect(() => {
-        if (datasets.length) {
-            let tempDatasets = [...datasets]
+    function sortDatasets(ds) {
 
-            console.log(sort)
-            tempDatasets.sort((d1, d2) => {
-                if (sort == "downloads") {
-                    return d2.downloaders.length - d1.downloaders.length
-                } else if (sort == "alphabetical") {
-                    return d1.name.localeCompare(d2.name)
-                } else if (sort == "date") {
-                    return new Date(d2.created_at) - new Date(d1.created_at)
-                } else if (sort == "elements") {
-                    return d2.elements.length - d1.elements.length
-                } else if (sort == "labels") {
-                    return d2.labels.length - d1.labels.length
-                }
-            })
-    
-            setDatasets(tempDatasets)
-        }
+        let tempDatasets = [...ds]
+
         
+        tempDatasets.sort((d1, d2) => {
+            if (sort == "downloads") {
+                if (d1.downloaders.length != d2.downloaders.length) {
+                    return d2.downloaders.length - d1.downloaders.length
+                } else {
+                    return d1.name.localeCompare(d2.name)
+                }
+                
+            } else if (sort == "alphabetical") {
+                return d1.name.localeCompare(d2.name)
+            } else if (sort == "date") {
+                return new Date(d2.created_at) - new Date(d1.created_at)
+            } else if (sort == "elements") {
+                if (d1.elements.length != d2.elements.length) {
+                    return d2.elements.length - d1.elements.length
+                } else {
+                    return d1.name.localeCompare(d2.name)
+                }
+                
+            } else if (sort == "labels") {
+                if (d1.labels.length != d2.labels.length) {
+                    return d2.labels.length - d1.labels.length
+                } else {
+                    return d1.name.localeCompare(d2.name)
+                }
+                
+            }
+        })
+
+        return tempDatasets
+
+    }
+
+    useEffect(() => {
+        if (!loading) {
+            setDatasets(sortDatasets(datasets))
+        }
     }, [sort])
 
 
     // Search input timing
     useEffect(() => {
         // Set a timeout to update debounced value after 500ms
+        setLoading(true)
         const handler = setTimeout(() => {
             getDatasets()
         }, 350);
