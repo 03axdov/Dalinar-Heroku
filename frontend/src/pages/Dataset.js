@@ -65,8 +65,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
     const [pointSelected, setPointSelected] = useState([-1,-1]) // ID of area, idx of point
     const [pointSelectedCoords, setPointSelectedCoords] = useState([0,0])   // x,y of selected point (%)
-    const [pointSelectedArea, setPointSelectedArea] = useState(null)
-    const [pointSelectedPrevAreaIdx, setPointSelectedPrevAreaIdx] = useState(null)
+    const [selectedArea, setSelectedArea] = useState(null) // the area
+    const [selectedAreaIdx, setSelectedAreaIdx] = useState(null)
 
     const canvasRefs = useRef([])
     const elementRef = useRef(null)
@@ -156,9 +156,9 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             console.log(res)
             let temp = [...elements]
             if (res.data.deleted == false) {
-                temp[elementsIndex].areas[pointSelectedPrevAreaIdx].area_points = JSON.stringify(updatedPoints)
+                temp[elementsIndex].areas[selectedAreaIdx].area_points = JSON.stringify(updatedPoints)
             } else {
-                temp[elementsIndex].areas.splice(pointSelectedPrevAreaIdx, 1)
+                temp[elementsIndex].areas.splice(selectedAreaIdx, 1)
             }
             
             setElements(temp)
@@ -209,8 +209,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     onClick={(e) => {
                         if (pointSelected[0] != area.id || pointSelected[1] != idx) {
                             setPointSelectedCoords([point[0], point[1]])
-                            setPointSelectedPrevAreaIdx(areaIdx)
-                            setPointSelectedArea(area)
+                            setSelectedAreaIdx(areaIdx)
+                            setSelectedArea(area)
                             setPointSelected([area.id, idx])
                         } else {
                             updatePoints(area, pointSelectedCoords, idx)
@@ -254,13 +254,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         if (imageElement && labelSelected) {    // Only update point if a label is selected
             let areas = elements[elementsIndex].areas
 
-            let prevAreaIdx = -1
-            for (let i=0; i < areas.length; i++) {
-                if (areas[i].label == labelSelected) {
-                    prevAreaIdx = i
-                }
-            }
-
             const boundingRect = imageElement.getBoundingClientRect();
             const clickX = Math.max(0, event.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
             const clickY = Math.max(0, event.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
@@ -272,7 +265,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
             axios.defaults.xsrfCookieName = 'csrftoken';
     
-            if (prevAreaIdx == -1) {    // Create new area for this label and element
+            if (selectedAreaIdx === null) {    // Create new area
                 const URL = window.location.origin + '/api/create-area/'
                 const config = {headers: {'Content-Type': 'application/json'}}
         
@@ -286,6 +279,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 .then((res) => {
                     let temp = [...elements]
                     temp[elementsIndex].areas.push(res.data)
+
+                    setSelectedAreaIdx(temp[elementsIndex].areas.length - 1)
+                    setSelectedArea(res.data)
+
                     setElements(temp)
                     
                 })
@@ -297,18 +294,18 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 const URL = window.location.origin + '/api/edit-area/'
                 const config = {headers: {'Content-Type': 'application/json'}}
 
-                let updatedPoints = JSON.parse(areas[prevAreaIdx].area_points)
+                let updatedPoints = JSON.parse(areas[selectedAreaIdx].area_points)
                 updatedPoints.push([clickXPercent, clickYPercent])
         
                 const data = {
-                    "area": areas[prevAreaIdx].id,
+                    "area": areas[selectedAreaIdx].id,
                     "area_points": JSON.stringify(updatedPoints)
                 }
         
                 axios.post(URL, data, config)
                 .then((res) => {
                     let temp = [...elements]
-                    temp[elementsIndex].areas[prevAreaIdx].area_points = JSON.stringify(updatedPoints)
+                    temp[elementsIndex].areas[selectedAreaIdx].area_points = JSON.stringify(updatedPoints)
                     setElements(temp)
                     
                 })
@@ -343,6 +340,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             temp[elementIdx].areas.splice(areaIdx, 1)
 
             setHoveredAreaId(null)
+            if (selectedAreaIdx == areaIdx) {
+                setSelectedArea(null)
+                setSelectedAreaIdx(null)
+            }
 
             setElements(temp)
             
@@ -447,7 +448,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 labelOnClick(labelKeybinds[key])
             } else if (key === "Backspace" || key === "Delete") {  // For datatype area, deleting points
                 if (pointSelected[0] != -1 || pointSelected[1] != -1) {
-                    updatePoints(pointSelectedArea, [], pointSelected[1], true) // Remove point
+                    updatePoints(selectedArea, [], pointSelected[1], true) // Remove point
                 }
             }
         };
@@ -836,6 +837,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             })
         } else if (dataset.datatype == "area") {
             if (labelSelected != label.id) {
+                setSelectedAreaIdx(null)
+                setSelectedArea(null)
                 setLabelSelected(label.id)
             } else {
                 setLabelSelected(null)
@@ -1324,11 +1327,22 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
                     {dataset && dataset.datatype == "area" && <div className="dataset-areas-container">
                         {elements[elementsIndex].areas.map((area, areaIdx) => (
-                            <div className="dataset-sidebar-element-area" 
+                            <div className={"dataset-sidebar-element-area " + (selectedAreaIdx == areaIdx ? "dataset-sidebar-element-selected" : "")} 
                                 title={"Area: " + idToLabel[area.label].name}
                                 onMouseEnter={(e) => setHoveredAreaId(area.id)}
                                 onMouseLeave={(e) => setHoveredAreaId(null)}
-                                key={areaIdx}>
+                                key={areaIdx}
+                                onClick={() => {
+                                    if (areaIdx != selectedAreaIdx) {
+                                        setLabelSelected(null)
+                                        setSelectedArea(area)
+                                        setSelectedAreaIdx(areaIdx)
+                                    } else {
+                                        setSelectedArea(null)
+                                        setSelectedAreaIdx(null)
+                                    }
+                                    
+                                }}>
                                     <img className="dataset-element-area-icon" src={window.location.origin + "/static/images/area.svg"} />
                                     <span className="dataset-area-name">{idToLabel[area.label].name}</span>
                                     <span title={"Points: " + JSON.parse(area.area_points).length} 
