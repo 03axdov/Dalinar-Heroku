@@ -22,6 +22,7 @@
     box-sizing: border-box;
     max-height: 100%;
     width: 100%;
+    height: 100%;
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
@@ -32,6 +33,32 @@
 }
 .dataset-elements-scrollable::-webkit-scrollbar-thumb, .dataset-labels-scrollable::-webkit-scrollbar-thumb {
     border-radius: 0;
+}
+
+.dataset-labels-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.dataset-labels-container-area {
+    height: 40%;
+    max-height: 40%;
+    overflow-y: auto;
+}
+
+.dataset-areas-container {
+    height: calc(60% - 50px - 10px - 20px - 10px - 45px);   /* Width of container - labels-container, button, and title */
+    max-height: calc(60% - 50px - 10px - 20px - 10px - 45px);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
 }
 
 .dataset-elements {
@@ -304,7 +331,6 @@
     font-size: 0.9rem;
     width: 100%;
     padding: 5px 10px;
-    padding-left: 30px;
     height: 32px;
     min-height: 32px;
     max-height: 32px;
@@ -317,6 +343,12 @@
     z-index: 1;
     position: relative;
     cursor: default;
+}
+
+.dataset-element-area-icon {
+    height: 17px;
+    width: 17px;
+    margin-right: 10px;
 }
 
 .dataset-sidebar-element-area:hover {
@@ -542,11 +574,6 @@
     user-select: none;
 }
 
-.dataset-element-view-point-label-selected {
-    font-size: 1.2rem;
-    box-shadow: 0 0 0 2px rgb(0,0,0,0.8);
-}
-
 .dataset-upload-files-button {
     margin-top: 10px;
 }
@@ -716,4 +743,8 @@ canvas {
     text-overflow: ellipsis;
     white-space: nowrap;
     margin-right: 5px;
+}
+
+.dataset-element-view-canvas-background {
+    background: rgb(0,0,0,0.3);
 }

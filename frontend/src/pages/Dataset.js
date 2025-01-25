@@ -191,9 +191,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     function getPoints(area, areaIdx) {
         if (!area) {return}
         let points = JSON.parse(area.area_points)
-        return <div key={area.id}>
+        return <div key={area.id} className={(hoveredAreaId && hoveredAreaId != area.id ? "display-none" : "")}>
             <canvas ref={(el) => (canvasRefs.current[areaIdx] = el)} 
-                    className="dataset-element-view-canvas" 
+                    className={"dataset-element-view-canvas " + 
+                        (hoveredAreaId ? "dataset-element-view-canvas-background" : "")} 
                     style={{zIndex: 1, width:"100%", 
                             height:"100%", top: 0, 
                             left: 0, position: "absolute", 
@@ -219,7 +220,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 >
                     {idx == 0 && <div 
                     title={idToLabel[area.label].name} 
-                    className={"dataset-element-view-point-label " + (hoveredAreaId == area.id ? "dataset-element-view-point-label-selected" : "")}
+                    className="dataset-element-view-point-label"
                     style={{background: idToLabel[area.label].color, 
                             color: getTextColor(idToLabel[area.label].color),
                             display: ((pointSelected[0] == area.id && pointSelected[1] == 0) ? "none" : "block")}}
@@ -1176,23 +1177,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                                 }}/>}
                             </div>
 
-                            {element.areas.map((area, areaIdx) => (
-                                <div className="dataset-sidebar-element-area" 
-                                    title={"Area: " + idToLabel[area.label].name}
-                                    onMouseEnter={(e) => setHoveredAreaId(area.id)}
-                                    onMouseLeave={(e) => setHoveredAreaId(null)}
-                                    key={areaIdx}>
-                                        <span className="dataset-sidebar-color dataset-sidebar-color-element dataset-sidebar-area-color" 
-                                            style={{background: (idToLabel[area.label].color ? idToLabel[area.label].color : "transparent")}}>
-                                        </span>
-                                        <span className="dataset-area-name">{idToLabel[area.label].name}</span>
-                                        <span title={"Points: " + JSON.parse(area.area_points).length} className="dataset-sidebar-label-keybind no-box-shadow">{JSON.parse(area.area_points).length}</span>
-                                        <img title="Delete area" className="dataset-sidebar-options dataset-delete-area" src={window.location.origin + "/static/images/cross.svg"} onClick={(e) => {
-                                            deleteArea(area, idx, areaIdx)
-                                        }}/>
-                                </div>
-                            ))}
-
                         </div>
                     ))}
                     {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
@@ -1308,31 +1292,52 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                         <img className="dataset-sidebar-icon" src={window.location.origin + "/static/images/cross.svg"}/>
                         Clear label
                     </div>}
-                    {labels.map((label) => (
-                        <div className={"dataset-sidebar-element " + (dataset.datatype == "area" && labelSelected == label.id ? "dataset-sidebar-element-selected" : "")} key={label.id} onClick={() => labelOnClick(label)}>
-                            <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
-                            <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
-                            {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} className="dataset-sidebar-label-keybind">{label.keybind.toUpperCase()}</span>}
-                            <img title="Edit label" 
-                                className={"dataset-sidebar-options " + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
-                                src={window.location.origin + "/static/images/options.png"}
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    closePopups("editing-label")
-                                    if (editingLabel == label.id) {
-                                        setEditingLabel(null)
-                                    } else {
-                                        setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                                        setEditingLabelName(label.name)
-                                        setEditingLabelColor(label.color)
-                                        setEditingLabelKeybind(label.keybind)
-                                        setEditingLabel(label.id)
-                                    }
+                    <div className={"dataset-labels-container " + ((dataset && dataset.datatype == "area") ? "dataset-labels-container-area" : "")}>
+                        {labels.map((label) => (
+                            <div className={"dataset-sidebar-element " + (dataset.datatype == "area" && labelSelected == label.id ? "dataset-sidebar-element-selected" : "")} key={label.id} onClick={() => labelOnClick(label)}>
+                                <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
+                                <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
+                                {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} className="dataset-sidebar-label-keybind">{label.keybind.toUpperCase()}</span>}
+                                <img title="Edit label" 
+                                    className={"dataset-sidebar-options " + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
+                                    src={window.location.origin + "/static/images/options.png"}
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        closePopups("editing-label")
+                                        if (editingLabel == label.id) {
+                                            setEditingLabel(null)
+                                        } else {
+                                            setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                            setEditingLabelName(label.name)
+                                            setEditingLabelColor(label.color)
+                                            setEditingLabelKeybind(label.keybind)
+                                            setEditingLabel(label.id)
+                                        }
 
-                                }}/>
-                            
-                        </div>
-                    ))}
+                                    }}/>
+                                
+                            </div>
+                        ))}
+                    </div>
+
+                    {dataset && dataset.datatype == "area" && <div className="dataset-areas-container">
+                        {elements[elementsIndex].areas.map((area, areaIdx) => (
+                            <div className="dataset-sidebar-element-area" 
+                                title={"Area: " + idToLabel[area.label].name}
+                                onMouseEnter={(e) => setHoveredAreaId(area.id)}
+                                onMouseLeave={(e) => setHoveredAreaId(null)}
+                                key={areaIdx}>
+                                    <img className="dataset-element-area-icon" src={window.location.origin + "/static/images/area.svg"} />
+                                    <span className="dataset-area-name">{idToLabel[area.label].name}</span>
+                                    <span title={"Points: " + JSON.parse(area.area_points).length} 
+                                    className="dataset-sidebar-label-keybind no-box-shadow border"
+                                    style={{borderColor: (idToLabel[area.label].color)}}>{JSON.parse(area.area_points).length}</span>
+                                    <img title="Delete area" className="dataset-sidebar-options dataset-delete-area" src={window.location.origin + "/static/images/cross.svg"} onClick={(e) => {
+                                        deleteArea(area, idx, areaIdx)
+                                    }}/>
+                            </div>
+                        ))}
+                    </div>}
                 </div>
 
                 <div className="dataset-create-label-container" 
