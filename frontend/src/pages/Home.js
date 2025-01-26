@@ -13,6 +13,8 @@ function Home({currentProfile}) {
 
     const [sort, setSort] = useState("downloads")
     const [search, setSearch] = useState("")
+    const [showClassification, setShowClassification] = useState(true)
+    const [showArea, setShowArea] = useState(true)
 
     useEffect(() => {
         getDatasets()
@@ -108,6 +110,23 @@ function Home({currentProfile}) {
                 navigate("/create-dataset")
             }}>+ Create dataset</button>
 
+            <div className="explore-datasets-types-container">
+                <div className="explore-datasets-type">
+                    <input className="explore-datasets-checkbox" type="checkbox" id="classification" name="classification" checked={showClassification} onChange={() => {
+                        setShowClassification(!showClassification)
+                    }}/>
+                    <label htmlFor="classification" className="explore-label">Classification</label>
+                </div>
+                
+                <div className="explore-datasets-type no-margin"> 
+                    <input className="explore-datasets-checkbox" type="checkbox" id="area" name="area" checked={showArea} onChange={() => {
+                        setShowArea(!showArea)
+                    }}/> 
+                    <label htmlFor="area" className="explore-label">Area</label>
+                </div>
+                       
+            </div>
+
         </div>
         <div className="home-non-sidebar">
             <div>
@@ -133,7 +152,7 @@ function Home({currentProfile}) {
                 
                 <div className="my-datasets-container">
                     {datasets.map((dataset) => (
-                        <DatasetElement dataset={dataset} key={dataset.id} />
+                        ((dataset.datatype == "classification" ? showClassification : showArea) ? <DatasetElement dataset={dataset} key={dataset.id} /> : "")
                     ))}
                     {!loading && datasets.length == 0 && search.length == 0 && <p>You don't have any datasets. Click <span className="link" onClick={() => {
                         navigate("/create-dataset")

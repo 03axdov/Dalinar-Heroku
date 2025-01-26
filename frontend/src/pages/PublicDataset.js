@@ -568,11 +568,11 @@ function PublicDataset() {
                     </div>}
 
                     {showDatasetDescription && dataset && dataset.description && <div className="dataset-description-display-container">
-
                         <div className="dataset-description-image-container">
-                            <div className="dataset-description-name">{dataset.name}</div>
                             <img className="dataset-description-image" src={dataset.image} />
+                        </div>
 
+                        <div className="dataset-description-display">
                             <div className="dataset-description-stats">
                                 {dataset.downloaders && <div className="dataset-description-stats-element">
                                     <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/download.svg"}/>
@@ -589,19 +589,16 @@ function PublicDataset() {
                                     {labels.length + (labels.length == 1 ? " label" : " labels")}
                                 </div>}
                             </div>
-                        </div>
 
-                        <div className="dataset-description-display">
-                            {(dataset.description ? dataset.description : "This dataset does not have a description.")}
-                        </div>
+                            {(dataset.description ? <p className="dataset-description-text"><span className="dataset-description-start">Description: </span>{dataset.description}</p> : "This dataset does not have a description.")}
 
-                        {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">
-                            {JSON.parse(dataset.keywords).length > 0 && <span className="gray-text dataset-description-keywords-title">Keywords: </span>}
-                            {JSON.parse(dataset.keywords).map((e, i) => (
-                                <div title={e} className="dataset-description-keyword" key={i}>{e}</div>
-                        ))}
-                        </div>}
-                        
+                            {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">
+                                {JSON.parse(dataset.keywords).length > 0 && <span className="gray-text dataset-description-keywords-title">Keywords: </span>}
+                                {JSON.parse(dataset.keywords).map((e, i) => (
+                                    <div title={e} className="dataset-description-keyword" key={i}>{e}</div>
+                                ))}
+                            </div>}
+                        </div>
                     </div>}
                 </div>
                 

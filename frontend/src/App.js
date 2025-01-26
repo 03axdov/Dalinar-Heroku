@@ -11,6 +11,7 @@ import EditDataset from "./pages/EditDataset"
 import Dataset from "./pages/Dataset"
 import axios from "axios"
 import Explore from "./pages/Explore"
+import About from "./pages/About"
 import PublicDataset from "./pages/PublicDataset"
 
 
@@ -79,6 +80,7 @@ export default function App() {
                 <Routes>
                     <Route path="/" element={<Landing />}/>
                     <Route path="/explore" element={<Explore checkLoggedIn={checkLoggedIn}/>}/>
+                    <Route path="/about" element={<About />}/>
                     <Route path="/home" element={<Home currentProfile={currentProfile}/>}/>
                     <Route path="/create-dataset" element={<CreateDataset />}/>
                     <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} />}/>

@@ -139,7 +139,7 @@ input[type=checkbox] {
 }
 
 input[type="checkbox"]:checked {
-    background: url("../images/checked.jpg");
+    background: url("../images/checkedGray.jpg");
     background-repeat: no-repeat;
     background-size: cover;
 }

@@ -15,11 +15,12 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn}) {
             }}>Home</p>
 
 <           p className="toolbar-text" onClick={() => {
-
-                navigate("/explore")
-
-                
+                navigate("/explore") 
             }}>Explore</p>
+
+            <p className="toolbar-text" onClick={() => {
+                navigate("/about")
+            }}>About</p>
 
             {!loadingCurrentProfile && currentProfile.user === "" &&
                 <div className="toolbar-auth">
