@@ -34,6 +34,8 @@ function PublicDataset() {
 
     const [showDatasetDescription, setShowDatasetDescription] = useState(true)  // True for public datasets
 
+    const [isDownloaded, setIsDownloaded] = useState(false)
+
     const [updateArea, setUpdateArea] = useState(false)
 
     const pageRef = useRef(null)
@@ -385,9 +387,11 @@ function PublicDataset() {
 
         // Generate the ZIP file and trigger download
         const zipBlob = await zip.generateAsync({ type: "blob" });
-        saveAs(zipBlob, dataset.name + ".zip");
+        // saveAs(zipBlob, dataset.name + ".zip");
 
-        downloadAPICall()
+        // downloadAPICall()
+
+        setIsDownloaded(true)
         
     }
 
@@ -470,7 +474,12 @@ function PublicDataset() {
     return (
         <div className="dataset-container" ref={pageRef}>
 
-{showDownloadPopup && dataset && dataset.datatype == "classification" && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup} isArea={dataset && dataset.datatype == "area"}>
+            {/* Download popup - Classification */}
+            {showDownloadPopup && !isDownloaded && dataset && dataset.datatype == "classification" && <DownloadPopup 
+            setShowDownloadPopup={setShowDownloadPopup} 
+            isArea={dataset && dataset.datatype == "area"}
+            isDownloaded={isDownloaded}
+            setIsDownloaded={setIsDownloaded}>
                     <div title="Download .zip file" className="download-element" onClick={labelFoldersDownload}>
                         <p className="download-element-title">Folders for labels</p>
                         <p className="download-element-description">
@@ -492,7 +501,74 @@ function PublicDataset() {
                     </div>
             </DownloadPopup>}
 
-            {showDownloadPopup && dataset && dataset.datatype == "area" && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup} isArea={dataset && dataset.datatype == "area"}><div title="Download .zip file" className="download-element download-element-area" onClick={areaDatasetDownload}>
+            {/* After download popup - Classification */}
+            {showDownloadPopup && isDownloaded && dataset && dataset.datatype == "classification" && <DownloadPopup 
+            setShowDownloadPopup={setShowDownloadPopup} 
+            isArea={dataset && dataset.datatype == "area"}
+            isDownloaded={isDownloaded}
+            setIsDownloaded={setIsDownloaded}>
+                <h1 className="download-successful-title">Download Successful</h1>
+                <p className="download-successful-instructions">See below for an example of how the dataset can be loaded in Python. Note that the downloaded .zip file must be unpacked
+                    and that relative paths must be updated.
+                </p>
+
+                <div className="download-successful-code">
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                    a<br></br>
+                </div>
+            </DownloadPopup>}
+
+            {/* Download popup - Area */}
+            {showDownloadPopup && isDownloaded && dataset && dataset.datatype == "area" && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup} isArea={dataset && dataset.datatype == "area"}><div title="Download .zip file" className="download-element download-element-area" onClick={areaDatasetDownload}>
                     <p className="download-element-title">Download Dataset</p>
                     <p className="download-element-description">
                         Will download as one big folder, with elements retaining their original filenames. A .json file ({dataset.name}.json) will contain the areas of each element.
