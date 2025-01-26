@@ -79,9 +79,9 @@
 }
 
 .download-popup-container-downloaded {
-    width: 650px;
+    width: 700px;
     max-width: 95%;
-    height: 700px;
+    height: 750px;
     max-height: 95%;
 
     flex-direction: column;
@@ -104,16 +104,76 @@
     background: #0f1218;
     height: 100%;
     max-height: 100%;
-    overflow-y: auto;
+    overflow: auto;
     width: 100%;
     margin-bottom: 20px;
+    box-sizing: border-box;
+    padding: 20px;
+    padding-left: 0;
+    white-space: nowrap;
+}
+
+.download-successful-instructions {
+    color: var(--gray-text);
+    text-align: justify;
+}
+
+.download-successful-code-lines {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 50px;
+    padding-right: 10px;
+    padding-left: 0;
+    box-sizing: border-box;
+    height: 100%;
+    
+}
+
+.code-line {
+    color: var(--gray-text);
+    font-size: 1rem;
+    user-select: none;
+    margin-right: 20px;
+    min-width: 30px;
+    margin-left: 15px;
+    display: inline-block;
 }
 
 .download-successful-code::-webkit-scrollbar{
     width: 8px;
+    height: 8px;
 }
 .download-successful-code::-webkit-scrollbar-thumb {
     border-radius: 0;
+}
+
+.code-tab {
+    margin-left: 30px;
+}
+
+.code-pink {
+    color: rgb(236, 82, 236);
+}
+
+.code-green {
+    color: rgb(39, 175, 84);
+}
+
+.code-lightgreen {
+    color: rgb(150, 253, 205);
+}
+
+.code-orange {
+    color: rgb(204, 114, 54);
+}
+
+.code-yellow {
+    color: rgb(238, 255, 0);
+}
+
+.code-blue {
+    color: rgb(85, 186, 233);
 }
 
 .download-popup {
@@ -152,3 +212,4 @@
 .confirm-popup-confirm:hover {
     background: var(--delete-red);
 }
+
