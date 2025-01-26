@@ -1,7 +1,9 @@
 import React, { useState } from "react"
+import { useNavigate } from "react-router-dom";
 
 // The default page. Login not required.
 function Landing() {
+    const navigate = useNavigate()
     const [transform, setTransform] = useState("");
 
     const handleMouseMove = (e) => {
@@ -23,7 +25,19 @@ function Landing() {
         <div className="landing-container">
             <div className="landing-header">
                 <div className="landing-header-col landing-header-left">
-                    <h1 className="landing-title">Data labeling made easy</h1>
+                    <h1 className="landing-title"><img className="landing-logo" src={window.location.origin + "/static/images/logoWhite.svg"}/>Dalinar.ai</h1>
+                    <p className="landing-description"><span className="landing-pitch">Data labeling made easy.</span> 
+                    Dalinar allows users to <span className="landing-description-highlighted">create and discover</span> 
+                    both classification and area <span className="landing-description-highlighted no-margin">datasets</span>, while being easy to use and providing clear instructions 
+                    how datasets can be loaded into code.
+                    </p>
+
+                    <div className="landing-header-buttons">
+                        <button type="button" className="landing-header-button landing-header-signup" onClick={() => {
+                            window.location.href = window.location.origin + "/accounts/signup/"
+                        }}>Get started</button>
+                        <button type="button" className="landing-header-button landing-header-explore" onClick={() => navigate("/explore")}>Explore datasets</button>
+                    </div>
                 </div>
 
                 <div className="landing-header-col landing-header-right">
