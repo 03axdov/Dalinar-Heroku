@@ -1,6 +1,7 @@
 import React, {useEffect, useState, useRef} from "react"
 import { useParams, useNavigate } from "react-router-dom";
 import DownloadPopup from "../components/DownloadPopup"
+import DownloadCode from "../components/DownloadCode"
 import axios from "axios"
 
 import JSZip from "jszip";
