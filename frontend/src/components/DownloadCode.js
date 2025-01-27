@@ -305,7 +305,7 @@ dataset = dataset.shuffle(buffer_size=1000).batch(batch_size).prefetch(buffer_si
         } else if (framework.toLowerCase() == "pytorch") {
             return (
                 <div className="download-successful-code">
-                    <button className="download-successful-code-copy" onClick={() => copyCode(FILES_TF_TEXT)}>
+                    <button className="download-successful-code-copy" onClick={() => copyCode("")}>
                         <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />
                         Copy
                     </button>
