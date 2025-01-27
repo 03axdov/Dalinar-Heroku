@@ -1014,7 +1014,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
         // Generate the ZIP file and trigger download
         const zipBlob = await zip.generateAsync({ type: "blob" });
-        saveAs(zipBlob, dataset.name + ".zip");
+        saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
         downloadAPICall()
 
@@ -1055,9 +1055,9 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
         // Generate the ZIP file and trigger download
         const zipBlob = await zip.generateAsync({ type: "blob" });
-        //saveAs(zipBlob, dataset.name + ".zip");
+        // saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
-        //downloadAPICall()
+        // downloadAPICall()
 
         setDownloadType("files")
         setIsDownloaded(true)
@@ -1079,7 +1079,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         
         // Generate the ZIP file and trigger download
         const zipBlob = await zip.generateAsync({ type: "blob" });
-        saveAs(zipBlob, dataset.name + ".zip");
+        saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
         downloadAPICall()
 
@@ -1139,7 +1139,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             isArea={dataset && dataset.datatype == "area"}
             isDownloaded={isDownloaded}
             setIsDownloaded={setIsDownloaded}>
-                <h1 className="download-successful-title">Download Successful</h1>
+                <h1 className="download-successful-title">Download Successful <img className="download-successful-icon" src={window.location.origin + "/static/images/blueCheck.png"}/></h1>
                 <p className="download-successful-instructions">See below for an example of how the dataset can be loaded in Python. Note that the downloaded .zip file must be unpacked
                     and that relative paths must be updated. Also note that the instructions provided are for image datasets.
                 </p>

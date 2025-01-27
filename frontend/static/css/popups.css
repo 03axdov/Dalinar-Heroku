@@ -96,6 +96,15 @@
     padding: 0 20px;
     padding-bottom: 10px;
     border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.download-successful-icon {
+    height: 40px;
+    width: 40px;
+    margin-left: 15px;
 }
 
 .download-successful-code {
@@ -134,7 +143,7 @@
 .download-successful-code-copy {
     position: absolute;
     top: 10px;
-    right: 10px;
+    right: 20px;
     font-size: 0.9rem;
     padding: 3px 7px;
     background: var(--sidebar-button);
@@ -147,6 +156,11 @@
     height: 17px;
     width: 17px;
     margin-right: 10px;
+}
+
+.code-copied-icon {
+    height: 7px;
+    margin-right: 7px;
 }
 
 .download-successful-instructions {

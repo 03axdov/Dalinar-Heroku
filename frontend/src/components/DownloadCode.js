@@ -3,8 +3,17 @@ import React, { useState } from "react"
 // The def ault page. Login not required.
 function DownloadCode({name, datatype, framework, downloadType}) {
 
+    const [copied, setCopied] = useState(false)
+
     function copyCode(text) {
         navigator.clipboard.writeText(text)
+        .then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000); // Clear status after 2 seconds
+        })
+        .catch(() => {    
+
+        });
     }
 
     const FOLDERS_TF_TEXT = `import tensorflow as tf
@@ -95,8 +104,9 @@ dataset = dataset.shuffle(buffer_size=1000).batch(batch_size).prefetch(buffer_si
             return (
                 <div className="download-successful-code">
                     <button className="download-successful-code-copy" onClick={() => copyCode(FOLDERS_TF_TEXT)}>
-                        <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />
-                        Copy
+                        {!copied && <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />}
+                        {copied && <img className="code-copied-icon" src={window.location.origin + "/static/images/check.png"} />}
+                        {copied ? "Copied" : "Copy"}
                     </button>
 
                     <div className="download-successful-code-inner">
@@ -125,8 +135,9 @@ dataset = dataset.shuffle(buffer_size=1000).batch(batch_size).prefetch(buffer_si
             return (
                 <div className="download-successful-code">
                     <button className="download-successful-code-copy" onClick={() => copyCode(FOLDERS_PT_TEXT)}>
-                        <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />
-                        Copy
+                        {!copied && <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />}
+                        {copied && <img className="code-copied-icon" src={window.location.origin + "/static/images/check.png"} />}
+                        {copied ? "Copied" : "Copy"}
                     </button>
 
                     <div className="download-successful-code-inner">
@@ -173,8 +184,9 @@ dataset = dataset.shuffle(buffer_size=1000).batch(batch_size).prefetch(buffer_si
             return (
                 <div className="download-successful-code">
                     <button className="download-successful-code-copy" onClick={() => copyCode(FILENAMES_TF_TEXT)}>
-                        <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />
-                        Copy
+                        {!copied && <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />}
+                        {copied && <img className="code-copied-icon" src={window.location.origin + "/static/images/check.png"} />}
+                        {copied ? "Copied" : "Copy"}
                     </button>
 
                     <div className="download-successful-code-inner">
@@ -306,12 +318,13 @@ dataset = dataset.shuffle(buffer_size=1000).batch(batch_size).prefetch(buffer_si
             return (
                 <div className="download-successful-code">
                     <button className="download-successful-code-copy" onClick={() => copyCode("")}>
-                        <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />
-                        Copy
+                        {!copied && <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />}
+                        {copied && <img className="code-copied-icon" src={window.location.origin + "/static/images/check.png"} />}
+                        {copied ? "Copied" : "Copy"}
                     </button>
 
                     <div className="download-successful-code-inner">
-                        Not yet added.
+                        
                     </div>
                 </div>
             )

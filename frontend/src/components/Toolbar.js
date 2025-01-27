@@ -20,7 +20,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn}) {
 
             <p className="toolbar-text" onClick={() => {
                 navigate("/about")
-            }}>About</p>
+            }}>Guide</p>
 
             {!loadingCurrentProfile && currentProfile.user === "" &&
                 <div className="toolbar-auth">
