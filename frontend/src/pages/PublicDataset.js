@@ -35,6 +35,8 @@ function PublicDataset() {
     const [showDatasetDescription, setShowDatasetDescription] = useState(true)  // True for public datasets
 
     const [isDownloaded, setIsDownloaded] = useState(false)
+    const [downloadFramework, setDownloadFramework] = useState("tensorflow")
+    const [downloadType, setDownloadType] = useState("folders")
 
     const [updateArea, setUpdateArea] = useState(false)
 
@@ -391,8 +393,8 @@ function PublicDataset() {
 
         downloadAPICall()
 
+        setDownloadType("folders")
         setIsDownloaded(true)
-        
     }
 
     async function labelFilenamesDownload() {
@@ -430,6 +432,9 @@ function PublicDataset() {
         saveAs(zipBlob, dataset.name + ".zip");
 
         downloadAPICall()
+
+        setDownloadType("files")
+        setIsDownloaded(true)
     }
 
     async function areaDatasetDownload() {
@@ -495,26 +500,14 @@ function PublicDataset() {
                 <p className="download-successful-instructions">See below for an example of how the dataset can be loaded in Python. Note that the downloaded .zip file must be unpacked
                     and that relative paths must be updated.
                 </p>
-                
-                <div className="download-successful-code">
-                    <span className="code-line">1</span><span className="code-pink">import</span> tensorflow <span className="code-pink">as</span> tf<br />
-                    <span className="code-line">2</span><br />
-                    <span className="code-line">3</span><span className="code-green"># Relative path to your datasets</span><br />
-                    <span className="code-line">4</span>DATASET_PATH = <span className="code-orange">"/{dataset ? dataset.name.replaceAll(" ", "_") : ""}"</span><br />
-                    <span className="code-line">5</span><br />
-                    <span className="code-line">6</span><span className="code-green"># Parameters (change as needed)</span><br />
-                    <span className="code-line">7</span>batch_size = <span className="code-lightgreen">32</span><br />
-                    <span className="code-line">8</span>img_height = <span className="code-lightgreen">512</span>  <span className="code-green code-tab"># Resize height</span><br />
-                    <span className="code-line">9</span>img_width = <span className="code-lightgreen">512</span>   <span className="code-green code-tab"># Resize width</span><br />
-                    <span className="code-line">10</span><br />
-                    <span className="code-line">11</span><span className="code-green"># Load the dataset</span><br />
-                    <span className="code-line">12</span>train_dataset = tf.keras.preprocessing.image_dataset_from_directory<span className="code-yellow">(</span><br />
-                    <span className="code-line">13</span>    <span className="code-tab"></span>DATASET_PATH,<br />
-                    <span className="code-line">14</span>    <span className="code-tab"></span><span className="code-blue">image_size</span>=<span className="code-pink">(</span>img_height, img_width<span className="code-pink">)</span>,<br />
-                    <span className="code-line">15</span>    <span className="code-tab"></span><span className="code-blue">batch_size</span>=batch_size,<br />
-                    <span className="code-line">16</span>    <span className="code-tab"></span><span className="code-blue">label_mode</span>=<span className="code-orange">'categorical'</span><br />
-                    <span className="code-line">17</span><span className="code-yellow">)</span><br />
+
+                <div className="download-frameworks-container">
+                    <div onClick={() => setDownloadFramework("tensorflow")} 
+                        className={"download-framework " + (downloadFramework != "tensorflow" ? "download-framework-disabled" : "")}>TensorFlow</div>
+                    <div onClick={() => setDownloadFramework("pytorch")} className={"download-framework " + (downloadFramework != "pytorch" ? "download-framework-disabled" : "")} >PyTorch</div>
                 </div>
+                
+                <DownloadCode name={dataset.name} datatype={dataset.datatype} framework={downloadFramework} downloadType={downloadType} />
             </DownloadPopup>}
 
             {/* Download popup - Area */}
@@ -583,7 +576,7 @@ function PublicDataset() {
                         <img className="dataset-title-expand-icon" src={window.location.origin + "/static/images/" + (!showDatasetDescription ? "plus.png" : "minus.png")} />
                     </div>}
 
-                    <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>
+                    {dataset && <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>}
                 </div>
                 
                 <div className="dataset-main-display">

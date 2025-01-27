@@ -53,6 +53,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
     const [isDownloaded, setIsDownloaded] = useState(false)
     const [downloadFramework, setDownloadFramework] = useState("tensorflow")
+    const [downloadType, setDownloadType] = useState("folders")
 
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
@@ -982,6 +983,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     }
 
     async function labelFoldersDownload() {
+        
         const zip = new JSZip();
 
         const labelToFolder = {
@@ -1016,6 +1018,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
         //downloadAPICall()
 
+        setDownloadType("folders")
         setIsDownloaded(true)
         
     }
@@ -1056,6 +1059,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
         downloadAPICall()
 
+        setDownloadType("files")
         setIsDownloaded(true)
     }
 
@@ -1137,7 +1141,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             setIsDownloaded={setIsDownloaded}>
                 <h1 className="download-successful-title">Download Successful</h1>
                 <p className="download-successful-instructions">See below for an example of how the dataset can be loaded in Python. Note that the downloaded .zip file must be unpacked
-                    and that relative paths must be updated.
+                    and that relative paths must be updated. Also note that the instructions provided are for image datasets.
                 </p>
                 
                 <div className="download-frameworks-container">
@@ -1146,7 +1150,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     <div onClick={() => setDownloadFramework("pytorch")} className={"download-framework " + (downloadFramework != "pytorch" ? "download-framework-disabled" : "")} >PyTorch</div>
                 </div>
 
-                <DownloadCode name={dataset.name} datatype={dataset.datatype} framework={downloadFramework} />
+                <DownloadCode name={dataset.name} datatype={dataset.datatype} framework={downloadFramework} downloadType={downloadType} />
             </DownloadPopup>}
 
             {/* Download popup - Area */}
@@ -1306,7 +1310,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                         Edit dataset
                     </button>}
 
-                    <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>
+                    {dataset && <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>}
                     
                     <div title="Will show color of pressed label" className="dataset-main-label-clicked" style={{background: datasetMainLabelColor}}></div>
                 </div>

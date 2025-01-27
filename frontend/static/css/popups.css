@@ -79,9 +79,9 @@
 }
 
 .download-popup-container-downloaded {
-    width: 700px;
+    width: 725px;
     max-width: 95%;
-    height: 750px;
+    height: 800px;
     max-height: 95%;
 
     flex-direction: column;
@@ -174,27 +174,31 @@
 }
 
 .code-pink {
-    color: rgb(236, 82, 236);
+    color: #C586C0;
 }
 
 .code-green {
-    color: rgb(39, 175, 84);
+    color: #48995c;
 }
 
 .code-lightgreen {
-    color: rgb(150, 253, 205);
+    color: #94CE89;
 }
 
 .code-orange {
-    color: rgb(204, 114, 54);
+    color: #d48557;
 }
 
 .code-yellow {
-    color: rgb(238, 255, 0);
+    color: #DBD70A;
 }
 
 .code-blue {
-    color: rgb(85, 186, 233);
+    color: #3db8ff;
+}
+
+.code-lightblue {
+    color: #9CDCFE;
 }
 
 .download-popup {
