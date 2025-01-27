@@ -450,23 +450,7 @@ function PublicDataset() {
         const zipBlob = await zip.generateAsync({ type: "blob" });
         saveAs(zipBlob, dataset.name + ".zip");
 
-        const URL = window.location.origin + '/api/download-dataset/'
-        const config = {headers: {'Content-Type': 'application/json'}}
-
-        let data = {
-            "id": dataset.id
-        }
-
-        axios.defaults.withCredentials = true;
-        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-        axios.defaults.xsrfCookieName = 'csrftoken';    
-
-        axios.post(URL, data, config)
-        .then((data) => {
-            console.log("Incremented download count.")
-        }).catch((error) => {
-            console.log("Error:" + error)
-        })
+        downloadAPICall()
     }
 
     // FRONTEND FUNCTIONALITY
@@ -481,7 +465,7 @@ function PublicDataset() {
             isDownloaded={isDownloaded}
             setIsDownloaded={setIsDownloaded}>
                     <div title="Download .zip file" className="download-element" onClick={labelFoldersDownload}>
-                        <p className="download-element-title">Folders for labels</p>
+                        <p className="download-element-title">Folders for labels <span className="download-recommended">(recommended)</span></p>
                         <p className="download-element-description">
                             Every label will have its own folder containing the elements with that label.
                         </p>
@@ -548,9 +532,6 @@ function PublicDataset() {
             <div className="dataset-elements">
                 <div className="dataset-elements-scrollable">
                     <p className="dataset-sidebar-title">Elements</p>
-                    <div className="dataset-sidebar-button-container">
-                        <button className="sidebar-button dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>
-                    </div>
                     
                     {elements.map((element, idx) => (
                         <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
@@ -601,7 +582,8 @@ function PublicDataset() {
 
                         <img className="dataset-title-expand-icon" src={window.location.origin + "/static/images/" + (!showDatasetDescription ? "plus.png" : "minus.png")} />
                     </div>}
-                    {dataset && <p className="dataset-ownername gray-text">created by {dataset.ownername}</p>}
+
+                    <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>
                 </div>
                 
                 <div className="dataset-main-display">
@@ -632,6 +614,7 @@ function PublicDataset() {
                                 </div>}
                             </div>
 
+                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p><br></br>
                             {(dataset.description ? <p className="dataset-description-text"><span className="dataset-description-start">Description: </span>{dataset.description}</p> : "This dataset does not have a description.")}
 
                             {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">

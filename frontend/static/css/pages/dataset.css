@@ -273,7 +273,7 @@
     cursor: pointer;
 }
 
-.dataset-title-button {
+.dataset-title-button, .dataset-download-button {
     height: 35px;
     background: var(--sidebar-button);
     border-radius: 3px;
@@ -605,7 +605,7 @@
     display: hidden;
 }
 
-.dataset-download-button, .dataset-show-keybinds-button {
+.dataset-show-keybinds-button {
     width: 100%;
     border-radius: 3px;
     transition: 0.1s;
@@ -615,7 +615,7 @@
     justify-content: center;
 }
 
-.dataset-download-button:hover, .dataset-show-keybinds-button:hover {
+.dataset-show-keybinds-button:hover {
     background: var(--blue);
 }
 
@@ -692,6 +692,15 @@
     padding: 0 5px;
     padding-bottom: 2px;
     border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.download-recommended {
+    font-size: 0.8rem;
+    margin-left: 10px;
+    color: var(--gray-text);
 }
 
 .download-element-description {

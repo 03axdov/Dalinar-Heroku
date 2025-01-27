@@ -99,7 +99,7 @@
 }
 
 .download-successful-code {
-    margin-top: 20px;
+    margin-top: 5px;
     border-radius: 3px;
     background: #0f1218;
     height: 100%;
@@ -118,16 +118,37 @@
     text-align: justify;
 }
 
-.download-successful-code-lines {
+.download-frameworks-container {
+    border-radius: 3px;
+    padding: 3px 0;
+    background: #0f1218;
+    margin-right: auto;
+    margin-left: 0;
+    margin-top: 20px;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 50px;
-    padding-right: 10px;
-    padding-left: 0;
+    flex-direction: row;
     box-sizing: border-box;
+}
+
+.download-framework {
+    width: 50%;
     height: 100%;
-    
+    text-align: center;
+    padding: 0 10px;
+    font-size: 1rem;
+    user-select: none;
+}
+
+.download-framework:hover {
+    cursor: pointer;
+}
+
+.download-framework-disabled {
+    color: var(--grayer-text);
+}
+
+.download-framework-disabled:hover {
+    color: var(--gray-text);
 }
 
 .code-line {

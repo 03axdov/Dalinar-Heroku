@@ -5,6 +5,7 @@ import axios from "axios"
 
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import DownloadCode from "../components/DownloadCode";
 
 
 const TOOLBAR_HEIGHT = 60
@@ -49,6 +50,9 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
 
     const [showDatasetDescription, setShowDatasetDescription] = useState(false)
+
+    const [isDownloaded, setIsDownloaded] = useState(false)
+    const [downloadFramework, setDownloadFramework] = useState("tensorflow")
 
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
@@ -952,12 +956,38 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
     // DOWNLOAD FUNCTIONALITY
 
+    function downloadAPICall() {
+        const URL = window.location.origin + '/api/download-dataset/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": dataset.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            console.log("Incremented download count.")
+        }).catch((error) => {
+            if (error.status == 401) {
+                console.log("Did not increment download counter as user is not signed in.")
+            } else {
+                console.log("Error: ", error)
+            }
+            
+        })
+    }
+
     async function labelFoldersDownload() {
         const zip = new JSZip();
 
         const labelToFolder = {
 
         }
+
 
         for (let i=0; i < elements.length; i++) {
 
@@ -978,28 +1008,15 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
             labelToFolder[label.id].file(filename, blob);
         }
+        
 
         // Generate the ZIP file and trigger download
         const zipBlob = await zip.generateAsync({ type: "blob" });
-        saveAs(zipBlob, dataset.name + ".zip");
+        //saveAs(zipBlob, dataset.name + ".zip");
 
-        const URL = window.location.origin + '/api/download-dataset/'
-        const config = {headers: {'Content-Type': 'application/json'}}
+        //downloadAPICall()
 
-        let data = {
-            "id": dataset.id
-        }
-
-        axios.defaults.withCredentials = true;
-        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-        axios.defaults.xsrfCookieName = 'csrftoken';    
-
-        axios.post(URL, data, config)
-        .then((data) => {
-            console.log("Incremented download count.")
-        }).catch((error) => {
-            console.log("Error:" + error)
-        })
+        setIsDownloaded(true)
         
     }
 
@@ -1031,29 +1048,15 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             zip.file(filename, blob);
             labelToNbr[label.id] += 1
         }
+        
 
         // Generate the ZIP file and trigger download
         const zipBlob = await zip.generateAsync({ type: "blob" });
         saveAs(zipBlob, dataset.name + ".zip");
 
-        const URL = window.location.origin + '/api/download-dataset/'
-        const config = {headers: {'Content-Type': 'application/json'}}
+        downloadAPICall()
 
-        let data = {
-            "id": dataset.id
-        }
-
-        axios.defaults.withCredentials = true;
-        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-        axios.defaults.xsrfCookieName = 'csrftoken';    
-
-        axios.post(URL, data, config)
-        .then((data) => {
-            console.log("Incremented download count.")
-        }).catch((error) => {
-            console.log("Error:" + error)
-        })
-        
+        setIsDownloaded(true)
     }
 
     async function areaDatasetDownload() {
@@ -1074,23 +1077,9 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         const zipBlob = await zip.generateAsync({ type: "blob" });
         saveAs(zipBlob, dataset.name + ".zip");
 
-        const URL = window.location.origin + '/api/download-dataset/'
-        const config = {headers: {'Content-Type': 'application/json'}}
+        downloadAPICall()
 
-        let data = {
-            "id": dataset.id
-        }
-
-        axios.defaults.withCredentials = true;
-        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-        axios.defaults.xsrfCookieName = 'csrftoken';    
-
-        axios.post(URL, data, config)
-        .then((data) => {
-            console.log("Incremented download count.")
-        }).catch((error) => {
-            console.log("Error:" + error)
-        })
+        setIsDownloaded(true)
     }
 
 
@@ -1113,9 +1102,14 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef}>
 
-            {showDownloadPopup && dataset && dataset.datatype == "classification" && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup} isArea={dataset && dataset.datatype == "area"}>
+            {/* Download popup - Classification */}
+            {showDownloadPopup && !isDownloaded && dataset && dataset.datatype == "classification" && <DownloadPopup 
+            setShowDownloadPopup={setShowDownloadPopup} 
+            isArea={dataset && dataset.datatype == "area"}
+            isDownloaded={isDownloaded}
+            setIsDownloaded={setIsDownloaded}>
                     <div title="Download .zip file" className="download-element" onClick={labelFoldersDownload}>
-                        <p className="download-element-title">Folders for labels</p>
+                        <p className="download-element-title">Folders for labels <span className="download-recommended">(recommended)</span></p>
                         <p className="download-element-description">
                             Every label will have its own folder containing the elements with that label.
                         </p>
@@ -1135,7 +1129,28 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     </div>
             </DownloadPopup>}
 
-            {showDownloadPopup && dataset && dataset.datatype == "area" && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup} isArea={dataset && dataset.datatype == "area"}><div title="Download .zip file" className="download-element download-element-area" onClick={areaDatasetDownload}>
+            {/* After download popup - Classification */}
+            {showDownloadPopup && isDownloaded && dataset && dataset.datatype == "classification" && <DownloadPopup 
+            setShowDownloadPopup={setShowDownloadPopup} 
+            isArea={dataset && dataset.datatype == "area"}
+            isDownloaded={isDownloaded}
+            setIsDownloaded={setIsDownloaded}>
+                <h1 className="download-successful-title">Download Successful</h1>
+                <p className="download-successful-instructions">See below for an example of how the dataset can be loaded in Python. Note that the downloaded .zip file must be unpacked
+                    and that relative paths must be updated.
+                </p>
+                
+                <div className="download-frameworks-container">
+                    <div onClick={() => setDownloadFramework("tensorflow")} 
+                        className={"download-framework " + (downloadFramework != "tensorflow" ? "download-framework-disabled" : "")}>TensorFlow</div>
+                    <div onClick={() => setDownloadFramework("pytorch")} className={"download-framework " + (downloadFramework != "pytorch" ? "download-framework-disabled" : "")} >PyTorch</div>
+                </div>
+
+                <DownloadCode name={dataset.name} datatype={dataset.datatype} framework={downloadFramework} />
+            </DownloadPopup>}
+
+            {/* Download popup - Area */}
+            {showDownloadPopup && isDownloaded && dataset && dataset.datatype == "area" && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup} isArea={dataset && dataset.datatype == "area"}><div title="Download .zip file" className="download-element download-element-area" onClick={areaDatasetDownload}>
                     <p className="download-element-title">Download Dataset</p>
                     <p className="download-element-description">
                         Will download as one big folder, with elements retaining their original filenames. A .json file ({dataset.name}.json) will contain the areas of each element.
@@ -1154,9 +1169,6 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             <div className="dataset-elements">
                 <div className="dataset-elements-scrollable">
                     <p className="dataset-sidebar-title">Elements</p>
-                    <div className="dataset-sidebar-button-container">
-                        <button className="sidebar-button dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>
-                    </div>
                     
                     <div className="dataset-sidebar-button-container">
                         <button type="button" className="sidebar-button" onClick={folderInputClick}>+ Upload folder</button>
@@ -1293,6 +1305,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                         <img className="dataset-title-edit-icon" src={window.location.origin + "/static/images/edit.png"}/>
                         Edit dataset
                     </button>}
+
+                    <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>
                     
                     <div title="Will show color of pressed label" className="dataset-main-label-clicked" style={{background: datasetMainLabelColor}}></div>
                 </div>
@@ -1327,6 +1341,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                                 </div>}
                             </div>
 
+                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p><br></br>
                             {(dataset.description ? <p className="dataset-description-text"><span className="dataset-description-start">Description: </span>{dataset.description}</p> : "This dataset does not have a description.")}
 
                             {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">
