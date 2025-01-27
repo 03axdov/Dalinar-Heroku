@@ -81,7 +81,7 @@
 .download-popup-container-downloaded {
     width: 725px;
     max-width: 95%;
-    height: 800px;
+    height: 750px;
     max-height: 95%;
 
     flex-direction: column;
@@ -108,9 +108,30 @@
     width: 100%;
     margin-bottom: 20px;
     box-sizing: border-box;
-    padding: 20px;
+    padding-right: 20px;
     padding-left: 0;
+    padding-top: 10px;
+    padding-bottom: 5px;
     white-space: nowrap;
+    position: relative;
+}
+
+.download-successful-code-copy {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.9rem;
+    padding: 3px 7px;
+    background: var(--sidebar-button);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.code-copy-icon {
+    height: 17px;
+    width: 17px;
+    margin-right: 10px;
 }
 
 .download-successful-instructions {

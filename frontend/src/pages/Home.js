@@ -109,6 +109,7 @@ function Home({currentProfile}) {
             <button className="sidebar-button" onClick={() => {
                 navigate("/create-dataset")
             }}>+ Create dataset</button>
+            <button title="Work in progress" className="sidebar-button sidebar-button-disabled create-model">+ Create model</button>
 
             <div className="explore-datasets-types-container">
                 <div className="explore-datasets-type">

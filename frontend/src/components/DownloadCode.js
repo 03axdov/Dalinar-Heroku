@@ -3,10 +3,57 @@ import React, { useState } from "react"
 // The default page. Login not required.
 function DownloadCode({name, datatype, framework, downloadType}) {
 
+    function copyCode(text) {
+        navigator.clipboard.writeText(text)
+    }
+
+    const FOLDERS_TF_TEXT = `import tensorflow as tf
+
+# Define the paths to your dataset directories
+train_dir = 'path_to_your_dataset/train'
+val_dir = 'path_to_your_dataset/validation'
+
+# Set parameters
+batch_size = 32
+img_height = 224  # Resize height
+img_width = 224   # Resize width
+
+# Load the training dataset
+train_dataset = tf.keras.preprocessing.image_dataset_from_directory(
+    train_dir,
+    image_size=(img_height, img_width),
+    batch_size=batch_size,
+    label_mode='categorical'  # 'categorical', 'binary', or None
+)`
+
+    const FOLDERS_PT_TEXT = `import torch
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+
+# Define transformations for data preprocessing
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),  # Resize all images to 224x224
+    transforms.ToTensor(),          # Convert image to PyTorch tensor
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize to ImageNet standards
+])
+
+# Define the paths to your dataset directories
+train_dir = 'path_to_your_dataset/train'
+val_dir = 'path_to_your_dataset/validation'
+
+# Load the training dataset
+train_dataset = datasets.ImageFolder(root=train_dir, transform=transform)
+    `
+
     if (downloadType == "folders") {
         if (datatype.toLowerCase() == "classification" && framework.toLowerCase() == "tensorflow") {
             return (
                 <div className="download-successful-code">
+                    <button className="download-successful-code-copy" onClick={() => copyCode(FOLDERS_TF_TEXT)}>
+                        <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />
+                        Copy
+                    </button>
+
                     <span className="code-line">1</span><span className="code-pink">import</span> tensorflow <span className="code-pink">as</span> tf<br />
                     <span className="code-line">2</span><br />
                     <span className="code-line">3</span><span className="code-green"># Relative path to your datasets</span><br />
@@ -29,6 +76,11 @@ function DownloadCode({name, datatype, framework, downloadType}) {
         } else if (true) {
             return (
                 <div className="download-successful-code">
+                    <button className="download-successful-code-copy" onClick={() => copyCode(FOLDERS_PT_TEXT)}>
+                        <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />
+                        Copy
+                    </button>
+
                     <span className="code-line">1</span><span className="code-pink">import</span> torch<br />
                     <span className="code-line">2</span><span className="code-pink">from</span> torch.utils.data <span className="code-pink">import</span> DataLoader<br />
                     <span className="code-line">3</span><span className="code-pink">from</span> torchvision <span className="code-pink">import</span> datasets, transforms<br />
@@ -69,13 +121,13 @@ function DownloadCode({name, datatype, framework, downloadType}) {
     } else if (downloadType == "files") {
         if (datatype.toLowerCase() == "classification" && framework.toLowerCase() == "tensorflow") {
             return (
-                <div className="download-successful-code">
+                <div className="download-successful-code" ref={codeRef}>
                     
                 </div>
             )
         } else if (true) {
             return (
-                <div className="download-successful-code">
+                <div className="download-successful-code" ref={codeRef}>
                     
                 </div>
             )

@@ -107,6 +107,7 @@ function Explore({checkLoggedIn}) {
             <button className="sidebar-button" onClick={() => {
                 checkLoggedIn("/create-dataset")
             }}>+ Create dataset</button>
+            <button title="Work in progress" className="sidebar-button sidebar-button-disabled create-model">+ Create model</button>
 
             <div className="explore-datasets-types-container">
                 <div className="explore-datasets-type">
