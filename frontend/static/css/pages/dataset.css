@@ -656,6 +656,10 @@
     margin-left: auto;
     margin-right: 5px;
     border-radius: 3px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dataset-sidebar-label-keybind:hover {
@@ -671,6 +675,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     margin-right: 5px;
+    min-width: 25px;
 }
 
 .dataset-sidebar-element-name-edit {

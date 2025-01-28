@@ -87,6 +87,12 @@ input::placeholder {
     -moz-osx-font-smoothing: grayscale; /* For Firefox on macOS */
 }
 
+@media all and (max-width: 1250px) {
+    :root {
+        --form-width: 500px;
+    }
+}
+
 @media all and (max-width: 975px) {
     :root {
         --home-sidebar-width: 155px;
@@ -99,5 +105,11 @@ input::placeholder {
     :root {
         --dataset-elements-width: 135px;
         --dataset-labels-width: 135px;
+    }
+}
+
+@media all and (max-width: 900px) {
+    :root {
+        --form-width: 100%;
     }
 }
