@@ -9,6 +9,8 @@ function Guide() {
     const [downloadFramework1, setDownloadFramework1] = useState("tensorflow")
     const [downloadFramework2, setDownloadFramework2] = useState("tensorflow")
 
+    const [areaImageIsDark, setAreaImageIsDark] = useState(false)
+
     return (
         <div className="guide-container">
             <div className="guide-toolbar">
@@ -18,7 +20,7 @@ function Guide() {
                     </div>
                 <div className={"guide-toolbar-element " + (currentInstructions == "area" ? "guide-toolbar-element-selected": "")}
                 onClick={() => setCurrentInstructions("area")}>
-                    Area Labels
+                    Area Labeling
                 </div>
             </div>
 
@@ -29,7 +31,7 @@ function Guide() {
                         Note that the code provided applies to image datasets, and that the method used (folders as labels or filenames as labels) must be taken into account.
                     </p>
                 </div>}
-                {currentInstructions == "download" && <div className="download-instructions-container">
+                {currentInstructions == "download" && <div className="instructions-container">
                     <div className="download-instructions-element">
                         <h1 className="download-instructions-title">Folders as labels</h1>
 
@@ -52,6 +54,32 @@ function Guide() {
                         </div>
 
                         <DownloadCode name="YOUR_DATASET" datatype="classification" framework={downloadFramework2} downloadType="files"/>
+                    </div>
+                </div>}
+
+                {currentInstructions == "area" && <div className="instructions-header">
+                    <h1 className="instructions-title">Area Labelling</h1>
+                    <p className="instructions-text">
+                        Area labels can be used to highlight sections of images, identifying them as the label used, e.g. a car.
+                        See the image below for more information.
+                    </p>
+                </div>}
+                {currentInstructions == "area" && <div className="instructions-container">
+                    <div className="instructions-area-container" onMouseEnter={() => setAreaImageIsDark(true)} onMouseLeave={() => setAreaImageIsDark(false)}>
+                        <img className={"instructions-area-image " + (areaImageIsDark ? "instructions-area-image-disabled" : "")} src={window.location.origin + "/static/images/examplePage.jpg"} />
+                        
+                        <div className="instructions-area-comment" style={{top: "14%", right: "14%"}}>
+                            Clicking on a label or applying its keybind selects it.
+                        </div>
+                        
+                        <div className="instructions-area-comment" style={{bottom: "20%", right: "1%"}}>
+                            Areas added to the current element are listed here.
+                            The number of points is shown to the right. Clicking on an area selects it.
+                        </div>
+
+                        <div className="instructions-area-comment" style={{bottom: "7%", right: "25%"}}>
+                            Areas consist of an arbitrary number of points. 
+                            Clicking on the image with a label or area selected adds a point to that area.</div>
                     </div>
                 </div>}
             </div>
