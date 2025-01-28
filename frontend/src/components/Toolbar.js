@@ -14,7 +14,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn}) {
                 checkLoggedIn("/home")
             }}>Home</p>
 
-<           p className="toolbar-text" onClick={() => {
+            <p className="toolbar-text" onClick={() => {
                 navigate("/explore") 
             }}>Explore</p>
 

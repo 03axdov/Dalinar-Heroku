@@ -1056,9 +1056,9 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
         // Generate the ZIP file and trigger download
         const zipBlob = await zip.generateAsync({ type: "blob" });
-        // saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
+        saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
-        // downloadAPICall()
+        downloadAPICall()
 
         setDownloadType("files")
         setIsDownloaded(true)
