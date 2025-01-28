@@ -2,13 +2,15 @@ import React, { useState } from "react"
 import { useNavigate } from "react-router-dom";
 
 // The default page. Login not required.
-function About() {
+function Guide() {
     const navigate = useNavigate()
     return (
-        <div className="about-container">
-            About
+        <div className="guide-container">
+            <div className="home-sidebar">
+
+            </div>
         </div>
     )
 }
 
-export default About
+export default Guide

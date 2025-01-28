@@ -59,6 +59,10 @@ class Dataset(models.Model):
         return self.name
 
 
+@receiver(post_delete, sender=Dataset)
+def delete_dataset_image(sender, instance, **kwargs):
+    if instance.image:
+        instance.image.delete(save=False)
     
 # LABELS
 # Elements in datasets, such as files, are given labels
@@ -94,6 +98,12 @@ class Element(models.Model):
             self.name = os.path.basename(self.file.name)
             print(self.file.name)
         super().save(*args, **kwargs)
+        
+        
+@receiver(post_delete, sender=Element)
+def delete_element_file(sender, instance, **kwargs):
+    if instance.file:
+        instance.file.delete(save=False)
 
 
 # MISCELLANEOUS

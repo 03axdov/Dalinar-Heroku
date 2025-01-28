@@ -31,12 +31,19 @@ function Landing() {
                     both classification and area <span className="landing-description-highlighted no-margin">datasets</span>, while being easy to use and providing clear instructions 
                     how datasets can be loaded into code.
                     </p>
+                    
 
                     <div className="landing-header-buttons">
                         <button type="button" className="landing-header-button landing-header-signup" onClick={() => {
                             window.location.href = window.location.origin + "/accounts/signup/"
                         }}>Get started</button>
                         <button type="button" className="landing-header-button landing-header-explore" onClick={() => navigate("/explore")}>Explore datasets</button>
+                    </div>
+
+                    <div className="landing-support-container">
+                        <p className="landing-support-text">Dalinar currently has code support for 
+                            <span className="tensorflow"><img className="landing-support-logo" src={window.location.origin + "/static/images/tensorflow.png"} />TensorFlow </span> 
+                            and <span className="pytorch"><img className="landing-support-logo" src={window.location.origin + "/static/images/pytorch.png"} />PyTorch</span>, but created datasets can be used in any way.</p>
                     </div>
                 </div>
 

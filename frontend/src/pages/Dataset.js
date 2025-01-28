@@ -1312,7 +1312,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
                     {dataset && <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>}
                     
-                    <div title="Will show color of pressed label" className="dataset-main-label-clicked" style={{background: datasetMainLabelColor}}></div>
+                    {dataset && dataset.datatype == "classification" && <div title="Will show color of pressed label" className="dataset-main-label-clicked" style={{background: datasetMainLabelColor}}></div>}
                 </div>
                 
                 <div className="dataset-main-display">
