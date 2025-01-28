@@ -86,3 +86,11 @@ input::placeholder {
     -webkit-font-smoothing: antialiased; /* For WebKit browsers */
     -moz-osx-font-smoothing: grayscale; /* For Firefox on macOS */
 }
+
+@media all and (max-width: 975px) {
+    :root {
+        --home-sidebar-width: 155px;
+        --dataset-elements-width: 155px;
+        --dataset-labels-width: 155px;
+    }
+}

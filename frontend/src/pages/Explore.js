@@ -132,22 +132,25 @@ function Explore({checkLoggedIn}) {
                 <div className="explore-datasets-title-container">
                     <h2 className="explore-datasets-title">Public Datasets</h2>
 
-                    <select title="Sort by" className="explore-datasets-sort" value={sort} onChange={(e) => {
-                        setSort(e.target.value)
-                    }}>
-                        <option value="downloads">Downloads</option>
-                        <option value="elements">Elements</option>
-                        <option value="labels">Labels</option>
-                        <option value="alphabetical">Alphabetical</option>
-                        <option value="date">Date</option>
-                    </select>
-                    
-                    <div className="explore-datasets-search-container">
-                        <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
-                                setSearch(e.target.value)
-                        }} /> 
-                        <img className="explore-datasets-search-icon" src={window.location.origin + "/static/images/search.png"} />
+                    <div className="title-forms">
+                        <select title="Sort by" className="explore-datasets-sort" value={sort} onChange={(e) => {
+                            setSort(e.target.value)
+                        }}>
+                            <option value="downloads">Downloads</option>
+                            <option value="elements">Elements</option>
+                            <option value="labels">Labels</option>
+                            <option value="alphabetical">Alphabetical</option>
+                            <option value="date">Date</option>
+                        </select>
+                        
+                        <div className="explore-datasets-search-container">
+                            <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
+                                    setSearch(e.target.value)
+                            }} /> 
+                            <img className="explore-datasets-search-icon" src={window.location.origin + "/static/images/search.png"} />
+                        </div>
                     </div>
+                    
 
                     
                 </div>

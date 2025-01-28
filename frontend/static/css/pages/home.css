@@ -38,6 +38,7 @@
     display: inline-block;
     width: 280px;
     box-sizing: border-box;
+    white-space: nowrap;
 }
 
 .my-datasets-container {
