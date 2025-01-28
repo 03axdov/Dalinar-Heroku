@@ -1,6 +1,61 @@
 .guide-container {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     height: 100%;
     width: 100%;
+}
+
+.guide-toolbar{
+    width: 100%;
+    height: 45px;
+    background: var(--toolbar-dark);
+    padding: 0 40px;
+    display: flex;
+    box-sizing: border-box;
+    flex-direction: row;
+    align-items: center;
+}
+
+.guide-toolbar-element {
+    font-size: 1rem;
+    border-radius: 3px;
+    padding: 3px 10px;
+    cursor: pointer;
+    margin-right: 20px;
+}
+
+.guide-toolbar-element:hover {
+    box-shadow: 0 0 0 1px var(--border);
+}
+
+.guide-toolbar-element-selected {
+    background: var(--toolbar-lighter)
+}
+
+.guide-main {
+    height: calc(100% - 45px);
+    width: 100%;
+}
+
+.download-instructions-container {
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 40px;
+}
+
+.download-instructions-element {
+    width: 600px;
+    height: 500px;
+    box-sizing: border-box;
+    border: 1px solid var(--border);
+}
+
+.download-frameworks-instructions {
+    margin-top: 0!important;
 }
