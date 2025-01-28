@@ -512,7 +512,10 @@ function PublicDataset() {
             </DownloadPopup>}
 
             {/* Download popup - Area */}
-            {showDownloadPopup && isDownloaded && dataset && dataset.datatype == "area" && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup} isArea={dataset && dataset.datatype == "area"}><div title="Download .zip file" className="download-element download-element-area" onClick={areaDatasetDownload}>
+            {showDownloadPopup && !isDownloaded && dataset && dataset.datatype == "area" && <DownloadPopup 
+            setShowDownloadPopup={setShowDownloadPopup} 
+            isArea={dataset && dataset.datatype == "area"}
+            setIsDownloaded={setIsDownloaded}><div title="Download .zip file" className="download-element download-element-area" onClick={areaDatasetDownload}>
                     <p className="download-element-title">Download Dataset</p>
                     <p className="download-element-description">
                         Will download as one big folder, with elements retaining their original filenames. A .json file ({dataset.name}.json) will contain the areas of each element.

@@ -87,6 +87,7 @@ button:hover {
 .toolbar-text {
     font-size: 1.1rem;
     margin: 0 0 0 40px;
+    white-space: nowrap;
 }
 
 .toolbar-text:hover {
@@ -117,9 +118,11 @@ button:hover {
 }
 
 .toolbar-title {
-    margin-left: 10px;
+    padding-left: 10px;
     font-size: 1.8rem;
     letter-spacing: 1px;
+    box-sizing: border-box;
+    margin-left: 0;
 }
 
 .toolbar-title:hover {
@@ -183,6 +186,9 @@ input[type="radio"]:checked {
     background: var(--sidebar-button);
     width: 100%;
     box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sidebar-button:hover {

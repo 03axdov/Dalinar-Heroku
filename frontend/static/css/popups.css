@@ -80,9 +80,9 @@
 
 .download-popup-container-downloaded {
     width: 725px;
-    max-width: 95%;
+    max-width: 90%;
     height: 750px;
-    max-height: 95%;
+    max-height: 90%;
 
     flex-direction: column;
     justify-content: start;
@@ -288,3 +288,10 @@
     background: var(--delete-red);
 }
 
+@media all and (max-width: 1000px) {
+    .download-popup-container {
+        padding: 10px 30px;
+        width: 750px;
+    }
+    
+}

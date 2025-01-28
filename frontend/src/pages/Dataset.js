@@ -36,6 +36,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const [idToLabel, setIdToLabel] = useState({})  // Key: id, value: label
 
     const [hoveredElement, setHoveredElement] = useState(null)
+    const [hoveredLabel, setHoveredLabel] = useState(null)
     const [datasetMainLabelColor, setDatasetMainLabelColor] = useState("transparent") // Used to load image in low res first
 
     const [editingLabel, setEditingLabel] = useState(null) // Either null or pointer to label
@@ -1154,7 +1155,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             </DownloadPopup>}
 
             {/* Download popup - Area */}
-            {showDownloadPopup && isDownloaded && dataset && dataset.datatype == "area" && <DownloadPopup setShowDownloadPopup={setShowDownloadPopup} isArea={dataset && dataset.datatype == "area"}><div title="Download .zip file" className="download-element download-element-area" onClick={areaDatasetDownload}>
+            {showDownloadPopup && !isDownloaded && dataset && dataset.datatype == "area" && <DownloadPopup 
+            setShowDownloadPopup={setShowDownloadPopup} 
+            isArea={dataset && dataset.datatype == "area"}
+            setIsDownloaded={setIsDownloaded}><div title="Download .zip file" className="download-element download-element-area" onClick={areaDatasetDownload}>
                     <p className="download-element-title">Download Dataset</p>
                     <p className="download-element-description">
                         Will download as one big folder, with elements retaining their original filenames. A .json file ({dataset.name}.json) will contain the areas of each element.
@@ -1175,8 +1179,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     <p className="dataset-sidebar-title">Elements</p>
                     
                     <div className="dataset-sidebar-button-container">
-                        <button type="button" className="sidebar-button" onClick={folderInputClick}>+ Upload folder</button>
-                        <button type="button" className="sidebar-button dataset-upload-button dataset-upload-files-button" onClick={fileInputClick}>+ Upload files</button>
+                        <button type="button" className="sidebar-button" onClick={folderInputClick} title="Upload folder">+ Upload folder</button>
+                        <button type="button" className="sidebar-button dataset-upload-button dataset-upload-files-button" onClick={fileInputClick} title="Upload files">+ Upload files</button>
                     </div>
                     
                     {dataset && dataset.datatype == "classification" && elements.map((element, idx) => (
@@ -1310,7 +1314,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                         Edit dataset
                     </button>}
 
-                    {dataset && <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>}
+                    {dataset && <button className="dataset-download-button" onClick={() => {
+                        console.log("A")
+                        setShowDownloadPopup(true)
+                    }}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>}
                     
                     {dataset && dataset.datatype == "classification" && <div title="Will show color of pressed label" className="dataset-main-label-clicked" style={{background: datasetMainLabelColor}}></div>}
                 </div>
@@ -1380,12 +1387,16 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                         Clear label
                     </div>}
                     <div className={"dataset-labels-container " + ((dataset && dataset.datatype == "area") ? "dataset-labels-container-area" : "")}>
-                        {labels.map((label) => (
-                            <div className={"dataset-sidebar-element " + (dataset.datatype == "area" && labelSelected == label.id ? "dataset-sidebar-element-selected" : "")} key={label.id} onClick={() => labelOnClick(label)}>
+                        {labels.map((label, idx) => (
+                            <div className={"dataset-sidebar-element " + (dataset.datatype == "area" && labelSelected == label.id ? "dataset-sidebar-element-selected" : "")} 
+                            key={label.id} onClick={() => labelOnClick(label)}
+                            onMouseEnter={() => setHoveredLabel(idx)}
+                            onMouseLeave={() => setHoveredLabel(null)}>
                                 <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
                                 <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
                                 {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} className="dataset-sidebar-label-keybind">{label.keybind.toUpperCase()}</span>}
-                                <img title="Edit label" 
+                                
+                                {hoveredLabel == idx && <img title="Edit label" 
                                     className={"dataset-sidebar-options " + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
                                     src={window.location.origin + "/static/images/options.png"}
                                     onClick={(e) => {
@@ -1401,7 +1412,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                                             setEditingLabel(label.id)
                                         }
 
-                                    }}/>
+                                    }}/>}
                                 
                             </div>
                         ))}

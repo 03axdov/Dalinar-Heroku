@@ -94,3 +94,10 @@ input::placeholder {
         --dataset-labels-width: 155px;
     }
 }
+
+@media all and (max-width: 900px) {
+    :root {
+        --dataset-elements-width: 135px;
+        --dataset-labels-width: 135px;
+    }
+}
