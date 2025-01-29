@@ -37,7 +37,7 @@ function EditDataset({activateConfirmPopup}) {
             setDescription(dataset.description)
             setVisibility(dataset.visibility)
             setType(dataset.datatype)
-            setKeywords(JSON.parse(dataset.keywords))
+            setKeywords(dataset.keywords)
 
         }).catch((err) => {
             navigate("/")
@@ -134,9 +134,9 @@ function EditDataset({activateConfirmPopup}) {
                     <label htmlFor="create-dataset-type-text" className="edit-dataset-deactivated create-dataset-type-label">Area</label>
                 </div>
 
-                <div className="create-dataset-label-inp">
+                <div className="create-dataset-label-inp create-dataset-label-inp-description">
                     <label className="create-dataset-label" htmlFor="description">Description</label>
-                    <input className="create-dataset-inp create-dataset-full-width" id="description" placeholder="description" type="text" value={description} onChange={(e) => {
+                    <textarea className="create-dataset-inp create-dataset-full-width create-dataset-description-inp" id="description" placeholder="This dataset..." type="text" value={description} onChange={(e) => {
                         setDescription(e.target.value)
                     }} />
                 </div>

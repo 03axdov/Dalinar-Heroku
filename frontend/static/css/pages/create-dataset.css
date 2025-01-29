@@ -33,8 +33,22 @@
     align-items: center;
 }
 
+.create-dataset-label-inp-description {
+    align-items: start;
+}
+
+.create-dataset-description-inp {
+    height: 200px;
+    resize: none;
+}
+
+.create-dataset-description-inp::-webkit-scrollbar {
+    width: 10px;
+}
+
 .create-dataset-label {
     font-size: 1.1rem;
+    white-space: nowrap;
 }
 
 .create-dataset-required {
@@ -44,7 +58,7 @@
 }
 
 .create-dataset-inp {
-    width: 300px;
+    width: 100%;
     padding: 5px 10px;
     margin-left: 20px;
     border: 1px solid var(--border);
@@ -62,7 +76,7 @@
 }
 
 .create-dataset-keywords-inp-container {
-    width: 400px;
+    width: 100%;
     height: 34px;
     padding: 5px 10px;
     padding-right: 3px;

@@ -862,6 +862,7 @@ canvas {
     background: rgb(0,212,255);
     background: linear-gradient(90deg, rgba(0,212,255,1) 0%, rgba(0,116,255,1) 100%);
     transition: 0.2s;
+    z-index: 2;
 }
 
 @media all and (max-width: 975px) {

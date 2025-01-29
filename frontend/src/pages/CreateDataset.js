@@ -160,9 +160,9 @@ function CreateDataset() {
                     <label htmlFor="create-dataset-type-text" className="create-dataset-type-label">Area <span className="create-dataset-required">(images only)</span></label>
                 </div>
 
-                <div className="create-dataset-label-inp">
+                <div className="create-dataset-label-inp create-dataset-label-inp-description">
                     <label className="create-dataset-label" htmlFor="description">Description</label>
-                    <input className="create-dataset-inp create-dataset-full-width" name="description" type="text" value={description} onChange={(e) => {
+                    <textarea className="create-dataset-inp create-dataset-full-width create-dataset-description-inp" name="description" type="text" value={description} onChange={(e) => {
                         setDescription(e.target.value)
                     }} />
                 </div>

@@ -21,6 +21,7 @@
 
 .confirm-popup-container {
     width: 400px;
+    border: 1px solid var(--border);
 }
 
 .account-popup-button {

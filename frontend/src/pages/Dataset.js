@@ -608,7 +608,10 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 errorMessages += "Stopped uploading after " + file.name + " as only 1 Gigabyte can be uploaded at a time."
                 alert(errorMessages)
                 setUploadPercentage(100)
-                setUploadLoading(false)
+                
+                setTimeout(() => {
+                    setUploadLoading(false)
+                }, 200)
                 getDataset()
                 return
             }
@@ -621,12 +624,16 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 if (i == files.length - 1) {
                     alert(errorMessages)
                     setUploadPercentage(100)
-                    setUploadLoading(false)
+
+                    setTimeout(() => {
+                        setUploadLoading(false)
+                    }, 200)
+                    
                     getDataset()
                     break
                 } else {
                     AXIOS_OUTSTANDING -= 1
-                    setUploadPercentage(Math.round(100 - (AXIOS_OUTSTANDING * 1.0 / NUM_FILES)))
+                    setUploadPercentage(Math.round(100 * (1- AXIOS_OUTSTANDING / NUM_FILES)))
                     continue
                 }
 
@@ -651,9 +658,11 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             }).finally(() => {
                 AXIOS_OUTSTANDING -= 1
                 console.log(Math.round(100 - (AXIOS_OUTSTANDING * 1.0 / NUM_FILES)))
-                setUploadPercentage(Math.round(100 - (AXIOS_OUTSTANDING * 1.0 / NUM_FILES)))
+                setUploadPercentage(Math.round(100 * (1- AXIOS_OUTSTANDING / NUM_FILES)))
                 if (AXIOS_OUTSTANDING == 0) {
-                    setUploadLoading(true)
+                    setTimeout(() => {
+                        setUploadLoading(false)
+                    }, 200)
                     getDataset()
                     if (errorMessages) {
                         alert(errorMessages)
