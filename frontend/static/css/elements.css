@@ -49,6 +49,8 @@
 .dataset-element-image-container {
     margin-top: 10px;
     width: 100%;
+    min-width: 100%;
+    max-width: 100%;
     height: 190px;
     min-height: 190px;
     max-height: 190px;
@@ -57,11 +59,11 @@
 
 .dataset-element-description-container {
     width: 100%;
-    border-radius: 5px;
+    border-radius: 3px;
     height: 100%;
     padding: 10px;
     box-sizing: border-box;
-    background: rgb(0,0,0,0.8);
+    background: rgb(0,0,0,0.9);
     z-index: 1;
     position: absolute;
     top: 0;
@@ -69,7 +71,6 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    overflow-y: auto;
 }
 
 .dataset-element-description-container::-webkit-scrollbar {
@@ -79,6 +80,12 @@
 .dataset-element-description {
     margin: 0;
     font-size: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 4; /* Number of lines before truncation */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
 }
 
 .dataset-element-header {
@@ -138,17 +145,16 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    margin-top: 5px;
 }
 
 .dataset-element-keyword {
     border-radius: 3px;
     padding: 3px 10px;
     font-size: 0.9rem;
-    display: flex;
-    flex-direction: row;
     margin-right: 3px;
     margin-left: 3px;
-    max-width: calc(33% - 5px);
+    max-width: calc(33% - 6px);
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;

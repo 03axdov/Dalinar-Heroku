@@ -23,6 +23,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
     const [elementsIndex, setElementsIndex] = useState(0)
 
     const [loading, setLoading] = useState(true)
+    const [uploadLoading, setUploadLoading] = useState(false)
+    const [uploadPercentage, setUploadPercentage] = useState(0) // Used for the loading bar
 
     const [elementLabelTop, setElementLabelTop] = useState(0)
     const [editExpandedTop, setEditExpandedTop] = useState(0)
@@ -526,7 +528,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
 
     function getPreviewElement(element) {
-        const extension = element.file.split(".").pop()
+        const extension = element.file.split(".").pop().split("?")[0]
         
         if (IMAGE_FILE_EXTENSIONS.has(extension)) {
             if (dataset.datatype == "classification") {
@@ -592,6 +594,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         let errorMessages = ""
         let totalSize = 0
         
+        setUploadLoading(true)
+        const NUM_FILES = files.length;
         let AXIOS_OUTSTANDING = files.length
         for (let i=0; i < files.length; i++) {
             let file = files[i]
@@ -602,6 +606,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 if (errorMessages) {errorMessages += "\n\n"}
                 errorMessages += "Stopped uploading after " + file.name + " as only 1 Gigabyte can be uploaded at a time."
                 alert(errorMessages)
+                setUploadPercentage(100)
+                setUploadLoading(false)
                 getDataset()
                 return
             }
@@ -613,9 +619,13 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
                 if (i == files.length - 1) {
                     alert(errorMessages)
+                    setUploadPercentage(100)
+                    setUploadLoading(false)
                     getDataset()
                     break
                 } else {
+                    AXIOS_OUTSTANDING -= 1
+                    setUploadPercentage(Math.round(100 - (AXIOS_OUTSTANDING / NUM_FILES)))
                     continue
                 }
 
@@ -632,13 +642,17 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             axios.post(URL, formData, config)
             .then((data) => {
                 console.log("Success: ", data)
+                
             }).catch((error) => {
                 if (errorMessages) {errorMessages += "\n\n"}
                 errorMessages += "Did not upload file with extension ." + extension + " as this filetype is not supported."
                 console.log("Error: ", error)
             }).finally(() => {
                 AXIOS_OUTSTANDING -= 1
+                console.log(Math.round(100 - (AXIOS_OUTSTANDING / NUM_FILES)))
+                setUploadPercentage(Math.round(100 - (AXIOS_OUTSTANDING / NUM_FILES)))
                 if (AXIOS_OUTSTANDING == 0) {
+                    setUploadLoading(true)
                     getDataset()
                     if (errorMessages) {
                         alert(errorMessages)
@@ -1325,7 +1339,13 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 </div>
                 
                 <div className="dataset-main-display">
-                    {(elements.length == 0 && !loading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>Upload folder</button>}
+                    {(elements.length == 0 && !loading && !uploadLoading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>Upload folder</button>}
+                    {(elements.length == 0 && !loading && uploadLoading) && <div className="dataset-upload-bar-container">
+                        <p className="dataset-upload-bar-text">Uploading...</p>
+                        <div className="dataset-upload-bar">
+                            <div className="dataset-upload-bar-completed" style={{width: (uploadPercentage + "%")}}></div>
+                        </div>
+                    </div>}
                     {elements.length != 0 && !showDatasetDescription && <div className="dataset-element-view-container">
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}
@@ -1355,7 +1375,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                             </div>
 
                             <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p><br></br>
-                            {(dataset.description ? <p className="dataset-description-text"><span className="dataset-description-start">Description: </span>{dataset.description}</p> : "This dataset does not have a description.")}
+                            {(dataset.description ? <p className="dataset-description-text dataset-description-text-margin"><span className="dataset-description-start">Description: </span>{dataset.description}</p> : "This dataset does not have a description.")}
 
                             {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">
                                 {JSON.parse(dataset.keywords).length > 0 && <span className="gray-text dataset-description-keywords-title">Keywords: </span>}

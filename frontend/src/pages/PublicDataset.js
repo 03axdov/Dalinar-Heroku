@@ -612,7 +612,7 @@ function PublicDataset() {
                             </div>
 
                             <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p><br></br>
-                            {(dataset.description ? <p className="dataset-description-text"><span className="dataset-description-start">Description: </span>{dataset.description}</p> : "This dataset does not have a description.")}
+                            {(dataset.description ? <p className="dataset-description-text dataset-description-text-margin"><span className="dataset-description-start">Description: </span>{dataset.description}</p> : "This dataset does not have a description.")}
 
                             {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">
                                 {JSON.parse(dataset.keywords).length > 0 && <span className="gray-text dataset-description-keywords-title">Keywords: </span>}

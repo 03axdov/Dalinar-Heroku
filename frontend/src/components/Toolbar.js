@@ -11,8 +11,6 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn}) {
         win.focus();
     }
 
-    console.log(window.location.pathname)
-
     return (
         <nav id="toolbar">
             <img id="toolbar-logo" src={window.location.origin + "/static/images/logoWhite.svg"} onClick={() => navigate("/")}/>

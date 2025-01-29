@@ -37,6 +37,7 @@ function EditDataset({activateConfirmPopup}) {
             setDescription(dataset.description)
             setVisibility(dataset.visibility)
             setType(dataset.datatype)
+            setKeywords(JSON.parse(dataset.keywords))
 
         }).catch((err) => {
             navigate("/")
