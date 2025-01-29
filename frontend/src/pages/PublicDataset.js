@@ -615,8 +615,8 @@ function PublicDataset() {
                             {(dataset.description ? <p className="dataset-description-text dataset-description-text-margin"><span className="dataset-description-start">Description: </span>{dataset.description}</p> : "This dataset does not have a description.")}
 
                             {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">
-                                {JSON.parse(dataset.keywords).length > 0 && <span className="gray-text dataset-description-keywords-title">Keywords: </span>}
-                                {JSON.parse(dataset.keywords).map((e, i) => (
+                                {dataset.keywords.length > 0 && <span className="gray-text dataset-description-keywords-title">Keywords: </span>}
+                                {dataset.keywords.map((e, i) => (
                                     <div title={e} className="dataset-description-keyword" key={i}>{e}</div>
                                 ))}
                             </div>}
@@ -649,7 +649,7 @@ function PublicDataset() {
                                 >
                                     <img className="dataset-element-area-icon" src={window.location.origin + "/static/images/area.svg"} />
                                     <span className="dataset-area-name">{idToLabel[area.label].name}</span>
-                                    <span title={"Points: " + JSON.parse(area.area_points).length} 
+                                    <span title={"Points: " + area.area_points.length} 
                                     className="dataset-sidebar-label-keybind no-box-shadow border"
                                     style={{borderColor: (idToLabel[area.label].color)}}>{JSON.parse(area.area_points).length}</span>
                                     
