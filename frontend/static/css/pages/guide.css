@@ -13,6 +13,7 @@
     display: flex;
     box-sizing: border-box;
     flex-direction: row;
+    border-bottom: 1px solid var(--border);
     align-items: center;
 }
 
@@ -57,6 +58,7 @@
     box-sizing: border-box;
 
     background: var(--background-light);
+    border: 1px solid var(--border);
     display: flex;
     flex-direction: column;
 }
@@ -105,12 +107,14 @@
 
 .instructions-area-container {
     position: relative;
-    max-width: 100%;
+    width: 100%;
+    max-width: 1400px;
     box-shadow: 0 0 0 1px var(--border);
 }
 
 .instructions-area-image {
-    max-width: 100%;
+    width: 100%;
+    max-width: 1400px;
     transition: 0.3s;
 }
 
