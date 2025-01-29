@@ -60,7 +60,6 @@
     border-radius: 5px;
     height: 100%;
     padding: 10px;
-    text-align: justify;
     box-sizing: border-box;
     background: rgb(0,0,0,0.8);
     z-index: 1;
@@ -70,6 +69,11 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    overflow-y: auto;
+}
+
+.dataset-element-description-container::-webkit-scrollbar {
+    width: 8px;
 }
 
 .dataset-element-description {

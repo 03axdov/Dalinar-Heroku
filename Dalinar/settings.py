@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-with open('./secret.txt') as f:
+with open('./SECRET_KEY.txt') as f:
     SECRET_KEY = f.read().strip() 
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -138,3 +138,16 @@ LOGOUT_REDIRECT_URL = '/accounts/login'
 
 MEDIA_URL = '/media/'  # URL to access media files in development
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory where media files are stored
+
+AWS_ACCESS_KEY_ID = 'AKIA5JXOPCQYY5WKJEPD'
+
+with open('./AWS_SECRET_KEY.txt') as f:
+    AWS_SECRET_ACCESS_KEY = f.read().strip()
+    
+AWS_STORAGE_BUCKET_NAME = 'dalinar.ai'
+AWS_S3_SIGNATURE_NAME = 's3v4',
+AWS_S3_REGION_NAME = 'eu-north-1'
+AWS_S3_FILE_OVERWRITE = False
+AWS_DEFAULT_ACL =  None
+AWS_S3_VERIFY = True
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'

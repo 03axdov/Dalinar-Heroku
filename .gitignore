@@ -1,6 +1,7 @@
 migrations
 venv
-secret.txt
+SECRET_KEY.txt
+AWS_SECRET_KEY.txt
 __pycache__
 db.sqlite3
 node_modules

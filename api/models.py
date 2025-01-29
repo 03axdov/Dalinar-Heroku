@@ -40,7 +40,8 @@ class Dataset(models.Model):
     keywords = models.JSONField(
         default=list,
         validators=[MaxLengthValidator(3)],
-        help_text="A list of up to 3 keywords for the dataset."
+        help_text="A list of up to 3 keywords for the dataset.",
+        blank=True
     )
     
     VISIBILITY_CHOICES = [
