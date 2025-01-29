@@ -1246,6 +1246,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
                                 <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
 
+                                {element.areas && element.areas.length > 0 && <img title="Labelled" className="dataset-sidebar-labeled" src={window.location.origin + "/static/images/area.svg"} />}
+
                                 {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
                                     className="dataset-sidebar-options dataset-sidebar-options-margin"
                                     src={window.location.origin + "/static/images/options.png"}
