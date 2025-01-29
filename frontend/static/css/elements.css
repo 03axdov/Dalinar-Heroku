@@ -81,7 +81,7 @@
     margin: 0;
     font-size: 1rem;
     display: -webkit-box;
-    -webkit-line-clamp: 4; /* Number of lines before truncation */
+    -webkit-line-clamp: 5; /* Number of lines before truncation */
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;

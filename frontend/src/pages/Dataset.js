@@ -533,12 +533,12 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         if (IMAGE_FILE_EXTENSIONS.has(extension)) {
             if (dataset.datatype == "classification") {
                 return <div className="dataset-element-view-image-container">
-                        <img ref={elementRef} className="dataset-element-view-image" src={window.location.origin + element.file} />
+                        <img ref={elementRef} className="dataset-element-view-image" src={element.file} />
                 </div>
             } else {
                 return <div className="dataset-element-view-image-container">
                     <div className="dataset-element-view-image-wrapper" onMouseMove={(e) => pointOnDrag(e)}>
-                        <img onLoad={() => setUpdateArea(!updateArea)} ref={elementRef} className="dataset-element-view-image" src={window.location.origin + element.file} onClick={handleImageClick}/>
+                        <img onLoad={() => setUpdateArea(!updateArea)} ref={elementRef} className="dataset-element-view-image" src={element.file} onClick={handleImageClick}/>
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
                             getPoints(area, idx)
                         ))}
@@ -625,7 +625,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     break
                 } else {
                     AXIOS_OUTSTANDING -= 1
-                    setUploadPercentage(Math.round(100 - (AXIOS_OUTSTANDING / NUM_FILES)))
+                    setUploadPercentage(Math.round(100 - (AXIOS_OUTSTANDING * 1.0 / NUM_FILES)))
                     continue
                 }
 
@@ -649,8 +649,8 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 console.log("Error: ", error)
             }).finally(() => {
                 AXIOS_OUTSTANDING -= 1
-                console.log(Math.round(100 - (AXIOS_OUTSTANDING / NUM_FILES)))
-                setUploadPercentage(Math.round(100 - (AXIOS_OUTSTANDING / NUM_FILES)))
+                console.log(Math.round(100 - (AXIOS_OUTSTANDING * 1.0 / NUM_FILES)))
+                setUploadPercentage(Math.round(100 - (AXIOS_OUTSTANDING * 1.0 / NUM_FILES)))
                 if (AXIOS_OUTSTANDING == 0) {
                     setUploadLoading(true)
                     getDataset()

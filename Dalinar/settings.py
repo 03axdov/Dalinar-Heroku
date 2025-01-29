@@ -144,7 +144,7 @@ AWS_ACCESS_KEY_ID = 'AKIA5JXOPCQYY5WKJEPD'
 with open('./AWS_SECRET_KEY.txt') as f:
     AWS_SECRET_ACCESS_KEY = f.read().strip()
     
-AWS_STORAGE_BUCKET_NAME = 'dalinar.ai'
+AWS_STORAGE_BUCKET_NAME = 'dalinar'
 AWS_S3_SIGNATURE_NAME = 's3v4',
 AWS_S3_REGION_NAME = 'eu-north-1'
 AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % AWS_STORAGE_BUCKET_NAME

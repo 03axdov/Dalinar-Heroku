@@ -18,7 +18,8 @@ function DatasetElement({dataset, isPublic=false}) {
     useEffect(() => {
         
         if (dataset.keywords.length > 0) {
-            setKeywords(JSON.parse(dataset.keywords))
+            console.log(dataset.keywords)
+            setKeywords(dataset.keywords)
         }
     }, [dataset])
 

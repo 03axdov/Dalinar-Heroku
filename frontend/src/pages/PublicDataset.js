@@ -277,12 +277,12 @@ function PublicDataset() {
         if (IMAGE_FILE_EXTENSIONS.has(extension)) {
             if (dataset.datatype == "classification") {
                 return <div className="dataset-element-view-image-container">
-                        <img ref={elementRef} className="dataset-element-view-image" src={window.location.origin + element.file} />
+                        <img ref={elementRef} className="dataset-element-view-image" src={element.file} />
                 </div>
             } else {
                 return <div className="dataset-element-view-image-container">
                     <div className="dataset-element-view-image-wrapper">
-                        <img onLoad={() => setUpdateArea(!updateArea)} ref={elementRef} className="dataset-element-view-image" src={window.location.origin + element.file} />
+                        <img onLoad={() => setUpdateArea(!updateArea)} ref={elementRef} className="dataset-element-view-image" src={element.file} />
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
                             getPoints(area, idx)
                         ))}
