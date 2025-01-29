@@ -5,7 +5,7 @@ import DownloadCode from "../components/DownloadCode"
 // The default page. Login not required.
 function Guide() {
     
-    const [currentInstructions, setCurrentInstructions] = useState("download")
+    const [currentInstructions, setCurrentInstructions] = useState("area")
     const [downloadFramework1, setDownloadFramework1] = useState("tensorflow")
     const [downloadFramework2, setDownloadFramework2] = useState("tensorflow")
 
@@ -14,14 +14,15 @@ function Guide() {
     return (
         <div className="guide-container">
             <div className="guide-toolbar">
-                <div className={"guide-toolbar-element " + (currentInstructions == "download" ? "guide-toolbar-element-selected": "")}
-                onClick={() => setCurrentInstructions("download")}>
-                Download Help
-                    </div>
                 <div className={"guide-toolbar-element " + (currentInstructions == "area" ? "guide-toolbar-element-selected": "")}
                 onClick={() => setCurrentInstructions("area")}>
                     Area Labeling
                 </div>
+                <div className={"guide-toolbar-element " + (currentInstructions == "download" ? "guide-toolbar-element-selected": "")}
+                onClick={() => setCurrentInstructions("download")}>
+                    Loading Datasets
+                </div>
+                
             </div>
 
             <div className="guide-main">
@@ -72,14 +73,19 @@ function Guide() {
                             Clicking on a label or applying its keybind selects it.
                         </div>
                         
-                        <div className="instructions-area-comment" style={{bottom: "20%", right: "1%"}}>
+                        <div className="instructions-area-comment" style={{top: "65%", right: "1%"}}>
                             Areas added to the current element are listed here.
                             The number of points is shown to the right. Clicking on an area selects it.
                         </div>
 
-                        <div className="instructions-area-comment" style={{bottom: "7%", right: "25%"}}>
+                        <div className="instructions-area-comment" style={{top: "78%", right: "25%"}}>
                             Areas consist of an arbitrary number of points. 
-                            Clicking on the image with a label or area selected adds a point to that area.</div>
+                            Clicking on the image with a label or area selected adds a point to that area.
+                        </div>
+
+                        <div className="instructions-area-comment" style={{top: "65%", right: "66%"}}>
+                            Clicking on a point allows you to move or delete it.
+                        </div>
                     </div>
                 </div>}
             </div>

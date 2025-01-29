@@ -105,14 +105,12 @@
 
 .instructions-area-container {
     position: relative;
-    margin-left: auto;
-    margin-right: auto;
     max-width: 100%;
+    box-shadow: 0 0 0 1px var(--border);
 }
 
 .instructions-area-image {
     max-width: 100%;
-    box-shadow: 0 0 0 1px var(--border);
     transition: 0.3s;
 }
 
@@ -128,4 +126,29 @@
     position: absolute;
     box-shadow: 0 0 0 1px var(--border);
     max-width: 200px;
+}
+
+.instructions-area-comment:hover {
+    z-index: 1;
+    box-shadow: 0 0 0 1px white;
+    cursor: default;
+}
+
+@media all and (max-width: 1150px) {
+    .instructions-area-comment {
+        font-size: 0.9rem;
+        padding: 3px 5px;
+    }
+}
+
+@media all and (max-width: 1000px) {
+    .instructions-area-comment {
+        font-size: 0.8rem;
+        padding: 2px 3px;
+        max-width: 170px;
+    }
+
+    .instructions-area-comment:hover {
+        font-size: 0.9rem;
+    }
 }
