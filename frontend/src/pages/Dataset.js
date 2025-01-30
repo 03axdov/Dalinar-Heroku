@@ -65,6 +65,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
     const [inputFocused, setInputFocused] = useState(false);  // Don't use keybinds if input is focused
 
+    // Zoom functionality
+    const elementContainerRef = useRef(null)
+    const [zoom, setZoom] = useState(1);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+
 
     // AREA DATASET FUNCTIONALITY
     const [labelSelected, setLabelSelected] = useState(null)
@@ -523,6 +528,25 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
     // ELEMENT FUNCTIONALITY
 
+    // Element Scroll Functionality
+    const minZoom = 1
+    const maxZoom = 1.5
+
+    const handleElementScroll = (e) => {
+        const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.5, minZoom), maxZoom);
+        setZoom(newZoom);
+    };
+
+    const handleElementMouseMove = (e) => {
+        if (zoom === 1) return;
+    
+        const rect = elementContainerRef.current.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+        setPosition({ x, y });
+    };
+
 
     const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "avif"])
     const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
@@ -533,13 +557,28 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
         
         if (IMAGE_FILE_EXTENSIONS.has(extension)) {
             if (dataset.datatype == "classification") {
-                return <div className="dataset-element-view-image-container">
-                        <img ref={elementRef} className="dataset-element-view-image" src={element.file} />
+                return <div className="dataset-element-view-image-container" 
+                    ref={elementContainerRef} 
+                    onWheel={handleElementScroll}
+                    onMouseMove={handleElementMouseMove}
+                    style={{overflow: "hidden"}}>
+                        <img ref={elementRef} 
+                        className="dataset-element-view-image" 
+                        src={element.file} 
+                        style={{
+                            transform: `scale(${zoom}) translate(${(50 - position.x) * (zoom - 1)}%, ${(50 - position.y) * (zoom - 1)}%)`,
+                            transformOrigin: "center",
+                            transition: "transform 0.1s ease-out",
+                        }}/>
                 </div>
             } else {
-                return <div className="dataset-element-view-image-container">
+                return <div className="dataset-element-view-image-container-area">
                     <div className="dataset-element-view-image-wrapper" onMouseMove={(e) => pointOnDrag(e)}>
-                        <img onLoad={() => setUpdateArea(!updateArea)} ref={elementRef} className="dataset-element-view-image" src={element.file} onClick={handleImageClick}/>
+                        <img onLoad={() => setUpdateArea(!updateArea)} 
+                        ref={elementRef} 
+                        className="dataset-element-view-image-area" 
+                        src={element.file} 
+                        onClick={handleImageClick}/>
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
                             getPoints(area, idx)
                         ))}
@@ -1250,11 +1289,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
                             <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
 
-                            {element.label && idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
-                                                            style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
-                                                        >
-                            </span>}
-
                             {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
                                 className="dataset-sidebar-options dataset-sidebar-options-margin"
                                 src={window.location.origin + "/static/images/options.png"}
@@ -1272,6 +1306,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                                     }
                                     
                             }}/>}
+
+                            {element.label && idToLabel[element.label] && <span className={"dataset-sidebar-color dataset-sidebar-color-element " + (hoveredElement == idx ? "dataset-sidebar-color-margin" : "")} 
+                                style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
+                            >
+                            </span>}
                             
                         </div>
                     ))}
@@ -1294,8 +1333,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
                                 <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
 
-                                {element.areas && element.areas.length > 0 && <img title="Labelled" className="dataset-sidebar-labeled" src={window.location.origin + "/static/images/area.svg"} />}
-
                                 {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
                                     className="dataset-sidebar-options dataset-sidebar-options-margin"
                                     src={window.location.origin + "/static/images/options.png"}
@@ -1313,6 +1350,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                                         }
                                         
                                 }}/>}
+
+                                {element.areas && element.areas.length > 0 && <img title="Labelled" 
+                                    className={"dataset-sidebar-labeled " + (hoveredElement == "idx" ? "dataset-sidebar-labeled-margin" : "")} 
+                                    src={window.location.origin + "/static/images/area.svg"} />}
+
                             </div>
 
                         </div>
@@ -1453,7 +1495,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                             onMouseLeave={() => setHoveredLabel(null)}>
                                 <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
                                 <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
-                                {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} className="dataset-sidebar-label-keybind">{label.keybind.toUpperCase()}</span>}
+                                
                                 
                                 {hoveredLabel == idx && <img title="Edit label" 
                                     className={"dataset-sidebar-options " + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
@@ -1473,6 +1515,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
                                     }}/>}
                                 
+                                {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} 
+                                    className={"dataset-sidebar-label-keybind " + (hoveredLabel == idx ? "dataset-sidebar-label-keybind-margin" : "")}>
+                                        {label.keybind.toUpperCase()}
+                                </span>}
                             </div>
                         ))}
                     </div>

@@ -47,6 +47,11 @@ function PublicDataset() {
 
     const [hoveredAreaId, setHoveredAreaId] = useState(null)
 
+    // Zoom functionality
+    const elementContainerRef = useRef(null)
+    const [zoom, setZoom] = useState(1);
+    const [position, setPosition] = useState({ x: 0, y: 0 });
+
 
     // AREA FUNCTIONALITY
 
@@ -268,6 +273,25 @@ function PublicDataset() {
 
     // ELEMENT FUNCTIONALITY
 
+    // Element Scroll Functionality
+    const minZoom = 1
+    const maxZoom = 1.5
+
+    const handleElementScroll = (e) => {
+        const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.5, minZoom), maxZoom);
+        setZoom(newZoom);
+    };
+
+    const handleElementMouseMove = (e) => {
+        if (zoom === 1) return;
+    
+        const rect = elementContainerRef.current.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+    
+        setPosition({ x, y });
+    };
+
     const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "avif"])
     const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
 
@@ -276,8 +300,19 @@ function PublicDataset() {
         
         if (IMAGE_FILE_EXTENSIONS.has(extension)) {
             if (dataset.datatype == "classification") {
-                return <div className="dataset-element-view-image-container">
-                        <img ref={elementRef} className="dataset-element-view-image" src={element.file} />
+                return <div className="dataset-element-view-image-container"
+                    ref={elementContainerRef} 
+                    onWheel={handleElementScroll}
+                    onMouseMove={handleElementMouseMove}
+                    style={{overflow: "hidden"}}>
+                        <img ref={elementRef} 
+                            className="dataset-element-view-image" 
+                            src={element.file} 
+                            style={{
+                                transform: `scale(${zoom}) translate(${(50 - position.x) * (zoom - 1)}%, ${(50 - position.y) * (zoom - 1)}%)`,
+                                transformOrigin: "center",
+                                transition: "transform 0.1s ease-out",
+                            }}/>
                 </div>
             } else {
                 return <div className="dataset-element-view-image-container">

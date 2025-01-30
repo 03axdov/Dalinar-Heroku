@@ -395,14 +395,19 @@
 .dataset-sidebar-labeled {
     border-radius: 0;
     margin-left: auto;
-    margin-right: 5px;
+    margin-right: 0;
     overflow: visible;
     display: flex;
     flex-direction: row;
     align-items: center;
 }
 
+.dataset-sidebar-labeled-margin {
+    margin-left: 5px;
+}
+
 .dataset-sidebar-options {
+    margin-right: 0;
     height: 22px;
     width: 22px;
     border-radius: 11px;
@@ -410,6 +415,7 @@
     box-sizing: border-box;
     display: inline-block;
     position: relative;
+    margin-left: auto;
 }
 
 .dataset-sidebar-options:hover {
@@ -422,11 +428,15 @@
 
 .dataset-sidebar-color-element {
     margin-left: auto;
-    margin-right: 5px;
+    margin-right: 0;
     overflow: visible;
     display: flex;
     flex-direction: row;
     align-items: center;
+}
+
+.dataset-sidebar-color-margin {
+    margin-left: 5px;
 }
 
 .dataset-sidebar-element:hover {
@@ -557,6 +567,14 @@
 }
 
 .dataset-element-view-image-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dataset-element-view-image-container-area {
     width: 90%;
     height: 85%;
     display: flex;
@@ -572,6 +590,16 @@
 }
 
 .dataset-element-view-image {
+    display: block;
+    max-width: 90%;
+    max-height: 85%;
+    width: auto; /* Ensure natural aspect ratio */
+    height: auto; /* Ensure natural aspect ratio */
+    box-shadow: 0 0 50px 0 var(--background-shadow);
+    box-sizing: border-box;
+}
+
+.dataset-element-view-image-area {
     display: block;
     max-width: 100%;
     max-height: 100%;
@@ -680,7 +708,6 @@
     padding: 1px 5px;
     background: var(--sidebar-button);
     margin-left: auto;
-    margin-right: 5px;
     border-radius: 3px;
 
     white-space: nowrap;
@@ -690,6 +717,10 @@
 
 .dataset-sidebar-label-keybind:hover {
     box-shadow: 0 0 0 1px white;
+}
+
+.dataset-sidebar-label-keybind-margin {
+    margin-left: 5px;
 }
 
 .dataset-sidebar-element-selected .dataset-sidebar-label-keybind {
