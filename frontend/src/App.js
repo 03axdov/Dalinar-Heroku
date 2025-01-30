@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { Routes, Route, useNavigate } from "react-router-dom"
 
 import Toolbar from "./components/Toolbar"
@@ -35,6 +35,7 @@ export default function App() {
     const [showNotification, setShowNotification] = useState(false)
     const [notificationMessage, setNotificationMessage] = useState("")
     const [notificationType, setNotificationType] = useState("")    // "", "success", or "failure"
+    const notificationTimeoutRef = useRef(null);
 
 
     useEffect(() => {
@@ -75,12 +76,17 @@ export default function App() {
     }
 
     function notification(message, type, delay=3000) {
+        if (notificationTimeoutRef.current) {
+            clearTimeout(notificationTimeoutRef.current);
+        }
+
         setShowNotification(true)
         setNotificationMessage(message)
         setNotificationType(type)
 
-        setTimeout(() => {
+        notificationTimeoutRef.current = setTimeout(() => {
             setShowNotification(false)
+            notificationTimeoutRef.current = null;
         }, delay)
     }
 
@@ -100,8 +106,8 @@ export default function App() {
                     <Route path="/guide" element={<Guide />}/>
                     <Route path="/home" element={<Home currentProfile={currentProfile} notification={notification}/>}/>
                     <Route path="/create-dataset" element={<CreateDataset />}/>
-                    <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} />}/>
-                    <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup}/>}/>
+                    <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} notification={notification} />}/>
+                    <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification}/>}/>
                     <Route path="/datasets/public/:id" element={<PublicDataset />}/>
                 </Routes>
             </div>

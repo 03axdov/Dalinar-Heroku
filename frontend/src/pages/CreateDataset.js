@@ -3,7 +3,7 @@ import {useNavigate} from "react-router-dom"
 import axios from "axios"
 
 
-function CreateDataset() {
+function CreateDataset({notification}) {
 
     const navigate = useNavigate()
     const [type, setType] = useState("classification")
@@ -57,8 +57,9 @@ function CreateDataset() {
         .then((data) => {
             console.log("Success:", data);
             navigate("/home")
+            notification("Successfully created dataset " + name + ".", "success")
         }).catch((error) => {
-            alert("An error occurred.")
+            notification("An error occured.", "failure")
             console.log("Error: ", error)
         })
     }
@@ -89,7 +90,7 @@ function CreateDataset() {
                 }
                 let label = file.webkitRelativePath.split("/")[1].toLowerCase()
                 if (INVALID_LABELS.has(label)) {
-                    alert("Invalid label: ", label + ". Labels cannot be one of " + INVALID_LABELS)
+                    notification("Invalid label: " + label + ". Labels cannot be one of " + INVALID_LABELS, "failure")
                     continue
                 }
                 
@@ -100,7 +101,7 @@ function CreateDataset() {
             setUploadedDatasets(tempObj)
 
         } catch (e) {
-            alert("Error: ", e + ". This may be due to incorrect formatting of uploaded dataset.")
+            notification("An error occured. This may be due to incorrect formatting of uploaded dataset.", "failure")
         }
 
     }
@@ -120,7 +121,7 @@ function CreateDataset() {
                 }
                 let label = file.name.split("_")[0].toLowerCase()
                 if (INVALID_LABELS.has(label)) {
-                    alert("Invalid label: ", label + ". Labels cannot be one of " + INVALID_LABELS)
+                    notification("Invalid label: " + label + ". Labels cannot be one of " + INVALID_LABELS, "failure")
                     continue
                 }
 
@@ -131,13 +132,13 @@ function CreateDataset() {
             setUploadedDatasets(tempObj)
 
         } catch (e) {
-            alert("Error: ", e + ". This may be due to incorrect formatting of uploaded dataset.")
+            notification("An error occured. This may be due to incorrect formatting of uploaded dataset.", "failure")
         }
     }
 
     return (
         <div className="create-dataset-container">
-            <form className="create-dataset-form" onSubmit={formOnSubmit}>
+            <div className="create-dataset-form">
                 <h1 className="create-dataset-title">Create a dataset</h1>
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
 
@@ -183,10 +184,8 @@ function CreateDataset() {
                     <label className="create-dataset-label">Keywords <span className="create-dataset-required">({keywords.length}/3)</span></label>
 
                     <div className="create-dataset-keywords-inp-container">
-                        <input type="text" className="create-dataset-keywords-inp" value={keywordCurrent} onChange={(e) => {
-                            setKeywordCurrent(e.target.value)
-                        }} />
-                        <button type="button" className="create-dataset-keywords-button" onClick={() => {
+                        <form className="create-dataset-keywords-inp-form" onSubmit={(e) => {
+                            e.preventDefault()
                             if (keywords.length < 3) {
                                 if (!keywords.includes(keywordCurrent.toLowerCase()) && keywordCurrent.length > 0) {
                                     let temp = [...keywords]
@@ -196,13 +195,18 @@ function CreateDataset() {
                                 }
                                 
                             } else {
-                                alert("You can only add three keywords.")
+                                notification("You can only add three keywords.", "failure")
                             }
-                            
                         }}>
-                            <img className="create-dataset-keywords-icon" src={window.location.origin + "/static/images/plus.png"} />
-                            Add
-                        </button>
+                            <input type="text" className="create-dataset-keywords-inp" value={keywordCurrent} onChange={(e) => {
+                                setKeywordCurrent(e.target.value)
+                            }} />
+                            <button type="submit" className="create-dataset-keywords-button">
+                                <img className="create-dataset-keywords-icon" src={window.location.origin + "/static/images/plus.png"} />
+                                Add
+                            </button>
+                        </form>
+                        
                     </div>
                     
                 </div>
@@ -299,11 +303,11 @@ function CreateDataset() {
 
                 <div className="create-dataset-buttons">
                     <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Cancel</button>
-                    <button type="submit" className="create-dataset-submit">Create dataset</button>
+                    <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>Create dataset</button>
                 </div>
                 
             
-            </form>
+            </div>
         </div>
     )
 }

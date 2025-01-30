@@ -197,7 +197,7 @@
 }
 
 .dataset-description-display {
-    width: 40%;
+    width: var(--description-display-width);
     height: 100%;
     max-height: 100%;
     overflow-y: auto;
@@ -241,7 +241,7 @@
 }
 
 .dataset-description-image-container {
-    width: 60%;
+    width: calc(100% - var(--description-display-width));
     height: 100%;
     background: var(--background-dark);
     display: flex;
@@ -822,6 +822,7 @@ canvas {
 .dataset-description-text {
     font-size: 1.1rem;
     margin: 0;
+    white-space: pre-wrap;
 }
 
 .dataset-description-text-margin {

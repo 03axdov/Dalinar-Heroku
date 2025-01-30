@@ -4,7 +4,7 @@ import axios from "axios"
 import { useParams } from "react-router-dom";
 
 
-function EditDataset({activateConfirmPopup}) {
+function EditDataset({activateConfirmPopup, notification}) {
 
     const navigate = useNavigate()
     const { id } = useParams();
@@ -41,7 +41,7 @@ function EditDataset({activateConfirmPopup}) {
 
         }).catch((err) => {
             navigate("/")
-            alert("An error occured when loading dataset with id " + id + ".")
+            notification("An error occured when loading dataset with id " + id + ".", "failure")
 
             console.log(err)
         }).finally(() => {
@@ -65,7 +65,8 @@ function EditDataset({activateConfirmPopup}) {
         } else {formData.append("image", "")}
         formData.append("visibility", visibility)
         formData.append("id", id)
-        formData.append("keywords", JSON.stringify(keywords))
+        console.log(keywords)
+        formData.append("keywords", keywords)
 
         const URL = window.location.origin + '/api/edit-dataset/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
@@ -74,8 +75,9 @@ function EditDataset({activateConfirmPopup}) {
         .then((data) => {
             console.log("Success:", data);
             navigate("/home")
+            notification("Successfully edited dataset " + name + ".", "success")
         }).catch((error) => {
-            alert("An error occurred.")
+            notification("An error occurred.", "failure")
             console.log("Error: ", error)
         })
     }
@@ -96,9 +98,10 @@ function EditDataset({activateConfirmPopup}) {
         axios.post(URL, data, config)
         .then((data) => {
             navigate("/home")
+            notification("Successfully deleted dataset " + name + ".", "success")
 
         }).catch((error) => {
-            alert("Error: ", error)
+            notification("Error: " + error + ".", "failure")
 
         })
     }
@@ -111,7 +114,7 @@ function EditDataset({activateConfirmPopup}) {
 
     return (
         <div className="create-dataset-container">
-            <form className="create-dataset-form" onSubmit={formOnSubmit}>
+            <div className="create-dataset-form">
                 <div className="edit-dataset-title-container">
                     <h1 className="create-dataset-title"><span className="gray-text">Edit dataset — </span>{originalName}</h1>
                     <button type="button" className="edit-dataset-delete" onClick={deleteDataset}>Delete dataset</button>
@@ -128,9 +131,9 @@ function EditDataset({activateConfirmPopup}) {
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type edit-dataset-deactivated">Dataset type <span className="create-dataset-required">(unchangeable)</span></p>
-                    <input type="radio" id="create-dataset-type-image" name="classification" value="classification" className="edit-dataset-deactivated" checked={type == "classification"} unselectable={"true"} />
+                    <input type="radio" id="create-dataset-type-image" name="classification" value="classification" className="edit-dataset-deactivated" checked={type == "classification"} unselectable={"true"} onChange={() => {}} />
                     <label htmlFor="create-dataset-type-image" className="edit-dataset-deactivated create-dataset-type-label">Classification</label>
-                    <input type="radio" id="create-dataset-type-text" name="area" value="area" className="edit-dataset-deactivated" checked={type == "area"} unselectable={"true"} />
+                    <input type="radio" id="create-dataset-type-text" name="area" value="area" className="edit-dataset-deactivated" checked={type == "area"} unselectable={"true"} onChange={() => {}} />
                     <label htmlFor="create-dataset-type-text" className="edit-dataset-deactivated create-dataset-type-label">Area</label>
                 </div>
 
@@ -157,10 +160,8 @@ function EditDataset({activateConfirmPopup}) {
                     <label className="create-dataset-label">Keywords <span className="create-dataset-required">({keywords.length}/3)</span></label>
 
                     <div className="create-dataset-keywords-inp-container">
-                        <input type="text" className="create-dataset-keywords-inp" value={keywordCurrent} onChange={(e) => {
-                            setKeywordCurrent(e.target.value)
-                        }} />
-                        <button type="button" className="create-dataset-keywords-button" onClick={() => {
+                        <form className="create-dataset-keywords-inp-form" onSubmit={(e) => {
+                            e.preventDefault()
                             if (keywords.length < 3) {
                                 if (!keywords.includes(keywordCurrent.toLowerCase()) && keywordCurrent.length > 0) {
                                     let temp = [...keywords]
@@ -170,13 +171,17 @@ function EditDataset({activateConfirmPopup}) {
                                 }
                                 
                             } else {
-                                alert("You can only add three keywords.")
+                                notification("You can only add three keywords.", "failure")
                             }
-                            
                         }}>
-                            <img className="create-dataset-keywords-icon" src={window.location.origin + "/static/images/plus.png"} />
-                            Add
-                        </button>
+                            <input type="text" className="create-dataset-keywords-inp" value={keywordCurrent} onChange={(e) => {
+                                setKeywordCurrent(e.target.value)
+                            }} />
+                            <button type="submit" className="create-dataset-keywords-button">
+                                <img className="create-dataset-keywords-icon" src={window.location.origin + "/static/images/plus.png"} />
+                                Add
+                            </button>
+                        </form>
                     </div>
                     
                 </div>
@@ -205,11 +210,11 @@ function EditDataset({activateConfirmPopup}) {
 
                 <div className="create-dataset-buttons">
                     <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Back to home</button>
-                    <button type="submit" className="create-dataset-submit">Save changes</button>
+                    <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>Save changes</button>
                 </div>
                 
             
-            </form>
+            </div>
         </div>
     )
 }

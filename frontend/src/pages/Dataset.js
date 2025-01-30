@@ -11,7 +11,7 @@ import DownloadCode from "../components/DownloadCode";
 const TOOLBAR_HEIGHT = 60
 
 // The default page. Login not required.
-function Dataset({currentProfile, activateConfirmPopup}) {
+function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
     const { id } = useParams();
     const [dataset, setDataset] = useState(null)
@@ -173,7 +173,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             
         })
         .catch((err) => {
-            alert(err)
+            notification("Error: " + err + ".", "failure")
             console.log(err)
         }).finally(() => {
             setPointSelected([-1,-1])
@@ -227,13 +227,13 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     
                 >
                     {idx == 0 && <div 
-                    title={idToLabel[area.label].name} 
+                    title={(idToLabel[area.label] ? idToLabel[area.label].name : "")} 
                     className="dataset-element-view-point-label"
                     style={{background: idToLabel[area.label].color, 
                             color: getTextColor(idToLabel[area.label].color),
                             display: ((pointSelected[0] == area.id && pointSelected[1] == 0) ? "none" : "block")}}
                     onClick={(e) => e.stopPropagation()}>
-                        {idToLabel[area.label].name}
+                        {(idToLabel[area.label] ? idToLabel[area.label].name : "")}
                     </div>}
                 </div>
             ))}
@@ -299,7 +299,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     
                 })
                 .catch((err) => {
-                    alert(err)
+                    notification("Error: " + err + ".", "failure")
                     console.log(err)
                 })
             } else {    // Update existing area for this label and element
@@ -322,7 +322,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     
                 })
                 .catch((err) => {
-                    alert(err)
+                    notification("Error: " + err, "failure")
                     console.log(err)
                 })
             }
@@ -358,10 +358,11 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             }
 
             setElements(temp)
+            notification("Successfully deleted area.", "failure")
             
         })
         .catch((err) => {
-            alert(err)
+            notification("Error: " + err + ".", "failure")
             console.log(err)
         })
     }
@@ -496,7 +497,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             // preloadImages(res.data.elements) // Now handled by .hidden-preload
         }).catch((err) => {
             navigate("/")
-            alert("An error occured when loading dataset with id " + id + ".")
+            notification("An error occured when loading dataset with id " + id + ".", "failure")
 
             console.log(err)
 
@@ -605,7 +606,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             if (totalSize > 10 * 10**9) {
                 if (errorMessages) {errorMessages += "\n\n"}
                 errorMessages += "Stopped uploading after " + file.name + " as only 1 Gigabyte can be uploaded at a time."
-                alert(errorMessages)
+                notification(errorMessages, "failure")
                 setUploadPercentage(100)
                 
                 setTimeout(() => {
@@ -616,12 +617,12 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             }
 
             let extension = file.name.split(".").pop()
-            if (!IMAGE_FILE_EXTENSIONS.has(extension) && !TEXT_FILE_EXTENSIONS.has(extension)) {
+            if (!IMAGE_FILE_EXTENSIONS.has(extension) && (dataset.datatype == "area" || !TEXT_FILE_EXTENSIONS.has(extension))) {    // Only image files for area datasets
                 if (errorMessages) {errorMessages += "\n\n"}
                 errorMessages += "Did not upload file with extension " + extension + " as this filetype is not supported."
 
                 if (i == files.length - 1) {
-                    alert(errorMessages)
+                    notification(errorMessages, "failure")
                     setUploadPercentage(100)
 
                     setTimeout(() => {
@@ -664,7 +665,9 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     }, 200)
                     getDataset()
                     if (errorMessages) {
-                        alert(errorMessages)
+                        notification(errorMessages, "failure")
+                    } else {
+                        notification("Successfully uploaded file" + (NUM_FILES != 1 ? "s" : "") + ".", "success")
                     }
                 }
             })
@@ -694,14 +697,14 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             if (res.data) {
                 elements[editingElementIdx] = res.data
             }
-            console.log("COMPLETE")
+            notification("Successfully updated element.", "success")
             setEditingElementIdx(null)
             setEditingElement(null)
             setLoading(false)
 
         })
         .catch((err) => {
-            alert(err)
+            notification("Error: " + err + ".", "failure")
             console.log(err)
         })
     }
@@ -724,6 +727,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         axios.post(URL, data, config)
         .then((data) => {
             console.log("Success: ", data)
+            notification("Successfully deleted element.", "success")
 
             if (elementsIndex != 0) {
                 setElementsIndex(elementsIndex - 1)
@@ -734,7 +738,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             setEditingElement(null)
 
         }).catch((error) => {
-            alert("Error: ", error)
+            notification("Error: " + error + ".", "failure")
 
         }).finally(() => {
             setLoading(false)
@@ -776,7 +780,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
             setLoading(false)
         }).catch((err) => {
-            alert("An error occured when loading labels for dataset with id " + id + ".")
+            notification("An error occured when loading labels for dataset with id " + id + ".", "failure")
             console.log(err)
             setLoading(false)
         })
@@ -789,6 +793,11 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         event.preventDefault(); // Prevent default behavior
     
         if (INVALID_KEYBINDS.has(event.key)) {
+            notification("This keybind is not allowed.", "failure")
+            return;
+        }
+        if (labelKeybinds[event.key] != null) {
+            notification("This keybind is already in use.", "failure")
             return;
         }
     
@@ -820,7 +829,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
 
         axios.post(URL, formData, config)
         .then((data) => {
-            console.log("Success: ", data)
+            notification("Successfully created label.", "success")
             setCreateLabelName("")
             setCreateLabelColor("#07E5E9")
             setCreateLabelKeybind("")
@@ -829,7 +838,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             setDisplayCreateLabel(false)
 
         }).catch((error) => {
-            alert("Error: ", error)
+            notification("Error: " + error + ".", "failure")
         })
 
     }
@@ -867,7 +876,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                 setLoading(false)
             })
             .catch((err) => {
-                alert(err)
+                notification("Error: " + err + ".", "failure")
                 console.log(err)
             })
         } else if (dataset.datatype == "area") {
@@ -904,7 +913,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             setElements(tempElements)
         })
         .catch((err) => {
-            alert(err)
+            notification("Error: " + err + ".", "failure")
             console.log(err)
         })
     }
@@ -929,6 +938,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         setLoading(true)
         axios.post(URL, data, config)
         .then((data) => {
+            notification("Successfully updated label.", "success")
             console.log("Success: ", data)
             
             getLabels()
@@ -936,7 +946,7 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             setEditingLabel(null)
 
         }).catch((error) => {
-            alert("Error: ", error)
+            notification("Error: " + error + ".", "failure")
 
         }).finally(() => {
             setLoading(false)
@@ -959,13 +969,28 @@ function Dataset({currentProfile, activateConfirmPopup}) {
         setLoading(true)
         axios.post(URL, data, config)
         .then((data) => {
-            
+            console.log(editingLabel)
+
+            let tempElements = [...elements]
+            for (let i=0; i < tempElements.length; i++) {
+                if (tempElements[i].label == editingLabel) {
+                    tempElements[i].label = null;     
+                }  
+                if (dataset.datatype == "area") {
+                    tempElements[i].areas = tempElements[i].areas.filter((area) => {return area.label != editingLabel})
+                }
+            }
+            setElements(tempElements)
+
+            console.log(elements)
+
+            notification("Successfully deleted label.", "success")
             getLabels()
 
             setEditingLabel(null)
 
         }).catch((error) => {
-            alert("Error: ", error)
+            notification("Error: " + error + ".")
 
         }).finally(() => {
             setLoading(false)

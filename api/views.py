@@ -232,7 +232,7 @@ class EditDataset(APIView):
                     dataset.description = description   
                     if image: dataset.image = image # As optional 
                     dataset.visibility = visibility
-                    dataset.keywords = keywords
+                    dataset.keywords = keywords.split(",")
                         
                     dataset.save()
                 

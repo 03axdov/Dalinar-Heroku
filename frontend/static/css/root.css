@@ -49,6 +49,8 @@
     --grayer-text: rgb(125,125,125);
 
     --delete-red: rgb(165, 48, 48);
+
+    --description-display-width: 600px;
 }
 
 ::-webkit-scrollbar {
