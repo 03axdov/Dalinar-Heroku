@@ -16,9 +16,7 @@ function DatasetElement({dataset, isPublic=false}) {
     }
 
     useEffect(() => {
-        
         if (dataset.keywords.length > 0) {
-            console.log(dataset.keywords)
             setKeywords(dataset.keywords)
         }
     }, [dataset])

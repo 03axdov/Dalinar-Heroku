@@ -493,14 +493,13 @@ function Dataset({currentProfile, activateConfirmPopup}) {
             // Update keybinds
             parseLabels(res.data.labels)
 
-            // preloadImages(res.data.elements)
+            // preloadImages(res.data.elements) // Now handled by .hidden-preload
         }).catch((err) => {
             navigate("/")
             alert("An error occured when loading dataset with id " + id + ".")
 
             console.log(err)
 
-            // preloadImages(res.data.elements)
         }).finally(() => {
             setLoading(false)
         })
@@ -1359,6 +1358,9 @@ function Dataset({currentProfile, activateConfirmPopup}) {
                     {elements.length != 0 && !showDatasetDescription && <div className="dataset-element-view-container">
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}
+                    <div className="hidden-preload">
+                        {elements.map((e, idx) => {getPreviewElement(elements[idx])})}
+                    </div>
 
                     {showDatasetDescription && dataset && dataset.description && <div className="dataset-description-display-container">
 

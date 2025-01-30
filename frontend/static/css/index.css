@@ -268,6 +268,38 @@ input {
     display: none;
 }
 
+.notification {
+    position: fixed;
+    box-shadow: 0 0 0 1px white;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    border-radius: 3px;
+    z-index: 5;
+    background: var(--toolbar);
+    left: 50%;
+    transform: translate(-50%, 0);
+    top: calc(var(--toolbar-height) + 30px);
+    max-width: 400px;
+    text-align: left;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    pointer-events: none;
+    transition: 0s;
+}
+
+.notification-icon {
+    height: 35px;
+    width: 35px;
+    margin-right: 10px;
+}
+
+.notification-hidden {
+    transition: 0.2s;
+    opacity: 0;
+}
+
 @media all and (max-width: 975px) {
     button {
         font-size: 1rem;

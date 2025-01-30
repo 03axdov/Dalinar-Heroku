@@ -13,6 +13,7 @@ import axios from "axios"
 import Explore from "./pages/Explore"
 import Guide from "./pages/Guide"
 import PublicDataset from "./pages/PublicDataset"
+import Notification from "./components/Notification"
 
 
 export default function App() {
@@ -30,6 +31,10 @@ export default function App() {
     const [showConfirmPopup, setShowConfirmPopup] = useState(false)
     const [confirmPopupOnConfirm, setConfirmPopupOnConfirm] = useState(() => {})
     const [confirmPopupMessage, setConfirmPopupMessage] = useState("")
+
+    const [showNotification, setShowNotification] = useState(false)
+    const [notificationMessage, setNotificationMessage] = useState("")
+    const [notificationType, setNotificationType] = useState("")    // "", "success", or "failure"
 
 
     useEffect(() => {
@@ -69,9 +74,21 @@ export default function App() {
         }
     }
 
+    function notification(message, type, delay=3000) {
+        setShowNotification(true)
+        setNotificationMessage(message)
+        setNotificationType(type)
+
+        setTimeout(() => {
+            setShowNotification(false)
+        }, delay)
+    }
+
 
     return (
         <div id="main">
+            <Notification show={showNotification} message={notificationMessage} type={notificationType}/>
+
             {showAccountPopup && <AccountPopup setShowAccountPopup={setShowAccountPopup} message={"Please sign in to access the homepage."}/>}
             <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile} checkLoggedIn={checkLoggedIn}></Toolbar>
             {showConfirmPopup && <ConfirmPopup setShowConfirmPopup={setShowConfirmPopup} message={confirmPopupMessage} onConfirm={confirmPopupOnConfirm} />}
@@ -81,7 +98,7 @@ export default function App() {
                     <Route path="/" element={<Landing />}/>
                     <Route path="/explore" element={<Explore checkLoggedIn={checkLoggedIn}/>}/>
                     <Route path="/guide" element={<Guide />}/>
-                    <Route path="/home" element={<Home currentProfile={currentProfile}/>}/>
+                    <Route path="/home" element={<Home currentProfile={currentProfile} notification={notification}/>}/>
                     <Route path="/create-dataset" element={<CreateDataset />}/>
                     <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} />}/>
                     <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup}/>}/>

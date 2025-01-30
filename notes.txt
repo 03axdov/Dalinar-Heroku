@@ -1,0 +1,3 @@
+TO-DO:
+- Notifications
+- Zoom in on images

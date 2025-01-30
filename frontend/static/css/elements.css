@@ -168,6 +168,11 @@
         height: 200px;
     }
 
+    .dataset-element-description {
+        font-size: 0.9rem;
+        -webkit-line-clamp: 4; /* Number of lines before truncation */
+    }
+
     .dataset-element-image-container {
         width: 175px;
         min-width: 175px;
@@ -185,11 +190,6 @@
 
     .dataset-element-labels {
         bottom: calc(17px + 23px);
-    }
-
-    .dataset-element-description {
-        font-size: 0.9rem;
-        text-align: left;
     }
 
     .dataset-element-icon {
@@ -226,6 +226,7 @@
 
     .dataset-element-description {
         font-size: 1rem;
+        -webkit-line-clamp: 5; /* Number of lines before truncation */
     }
 
 }
