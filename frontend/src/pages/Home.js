@@ -109,9 +109,7 @@ function Home({currentProfile, notification}) {
             <button className="sidebar-button" onClick={() => {
                 navigate("/create-dataset")
             }}>+ Create dataset</button>
-            <button title="Work in progress" className="sidebar-button sidebar-button-disabled create-model" onClick={() => {
-                notification("Successfully created dataset.", "success")
-            }}>+ Create model</button>
+            <button title="Work in progress" className="sidebar-button sidebar-button-disabled create-model">+ Create model</button>
 
             <div className="explore-datasets-types-container">
                 <div className="explore-datasets-type">
@@ -149,6 +147,7 @@ function Home({currentProfile, notification}) {
                         
                         <div className="explore-datasets-search-container">
                             <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
+                                    setLoading(true)
                                     setSearch(e.target.value)
                             }} /> 
                             <img className="explore-datasets-search-icon" src={window.location.origin + "/static/images/search.png"} />

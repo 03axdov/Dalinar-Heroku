@@ -10,12 +10,12 @@ function ConfirmPopup({setShowConfirmPopup, message, onConfirm}) {
                 <p className="confirm-popup-message">{message}</p>
 
                 <div className="confirm-popup-buttons">
-                    <button className="confirm-popup-cancel" onClick={() => setShowConfirmPopup(false)}>Cancel</button>
-
                     <button className="confirm-popup-confirm" onClick={() => {
                         onConfirm()
                         setShowConfirmPopup(false)
                     }}>Confirm</button>
+
+                    <button className="confirm-popup-cancel" onClick={() => setShowConfirmPopup(false)}>Cancel</button>
                 </div>
                 
             </div>

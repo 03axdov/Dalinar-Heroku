@@ -71,22 +71,27 @@
 }
 
 .landing-description-highlighted {
-    color: rgb(0, 217, 255);
+    color: white;
     margin-right: 10px;
 }
 
 .landing-header-buttons {
     display: flex;
     width: 100%;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     justify-content: space-between;
     margin-top: 40px;
 }
 
 .landing-header-button {
-    width: calc(50% - 10px);
+    width: 100%;
     background: var(--sidebar-button);
+    border-radius: 50px;
+}
+
+.landing-header-explore {
+    margin-top: 10px;
 }
 
 .landing-support-container {

@@ -262,6 +262,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
     // For Area datasets
     const handleImageClick = (event) => {
+        event.stopPropagation()
         const imageElement = elementRef.current;
 
         console.log("CLICKED: " + selectedAreaIdx)
@@ -528,7 +529,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
     // ELEMENT FUNCTIONALITY
 
-    // Element Scroll Functionality
+    // Element Scroll Functionality (doesn't work for area datasets because of the way points work)
     const minZoom = 1
     const maxZoom = 1.5
 

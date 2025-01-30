@@ -315,9 +315,9 @@ function PublicDataset() {
                             }}/>
                 </div>
             } else {
-                return <div className="dataset-element-view-image-container">
+                return <div className="dataset-element-view-image-container-area">
                     <div className="dataset-element-view-image-wrapper">
-                        <img onLoad={() => setUpdateArea(!updateArea)} ref={elementRef} className="dataset-element-view-image" src={element.file} />
+                        <img onLoad={() => setUpdateArea(!updateArea)} ref={elementRef} className="dataset-element-view-image-area" src={element.file} />
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
                             getPoints(area, idx)
                         ))}
@@ -496,6 +496,8 @@ function PublicDataset() {
 
     // FRONTEND FUNCTIONALITY
 
+    console.log(elements)
+
     return (
         <div className="dataset-container" ref={pageRef}>
 
@@ -569,9 +571,7 @@ function PublicDataset() {
                         <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
                         key={element.id} 
                         onClick={() => {
-                            
                             setElementsIndex(idx)
-                            
                         }}
                         onMouseEnter={(e) => {
                             setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
@@ -588,9 +588,12 @@ function PublicDataset() {
                             
                             {dataset && dataset.datatype == "classification" && element.label && idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
                                 style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
-                                >
-                                
+                                > 
                             </span>}
+
+                            {dataset && dataset.datatype == "area" && element.areas && element.areas.length > 0 && <img title="Labelled" 
+                                className="dataset-sidebar-labeled"
+                                src={window.location.origin + "/static/images/area.svg"} />}
      
                         </div>
                     ))}

@@ -145,6 +145,7 @@ function Explore({checkLoggedIn}) {
                         
                         <div className="explore-datasets-search-container">
                             <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
+                                    setLoading(true)
                                     setSearch(e.target.value)
                             }} /> 
                             <img className="explore-datasets-search-icon" src={window.location.origin + "/static/images/search.png"} />
