@@ -13,7 +13,10 @@ from django.urls import resolve
 import json
 from rest_framework.test import APIRequestFactory
 
+from django.core.files.base import ContentFile
+from io import BytesIO
 from PIL import Image
+from django.core.files.storage import default_storage
 
 from .serializers import *
 from .models import *
@@ -452,8 +455,8 @@ class ResizeElementImage(APIView):
     
     def post(self, request, format=None):
         element_id = request.data["id"]
-        new_height = request.data["height"]
-        new_width = request.data["width"]
+        topLeft = request.data["topLeft"]   # [x,y]
+        bottomRight = request.data["bottomRight"]   # [x,y]
         
         user = self.request.user
         
@@ -463,9 +466,26 @@ class ResizeElementImage(APIView):
                 
                 if element.owner == user.profile:
                     file = element.file
+                    new_name = file.name.split("/")[-1]     # Otherwise includes files                    
                     
                     try:
+                        
                         img = Image.open(file)
+                        print(img.size)
+                        img = img.crop(topLeft + bottomRight)
+                        print(img.size)
+                        
+                        if default_storage.exists(file.name):
+                            default_storage.delete(file.name)
+                        
+                        # Save to BytesIO buffer
+                        buffer = BytesIO()
+                        img_format = img.format if img.format else "JPEG"  # Default to JPEG
+                        img.save(buffer, format=img_format, quality=90)
+                        buffer.seek(0)
+                                            
+                        element.file.save(new_name, ContentFile(buffer.read()), save=False)
+                        element.save()
                         
                         return Response(self.serializer_class(element).data, status=status.HTTP_200_OK)
                     
