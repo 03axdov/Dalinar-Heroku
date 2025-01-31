@@ -100,7 +100,7 @@ batch_size = 32
 dataset = dataset.shuffle(buffer_size=1000).batch(batch_size).prefetch(buffer_size=tf.data.AUTOTUNE)`
 
     const FILENAMES_PT_TEXT = `import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from torchvision import transforms
 from PIL import Image
 import os
@@ -381,60 +381,104 @@ dataset = CustomImageDataset(file_paths, label_to_index, transform=transform)`
                     </button>
 
                     <div className="download-successful-code-inner">
-                        <span className="code-line">1</span>import torch<br/>
-                        <span className="code-line">2</span>from torch.utils.data import Dataset, DataLoader<br/>
-                        <span className="code-line">3</span>from torchvision import transforms<br/>
-                        <span className="code-line">4</span>from PIL import Image<br/>
-                        <span className="code-line">5</span>import os<br/>
-                        <span className="code-line">6</span>import re<br/>
+                        <span className="code-line">1</span><span className="code-pink">import</span> torch<br/>
+                        <span className="code-line">2</span><span className="code-pink">from</span> torch.utils.data<span className="code-pink"> import</span> Dataset<br/>
+                        <span className="code-line">3</span><span className="code-pink">from</span> torchvision<span className="code-pink"> import</span> transforms<br/>
+                        <span className="code-line">4</span><span className="code-pink">from</span> PIL<span className="code-pink"> import</span> Image<br/>
+                        <span className="code-line">5</span><span className="code-pink">import</span> os<br/>
+                        <span className="code-line">6</span><span className="code-pink">import</span> re<br/>
                         <span className="code-line">7</span><br/>
                         <span className="code-line">8</span><span className="code-green"># Define the dataset directory</span><br/>
-                        <span className="code-line">9</span>dataset_dir = 'path_to_your_dataset'<br/>
+                        <span className="code-line">9</span>dataset_dir = <span className="code-orange">'path_to_your_dataset'</span><br/>
                         <span className="code-line">10</span><br/>
                         <span className="code-line">11</span><span className="code-green"># Regular expression to extract the label from filename</span><br/>
-                        <span className="code-line">12</span>def extract_label_from_filename(filename):<br/>
-                        <span className="code-line">13</span><span className="code-tab"></span>    return filename.split('_')[0]<br/>
+                        <span className="code-line">12</span><span className="code-blue">def</span> <span className="code-lightyellow">extract_label_from_filename</span><span className="code-yellow">(</span><span className="code-lightblue">filename</span><span className="code-yellow">)</span>:<br/>
+                        <span className="code-line">13</span><span className="code-tab code-pink">return</span> filename.split<span className="code-yellow">(</span><span className="code-orange">'_'</span><span className="code-yellow">)[</span><span className="code-lightgreen">0</span><span className="code-yellow">]</span><br/>
                         <span className="code-line">14</span><br/>
                         <span className="code-line">15</span><span className="code-green"># Get the list of all files</span><br/>
-                        <span className="code-line">16</span>file_paths = [os.path.join(dataset_dir, fname) for fname in os.listdir(dataset_dir) if fname.endswith(('.jpg', '.png'))]<br/>
+                        <span className="code-line">16</span>file_paths = <span className="code-yellow">[</span>
+                            os.path.join<span className="code-pink">(</span>dataset_dir, fname<span className="code-pink">)</span> 
+                            <span className="code-pink"> for</span> fname<span className="code-pink"> in</span> os.listdir
+                            <span className="code-pink">(</span>dataset_dir<span className="code-pink">)</span>
+                            <span className="code-pink"> if</span> fname.endswith<span className="code-pink">(</span><span className="code-blue">(</span>
+                            <span className="code-orange">'.jpg'</span>, <pan className="code-orange">'.png'</pan>
+                            <span className="code-blue">)</span><span className="code-pink">)</span><span className="code-yellow">]</span><br/>
                         <span className="code-line">17</span><br/>
                         <span className="code-line">18</span><span className="code-green"># Create a mapping of labels to indices</span><br/>
-                        <span className="code-line">19</span>unique_labels = sorted(set([extract_label_from_filename(os.path.basename(fp)) for fp in file_paths]))<br/>
-                        <span className="code-line">20</span>label_to_index = {"{"}label: idx for idx, label in enumerate(unique_labels){"}"}<br/>
+                        <span className="code-line">19</span>unique_labels = <span className="code-lightyellow">sorted</span>
+                            <span className="code-yellow">(</span><span className="code-cyan">set</span>
+                            <span className="code-pink">(</span><span className="code-blue">[</span>
+                            extract_label_from_filename<span className="code-yellow">(</span>os.path.basename<span className="code-pink">(</span>fp
+                            <span className="code-pink">)</span><span className="code-yellow">)</span> 
+                            <span className="code-pink"> for</span> fp<span className="code-pink"> in</span> file_paths
+                            <span className="code-blue">]</span><span className="code-pink">)</span><span className="code-yellow">)</span><br/>
+                        <span className="code-line">20</span>label_to_index =<span className="code-yellow"> {"{"}</span> label: idx 
+                            <span className="code-pink"> for</span> idx, label<span className="code-pink"> in</span> 
+                            <span className="code-lightyellow"> enumerate</span><span className="code-pink">(</span>unique_labels
+                            <span className="code-pink">)</span><span className="code-yellow">{"}"}</span><br/>
                         <span className="code-line">21</span><br/>
                         <span className="code-line">22</span><span className="code-green"># Define a custom Dataset class</span><br/>
-                        <span className="code-line">23</span>class CustomImageDataset(Dataset):<br/>
-                        <span className="code-line">24</span><span className="code-tab"></span>    def __init__(self, file_paths, label_to_index, transform=None):<br/>
-                        <span className="code-line">25</span><span className="code-tab"></span><span className="code-tab"></span>self.file_paths = file_paths<br/>
-                        <span className="code-line">26</span><span className="code-tab"></span><span className="code-tab"></span>self.label_to_index = label_to_index<br/>
-                        <span className="code-line">27</span><span className="code-tab"></span><span className="code-tab"></span>self.transform = transform<br/>
+                        <span className="code-line">23</span><span className="code-blue">class </span>
+                            <span className="code-cyan">CustomImageDataset</span><span className="code-yellow">(</span>
+                            <span className="code-cyan">Dataset</span><span className="code-yellow">)</span>:<br/>
+                        <span className="code-line">24</span><span className="code-tab"></span><span className="code-blue">def</span> 
+                            <span className="code-lightyellow"> __init__</span><span className="code-yellow">(</span>
+                            <span className="code-lightblue">self, file_paths, label_to_index, transform</span>=
+                            <span className="code-blue">None</span><span className="code-yellow">)</span>:<br/>
+                        <span className="code-line">25</span><span className="code-tab"></span><span className="code-tab"></span><span className="code-blue">self</span>.file_paths = file_paths<br/>
+                        <span className="code-line">26</span><span className="code-tab"></span><span className="code-tab"></span><span className="code-blue">self</span>.label_to_index = label_to_index<br/>
+                        <span className="code-line">27</span><span className="code-tab"></span><span className="code-tab"></span><span className="code-blue">self</span>.transform = transform<br/>
                         <span className="code-line">28</span><br/>
-                        <span className="code-line">29</span><span className="code-tab"></span>def __len__(self):<br/>
-                        <span className="code-line">30</span><span className="code-tab"></span><span className="code-tab"></span>return len(self.file_paths)<br/>
+                        <span className="code-line">29</span><span className="code-tab"></span><span className="code-blue">def</span> 
+                            <span className="code-lightyellow"> __len__</span><span className="code-yellow">(</span>
+                            <span className="code-lightblue">self</span><span className="code-yellow">)</span>:<br/>
+                        <span className="code-line">30</span><span className="code-tab"></span><span className="code-tab"></span>
+                            <span className="code-pink">return</span><span className="code-lightyellow"> len</span>
+                            <span className="code-yellow">(</span><span className="code-blue">self</span>.file_paths
+                            <span className="code-yellow">)</span><br/>
                         <span className="code-line">31</span><br/>
-                        <span className="code-line">32</span><span className="code-tab"></span>def __getitem__(self, idx):<br/>
-                        <span className="code-line">33</span><span className="code-tab"></span><span className="code-tab"></span>file_path = self.file_paths[idx]<br/>
-                        <span className="code-line">34</span><span className="code-tab"></span><span className="code-tab"></span>file_name = os.path.basename(file_path)<br/>
+                        <span className="code-line">32</span><span className="code-tab"></span><span className="code-blue">def</span>
+                            <span className="code-lightyellow"> __getitem__</span><span className="code-yellow">(</span>
+                            <span className="code-lightblue">self, idx</span><span className="code-yellow">)</span>:<br/>
+                        <span className="code-line">33</span><span className="code-tab"></span><span className="code-tab"></span>file_path = <span className="code-blue">self</span>
+                        .file_paths<span className="code-yellow">[</span>idx<span className="code-yellow">]</span><br/>
+                        <span className="code-line">34</span><span className="code-tab"></span><span className="code-tab"></span>file_name = os.path.basename
+                            <span className="code-yellow">(</span>file_path<span className="code-yellow">)</span><br/>
                         <span className="code-line">35</span><br/>
                         <span className="code-line">36</span><span className="code-tab"></span><span className="code-tab"></span><span className="code-green"># Extract label and map to index</span><br/>
-                        <span className="code-line">37</span><span className="code-tab"></span><span className="code-tab"></span>label_str = extract_label_from_filename(file_name)<br/>
-                        <span className="code-line">38</span><span className="code-tab"></span><span className="code-tab"></span>label = self.label_to_index[label_str]<br/>
+                        <span className="code-line">37</span><span className="code-tab"></span><span className="code-tab"></span>label_str = extract_label_from_filename
+                            <span className="code-yellow">(</span>file_name
+                            <span className="code-yellow">)</span><br/>
+                        <span className="code-line">38</span><span className="code-tab"></span><span className="code-tab"></span>label = <span className="code-blue">self</span>
+                            .label_to_index<span className="code-yellow">[</span>label_str<span className="code-yellow">]</span><br/>
                         <span className="code-line">39</span><br/>
                         <span className="code-line">40</span><span className="code-tab"></span><span className="code-tab"></span><span className="code-green"># Load and transform the image</span><br/>
-                        <span className="code-line">41</span><span className="code-tab"></span><span className="code-tab"></span>image = Image.open(file_path).convert('RGB')<br/>
-                        <span className="code-line">42</span><span className="code-tab"></span><span className="code-tab"></span>if self.transform:<br/>
-                        <span className="code-line">43</span><span className="code-tab"></span><span className="code-tab"></span><span className="code-tab"></span>image = self.transform(image)<br/>
+                        <span className="code-line">41</span><span className="code-tab"></span><span className="code-tab"></span>image = Image.open
+                            <span className="code-yellow">(</span>file_path<span className="code-yellow">)</span>.convert
+                            <span className="code-yellow">(</span><span className="code-orange">'RGB'</span><span className="code-yellow">)</span><br/>
+                        <span className="code-line">42</span><span className="code-tab"></span><span className="code-tab"></span><span className="code-pink">if </span> 
+                            <span className="code-blue">self</span>.transform:<br/>
+                        <span className="code-line">43</span><span className="code-tab"></span><span className="code-tab"></span><span className="code-tab"></span>image = 
+                            <span className="code-blue"> self</span>.transform<span className="code-yellow">(</span>image<span className="code-yellow">)</span><br/>
                         <span className="code-line">44</span><br/>
-                        <span className="code-line">45</span><span className="code-tab"></span><span className="code-tab"></span>return image, label<br/>
+                        <span className="code-line">45</span><span className="code-tab"></span><span className="code-tab"></span><span className="code-pink">return</span> image, label<br/>
                         <span className="code-line">46</span><br/>
-                        <span className="code-line">47</span>transform = transforms.Compose([<br/>
-                        <span className="code-line">48</span><span className="code-tab"></span>transforms.Resize((512, 512)),  <span className="code-green code-tab"># Resize images</span><br/>
-                        <span className="code-line">59</span><span className="code-tab"></span>transforms.ToTensor(),<br/>
-                        <span className="code-line">50</span><span className="code-tab"></span>transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  <span className="code-green code-tab"># Normalize using ImageNet mean/std</span><br/>
-                        <span className="code-line">51</span>])<br/>
+                        <span className="code-line">47</span>transform = transforms.Compose<span className="code-yellow">(</span><span className="code-pink">[</span><br/>
+                        <span className="code-line">48</span><span className="code-tab"></span>transforms.Resize<span className="code-blue">(</span>
+                            <span className="code-yellow">(</span><span className="code-lightgreen">512, 512</span>
+                            <span className="code-yellow">)</span><span className="code-blue">)</span>,  <span className="code-green code-tab"># Resize images</span><br/>
+                        <span className="code-line">59</span><span className="code-tab"></span>transforms.ToTensor<span className="code-blue">()</span>,<br/>
+                        <span className="code-line">50</span><span className="code-tab"></span>transforms.Normalize<span className="code-blue">(</span>
+                            <span className="code-lightblue">mean</span>=
+                            <span className="code-yellow">[</span><span className="code-lightgreen">0.485, 0.456, 0.406</span>
+                            <span className="code-yellow">]</span>, <span className="code-lightblue">std</span>=
+                            <span className="code-yellow">[</span><span className="code-lightgreen">0.229, 0.224, 0.225</span>
+                            <span className="code-yellow">]</span><span className="code-blue">)</span>  <span className="code-green code-tab"># Normalize using ImageNet mean/std</span><br/>
+                        <span className="code-line">51</span><span className="code-pink">]</span><span className="code-yellow">)</span><br/>
                         <span className="code-line">52</span><br/>
                         <span className="code-line">53</span><span className="code-green"># Create dataset</span><br/>
-                        <span className="code-line">54</span>dataset = CustomImageDataset(file_paths, label_to_index, transform=transform)<br/>
+                        <span className="code-line">54</span>dataset = CustomImageDataset<span className="code-yellow">(</span>file_paths, label_to_index, 
+                            <span className="code-lightblue"> transform</span>=transform<span className="code-yellow">)</span><br/>
                     </div>
                 </div>
             )
