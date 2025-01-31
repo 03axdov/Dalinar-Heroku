@@ -96,6 +96,8 @@
     padding-right: 40px;
     padding-bottom: 5px;
     border-bottom: 1px solid white;
+    min-width: 450px;
+    box-sizing: border-box;
 }
 
 .instructions-text {

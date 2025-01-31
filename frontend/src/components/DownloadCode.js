@@ -99,6 +99,63 @@ dataset = file_paths_dataset.map(
 batch_size = 32
 dataset = dataset.shuffle(buffer_size=1000).batch(batch_size).prefetch(buffer_size=tf.data.AUTOTUNE)`
 
+    const FILENAMES_PT_TEXT = `import torch
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
+from PIL import Image
+import os
+import re
+
+# Define the dataset directory
+dataset_dir = 'path_to_your_dataset'
+
+# Regular expression to extract the label from filename
+def extract_label_from_filename(filename):
+    return filename.split('_')[0]  # Extract everything before the underscore (_)
+
+# Get the list of all files
+file_paths = [os.path.join(dataset_dir, fname) for fname in os.listdir(dataset_dir) if fname.endswith(('.jpg', '.png'))]
+
+# Create a mapping of labels to indices
+unique_labels = sorted(set([extract_label_from_filename(os.path.basename(fp)) for fp in file_paths]))
+label_to_index = {label: idx for idx, label in enumerate(unique_labels)}
+
+# Define a custom Dataset class
+class CustomImageDataset(Dataset):
+    def __init__(self, file_paths, label_to_index, transform=None):
+        self.file_paths = file_paths
+        self.label_to_index = label_to_index
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.file_paths)
+
+    def __getitem__(self, idx):
+        file_path = self.file_paths[idx]
+        file_name = os.path.basename(file_path)
+
+        # Extract label and map to index
+        label_str = extract_label_from_filename(file_name)
+        label = self.label_to_index[label_str]
+
+        # Load and transform the image
+        image = Image.open(file_path).convert('RGB')
+        if self.transform:
+            image = self.transform(image)
+
+        return image, label
+
+# Define transformations (resize, convert to tensor, normalize)
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),  # Resize images
+    transforms.ToTensor(),  # Convert to PyTorch tensor
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize using ImageNet mean/std
+])
+
+# Create dataset
+dataset = CustomImageDataset(file_paths, label_to_index, transform=transform)`
+
+
     if (datatype.toLowerCase() == "classification" && downloadType == "folders") {
         if (framework.toLowerCase() == "tensorflow") {
             return (
@@ -317,14 +374,67 @@ dataset = dataset.shuffle(buffer_size=1000).batch(batch_size).prefetch(buffer_si
         } else if (framework.toLowerCase() == "pytorch") {
             return (
                 <div className="download-successful-code">
-                    <button className="download-successful-code-copy" onClick={() => copyCode("")}>
+                    <button className="download-successful-code-copy" onClick={() => copyCode(FILENAMES_PT_TEXT)}>
                         {!copied && <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />}
                         {copied && <img className="code-copied-icon" src={window.location.origin + "/static/images/check.png"} />}
                         {copied ? "Copied" : "Copy"}
                     </button>
 
                     <div className="download-successful-code-inner">
-                        <span className="code-line">1</span><span className="code-green"># This has not yet been added.</span>
+                        <span className="code-line">1</span>import torch<br/>
+                        <span className="code-line">2</span>from torch.utils.data import Dataset, DataLoader<br/>
+                        <span className="code-line">3</span>from torchvision import transforms<br/>
+                        <span className="code-line">4</span>from PIL import Image<br/>
+                        <span className="code-line">5</span>import os<br/>
+                        <span className="code-line">6</span>import re<br/>
+                        <span className="code-line">7</span><br/>
+                        <span className="code-line">8</span><span className="code-green"># Define the dataset directory</span><br/>
+                        <span className="code-line">9</span>dataset_dir = 'path_to_your_dataset'<br/>
+                        <span className="code-line">10</span><br/>
+                        <span className="code-line">11</span><span className="code-green"># Regular expression to extract the label from filename</span><br/>
+                        <span className="code-line">12</span>def extract_label_from_filename(filename):<br/>
+                        <span className="code-line">13</span><span className="code-tab"></span>    return filename.split('_')[0]<br/>
+                        <span className="code-line">14</span><br/>
+                        <span className="code-line">15</span><span className="code-green"># Get the list of all files</span><br/>
+                        <span className="code-line">16</span>file_paths = [os.path.join(dataset_dir, fname) for fname in os.listdir(dataset_dir) if fname.endswith(('.jpg', '.png'))]<br/>
+                        <span className="code-line">17</span><br/>
+                        <span className="code-line">18</span><span className="code-green"># Create a mapping of labels to indices</span><br/>
+                        <span className="code-line">19</span>unique_labels = sorted(set([extract_label_from_filename(os.path.basename(fp)) for fp in file_paths]))<br/>
+                        <span className="code-line">20</span>label_to_index = {"{"}label: idx for idx, label in enumerate(unique_labels){"}"}<br/>
+                        <span className="code-line">21</span><br/>
+                        <span className="code-line">22</span><span className="code-green"># Define a custom Dataset class</span><br/>
+                        <span className="code-line">23</span>class CustomImageDataset(Dataset):<br/>
+                        <span className="code-line">24</span><span className="code-tab"></span>    def __init__(self, file_paths, label_to_index, transform=None):<br/>
+                        <span className="code-line">25</span><span className="code-tab"></span><span className="code-tab"></span>self.file_paths = file_paths<br/>
+                        <span className="code-line">26</span><span className="code-tab"></span><span className="code-tab"></span>self.label_to_index = label_to_index<br/>
+                        <span className="code-line">27</span><span className="code-tab"></span><span className="code-tab"></span>self.transform = transform<br/>
+                        <span className="code-line">28</span><br/>
+                        <span className="code-line">29</span><span className="code-tab"></span>def __len__(self):<br/>
+                        <span className="code-line">30</span><span className="code-tab"></span><span className="code-tab"></span>return len(self.file_paths)<br/>
+                        <span className="code-line">31</span><br/>
+                        <span className="code-line">32</span><span className="code-tab"></span>def __getitem__(self, idx):<br/>
+                        <span className="code-line">33</span><span className="code-tab"></span><span className="code-tab"></span>file_path = self.file_paths[idx]<br/>
+                        <span className="code-line">34</span><span className="code-tab"></span><span className="code-tab"></span>file_name = os.path.basename(file_path)<br/>
+                        <span className="code-line">35</span><br/>
+                        <span className="code-line">36</span><span className="code-tab"></span><span className="code-tab"></span><span className="code-green"># Extract label and map to index</span><br/>
+                        <span className="code-line">37</span><span className="code-tab"></span><span className="code-tab"></span>label_str = extract_label_from_filename(file_name)<br/>
+                        <span className="code-line">38</span><span className="code-tab"></span><span className="code-tab"></span>label = self.label_to_index[label_str]<br/>
+                        <span className="code-line">39</span><br/>
+                        <span className="code-line">40</span><span className="code-tab"></span><span className="code-tab"></span><span className="code-green"># Load and transform the image</span><br/>
+                        <span className="code-line">41</span><span className="code-tab"></span><span className="code-tab"></span>image = Image.open(file_path).convert('RGB')<br/>
+                        <span className="code-line">42</span><span className="code-tab"></span><span className="code-tab"></span>if self.transform:<br/>
+                        <span className="code-line">43</span><span className="code-tab"></span><span className="code-tab"></span><span className="code-tab"></span>image = self.transform(image)<br/>
+                        <span className="code-line">44</span><br/>
+                        <span className="code-line">45</span><span className="code-tab"></span><span className="code-tab"></span>return image, label<br/>
+                        <span className="code-line">46</span><br/>
+                        <span className="code-line">47</span>transform = transforms.Compose([<br/>
+                        <span className="code-line">48</span><span className="code-tab"></span>transforms.Resize((512, 512)),  <span className="code-green code-tab"># Resize images</span><br/>
+                        <span className="code-line">59</span><span className="code-tab"></span>transforms.ToTensor(),<br/>
+                        <span className="code-line">50</span><span className="code-tab"></span>transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  <span className="code-green code-tab"># Normalize using ImageNet mean/std</span><br/>
+                        <span className="code-line">51</span>])<br/>
+                        <span className="code-line">52</span><br/>
+                        <span className="code-line">53</span><span className="code-green"># Create dataset</span><br/>
+                        <span className="code-line">54</span>dataset = CustomImageDataset(file_paths, label_to_index, transform=transform)<br/>
                     </div>
                 </div>
             )
