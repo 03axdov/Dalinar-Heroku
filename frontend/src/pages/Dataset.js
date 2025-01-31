@@ -171,6 +171,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
             if (res.data.deleted == false) {
                 temp[elementsIndex].areas[selectedAreaIdx].area_points = JSON.stringify(updatedPoints)
             } else {
+                notification("Successfully deleted area.", "success")
                 temp[elementsIndex].areas.splice(selectedAreaIdx, 1)
             }
             
@@ -220,6 +221,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                             left: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[0] : point[0]) + "%", 
                             "background": (idToLabel[area.label].color)}} 
                     onClick={(e) => {
+                        e.stopPropagation()
                         if (pointSelected[0] != area.id || pointSelected[1] != idx) {
                             setPointSelectedCoords([point[0], point[1]])
                             setSelectedAreaIdx(areaIdx)
@@ -264,8 +266,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
     const handleImageClick = (event) => {
         event.stopPropagation()
         const imageElement = elementRef.current;
-
-        console.log("CLICKED: " + selectedAreaIdx)
 
         if (imageElement && ((selectedAreaIdx !== null) || labelSelected)) {    // Only update point if a label is selected
             
@@ -337,9 +337,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
     };
 
     function deleteArea(area, elementIdx, areaIdx) {
-
-        console.log("elementIdx: " + elementIdx)
-        console.log("areaIdx: " + areaIdx)
         
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -364,7 +361,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
             }
 
             setElements(temp)
-            notification("Successfully deleted area.", "failure")
+            notification("Successfully deleted area.", "success")
             
         })
         .catch((err) => {
@@ -490,7 +487,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
             url: window.location.origin + '/api/datasets/' + id,
         })
         .then((res) => {
-            console.log(res.data)
             setDataset(res.data)
 
             setElements(res.data.elements)
@@ -513,7 +509,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
     }
 
     const preloadImage = (src) => {
-        console.log(src)
         const img = new Image();
         img.src = src;
     };
@@ -573,13 +568,20 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                         }}/>
                 </div>
             } else {
-                return <div className="dataset-element-view-image-container-area">
+                return <div className="dataset-element-view-image-container-area" onClick={(e) => {
+                    setLabelSelected(null)
+                    setSelectedArea(null)
+                    setSelectedAreaIdx(null)
+                }}>
                     <div className="dataset-element-view-image-wrapper" onMouseMove={(e) => pointOnDrag(e)}>
                         <img onLoad={() => setUpdateArea(!updateArea)} 
                         ref={elementRef} 
                         className="dataset-element-view-image-area" 
                         src={element.file} 
-                        onClick={handleImageClick}/>
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            handleImageClick(e)
+                        }}/>
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
                             getPoints(area, idx)
                         ))}
@@ -697,7 +699,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                 console.log("Error: ", error)
             }).finally(() => {
                 AXIOS_OUTSTANDING -= 1
-                console.log(Math.round(100 - (AXIOS_OUTSTANDING * 1.0 / NUM_FILES)))
                 setUploadPercentage(Math.round(100 * (1- AXIOS_OUTSTANDING / NUM_FILES)))
                 if (AXIOS_OUTSTANDING == 0) {
                     setTimeout(() => {
@@ -923,6 +924,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
             if (labelSelected != label.id) {
                 setSelectedAreaIdx(null)
                 setSelectedArea(null)
+                setSelectedAreaIdx(null)
                 setLabelSelected(label.id)
             } else {
                 setLabelSelected(null)
@@ -1009,7 +1011,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
         setLoading(true)
         axios.post(URL, data, config)
         .then((data) => {
-            console.log(editingLabel)
 
             let tempElements = [...elements]
             for (let i=0; i < tempElements.length; i++) {
@@ -1021,8 +1022,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                 }
             }
             setElements(tempElements)
-
-            console.log(elements)
 
             notification("Successfully deleted label.", "success")
             getLabels()
@@ -1408,7 +1407,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                     </button>}
 
                     {dataset && <button className="dataset-download-button" onClick={() => {
-                        console.log("A")
                         setShowDownloadPopup(true)
                     }}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>}
                     

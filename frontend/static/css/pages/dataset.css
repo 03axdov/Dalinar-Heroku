@@ -945,6 +945,17 @@ canvas {
 @media all and (max-width: 1350px) {
     .dataset-description-display-container {
         flex-direction: column;
+        overflow-y: auto;
+        max-height: 100%;
+        min-height: 100%;
+    }
+
+    .dataset-description-display-container::-webkit-scrollbar {
+        width: 10px;
+    }
+
+    .dataset-description-display-container::-webkit-scrollbar-thumb {
+        border-radius: 0;
     }
 
     .dataset-description-image-container {
@@ -963,7 +974,10 @@ canvas {
     .dataset-description-display {
         width: 100%;
         border-bottom: none;
-        height: calc(100% - 400px);
+        height: auto;
+        max-height: none;
+        overflow: visible;
+        padding-bottom: 40px;
     }
 
     .dataset-description-stats {
