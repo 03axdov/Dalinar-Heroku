@@ -189,6 +189,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
     function pointOnDrag(e) {
         if (pointSelected[0] == -1 || pointSelected[1] == -1) {return}
+
         const imageElement = elementRef.current;
         const boundingRect = imageElement.getBoundingClientRect();
 
@@ -535,7 +536,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
     const handleElementMouseMove = (e) => {
         if (zoom === 1) return;
-    
         const rect = elementContainerRef.current.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
         const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -568,19 +568,33 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                         }}/>
                 </div>
             } else {
-                return <div className="dataset-element-view-image-container-area" onClick={(e) => {
+                return <div className="dataset-element-view-image-container-area" 
+                onClick={(e) => {
                     setLabelSelected(null)
                     setSelectedArea(null)
                     setSelectedAreaIdx(null)
-                }}>
-                    <div className="dataset-element-view-image-wrapper" onMouseMove={(e) => pointOnDrag(e)}>
+                }}
+                ref={elementContainerRef}
+                onWheel={handleElementScroll}
+                onMouseMove={handleElementMouseMove}
+                style={{overflow: "hidden"}}>
+                    <div className="dataset-element-view-image-wrapper" 
+                    onMouseMove={(e) => pointOnDrag(e)}
+                    style={{
+                        transform: `scale(${zoom}) translate(${(50 - position.x) * (zoom - 1)}%, ${(50 - position.y) * (zoom - 1)}%)`,
+                        transformOrigin: "center",
+                        transition: "transform 0.1s ease-out",
+                    }}>
                         <img onLoad={() => setUpdateArea(!updateArea)} 
                         ref={elementRef} 
                         className="dataset-element-view-image-area" 
                         src={element.file} 
                         onClick={(e) => {
                             e.stopPropagation()
-                            handleImageClick(e)
+                            if (pointSelected == null || labelSelected != null || selectedArea != null) {
+                                handleImageClick(e)
+                            }
+                            
                         }}/>
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
                             getPoints(area, idx)

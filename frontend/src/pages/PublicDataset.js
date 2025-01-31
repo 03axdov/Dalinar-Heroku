@@ -315,8 +315,17 @@ function PublicDataset() {
                             }}/>
                 </div>
             } else {
-                return <div className="dataset-element-view-image-container-area">
-                    <div className="dataset-element-view-image-wrapper">
+                return <div className="dataset-element-view-image-container-area"
+                ref={elementContainerRef}
+                onWheel={handleElementScroll}
+                onMouseMove={handleElementMouseMove}
+                style={{overflow: "hidden"}}>
+                    <div className="dataset-element-view-image-wrapper"
+                    style={{
+                        transform: `scale(${zoom}) translate(${(50 - position.x) * (zoom - 1)}%, ${(50 - position.y) * (zoom - 1)}%)`,
+                        transformOrigin: "center",
+                        transition: "transform 0.1s ease-out",
+                    }}>
                         <img onLoad={() => setUpdateArea(!updateArea)} ref={elementRef} className="dataset-element-view-image-area" src={element.file} />
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
                             getPoints(area, idx)
@@ -495,8 +504,6 @@ function PublicDataset() {
     }
 
     // FRONTEND FUNCTIONALITY
-
-    console.log(elements)
 
     return (
         <div className="dataset-container" ref={pageRef}>
