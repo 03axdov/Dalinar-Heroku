@@ -13,8 +13,15 @@ from django.urls import resolve
 import json
 from rest_framework.test import APIRequestFactory
 
+from PIL import Image
+
 from .serializers import *
 from .models import *
+
+
+# CONSTANTS
+
+ALLOWED_IMAGE_FILE_EXTENSIONS = set(["png", "jpg", "jpeg", "webp", "avif"])
 
 
 # PROFILE HANDLING
@@ -437,6 +444,39 @@ class DeleteElement(APIView):
                 return Response({"Not found": "Could not find element with the id " + str(element_id + ".")}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to delete elements.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class ResizeElementImage(APIView):
+    serializer_class = ElementSerializer
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        element_id = request.data["id"]
+        new_height = request.data["height"]
+        new_width = request.data["width"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                element = Element.objects.get(id=element_id)
+                
+                if element.owner == user.profile:
+                    file = element.file
+                    
+                    try:
+                        img = Image.open(file)
+                        
+                        return Response(self.serializer_class(element).data, status=status.HTTP_200_OK)
+                    
+                    except IOError:
+                        return Response({"Bad Request": "Not an image."}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"Unauthorized": "You can only resize images for your own elements."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Element.DoesNotExist:
+                return Response({"Not found": "Could not find element with the id " + str(element_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "Must be logged in to resize element images."}, status=status.HTTP_401_UNAUTHORIZED)
         
         
 # LABEL HANDLING

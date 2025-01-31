@@ -527,10 +527,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
     // Element Scroll Functionality (doesn't work for area datasets because of the way points work)
     const minZoom = 1
-    const maxZoom = 1.5
+    const maxZoom = 2
 
     const handleElementScroll = (e) => {
-        const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.5, minZoom), maxZoom);
+        console.log(e)
+        const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.0025, minZoom), maxZoom);
         setZoom(newZoom);
     };
 

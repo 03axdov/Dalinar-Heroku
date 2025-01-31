@@ -84,7 +84,17 @@
     margin-top: 40px;
 }
 
+.landing-header-button-icon {
+    height: 17px;
+    width: 17px;
+    margin-right: 10px;
+}
+
 .landing-header-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
     width: 100%;
     background: var(--sidebar-button);
     border-radius: 50px;

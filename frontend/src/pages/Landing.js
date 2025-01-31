@@ -36,8 +36,14 @@ function Landing() {
                     <div className="landing-header-buttons">
                         <button type="button" className="landing-header-button landing-header-signup" onClick={() => {
                             window.location.href = window.location.origin + "/accounts/signup/"
-                        }}>Get started</button>
-                        <button type="button" className="landing-header-button landing-header-explore" onClick={() => navigate("/explore")}>Explore datasets</button>
+                        }}>
+                            <img className="landing-header-button-icon" src={window.location.origin + "/static/images/rocket.png"} />
+                            Get started
+                        </button>
+                        <button type="button" className="landing-header-button landing-header-explore" onClick={() => navigate("/explore")}>
+                            <img className="landing-header-button-icon" src={window.location.origin + "/static/images/explore.png"} />
+                            Explore datasets
+                        </button>
                     </div>
 
                     <div className="landing-support-container">

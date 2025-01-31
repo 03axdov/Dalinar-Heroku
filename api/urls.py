@@ -21,6 +21,7 @@ urlpatterns = [
     path("edit-element/", EditElement.as_view(), name="edit-element"),
     path("remove-element-label/", RemoveElementLabel.as_view(), name="remove-element-label"),
     path("delete-element/", DeleteElement.as_view(), name="delete-element"),
+    path("resize-element-image/", ResizeElementImage.as_view(), name="resize-element-image"),
     
     # LABEL HANDLING
     path("create-label/", CreateLabel.as_view(), name="create-label"),
