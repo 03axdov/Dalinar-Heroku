@@ -65,6 +65,21 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
     const [inputFocused, setInputFocused] = useState(false);  // Don't use keybinds if input is focused
 
+    const [currentImageWidth, setCurrentImageWidth] = useState(0)    // Only used if current element is an image
+    const [currentImageHeight, setCurrentImageHeight] = useState(0)  // Only used if current element is an image
+
+    // Update current image dimensions
+    useEffect(() => {
+        let currentElement = elements[elementsIndex]
+        if (!currentElement) {return}
+        let extension = currentElement.file.split(".").pop()
+
+        if (IMAGE_FILE_EXTENSIONS.has(extension)) {
+            setCurrentImageWidth(currentElement.imageWidth)
+            setCurrentImageHeight(currentElement.imageHeight)
+        }
+    }, [elements, elementsIndex])
+
     // Zoom functionality
     const elementContainerRef = useRef(null)
     const [zoom, setZoom] = useState(1);
@@ -86,6 +101,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
     const DOT_SIZE = 22
 
+    // For drawing points for area datasets
     useEffect(() => {
         if (elements.length < 1) {return}
         if (!canvasRefs.current.length) return;
@@ -141,7 +157,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
             ctx.closePath();
         });
     }, [elements, elementsIndex, canvasRefs, updateArea, labels]);   // When element areas update
-
 
     function updatePoints(area, newPoint, pointIdx, remove=false) {
         axios.defaults.withCredentials = true;
@@ -1411,7 +1426,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                         <img className="dataset-title-expand-icon" src={window.location.origin + "/static/images/" + (!showDatasetDescription ? "plus.png" : "minus.png")} />
                     </div>}
 
-                    {dataset && <button type="button" className="dataset-title-button" onClick={() => {
+                    {dataset && <button type="button" title="Edit dataset" className="dataset-title-button" onClick={() => {
                         navigate("/edit-dataset/" + dataset.id)
                     }}>
                         <img className="dataset-title-edit-icon" src={window.location.origin + "/static/images/edit.png"}/>
@@ -1424,12 +1439,12 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
                     {elements && elements[elementsIndex] && IMAGE_FILE_EXTENSIONS.has(elements[elementsIndex].file.split(".").pop()) && <div className="resize-container">
                         <label htmlFor="resize-width" className="resize-label">Width</label>
-                        <input type="number" id="resize-width" className="resize-inp" value={elements[elementsIndex].imageWidth} onChange={() => {
+                        <input type="number" id="resize-width" className="resize-inp" value={currentImageWidth} onChange={() => {
                             
                         }}/>
 
                         <label htmlFor="resize-height" className="resize-label resize-label-margin">Height</label>
-                        <input type="number" id="resize-height" className="resize-inp" value={elements[elementsIndex].imageHeight} onChange={() => {
+                        <input type="number" id="resize-height" className="resize-inp" value={currentImageHeight} onChange={() => {
 
                         }}/>
                     </div>}
