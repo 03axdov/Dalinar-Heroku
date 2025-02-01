@@ -533,7 +533,7 @@
 }
 
 .create-label-submit:hover, .edit-element-submit:hover {
-    background: var(--gray-dark);
+    background: var(--blue);
 }
 
 .edit-label-delete, .edit-element-delete {
@@ -914,11 +914,20 @@ canvas {
     z-index: 2;
 }
 
-.resize-container {
+.resize-form {
     margin-left: auto;
     display: flex;
     flex-direction: row;
     align-items: center;
+}
+
+.resize-apply {
+    background: var(--sidebar-button);
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 10px;
 }
 
 .resize-inp {
@@ -1035,6 +1044,7 @@ canvas {
         justify-content: center;
         align-items: center;
         width: 35px;
+        min-width: 35px;
     }
 
     .dataset-title-edit-icon {

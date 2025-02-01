@@ -455,8 +455,8 @@ class ResizeElementImage(APIView):
     
     def post(self, request, format=None):
         element_id = request.data["id"]
-        newWidth = request.data["width"]
-        newHeight = request.data["height"]
+        newWidth = int(request.data["width"])
+        newHeight = int(request.data["height"])
         
         user = self.request.user
         
@@ -467,8 +467,9 @@ class ResizeElementImage(APIView):
                 if element.owner == user.profile:
                     file = element.file
                     new_name = file.name.split("/")[-1]     # Otherwise includes files
-                    new_name, extension = new_name.split(".")           
-                    new_name += f"-({newWidth}, {newHeight})." + extension         
+                    new_name, extension = new_name.split(".")     
+                    new_name = new_name.split("-")[0]   # Remove previous resize information      
+                    new_name += ("-" + str(newWidth) + "x" + str(newHeight) + "." + extension) 
                     
                     try:
                         
@@ -485,6 +486,8 @@ class ResizeElementImage(APIView):
                         buffer.seek(0)
                                             
                         element.file.save(new_name, ContentFile(buffer.read()), save=False)
+                        element.imageWidth = newWidth
+                        element.imageHeight = newHeight
                         element.save()
                         
                         return Response(self.serializer_class(element).data, status=status.HTTP_200_OK)

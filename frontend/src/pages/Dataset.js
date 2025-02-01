@@ -179,6 +179,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
             "area_points": JSON.stringify(updatedPoints)
         }
 
+        setLoading(true)
         axios.post(URL, data, config)
         .then((res) => {
             let temp = [...elements]
@@ -197,6 +198,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
             console.log(err)
         }).finally(() => {
             setPointSelected([-1,-1])
+            setLoading(false)
         })
     }
 
@@ -307,6 +309,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                     "area_points": JSON.stringify([[clickXPercent, clickYPercent]])
                 }
         
+                setLoading(true)
                 axios.post(URL, data, config)
                 .then((res) => {
                     let temp = [...elements]
@@ -322,7 +325,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                 .catch((err) => {
                     notification("Error: " + err + ".", "failure")
                     console.log(err)
+                }).finally(() => {
+                    setLoading(false)
                 })
+
             } else {    // Update existing area for this label and element
                 const URL = window.location.origin + '/api/edit-area/'
                 const config = {headers: {'Content-Type': 'application/json'}}
@@ -335,6 +341,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                     "area_points": JSON.stringify(updatedPoints)
                 }
         
+                setLoading(true)
                 axios.post(URL, data, config)
                 .then((res) => {
                     let temp = [...elements]
@@ -345,6 +352,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                 .catch((err) => {
                     notification("Error: " + err, "failure")
                     console.log(err)
+                }).finally(() => {
+                    setLoading(false)
                 })
             }
             
@@ -474,8 +483,16 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
             let key = getUserPressKeycode(event)
             
             if (key === "ArrowDown" || key === "ArrowRight") {    
+                if (loading) {
+                    notification("Cannot switch element while loading.", "failure")
+                    return;
+                }
                 setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
             } else if (key === "ArrowUp" || key === "ArrowLeft") {
+                if (loading) {
+                    notification("Cannot switch element while loading.", "failure")
+                    return;
+                }
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
             } else if (labelKeybinds[key]) {
                 labelOnClick(labelKeybinds[key])
@@ -769,12 +786,12 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
             notification("Successfully updated element.", "success")
             setEditingElementIdx(null)
             setEditingElement(null)
-            setLoading(false)
-
         })
         .catch((err) => {
             notification("Error: " + err + ".", "failure")
             console.log(err)
+        }).finally(() => {
+            setLoading(false)
         })
     }
 
@@ -806,6 +823,38 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
             setEditingElement(null)
 
+        }).catch((error) => {
+            notification("Error: " + error + ".", "failure")
+
+        }).finally(() => {
+            setLoading(false)
+        })
+    }
+
+
+    function resizeElementImage() {
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        let data = {
+            "id": elements[elementsIndex].id,
+            "width": currentImageWidth,
+            "height": currentImageHeight
+        }
+
+        const URL = window.location.origin + '/api/resize-element-image/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        setLoading(true)
+        axios.post(URL, data, config)
+        .then((res) => {
+
+            let tempElements = [...elements]
+            tempElements[elementsIndex] = res.data
+            setElements(tempElements)
+
+            notification("Successfully resized image.", "success")
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
 
@@ -942,11 +991,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                 }
     
                 setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
-                setLoading(false)
+
             })
             .catch((err) => {
                 notification("Error: " + err + ".", "failure")
                 console.log(err)
+            }).finally(() => {
+                setLoading(false)
             })
         } else if (dataset.datatype == "area") {
             if (labelSelected != label.id) {
@@ -974,6 +1025,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
             "id": elements[elementsIndex].id
         }
 
+        setLoading(true)
         axios.post(URL, data, config)
         .then((res) => {
 
@@ -985,6 +1037,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
         .catch((err) => {
             notification("Error: " + err + ".", "failure")
             console.log(err)
+        }).finally(() => {
+            setLoading(false)
         })
     }
 
@@ -1005,7 +1059,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
         const URL = window.location.origin + '/api/edit-label/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
-        setLoading(true)
         axios.post(URL, data, config)
         .then((data) => {
             notification("Successfully updated label.", "success")
@@ -1018,8 +1071,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
 
-        }).finally(() => {
-            setLoading(false)
         })
     }
 
@@ -1301,6 +1352,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                         <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
                         key={element.id} 
                         onClick={() => {
+                            if (loading) {
+                                notification("Cannot switch element while loading.", "failure")
+                                return;
+                            }
                             setElementsIndex(idx)
                         }}
                         onMouseEnter={(e) => {
@@ -1345,6 +1400,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                         <div className="dataset-sidebar-element-container" key={element.id} >
                             <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
                             onClick={() => {
+                                if (loading) {
+                                    notification("Cannot switch element while loading.", "failure")
+                                    return;
+                                }
                                 setElementsIndex(idx)
                             }}
                             onMouseEnter={(e) => {
@@ -1437,17 +1496,23 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                         setShowDownloadPopup(true)
                     }}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>}
 
-                    {elements && elements[elementsIndex] && IMAGE_FILE_EXTENSIONS.has(elements[elementsIndex].file.split(".").pop()) && <div className="resize-container">
+                    {elements && elements[elementsIndex] && IMAGE_FILE_EXTENSIONS.has(elements[elementsIndex].file.split(".").pop()) && <form className="resize-form" onSubmit={(e) => {
+                        e.preventDefault()
+                        resizeElementImage()
+                    }}>
+                        
                         <label htmlFor="resize-width" className="resize-label">Width</label>
-                        <input type="number" id="resize-width" className="resize-inp" value={currentImageWidth} onChange={() => {
-                            
+                        <input type="number" id="resize-width" className="resize-inp" value={currentImageWidth} min="0" max="10000" onChange={(e) => {
+                            setCurrentImageWidth(Math.min(10000, Math.max(0, e.target.value)))
                         }}/>
 
                         <label htmlFor="resize-height" className="resize-label resize-label-margin">Height</label>
-                        <input type="number" id="resize-height" className="resize-inp" value={currentImageHeight} onChange={() => {
-
+                        <input type="number" id="resize-height" className="resize-inp" value={currentImageHeight} min="0" max="10000" onChange={(e) => {
+                            setCurrentImageHeight(Math.min(10000, Math.max(0, e.target.value)))
                         }}/>
-                    </div>}
+
+                        <button type="submit" className="resize-apply">Apply</button>
+                    </form>}
                     
                     {dataset && dataset.datatype == "classification" && <div title="Will show color of pressed label" 
                     className={"dataset-main-label-clicked " + ((elements && elements[elementsIndex] && IMAGE_FILE_EXTENSIONS.has(elements[elementsIndex].file.split(".").pop())) ? "dataset-main-label-clicked-no-margin" : "")}
