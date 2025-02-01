@@ -455,8 +455,8 @@ class ResizeElementImage(APIView):
     
     def post(self, request, format=None):
         element_id = request.data["id"]
-        topLeft = request.data["topLeft"]   # [x,y]
-        bottomRight = request.data["bottomRight"]   # [x,y]
+        newWidth = request.data["width"]
+        newHeight = request.data["height"]
         
         user = self.request.user
         
@@ -466,14 +466,14 @@ class ResizeElementImage(APIView):
                 
                 if element.owner == user.profile:
                     file = element.file
-                    new_name = file.name.split("/")[-1]     # Otherwise includes files                    
+                    new_name = file.name.split("/")[-1]     # Otherwise includes files
+                    new_name, extension = new_name.split(".")           
+                    new_name += f"-({newWidth}, {newHeight})." + extension         
                     
                     try:
                         
                         img = Image.open(file)
-                        print(img.size)
-                        img = img.crop(topLeft + bottomRight)
-                        print(img.size)
+                        img = img.resize([newWidth, newHeight], Image.LANCZOS)
                         
                         if default_storage.exists(file.name):
                             default_storage.delete(file.name)

@@ -530,8 +530,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
     const maxZoom = 2
 
     const handleElementScroll = (e) => {
-        console.log(e)
-        const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.0025, minZoom), maxZoom);
+        const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.0015, minZoom), maxZoom);
         setZoom(newZoom);
     };
 
@@ -1189,6 +1188,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
         setIsDownloaded(true)
     }
 
+    if (elements[elementsIndex]) {
+        console.log(elements[elementsIndex].file.split(".").pop())
+    }
+    
+
 
     // FRONTEND FUNCTIONALITY
 
@@ -1424,8 +1428,14 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                     {dataset && <button className="dataset-download-button" onClick={() => {
                         setShowDownloadPopup(true)
                     }}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>}
+
+                    {elements && elements[elementsIndex] && IMAGE_FILE_EXTENSIONS.has(elements[elementsIndex].file.split(".").pop()) && <div className="resize-container">
+                        Resize
+                    </div>}
                     
-                    {dataset && dataset.datatype == "classification" && <div title="Will show color of pressed label" className="dataset-main-label-clicked" style={{background: datasetMainLabelColor}}></div>}
+                    {dataset && dataset.datatype == "classification" && <div title="Will show color of pressed label" 
+                    className={"dataset-main-label-clicked " + ((elements && elements[elementsIndex] && IMAGE_FILE_EXTENSIONS.has(elements[elementsIndex].file.split(".").pop())) ? "dataset-main-label-clicked-no-margin" : "")}
+                    style={{background: datasetMainLabelColor}}></div>}
                 </div>
                 
                 <div className="dataset-main-display">

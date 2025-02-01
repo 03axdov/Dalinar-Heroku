@@ -273,6 +273,10 @@
     box-shadow: 0 0 0 2px var(--border);
 }
 
+.dataset-main-label-clicked-no-margin {
+    margin-left: 20px;
+}
+
 .dataset-title {
     font-size: 1.4rem;
     margin: 0;
@@ -904,6 +908,10 @@ canvas {
     background: linear-gradient(90deg, rgba(0,212,255,1) 0%, rgba(0,116,255,1) 100%);
     transition: 0.2s;
     z-index: 2;
+}
+
+.resize-container {
+    margin-left: auto;
 }
 
 @media all and (max-width: 975px) {

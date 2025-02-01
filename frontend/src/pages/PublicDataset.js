@@ -279,7 +279,7 @@ function PublicDataset() {
 
     const handleElementScroll = (e) => {
         console.log(e)
-        const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.0025, minZoom), maxZoom);
+        const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.0015, minZoom), maxZoom);
         setZoom(newZoom);
     };
 
