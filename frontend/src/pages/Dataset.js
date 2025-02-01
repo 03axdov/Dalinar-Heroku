@@ -166,7 +166,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
 
         axios.post(URL, data, config)
         .then((res) => {
-            console.log(res)
             let temp = [...elements]
             if (res.data.deleted == false) {
                 temp[elementsIndex].areas[selectedAreaIdx].area_points = JSON.stringify(updatedPoints)
@@ -530,7 +529,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
     const maxZoom = 2
 
     const handleElementScroll = (e) => {
-        const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.0015, minZoom), maxZoom);
+        const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.00125, minZoom), maxZoom);
         setZoom(newZoom);
     };
 
@@ -1188,14 +1187,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
         setIsDownloaded(true)
     }
 
-    if (elements[elementsIndex]) {
-        console.log(elements[elementsIndex].file.split(".").pop())
-    }
-    
-
 
     // FRONTEND FUNCTIONALITY
-
 
     function closePopups(exception) {
         if (exception != "editing-label") {
@@ -1430,7 +1423,15 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                     }}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>}
 
                     {elements && elements[elementsIndex] && IMAGE_FILE_EXTENSIONS.has(elements[elementsIndex].file.split(".").pop()) && <div className="resize-container">
-                        Resize
+                        <label htmlFor="resize-width" className="resize-label">Width</label>
+                        <input type="number" id="resize-width" className="resize-inp" value={elements[elementsIndex].imageWidth} onChange={() => {
+                            
+                        }}/>
+
+                        <label htmlFor="resize-height" className="resize-label resize-label-margin">Height</label>
+                        <input type="number" id="resize-height" className="resize-inp" value={elements[elementsIndex].imageHeight} onChange={() => {
+
+                        }}/>
                     </div>}
                     
                     {dataset && dataset.datatype == "classification" && <div title="Will show color of pressed label" 

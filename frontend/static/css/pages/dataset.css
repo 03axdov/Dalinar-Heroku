@@ -912,6 +912,30 @@ canvas {
 
 .resize-container {
     margin-left: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.resize-inp {
+    border: none;
+    outline: none;
+    background: var(--background);
+    box-sizing: border-box;
+    padding: 3px 10px;
+    height: 35px;
+    width: 150px;
+    border-radius: 3px;
+    font-size: 1.1rem;
+}
+
+.resize-label {
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+.resize-label-margin {
+    margin-left: 20px;
 }
 
 @media all and (max-width: 975px) {

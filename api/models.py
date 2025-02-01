@@ -5,6 +5,7 @@ from django.db.models.signals import post_save, post_delete
 from django.core.validators import FileExtensionValidator
 import os
 from django.core.validators import MaxLengthValidator
+from PIL import Image
 
 
 ALLOWED_IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "avif"]
@@ -89,6 +90,9 @@ class Element(models.Model):
     file = models.FileField(upload_to="files/", null=True, validators=[FileExtensionValidator(allowed_extensions=ALLOWED_IMAGE_FILE_EXTENSIONS + ALLOWED_TEXT_FILE_EXTENSIONS)])
     label = models.ForeignKey(Label, on_delete=models.SET_NULL, related_name="labels", blank=True, null=True)
     
+    imageHeight = models.PositiveIntegerField(blank=True, null=True)    # Only used if file is image
+    imageWidth = models.PositiveIntegerField(blank=True, null=True)     # Only used if file is image
+    
     def __str__(self):
         return self.name + " - " + self.dataset.name
     
@@ -97,7 +101,16 @@ class Element(models.Model):
         if self.file and not self.name:
             # Set the name field to the file's name (without the path)
             self.name = os.path.basename(self.file.name)
-            print(self.file.name)
+            
+            ext = self.file.name.split(".")[-1].lower()
+            if ext in ALLOWED_IMAGE_FILE_EXTENSIONS:
+                try:
+                    with Image.open(self.file) as img:
+                        self.imageWidth, self.imageHeight = img.size
+                except Exception as e:
+                    print(f"Error processing image: {e}")
+                    self.imageWidth, self.imageHeight = None, None    
+            
         super().save(*args, **kwargs)
         
         
