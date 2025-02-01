@@ -360,3 +360,27 @@
     flex-direction: row;
     align-items: center;
 }
+
+.create-dataset-image-dimensions-left, .create-dataset-image-dimensions-center, .create-dataset-image-dimensions-right {
+    font-size: 1.4rem;
+    margin: 0;
+}
+
+.create-dataset-image-dimensions-left {
+    margin-left: 40px;
+    margin-right: 5px;
+}
+
+.create-dataset-image-dimensions-center {
+    margin-left: 5px;
+    margin-right: 20px;
+}
+
+.create-dataset-image-dimensions-right {
+    margin-left: 5px;
+}
+
+.create-dataset-inp-dimensions {
+    width: 125px;
+    margin: 0;
+}

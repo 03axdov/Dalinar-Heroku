@@ -161,6 +161,16 @@ function CreateDataset({notification}) {
                     <label htmlFor="create-dataset-type-text" className="create-dataset-type-label">Area <span className="create-dataset-required">(images only)</span></label>
                 </div>
 
+                <div className="create-dataset-label-inp">
+                    <p className="create-dataset-label" style={{margin: 0}}>Image dimensions</p>
+                    <span className="create-dataset-image-dimensions-left">(</span>
+                    <input type="number" className="create-dataset-inp create-dataset-inp-dimensions" min="0" max="10000" placeholder="Width"/>
+                    <span className="create-dataset-image-dimensions-center">,</span>
+                    <input type="number" className="create-dataset-inp create-dataset-inp-dimensions" min="0" max="10000" placeholder="Height"/>
+                    <span className="create-dataset-image-dimensions-right">)</span>
+                </div>
+                <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images can also be manually resized.</p>
+
                 <div className="create-dataset-label-inp create-dataset-label-inp-description">
                     <label className="create-dataset-label" htmlFor="description">Description</label>
                     <textarea className="create-dataset-inp create-dataset-full-width create-dataset-description-inp" name="description" type="text" value={description} onChange={(e) => {
