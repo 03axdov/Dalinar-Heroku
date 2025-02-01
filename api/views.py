@@ -304,6 +304,37 @@ class DeleteDataset(APIView):
     
 # ELEMENT HANDLING
 
+
+def resize_element_image(instance, newWidth, newHeight):
+    new_name = instance.file.name.split("/")[-1]     # Otherwise includes files
+    new_name, extension = new_name.split(".")     
+    new_name = new_name.split("-")[0]   # Remove previous resize information      
+    
+    new_name += ("-" + str(newWidth) + "x" + str(newHeight) + "." + extension) 
+    
+    try:
+        
+        img = Image.open(instance.file)
+        img = img.resize([newWidth, newHeight], Image.LANCZOS)
+        
+        if default_storage.exists(instance.file.name):
+            default_storage.delete(instance.file.name)
+        
+        # Save to BytesIO buffer
+        buffer = BytesIO()
+        img_format = img.format if img.format else "JPEG"  # Default to JPEG
+        img.save(buffer, format=img_format, quality=90)
+        buffer.seek(0)
+                            
+        instance.file.save(new_name, ContentFile(buffer.read()), save=False)
+        instance.imageWidth = newWidth
+        instance.imageHeight = newHeight
+        instance.save()
+        
+    except IOError:
+        print("Element ignored: not an image.")
+
+
 class CreateElement(APIView):
     serializer_class = CreateElementSerializer
     parser_classes = [MultiPartParser, FormParser]
@@ -324,6 +355,12 @@ class CreateElement(APIView):
                 if user.profile == dataset.owner:
                 
                     instance = serializer.save(owner=request.user.profile)
+                    
+                    fileExtension = instance.file.name.split("/")[-1].split(".")[-1]
+                    # Resize images if dataset has specified dimensions
+                    if dataset.imageHeight and dataset.imageWidth and fileExtension in ALLOWED_IMAGE_FILE_EXTENSIONS:
+                        resize_element_image(instance, dataset.imageWidth, dataset.imageHeight)
+                        
                     return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
                 
                 else:

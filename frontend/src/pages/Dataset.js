@@ -1558,7 +1558,16 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                                 </div>}
                             </div>
 
-                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p><br></br>
+                            {dataset.imageWidth && <p className="dataset-description-text"><span className="dataset-description-start">Default Image Dimensions: </span>({dataset.imageWidth}, {dataset.imageHeight})</p>}
+
+                            <p className="dataset-description-text dataset-description-text-flex" style={{textTransform: "capitalize"}}>
+                                <span className="dataset-description-start">Datatype: </span>
+                                <img className="dataset-description-icon" src={window.location.origin + "/static/images/" + (dataset.datatype == "area" ? "area.svg" : "classification.png")}/>
+                                {dataset.datatype}
+                            </p>
+
+                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p>
+
                             {(dataset.description ? <p className="dataset-description-text dataset-description-text-margin"><span className="dataset-description-start">Description: </span>{dataset.description}</p> : "This dataset does not have a description.")}
 
                             {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">

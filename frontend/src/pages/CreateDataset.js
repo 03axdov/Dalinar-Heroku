@@ -13,6 +13,8 @@ function CreateDataset({notification}) {
     const [visibility, setVisibility] = useState("private")
     const [keywordCurrent, setKeywordCurrent] = useState("")
     const [keywords, setKeywords] = useState([])
+    const [imageWidth, setImageWidth] = useState("")
+    const [imageHeight, setImageHeight] = useState("")
 
     const [uploadDropdownVisible, setUploadDropdownVisible] = useState(false)
 
@@ -29,6 +31,11 @@ function CreateDataset({notification}) {
     function formOnSubmit(e) {
         e.preventDefault()
 
+        if ((imageWidth && !imageHeight) || (!imageWidth && imageHeight)) {
+            notification("You must specify either both image dimensions or neither.", "failure")
+            return;
+        }
+
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';    
@@ -42,6 +49,8 @@ function CreateDataset({notification}) {
         formData.append('image', image)
         formData.append("visibility", visibility)
         formData.append("keywords", JSON.stringify(keywords))
+        formData.append("imageWidth", imageWidth)
+        formData.append("imageHeight", imageHeight)
 
         Object.entries(uploadedDatasets).forEach(([key, fileList]) => {
             formData.append("labels", key)
@@ -164,9 +173,13 @@ function CreateDataset({notification}) {
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label" style={{margin: 0}}>Image dimensions</p>
                     <span className="create-dataset-image-dimensions-left">(</span>
-                    <input type="number" className="create-dataset-inp create-dataset-inp-dimensions" min="0" max="10000" placeholder="Width"/>
+                    <input type="number" className="create-dataset-inp create-dataset-inp-dimensions" min="0" max="10000" placeholder="Width" value={imageWidth} onChange={(e) => {
+                        setImageWidth(e.target.value)
+                    }}/>
                     <span className="create-dataset-image-dimensions-center">,</span>
-                    <input type="number" className="create-dataset-inp create-dataset-inp-dimensions" min="0" max="10000" placeholder="Height"/>
+                    <input type="number" className="create-dataset-inp create-dataset-inp-dimensions" min="0" max="10000" placeholder="Height" value={imageHeight} onChange={(e) => {
+                        setImageHeight(e.target.value)
+                    }}/>
                     <span className="create-dataset-image-dimensions-right">)</span>
                 </div>
                 <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images can also be manually resized.</p>

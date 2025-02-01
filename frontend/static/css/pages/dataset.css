@@ -863,7 +863,21 @@ canvas {
     font-size: 1.1rem;
     margin: 0;
     white-space: pre-wrap;
+    margin-bottom: 15px;
 }
+
+.dataset-description-text-flex {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.dataset-description-icon {
+    height: 20px;
+    width: 20px;
+    margin-right: 10px;
+}
+
 
 .dataset-description-text-margin {
     margin-bottom: 20px;
@@ -950,6 +964,7 @@ canvas {
 .resize-label-margin {
     margin-left: 20px;
 }
+
 
 @media all and (max-width: 975px) {
     .dataset-create-label-container, .dataset-label-expanded, .dataset-element-expanded {
