@@ -5,7 +5,8 @@
 <div align="left">
   
   <img src="https://github.com/user-attachments/assets/31462586-fa5a-443c-a729-1b147b6c857e" />
-  
+  ![examplePage](https://github.com/user-attachments/assets/f7ecc60e-f286-4398-8f65-fcb7f0f369d1)
+
 </div>
 
 <h1>Current Functionality</h1>
