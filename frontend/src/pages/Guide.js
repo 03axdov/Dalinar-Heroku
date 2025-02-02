@@ -35,7 +35,7 @@ function Guide() {
 
                 <div className="instructions-header">
                     <h1 className="instructions-title">Download Help</h1>
-                    <p className="instructions-text">Downloaded datasets can easily be loaded into different machine learning frameworks. See below for examples for Tensorflow and Pytorch.
+                    <p className="instructions-text">Downloaded datasets can easily be loaded into different machine learning frameworks. See below for examples for TensorFlow and Pytorch.
                         Note that the code provided applies to image datasets, and that the method used (folders as labels or filenames as labels) must be taken into account.
                     </p>
                 </div>
@@ -45,8 +45,14 @@ function Guide() {
 
                         <div className="download-frameworks-container download-frameworks-instructions">
                             <div onClick={() => setDownloadFramework1("tensorflow")} 
-                                className={"download-framework " + (downloadFramework1 != "tensorflow" ? "download-framework-disabled" : "")}>TensorFlow</div>
-                            <div onClick={() => setDownloadFramework1("pytorch")} className={"download-framework " + (downloadFramework1 != "pytorch" ? "download-framework-disabled" : "")} >PyTorch</div>
+                                className="download-framework">
+                                    <img className="download-framework-icon" src={window.location.origin + "/static/images/" + (downloadFramework1 == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")}/>
+                                    <span className={downloadFramework1 == "tensorflow" ? "tensorflow" : "download-framework-disabled"}>TensorFlow</span>
+                                </div>
+                            <div onClick={() => setDownloadFramework1("pytorch")} className="download-framework" >
+                                <img className="download-framework-icon" src={window.location.origin + "/static/images/" + (downloadFramework1 == "pytorch" ? "pytorch.png": "pytorchGray.png")}/>
+                                <span className={downloadFramework1 == "pytorch" ? "pytorch": "download-framework-disabled"}>PyTorch</span>
+                            </div>
                         </div>
 
                         <DownloadCode name="YOUR_DATASET" datatype="classification" framework={downloadFramework1} downloadType="folders"/>
@@ -57,8 +63,14 @@ function Guide() {
 
                         <div className="download-frameworks-container download-frameworks-instructions">
                             <div onClick={() => setDownloadFramework2("tensorflow")} 
-                                className={"download-framework " + (downloadFramework2 != "tensorflow" ? "download-framework-disabled" : "")}>TensorFlow</div>
-                            <div onClick={() => setDownloadFramework2("pytorch")} className={"download-framework " + (downloadFramework2 != "pytorch" ? "download-framework-disabled" : "")} >PyTorch</div>
+                                className="download-framework">
+                                    <img className="download-framework-icon" src={window.location.origin + "/static/images/" + (downloadFramework2 == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")}/>
+                                    <span className={downloadFramework2 == "tensorflow" ? "tensorflow" : "download-framework-disabled"}>TensorFlow</span>
+                                </div>
+                            <div onClick={() => setDownloadFramework2("pytorch")} className="download-framework" >
+                                <img className="download-framework-icon" src={window.location.origin + "/static/images/" + (downloadFramework2 == "pytorch" ? "pytorch.png": "pytorchGray.png")}/>
+                                <span className={downloadFramework2 == "pytorch" ? "pytorch": "download-framework-disabled"}>PyTorch</span>
+                            </div>
                         </div>
 
                         <DownloadCode name="YOUR_DATASET" datatype="classification" framework={downloadFramework2} downloadType="files"/>

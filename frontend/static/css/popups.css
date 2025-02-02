@@ -178,6 +178,7 @@
     margin-top: 20px;
     display: flex;
     flex-direction: row;
+    align-items: center;
     box-sizing: border-box;
 }
 
@@ -188,10 +189,18 @@
     padding: 0 10px;
     font-size: 1rem;
     user-select: none;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 .download-framework:hover {
     cursor: pointer;
+}
+
+.download-framework-icon {
+    height: 17px;
+    margin-right: 5px;
 }
 
 .download-framework-disabled {

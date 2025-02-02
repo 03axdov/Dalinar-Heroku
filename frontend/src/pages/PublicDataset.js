@@ -547,10 +547,16 @@ function PublicDataset() {
                     and that relative paths must be updated.
                 </p>
 
-                <div className="download-frameworks-container">
+                <div className="download-frameworks-container download-frameworks-instructions">
                     <div onClick={() => setDownloadFramework("tensorflow")} 
-                        className={"download-framework " + (downloadFramework != "tensorflow" ? "download-framework-disabled" : "")}>TensorFlow</div>
-                    <div onClick={() => setDownloadFramework("pytorch")} className={"download-framework " + (downloadFramework != "pytorch" ? "download-framework-disabled" : "")} >PyTorch</div>
+                        className="download-framework">
+                            <img className="download-framework-icon" src={window.location.origin + "/static/images/" + (downloadFramework == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")}/>
+                            <span className={downloadFramework == "tensorflow" ? "tensorflow" : "download-framework-disabled"}>TensorFlow</span>
+                        </div>
+                    <div onClick={() => setDownloadFramework("pytorch")} className="download-framework" >
+                        <img className="download-framework-icon" src={window.location.origin + "/static/images/" + (downloadFramework == "pytorch" ? "pytorch.png": "pytorchGray.png")}/>
+                        <span className={downloadFramework == "pytorch" ? "pytorch": "download-framework-disabled"}>PyTorch</span>
+                    </div>
                 </div>
                 
                 <DownloadCode name={dataset.name} datatype={dataset.datatype} framework={downloadFramework} downloadType={downloadType} />

@@ -134,6 +134,22 @@
     white-space: nowrap;
 }
 
+.rights-reserved { 
+    margin-top: 20px;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    color: var(--gray-text);
+}
+
+.copyright-icon {
+    height: 14px;
+    width: 14px;
+    margin-right: 5px;
+}
+
 @media all and (max-width: 1350px) {
     .landing-header-left {
         padding: 50px 40px;

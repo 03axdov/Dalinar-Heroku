@@ -50,6 +50,11 @@ function Landing() {
                         <p className="landing-support-text">Dalinar currently has code support for 
                             <span className="tensorflow"><img className="landing-support-logo" src={window.location.origin + "/static/images/tensorflow.png"} />TensorFlow </span> 
                             and <span className="pytorch"><img className="landing-support-logo" src={window.location.origin + "/static/images/pytorch.png"} />PyTorch</span>, but created datasets can be used in any way.</p>
+
+                        <p className="rights-reserved">
+                            <img className="copyright-icon" src={window.location.origin + "/static/images/copyright.png"}/>
+                            2025 All rights reserved.
+                        </p>
                     </div>
                 </div>
 

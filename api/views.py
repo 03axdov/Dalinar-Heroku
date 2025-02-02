@@ -230,6 +230,8 @@ class EditDataset(APIView):
         visibility = request.data["visibility"]
         dataset_id = request.data["id"]
         keywords = request.data["keywords"]
+        imageWidth = request.data["imageWidth"]
+        imageHeight = request.data["imageHeight"]
         
         user = self.request.user
         
@@ -243,6 +245,8 @@ class EditDataset(APIView):
                     if image: dataset.image = image # As optional 
                     dataset.visibility = visibility
                     dataset.keywords = keywords.split(",")
+                    dataset.imageWidth = imageWidth
+                    dataset.imageHeight = imageHeight
                         
                     dataset.save()
                 

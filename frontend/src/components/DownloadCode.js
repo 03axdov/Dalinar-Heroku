@@ -401,7 +401,7 @@ dataset = CustomImageDataset(file_paths, label_to_index, transform=transform)`
                             <span className="code-pink"> for</span> fname<span className="code-pink"> in</span> os.listdir
                             <span className="code-pink">(</span>dataset_dir<span className="code-pink">)</span>
                             <span className="code-pink"> if</span> fname.endswith<span className="code-pink">(</span><span className="code-blue">(</span>
-                            <span className="code-orange">'.jpg'</span>, <pan className="code-orange">'.png'</pan>
+                            <span className="code-orange">'.jpg'</span>, <span className="code-orange">'.png'</span>
                             <span className="code-blue">)</span><span className="code-pink">)</span><span className="code-yellow">]</span><br/>
                         <span className="code-line">17</span><br/>
                         <span className="code-line">18</span><span className="code-green"># Create a mapping of labels to indices</span><br/>

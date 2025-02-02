@@ -18,6 +18,8 @@ function EditDataset({activateConfirmPopup, notification}) {
     const [type, setType] = useState("")
     const [keywords, setKeywords] = useState([])
     const [keywordCurrent, setKeywordCurrent] = useState("")
+    const [imageWidth, setImageWidth] = useState("")
+    const [imageHeight, setImageHeight] = useState("")
 
     useEffect(() => {
         getDataset()
@@ -38,6 +40,8 @@ function EditDataset({activateConfirmPopup, notification}) {
             setVisibility(dataset.visibility)
             setType(dataset.datatype)
             setKeywords(dataset.keywords)
+            setImageWidth(dataset.imageWidth)
+            setImageHeight(dataset.imageHeight)
 
         }).catch((err) => {
             navigate("/")
@@ -52,6 +56,11 @@ function EditDataset({activateConfirmPopup, notification}) {
     function formOnSubmit(e) {
         e.preventDefault()
 
+        if ((imageWidth && !imageHeight) || (!imageWidth && imageHeight)) {
+            notification("You must specify either both image dimensions or neither.", "failure")
+            return;
+        }
+
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';    
@@ -65,8 +74,9 @@ function EditDataset({activateConfirmPopup, notification}) {
         } else {formData.append("image", "")}
         formData.append("visibility", visibility)
         formData.append("id", id)
-        console.log(keywords)
         formData.append("keywords", keywords)
+        formData.append("imageWidth", imageWidth)
+        formData.append("imageHeight", imageHeight)
 
         const URL = window.location.origin + '/api/edit-dataset/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
@@ -136,6 +146,20 @@ function EditDataset({activateConfirmPopup, notification}) {
                     <input type="radio" id="create-dataset-type-text" name="area" value="area" className="edit-dataset-deactivated" checked={type == "area"} unselectable={"true"} onChange={() => {}} />
                     <label htmlFor="create-dataset-type-text" className="edit-dataset-deactivated create-dataset-type-label">Area</label>
                 </div>
+
+                <div className="create-dataset-label-inp">
+                    <p className="create-dataset-label" style={{margin: 0}}>Image dimensions</p>
+                    <span className="create-dataset-image-dimensions-left">(</span>
+                    <input type="number" className="create-dataset-inp create-dataset-inp-dimensions" min="0" max="10000" placeholder="Width" value={imageWidth} onChange={(e) => {
+                        setImageWidth(e.target.value)
+                    }}/>
+                    <span className="create-dataset-image-dimensions-center">,</span>
+                    <input type="number" className="create-dataset-inp create-dataset-inp-dimensions" min="0" max="10000" placeholder="Height" value={imageHeight} onChange={(e) => {
+                        setImageHeight(e.target.value)
+                    }}/>
+                    <span className="create-dataset-image-dimensions-right">)</span>
+                </div>
+                <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images can also be manually resized. Note that current images will remain unchanged.</p>
 
                 <div className="create-dataset-label-inp create-dataset-label-inp-description">
                     <label className="create-dataset-label" htmlFor="description">Description</label>

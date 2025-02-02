@@ -163,6 +163,11 @@ label {
     align-items: center;
 }
 
+/* As the email server is not yet set up */
+a.button.secondaryAction {
+    display: none;
+}
+
 @media all and (max-width: 900px) {
     .accounts-form-container {
         max-width: none;
