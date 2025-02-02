@@ -13,7 +13,7 @@ with open('./SECRET_KEY.txt') as f:
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-PRODUCTION = False
+PRODUCTION = True
 
 ALLOWED_HOSTS = []
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import DatasetElement from "../components/DatasetElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import { useNavigate } from "react-router-dom"
@@ -88,7 +88,12 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
 
 
     // Search input timing
+    const firstSearch = useRef(true)
     useEffect(() => {
+        if (firstSearch.current) {
+            firstSearch.current = false; // Set to false after first render
+            return;
+        }
         // Set a timeout to update debounced value after 500ms
         setLoading(true)
         const handler = setTimeout(() => {

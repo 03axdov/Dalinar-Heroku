@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import DatasetElement from "../components/DatasetElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import { useNavigate } from "react-router-dom"
@@ -88,8 +88,13 @@ function Home({currentProfile, notification, BACKEND_URL}) {
     }, [sort])
 
 
+    const firstSearch = useRef(true)
     // Search input timing
     useEffect(() => {
+        if (firstSearch.current) {
+            firstSearch.current = false; // Set to false after first render
+            return;
+        }
         // Set a timeout to update debounced value after 500ms
         setLoading(true)
         const handler = setTimeout(() => {
@@ -163,7 +168,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                         navigate("/create-dataset")
                     }}>here</span> to create one.</p>}
                     {!loading && datasets.length == 0 && search.length > 0 && <p className="gray-text">No such datasets found.</p>}
-                    {loading && datasets.length == 0 && currentProfile.datasetsCount !== null && [...Array(currentProfile.datasetsCount)].map((e, i) => (
+                    {loading && datasets.length == 0 && currentProfile.datasetsCount != null && currentProfile.datasetsCount.length > 0 && [...Array(currentProfile.datasetsCount)].map((e, i) => (
                         <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
                     ))}
                 </div>

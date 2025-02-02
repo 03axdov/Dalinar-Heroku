@@ -40,8 +40,8 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
             setVisibility(dataset.visibility)
             setType(dataset.datatype)
             setKeywords(dataset.keywords)
-            setImageWidth(dataset.imageWidth)
-            setImageHeight(dataset.imageHeight)
+            setImageWidth(dataset.imageWidth || "")
+            setImageHeight(dataset.imageHeight || "")
 
         }).catch((err) => {
             navigate("/")

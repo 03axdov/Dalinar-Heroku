@@ -1532,7 +1532,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 </div>
                 
                 <div className="dataset-main-display">
-                    {(elements.length == 0 && !loading && !uploadLoading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>Upload folder</button>}
+                    {(elements.length == 0 && !loading && !uploadLoading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>
+                        <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
+                        Upload folder
+                    </button>}
                     {(elements.length == 0 && !loading && uploadLoading) && <div className="dataset-upload-bar-container">
                         <p className="dataset-upload-bar-text">Uploading...</p>
                         <div className="dataset-upload-bar">
