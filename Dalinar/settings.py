@@ -12,10 +12,10 @@ with open('./SECRET_KEY.txt') as f:
     SECRET_KEY = f.read().strip() 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-PRODUCTION = False
+DEBUG = False
+PRODUCTION = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["dalinar-041d6630f0a7.herokuapp.com", "127.0.0.1"]
 
 
 # Application definition

@@ -1,0 +1,1 @@
+web: gunicorn Dalinar.wsgi --log-file -
