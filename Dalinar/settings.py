@@ -13,6 +13,7 @@ with open('./SECRET_KEY.txt') as f:
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+PRODUCTION = False
 
 ALLOWED_HOSTS = []
 
@@ -137,9 +138,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_REDIRECT_URL = '/home'
 LOGOUT_REDIRECT_URL = '/accounts/login'
 
-MEDIA_URL = '/media/'  # URL to access media files in development
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Directory where media files are stored
-
 AWS_ACCESS_KEY_ID = 'AKIA5JXOPCQYY5WKJEPD'
 
 with open('./AWS_SECRET_KEY.txt') as f:
@@ -156,13 +154,17 @@ AWS_QUERYSTRING_AUTH = True
 
 AWS_DEFAULT_ACL =  "public-read"
 
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+if PRODUCTION:
+    AWS_LOCATION = 'static'
+    STATICFILES_DIRS = [
+        os.path.join(BASE_DIR, 'frontend/static')
+    ]
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-"""AWS_LOCATION = 'static'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'frontend/static')
-]
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
-STATICFILES_STORAGE = 'storages.backends.s3boto3.S3StaticStorage'
-STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)"""
+    STATICFILES_STORAGE = 'storages.backends.s3boto3.S3StaticStorage'
+    STATIC_URL = 'https://%s/%s/' % (AWS_S3_CUSTOM_DOMAIN, AWS_LOCATION)
+    
+DEFAULT_FILE_STORAGE = 'Dalinar.storages.MediaStore'
+    
+MEDIA_ROOT =  os.path.join(BASE_DIR, 'frontend/media')
+MEDIA_URL = '/media/'

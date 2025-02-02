@@ -1543,7 +1543,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}
                     <div className="hidden-preload">
-                        {elements.map((e, idx) => {getPreviewElement(elements[idx])})}
+                        {elements.map((e, idx) => {getPreviewElement(e)})}
                     </div>
 
                     {showDatasetDescription && dataset && dataset.description && <div className="dataset-description-display-container">

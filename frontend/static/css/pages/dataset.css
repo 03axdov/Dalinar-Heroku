@@ -1052,6 +1052,7 @@ canvas {
         max-height: none;
         overflow: visible;
         padding-bottom: 40px;
+        min-height: calc(100% - 400px);
     }
 
     .dataset-description-stats {

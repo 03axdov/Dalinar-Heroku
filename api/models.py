@@ -46,8 +46,8 @@ class Dataset(models.Model):
         blank=True
     )
     
-    imageHeight = models.PositiveIntegerField(blank=True, null=True)    # If specified will resize image files uploaded
-    imageWidth = models.PositiveIntegerField(blank=True, null=True)     # If specified will resize image files uploaded
+    imageHeight = models.PositiveIntegerField(null=True, blank=True)    # If specified will resize image files uploaded
+    imageWidth = models.PositiveIntegerField(null=True, blank=True)     # If specified will resize image files uploaded
         
     VISIBILITY_CHOICES = [
         ("private", "Private"),
