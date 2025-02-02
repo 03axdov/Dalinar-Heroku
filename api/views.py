@@ -137,7 +137,53 @@ class GetDatasetPublic(APIView):
         else:
             return Response({'Bad Request': 'Id parameter not found in call to GetDataset.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        
+    
+def resize_and_crop(instance, target_width, target_height):
+    img = Image.open(instance.image)
+    
+    new_name = instance.image.name.split("/")[-1]     # Otherwise includes files
+    new_name, extension = new_name.split(".")     
+    new_name = new_name.split("-")[0]   # Remove previous resize information      
+    new_name += ("-" + str(target_width) + "x" + str(target_height) + "." + extension) 
+    
+    # Get original dimensions
+    img_width, img_height = img.size
+    
+    # Calculate the aspect ratios
+    target_ratio = target_width / target_height
+    img_ratio = img_width / img_height
+
+    # Determine how to resize (fit width or height)
+    if img_ratio > target_ratio:
+        # Wider than target: Fit height, then crop width
+        new_height = target_height
+        new_width = int(target_height * img_ratio)
+    else:
+        # Taller than target: Fit width, then crop height
+        new_width = target_width
+        new_height = int(target_width / img_ratio)
+
+    # Resize while keeping aspect ratio
+    img = img.resize((new_width, new_height), Image.LANCZOS)
+
+    # Calculate cropping box
+    left = (new_width - target_width) / 2
+    top = (new_height - target_height) / 2
+    right = left + target_width
+    bottom = top + target_height
+
+    # Crop the center
+    img = img.crop((left, top, right, bottom))
+
+    # Save to BytesIO buffer
+    buffer = BytesIO()
+    img_format = img.format if img.format else "JPEG"  # Default to JPEG
+    img.save(buffer, format=img_format, quality=90)
+    buffer.seek(0)
+                            
+    instance.imageSmall.save(new_name, ContentFile(buffer.read()), save=False)
+    instance.save()
+
         
 class CreateDataset(APIView):
     serializer_class = CreateDatasetSerializer
@@ -147,14 +193,15 @@ class CreateDataset(APIView):
         data = request.data
         data_dict = dict(data)
         
-        print(data)
-        
         user = request.user
         
         if user.is_authenticated:
             serializer = self.serializer_class(data=data)
             if serializer.is_valid():
+                
                 dataset_instance = serializer.save(owner=request.user.profile)
+                
+                resize_and_crop(dataset_instance, 230, 190)    # Create a smaller image for displaying dataset elements
                 
                 if "labels" in data_dict.keys():
                     labels = data_dict["labels"]

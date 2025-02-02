@@ -6,6 +6,9 @@ import axios from "axios"
 function CreateDataset({notification, BACKEND_URL}) {
 
     const navigate = useNavigate()
+
+    const [loading, setLoading] = useState(false)
+
     const [type, setType] = useState("classification")
     const [name, setName] = useState("")
     const [description, setDescription] = useState("")
@@ -62,6 +65,11 @@ function CreateDataset({notification, BACKEND_URL}) {
         const URL = window.location.origin + '/api/create-dataset/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
 
+        if (loading) {
+            notification("Currently loading.", "failure")
+        }
+
+        setLoading(true)
         axios.post(URL, formData, config)
         .then((data) => {
             console.log("Success:", data);
@@ -70,6 +78,8 @@ function CreateDataset({notification, BACKEND_URL}) {
         }).catch((error) => {
             notification("An error occured.", "failure")
             console.log("Error: ", error)
+        }).finally(() => {
+            setLoading(false)
         })
     }
 
@@ -152,8 +162,8 @@ function CreateDataset({notification, BACKEND_URL}) {
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
 
                 <div className="create-dataset-label-inp">
-                    <label className="create-dataset-label" htmlFor="name">Dataset name <span className="create-dataset-required">(required)</span></label>
-                    <input className="create-dataset-inp" name="name" type="text" required value={name} onChange={(e) => {
+                    <label className="create-dataset-label" htmlFor="dataset-name">Dataset name <span className="create-dataset-required">(required)</span></label>
+                    <input className="create-dataset-inp" id="dataset-name" type="text" required value={name} onChange={(e) => {
                         setName(e.target.value)
                     }} />
                 </div>
@@ -185,8 +195,8 @@ function CreateDataset({notification, BACKEND_URL}) {
                 <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images can also be manually resized.</p>
 
                 <div className="create-dataset-label-inp create-dataset-label-inp-description">
-                    <label className="create-dataset-label" htmlFor="description">Description</label>
-                    <textarea className="create-dataset-inp create-dataset-full-width create-dataset-description-inp" name="description" type="text" value={description} onChange={(e) => {
+                    <label className="create-dataset-label" htmlFor="dataset-description">Description</label>
+                    <textarea className="create-dataset-inp create-dataset-full-width create-dataset-description-inp" id="dataset-description" type="text" value={description} onChange={(e) => {
                         setDescription(e.target.value)
                     }} />
                 </div>

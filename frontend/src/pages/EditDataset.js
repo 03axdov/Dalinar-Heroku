@@ -133,8 +133,8 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
 
                 <div className="create-dataset-label-inp">
-                    <label className="create-dataset-label" htmlFor="name">Dataset name</label>
-                    <input className="create-dataset-inp" id="name" type="text" required placeholder={name} value={name} onChange={(e) => {
+                    <label className="create-dataset-label" htmlFor="dataset-name">Dataset name</label>
+                    <input className="create-dataset-inp" id="dataset-name" type="text" required placeholder={name} value={name} onChange={(e) => {
                         setName(e.target.value)
                     }} />
                 </div>
@@ -162,8 +162,8 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                 <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images can also be manually resized. Note that current images will remain unchanged.</p>
 
                 <div className="create-dataset-label-inp create-dataset-label-inp-description">
-                    <label className="create-dataset-label" htmlFor="description">Description</label>
-                    <textarea className="create-dataset-inp create-dataset-full-width create-dataset-description-inp" id="description" placeholder="This dataset..." type="text" value={description} onChange={(e) => {
+                    <label className="create-dataset-label" htmlFor="dataset-description">Description</label>
+                    <textarea className="create-dataset-inp create-dataset-full-width create-dataset-description-inp" id="dataset-description" placeholder="This dataset..." type="text" value={description} onChange={(e) => {
                         setDescription(e.target.value)
                     }} />
                 </div>
@@ -224,8 +224,8 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                 </div>}
 
                 <div className="create-dataset-label-inp">
-                    <label className="create-dataset-label" htmlFor="image">New Image</label>
-                    <input type="file" accept="image/png, image/jpeg, image/webp" id="image" className="create-dataset-file-inp" onChange={(e) => {
+                    <label className="create-dataset-label" htmlFor="dataset-image">New Image</label>
+                    <input type="file" accept="image/png, image/jpeg, image/webp" id="dataset-image" className="create-dataset-file-inp" onChange={(e) => {
                         if (e.target.files[0]) {
                             setImage(e.target.files[0])
                         }

@@ -37,6 +37,7 @@ class Dataset(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="datasets")
     image = models.ImageField(upload_to='images/', null=True)
+    imageSmall = models.ImageField(upload_to="images/", null=True)
     downloaders = models.ManyToManyField(Profile, related_name="downloaded_datasets", blank=True)
     verified = models.BooleanField(default=False)
     keywords = models.JSONField(
@@ -69,6 +70,7 @@ class Dataset(models.Model):
 def delete_dataset_image(sender, instance, **kwargs):
     if instance.image:
         instance.image.delete(save=False)
+        instance.imageSmall.delete(save=False)
     
 # LABELS
 # Elements in datasets, such as files, are given labels

@@ -44,7 +44,7 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false}) {
             </div>
             
             <div className="dataset-element-image-container">
-                {dataset.image && <img className="dataset-element-image" src={dataset.image}/>}
+                {dataset.image && <img className="dataset-element-image" src={dataset.imageSmall}/>}
                 {showDescription && dataset.description && <div className="dataset-element-description-container">
                     <p className="dataset-element-description">{dataset.description}</p>
                     {keywords.length > 0 && <div className="dataset-element-keywords-container">
