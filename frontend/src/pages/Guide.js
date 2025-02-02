@@ -106,7 +106,7 @@ function Guide() {
                             Clicking on the image with a label or area selected adds a point to that area.
                         </div>
 
-                        <div className="instructions-area-comment" style={{top: "65%", right: "66%"}}>
+                        <div className="instructions-area-comment" style={{top: "66%", right: "67%"}}>
                             Clicking on a point allows you to move or delete it.
                         </div>
                     </div>
@@ -129,16 +129,16 @@ function Guide() {
                         <img className={"instructions-area-image " + (classificationImageIsDark ? "instructions-area-image-disabled" : "")} 
                         src={window.location.origin + "/static/images/exampleClassification.jpg"} />
                         
-                        <div className="instructions-area-comment" style={{top: "31%", right: "1%"}}>
+                        <div className="instructions-area-comment" style={{top: "38%", right: "1%"}}>
                             Added labels are listed here, along with their keybind. Clicking the label or its keybind applies the label.
                         </div>
 
-                        <div className="instructions-area-comment" style={{top: "53%", left: "1%"}}>
+                        <div className="instructions-area-comment" style={{top: "43%", left: "1%"}}>
                             If an element has been labelled, the color of its label will be shown next to its name.
                         </div>
 
-                        <div className="instructions-area-comment" style={{top: "2%", right: "17%"}}>
-                            When applying a label, its color will briefly be shown in this circle.
+                        <div className="instructions-area-comment" style={{top: "6%", right: "15%"}}>
+                            When applying a label, its color will briefly be shown in this circle. The image can also be resized here.
                         </div>
                         
                     </div>
