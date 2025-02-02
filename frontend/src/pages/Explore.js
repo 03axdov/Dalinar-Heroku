@@ -4,7 +4,7 @@ import DatasetElementLoading from "../components/DatasetElementLoading"
 import { useNavigate } from "react-router-dom"
 import axios from 'axios'
 
-function Explore({checkLoggedIn}) {
+function Explore({checkLoggedIn, BACKEND_URL}) {
     const navigate = useNavigate()
 
     const [datasets, setDatasets] = useState([])
@@ -148,7 +148,7 @@ function Explore({checkLoggedIn}) {
                                     setLoading(true)
                                     setSearch(e.target.value)
                             }} /> 
-                            <img className="explore-datasets-search-icon" src={window.location.origin + "/static/images/search.png"} />
+                            <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
                         </div>
                     </div>
                     
@@ -158,11 +158,11 @@ function Explore({checkLoggedIn}) {
                 
                 <div className="my-datasets-container">
                     {datasets.map((dataset) => (
-                        ((dataset.datatype == "classification" ? showClassification : showArea) ? <DatasetElement dataset={dataset} key={dataset.id} isPublic={true} /> : "")
+                        ((dataset.datatype == "classification" ? showClassification : showArea) ? <DatasetElement dataset={dataset} key={dataset.id} isPublic={true} BACKEND_URL={BACKEND_URL}/> : "")
                     ))}
 
                     {loading && datasets.length == 0 && [...Array(4)].map((e, i) => (
-                        <DatasetElementLoading key={i} isPublic={true}/>
+                        <DatasetElementLoading key={i} isPublic={true} BACKEND_URL={BACKEND_URL}/>
                     ))}
                     {!loading && datasets.length == 0 && search.length > 0 && <p className="gray-text">No such datasets found.</p>}
                 </div>

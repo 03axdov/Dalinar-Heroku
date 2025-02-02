@@ -16,6 +16,9 @@ import PublicDataset from "./pages/PublicDataset"
 import Notification from "./components/Notification"
 
 
+const BACKEND_URL = "http://127.0.0.1:8000"   // no dash
+
+
 export default function App() {
 
     const navigate = useNavigate()
@@ -93,22 +96,22 @@ export default function App() {
 
     return (
         <div id="main">
-            <Notification show={showNotification} message={notificationMessage} type={notificationType}/>
+            <Notification show={showNotification} message={notificationMessage} type={notificationType} BACKEND_URL={BACKEND_URL}/>
 
             {showAccountPopup && <AccountPopup setShowAccountPopup={setShowAccountPopup} message={"Please sign in to access this functionality."}/>}
-            <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile} checkLoggedIn={checkLoggedIn}></Toolbar>
+            <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile} checkLoggedIn={checkLoggedIn} BACKEND_URL={BACKEND_URL}></Toolbar>
             {showConfirmPopup && <ConfirmPopup setShowConfirmPopup={setShowConfirmPopup} message={confirmPopupMessage} onConfirm={confirmPopupOnConfirm} />}
 
             <div id="app">
                 <Routes>
-                    <Route path="/" element={<Landing />}/>
-                    <Route path="/explore" element={<Explore checkLoggedIn={checkLoggedIn}/>}/>
-                    <Route path="/guide" element={<Guide />}/>
-                    <Route path="/home" element={<Home currentProfile={currentProfile} notification={notification}/>}/>
-                    <Route path="/create-dataset" element={<CreateDataset notification={notification}/>}/>
-                    <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} notification={notification} />}/>
-                    <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification}/>}/>
-                    <Route path="/datasets/public/:id" element={<PublicDataset />}/>
+                    <Route path="/" element={<Landing BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/explore" element={<Explore checkLoggedIn={checkLoggedIn} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/guide" element={<Guide BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/home" element={<Home currentProfile={currentProfile} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/create-dataset" element={<CreateDataset notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/datasets/public/:id" element={<PublicDataset BACKEND_URL={BACKEND_URL}/>}/>
                 </Routes>
             </div>
             

@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react"
 import {useNavigate} from "react-router-dom"
 
-function DatasetElement({dataset, isPublic=false}) {
+function DatasetElement({dataset, BACKEND_URL, isPublic=false}) {
 
     const [showDescription, setShowDescription] = useState(false)
     const [keywords, setKeywords] = useState([])
@@ -27,15 +27,15 @@ function DatasetElement({dataset, isPublic=false}) {
         <div className="dataset-element" onClick={onClick} onMouseEnter={() => setShowDescription(true)} onMouseLeave={() => {setShowDescription(false)}} >
             <div className="dataset-element-header">
                     
-                {dataset.datatype == "classification" && <img title="Classification" className="dataset-element-icon dataset-element-icon-type" src={window.location.origin + "/static/images/classification.png"}/>}
-                {dataset.datatype == "area" && <img title="Area" className="dataset-element-icon dataset-element-icon-type" src={window.location.origin + "/static/images/area.svg"}/>}
+                {dataset.datatype == "classification" && <img title="Classification" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/classification.png"}/>}
+                {dataset.datatype == "area" && <img title="Area" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/area.svg"}/>}
                 
                 <p className="dataset-element-name" title={dataset.name}>
                     {dataset.name}
-                    {dataset.verified && <img title="Verified" className="dataset-element-name-verified" src={window.location.origin + "/static/images/blueCheck.png"} />}
+                    {dataset.verified && <img title="Verified" className="dataset-element-name-verified" src={BACKEND_URL + "/static/images/blueCheck.png"} />}
                 </p>
 
-                {!isPublic && <img title="Edit dataset" className="dataset-element-icon dataset-element-options" src={window.location.origin + "/static/images/options.png"} onClick={(e) => {
+                {!isPublic && <img title="Edit dataset" className="dataset-element-icon dataset-element-options" src={BACKEND_URL + "/static/images/options.png"} onClick={(e) => {
                     e.stopPropagation()
 
                     navigate("/edit-dataset/" + dataset.id)

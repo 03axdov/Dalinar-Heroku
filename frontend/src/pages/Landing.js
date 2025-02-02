@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import { useNavigate } from "react-router-dom";
 
 // The default page. Login not required.
-function Landing() {
+function Landing({BACKEND_URL}) {
     const navigate = useNavigate()
     const [transform, setTransform] = useState("");
 
@@ -25,7 +25,7 @@ function Landing() {
         <div className="landing-container">
             <div className="landing-header">
                 <div className="landing-header-col landing-header-left">
-                    <h1 className="landing-title"><img className="landing-logo" src={window.location.origin + "/static/images/logoWhite.svg"}/>Dalinar.ai</h1>
+                    <h1 className="landing-title"><img className="landing-logo" src={BACKEND_URL + "/static/images/logoWhite.svg"}/>Dalinar.ai</h1>
                     <p className="landing-description"><span className="landing-pitch">Data labeling made easy.</span> 
                     Dalinar allows users to <span className="landing-description-highlighted">create and discover</span> 
                     both classification and area <span className="landing-description-highlighted no-margin">datasets</span>, while being easy to use and providing clear instructions 
@@ -37,22 +37,22 @@ function Landing() {
                         <button type="button" className="landing-header-button landing-header-signup" onClick={() => {
                             window.location.href = window.location.origin + "/accounts/signup/"
                         }}>
-                            <img className="landing-header-button-icon" src={window.location.origin + "/static/images/rocket.png"} />
+                            <img className="landing-header-button-icon" src={BACKEND_URL + "/static/images/rocket.png"} />
                             Get started
                         </button>
                         <button type="button" className="landing-header-button landing-header-explore" onClick={() => navigate("/explore")}>
-                            <img className="landing-header-button-icon" src={window.location.origin + "/static/images/explore.png"} />
+                            <img className="landing-header-button-icon" src={BACKEND_URL + "/static/images/explore.png"} />
                             Explore datasets
                         </button>
                     </div>
 
                     <div className="landing-support-container">
                         <p className="landing-support-text">Dalinar currently has code support for 
-                            <span className="tensorflow"><img className="landing-support-logo" src={window.location.origin + "/static/images/tensorflow.png"} />TensorFlow </span> 
-                            and <span className="pytorch"><img className="landing-support-logo" src={window.location.origin + "/static/images/pytorch.png"} />PyTorch</span>, but created datasets can be used in any way.</p>
+                            <span className="tensorflow"><img className="landing-support-logo" src={BACKEND_URL + "/static/images/tensorflow.png"} />TensorFlow </span> 
+                            and <span className="pytorch"><img className="landing-support-logo" src={BACKEND_URL + "/static/images/pytorch.png"} />PyTorch</span>, but created datasets can be used in any way.</p>
 
                         <p className="rights-reserved">
-                            <img className="copyright-icon" src={window.location.origin + "/static/images/copyright.png"}/>
+                            <img className="copyright-icon" src={BACKEND_URL + "/static/images/copyright.png"}/>
                             2025 All rights reserved.
                         </p>
                     </div>
@@ -66,7 +66,7 @@ function Landing() {
                     }}
                     >
                     <img
-                        src={window.location.origin + "/static/images/examplePage.jpg"}
+                        src={BACKEND_URL + "/static/images/examplePage.jpg"}
                         className="landing-header-image"
                         alt="Example page"
                         style={{

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DownloadCode from "../components/DownloadCode"
 
 // The default page. Login not required.
-function Guide() {
+function Guide({BACKEND_URL}) {
     
     const [currentInstructions, setCurrentInstructions] = useState("classification")
     const [downloadFramework1, setDownloadFramework1] = useState("tensorflow")
@@ -46,16 +46,16 @@ function Guide() {
                         <div className="download-frameworks-container download-frameworks-instructions">
                             <div onClick={() => setDownloadFramework1("tensorflow")} 
                                 className="download-framework">
-                                    <img className="download-framework-icon" src={window.location.origin + "/static/images/" + (downloadFramework1 == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")}/>
+                                    <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework1 == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")}/>
                                     <span className={downloadFramework1 == "tensorflow" ? "tensorflow" : "download-framework-disabled"}>TensorFlow</span>
                                 </div>
                             <div onClick={() => setDownloadFramework1("pytorch")} className="download-framework" >
-                                <img className="download-framework-icon" src={window.location.origin + "/static/images/" + (downloadFramework1 == "pytorch" ? "pytorch.png": "pytorchGray.png")}/>
+                                <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework1 == "pytorch" ? "pytorch.png": "pytorchGray.png")}/>
                                 <span className={downloadFramework1 == "pytorch" ? "pytorch": "download-framework-disabled"}>PyTorch</span>
                             </div>
                         </div>
 
-                        <DownloadCode name="YOUR_DATASET" datatype="classification" framework={downloadFramework1} downloadType="folders"/>
+                        <DownloadCode name="YOUR_DATASET" datatype="classification" framework={downloadFramework1} downloadType="folders" BACKEND_URL={BACKEND_URL}/>
                     </div>
 
                     <div className="download-instructions-element">
@@ -64,16 +64,16 @@ function Guide() {
                         <div className="download-frameworks-container download-frameworks-instructions">
                             <div onClick={() => setDownloadFramework2("tensorflow")} 
                                 className="download-framework">
-                                    <img className="download-framework-icon" src={window.location.origin + "/static/images/" + (downloadFramework2 == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")}/>
+                                    <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework2 == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")}/>
                                     <span className={downloadFramework2 == "tensorflow" ? "tensorflow" : "download-framework-disabled"}>TensorFlow</span>
                                 </div>
                             <div onClick={() => setDownloadFramework2("pytorch")} className="download-framework" >
-                                <img className="download-framework-icon" src={window.location.origin + "/static/images/" + (downloadFramework2 == "pytorch" ? "pytorch.png": "pytorchGray.png")}/>
+                                <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework2 == "pytorch" ? "pytorch.png": "pytorchGray.png")}/>
                                 <span className={downloadFramework2 == "pytorch" ? "pytorch": "download-framework-disabled"}>PyTorch</span>
                             </div>
                         </div>
 
-                        <DownloadCode name="YOUR_DATASET" datatype="classification" framework={downloadFramework2} downloadType="files"/>
+                        <DownloadCode name="YOUR_DATASET" datatype="classification" framework={downloadFramework2} downloadType="files" BACKEND_URL={BACKEND_URL}/>
                     </div>
                 </div>
             </div>}
@@ -90,7 +90,7 @@ function Guide() {
 
                 <div className="instructions-container">
                     <div className="instructions-area-container" onMouseEnter={() => setAreaImageIsDark(true)} onMouseLeave={() => setAreaImageIsDark(false)}>
-                        <img className={"instructions-area-image " + (areaImageIsDark ? "instructions-area-image-disabled" : "")} src={window.location.origin + "/static/images/examplePage.jpg"} />
+                        <img className={"instructions-area-image " + (areaImageIsDark ? "instructions-area-image-disabled" : "")} src={BACKEND_URL + "/static/images/examplePage.jpg"} />
                         
                         <div className="instructions-area-comment" style={{top: "14%", right: "14%"}}>
                             Clicking on a label or applying its keybind selects it.
@@ -127,7 +127,7 @@ function Guide() {
                 <div className="instructions-container">
                     <div className="instructions-area-container" onMouseEnter={() => setClassificationImageIsDark(true)} onMouseLeave={() => setClassificationImageIsDark(false)}>
                         <img className={"instructions-area-image " + (classificationImageIsDark ? "instructions-area-image-disabled" : "")} 
-                        src={window.location.origin + "/static/images/exampleClassification.jpg"} />
+                        src={BACKEND_URL + "/static/images/exampleClassification.jpg"} />
                         
                         <div className="instructions-area-comment" style={{top: "38%", right: "1%"}}>
                             Added labels are listed here, along with their keybind. Clicking the label or its keybind applies the label.

@@ -11,7 +11,7 @@ import { saveAs } from "file-saver";
 const TOOLBAR_HEIGHT = 60
 
 // The default page. Login not required.
-function PublicDataset() {
+function PublicDataset({BACKEND_URL}) {
     const navigate = useNavigate()
 
     const { id } = useParams();
@@ -521,7 +521,7 @@ function PublicDataset() {
                             Every label will have its own folder containing the elements with that label.
                         </p>
 
-                        <img className="download-element-image" src={window.location.origin + "/static/images/foldersAsLabels.jpg"} />
+                        <img className="download-element-image" src={BACKEND_URL + "/static/images/foldersAsLabels.jpg"} />
 
                     </div>
                     <div title="Download .zip file" className="download-element" onClick={labelFilenamesDownload}>
@@ -530,7 +530,7 @@ function PublicDataset() {
                             One big folder, with every element named after its label and number, e.g. label1_1.png, label1_2.png, etc.
                         </p>
 
-                        <img className="download-element-image" src={window.location.origin + "/static/images/filenamesAsLabels.jpg"} />
+                        <img className="download-element-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} />
 
 
                     </div>
@@ -542,7 +542,7 @@ function PublicDataset() {
             isArea={dataset && dataset.datatype == "area"}
             isDownloaded={isDownloaded}
             setIsDownloaded={setIsDownloaded}>
-                <h1 className="download-successful-title">Download Successful <img className="download-successful-icon" src={window.location.origin + "/static/images/blueCheck.png"}/></h1>
+                <h1 className="download-successful-title">Download Successful <img className="download-successful-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/></h1>
                 <p className="download-successful-instructions">See below for an example of how the dataset can be loaded in Python. Note that the downloaded .zip file must be unpacked
                     and that relative paths must be updated.
                 </p>
@@ -550,16 +550,16 @@ function PublicDataset() {
                 <div className="download-frameworks-container download-frameworks-instructions">
                     <div onClick={() => setDownloadFramework("tensorflow")} 
                         className="download-framework">
-                            <img className="download-framework-icon" src={window.location.origin + "/static/images/" + (downloadFramework == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")}/>
+                            <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")}/>
                             <span className={downloadFramework == "tensorflow" ? "tensorflow" : "download-framework-disabled"}>TensorFlow</span>
                         </div>
                     <div onClick={() => setDownloadFramework("pytorch")} className="download-framework" >
-                        <img className="download-framework-icon" src={window.location.origin + "/static/images/" + (downloadFramework == "pytorch" ? "pytorch.png": "pytorchGray.png")}/>
+                        <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework == "pytorch" ? "pytorch.png": "pytorchGray.png")}/>
                         <span className={downloadFramework == "pytorch" ? "pytorch": "download-framework-disabled"}>PyTorch</span>
                     </div>
                 </div>
                 
-                <DownloadCode name={dataset.name} datatype={dataset.datatype} framework={downloadFramework} downloadType={downloadType} />
+                <DownloadCode name={dataset.name} datatype={dataset.datatype} framework={downloadFramework} downloadType={downloadType} BACKEND_URL={BACKEND_URL}/>
             </DownloadPopup>}
 
             {/* Download popup - Area */}
@@ -572,7 +572,7 @@ function PublicDataset() {
                         Will download as one big folder, with elements retaining their original filenames. A .json file ({dataset.name}.json) will contain the areas of each element.
                     </p>
 
-                    <img className="download-element-image" src={window.location.origin + "/static/images/filenamesAsLabels.jpg"} />
+                    <img className="download-element-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} />
                 
                 </div>
             </DownloadPopup>}
@@ -595,8 +595,8 @@ function PublicDataset() {
                             setHoveredElement(null)
                         }}>
 
-                            {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={window.location.origin + "/static/images/image.png"}/>}
-                            {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={window.location.origin + "/static/images/text.png"}/>}
+                            {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
+                            {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.png"}/>}
 
                             <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
                             
@@ -607,7 +607,7 @@ function PublicDataset() {
 
                             {dataset && dataset.datatype == "area" && element.areas && element.areas.length > 0 && <img title="Labelled" 
                                 className="dataset-sidebar-labeled"
-                                src={window.location.origin + "/static/images/area.svg"} />}
+                                src={BACKEND_URL + "/static/images/area.svg"} />}
      
                         </div>
                     ))}
@@ -624,15 +624,15 @@ function PublicDataset() {
             <div className="dataset-main">
                 <div className="dataset-main-toolbar">
                     {dataset && <div className="dataset-title-container unselectable" onClick={() => {setShowDatasetDescription(!showDatasetDescription)}}>
-                        {dataset.datatype == "classification" && <img title="Type: Classification" className="dataset-title-icon" src={window.location.origin + "/static/images/classification.png"}/>}
-                        {dataset.datatype == "area" && <img title="Type: Area" className="dataset-title-icon" src={window.location.origin + "/static/images/area.svg"}/>}
+                        {dataset.datatype == "classification" && <img title="Type: Classification" className="dataset-title-icon" src={BACKEND_URL + "/static/images/classification.png"}/>}
+                        {dataset.datatype == "area" && <img title="Type: Area" className="dataset-title-icon" src={BACKEND_URL + "/static/images/area.svg"}/>}
                         
                         <p className="dataset-title" title={(!showDatasetDescription ? "Show description" : "Hide description")}>{dataset && dataset.name}</p>
 
-                        <img className="dataset-title-expand-icon" src={window.location.origin + "/static/images/" + (!showDatasetDescription ? "plus.png" : "minus.png")} />
+                        <img className="dataset-title-expand-icon" src={BACKEND_URL + "/static/images/" + (!showDatasetDescription ? "plus.png" : "minus.png")} />
                     </div>}
 
-                    {dataset && <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={window.location.origin + "/static/images/download.svg"}/>Download</button>}
+                    {dataset && <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>Download</button>}
                 </div>
                 
                 <div className="dataset-main-display">
@@ -648,17 +648,17 @@ function PublicDataset() {
                         <div className="dataset-description-display">
                             <div className="dataset-description-stats">
                                 {dataset.downloaders && <div className="dataset-description-stats-element">
-                                    <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/download.svg"}/>
+                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/download.svg"}/>
                                     {dataset.downloaders.length + (dataset.downloaders.length == 1 ? " download" : " downloads")}
                                 </div>}
 
                                 {elements && <div className="dataset-description-stats-element">
-                                    <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/text.png"}/>
+                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/text.png"}/>
                                     {elements.length + (elements.length == 1 ? " element" : " elements")}
                                 </div>}
 
                                 {labels && <div className="dataset-description-stats-element">
-                                    <img className="dataset-description-stats-icon" src={window.location.origin + "/static/images/label.png"}/>
+                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/label.png"}/>
                                     {labels.length + (labels.length == 1 ? " label" : " labels")}
                                 </div>}
                             </div>
@@ -667,7 +667,7 @@ function PublicDataset() {
 
                             <p className="dataset-description-text dataset-description-text-flex" style={{textTransform: "capitalize"}}>
                                 <span className="dataset-description-start">Datatype: </span>
-                                <img className="dataset-description-icon" src={window.location.origin + "/static/images/" + (dataset.datatype == "area" ? "area.svg" : "classification.png")}/>
+                                <img className="dataset-description-icon" src={BACKEND_URL + "/static/images/" + (dataset.datatype == "area" ? "area.svg" : "classification.png")}/>
                                 {dataset.datatype}
                             </p>
 
@@ -707,7 +707,7 @@ function PublicDataset() {
                                 onMouseLeave={(e) => setHoveredAreaId(null)}
                                 key={areaIdx}
                                 >
-                                    <img className="dataset-element-area-icon" src={window.location.origin + "/static/images/area.svg"} />
+                                    <img className="dataset-element-area-icon" src={BACKEND_URL + "/static/images/area.svg"} />
                                     <span className="dataset-area-name">{idToLabel[area.label].name}</span>
                                     <span title={"Points: " + area.area_points.length} 
                                     className="dataset-sidebar-label-keybind no-box-shadow border"

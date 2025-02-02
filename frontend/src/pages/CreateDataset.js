@@ -3,7 +3,7 @@ import {useNavigate} from "react-router-dom"
 import axios from "axios"
 
 
-function CreateDataset({notification}) {
+function CreateDataset({notification, BACKEND_URL}) {
 
     const navigate = useNavigate()
     const [type, setType] = useState("classification")
@@ -225,7 +225,7 @@ function CreateDataset({notification}) {
                                 setKeywordCurrent(e.target.value)
                             }} />
                             <button type="submit" className="create-dataset-keywords-button">
-                                <img className="create-dataset-keywords-icon" src={window.location.origin + "/static/images/plus.png"} />
+                                <img className="create-dataset-keywords-icon" src={BACKEND_URL + "/static/images/plus.png"} />
                                 Add
                             </button>
                         </form>
@@ -238,7 +238,7 @@ function CreateDataset({notification}) {
                     {keywords.map((e, i) => (
                         <div key={i} className="create-dataset-keyword-element">
                             {e}
-                            <img className="create-dataset-keyword-element-remove" src={window.location.origin + "/static/images/cross.svg"} onClick={() => {
+                            <img className="create-dataset-keyword-element-remove" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 let temp = [...keywords]
                                 temp = temp.filter((keyword) => keyword != e)
                                 setKeywords(temp)
@@ -260,7 +260,7 @@ function CreateDataset({notification}) {
                         setUploadDropdownVisible(!uploadDropdownVisible)
                     }}>Upload dataset 
                     <span className="create-dataset-title-optional">(optional)</span>
-                    <img style={{rotate: (uploadDropdownVisible ? "180deg" : "0deg")}} className="upload-dataset-dropdown" src={window.location.origin + "/static/images/down.svg"}/>
+                    <img style={{rotate: (uploadDropdownVisible ? "180deg" : "0deg")}} className="upload-dataset-dropdown" src={BACKEND_URL + "/static/images/down.svg"}/>
                 </h1>}
                 
                 {uploadDropdownVisible && type == "classification" && <div className="upload-dataset-form">
@@ -283,11 +283,11 @@ function CreateDataset({notification}) {
                             </p>
 
                             <div className="upload-dataset-type-image-container">
-                                <img className="upload-dataset-type-image" src={window.location.origin + "/static/images/foldersAsLabels.jpg"} />
+                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/foldersAsLabels.jpg"} />
                             </div>
                             
                             <button type="button" className="upload-dataset-button" onClick={folderInputClick}>
-                                <img className="upload-dataset-button-icon" src={window.location.origin + "/static/images/upload.svg"} />
+                                <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
                                 Upload dataset
                             </button>
 
@@ -307,11 +307,11 @@ function CreateDataset({notification}) {
                             </p>
 
                             <div className="upload-dataset-type-image-container">
-                                <img className="upload-dataset-type-image" src={window.location.origin + "/static/images/filenamesAsLabels.jpg"} />
+                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} />
                             </div>
 
                             <button type="button" className="upload-dataset-button" onClick={filenamesInputClick}>
-                                <img className="upload-dataset-button-icon" src={window.location.origin + "/static/images/upload.svg"} />
+                                <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
                                 Upload dataset
                             </button>
 

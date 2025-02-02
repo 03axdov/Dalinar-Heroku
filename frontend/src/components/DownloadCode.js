@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 
 // The def ault page. Login not required.
-function DownloadCode({name, datatype, framework, downloadType}) {
+function DownloadCode({name, datatype, framework, downloadType, BACKEND_URL}) {
 
     const [copied, setCopied] = useState(false)
 
@@ -161,8 +161,8 @@ dataset = CustomImageDataset(file_paths, label_to_index, transform=transform)`
             return (
                 <div className="download-successful-code">
                     <button className="download-successful-code-copy" onClick={() => copyCode(FOLDERS_TF_TEXT)}>
-                        {!copied && <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />}
-                        {copied && <img className="code-copied-icon" src={window.location.origin + "/static/images/check.png"} />}
+                        {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} />}
+                        {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} />}
                         {copied ? "Copied" : "Copy"}
                     </button>
 
@@ -192,8 +192,8 @@ dataset = CustomImageDataset(file_paths, label_to_index, transform=transform)`
             return (
                 <div className="download-successful-code">
                     <button className="download-successful-code-copy" onClick={() => copyCode(FOLDERS_PT_TEXT)}>
-                        {!copied && <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />}
-                        {copied && <img className="code-copied-icon" src={window.location.origin + "/static/images/check.png"} />}
+                        {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} />}
+                        {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} />}
                         {copied ? "Copied" : "Copy"}
                     </button>
 
@@ -241,8 +241,8 @@ dataset = CustomImageDataset(file_paths, label_to_index, transform=transform)`
             return (
                 <div className="download-successful-code">
                     <button className="download-successful-code-copy" onClick={() => copyCode(FILENAMES_TF_TEXT)}>
-                        {!copied && <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />}
-                        {copied && <img className="code-copied-icon" src={window.location.origin + "/static/images/check.png"} />}
+                        {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} />}
+                        {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} />}
                         {copied ? "Copied" : "Copy"}
                     </button>
 
@@ -375,8 +375,8 @@ dataset = CustomImageDataset(file_paths, label_to_index, transform=transform)`
             return (
                 <div className="download-successful-code">
                     <button className="download-successful-code-copy" onClick={() => copyCode(FILENAMES_PT_TEXT)}>
-                        {!copied && <img className="code-copy-icon" src={window.location.origin + "/static/images/copy.png"} />}
-                        {copied && <img className="code-copied-icon" src={window.location.origin + "/static/images/check.png"} />}
+                        {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} />}
+                        {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} />}
                         {copied ? "Copied" : "Copy"}
                     </button>
 

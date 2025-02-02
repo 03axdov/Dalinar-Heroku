@@ -1,7 +1,7 @@
 import React, {useState} from "react"
 import {useNavigate} from "react-router-dom"
 
-function DatasetElementLoading({isPublic=false}) {
+function DatasetElementLoading({BACKEND_URL, isPublic=false}) {
 
     return (
         <div className="dataset-element">
@@ -9,7 +9,7 @@ function DatasetElementLoading({isPublic=false}) {
                 
                 <p className="dataset-element-name"></p>
 
-                {!isPublic && <img className="dataset-element-icon dataset-element-options" src={window.location.origin + "/static/images/options.png"} />}
+                {!isPublic && <img className="dataset-element-icon dataset-element-options" src={BACKEND_URL + "/static/images/options.png"} />}
                 {isPublic && <span className="dataset-element-icon"></span>} {/* As the container is flex space-between */}
             </div>
             

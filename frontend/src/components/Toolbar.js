@@ -2,7 +2,7 @@ import React from "react"
 import {useNavigate} from "react-router-dom"
 
 // The default page. Login not required.
-function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn}) {
+function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_URL}) {
     const navigate = useNavigate()
 
     function externalLink(link) {
@@ -13,7 +13,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn}) {
 
     return (
         <nav id="toolbar">
-            <img id="toolbar-logo" src={window.location.origin + "/static/images/logoWhite.svg"} onClick={() => navigate("/")}/>
+            <img id="toolbar-logo" src={BACKEND_URL + "/static/images/logoWhite.svg"} onClick={() => navigate("/")}/>
             <p className="toolbar-text toolbar-title" onClick={() => navigate("/")}>Dalinar</p>
 
             <p className={"toolbar-text " + (window.location.pathname.replaceAll("/", "") == "home" ? "toolbar-text-activated" : "")} onClick={() => {
@@ -26,7 +26,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn}) {
 
             <p className={"toolbar-text " + (window.location.pathname.replaceAll("/", "") == "guide" ? "toolbar-text-activated" : "")} onClick={() => {
                 externalLink("/guide")
-            }}>Guide <img className="toolbar-icon" src={window.location.origin + "/static/images/external.png"}/></p>
+            }}>Guide <img className="toolbar-icon" src={BACKEND_URL + "/static/images/external.png"}/></p>
 
             {!loadingCurrentProfile && currentProfile.user === "" &&
                 <div className="toolbar-auth">

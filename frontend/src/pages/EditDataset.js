@@ -4,7 +4,7 @@ import axios from "axios"
 import { useParams } from "react-router-dom";
 
 
-function EditDataset({activateConfirmPopup, notification}) {
+function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
 
     const navigate = useNavigate()
     const { id } = useParams();
@@ -202,7 +202,7 @@ function EditDataset({activateConfirmPopup, notification}) {
                                 setKeywordCurrent(e.target.value)
                             }} />
                             <button type="submit" className="create-dataset-keywords-button">
-                                <img className="create-dataset-keywords-icon" src={window.location.origin + "/static/images/plus.png"} />
+                                <img className="create-dataset-keywords-icon" src={BACKEND_URL + "/static/images/plus.png"} />
                                 Add
                             </button>
                         </form>
@@ -214,7 +214,7 @@ function EditDataset({activateConfirmPopup, notification}) {
                     {keywords.map((e, i) => (
                         <div key={i} className="create-dataset-keyword-element">
                             {e}
-                            <img className="create-dataset-keyword-element-remove" src={window.location.origin + "/static/images/cross.svg"} onClick={() => {
+                            <img className="create-dataset-keyword-element-remove" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 let temp = [...keywords]
                                 temp = temp.filter((keyword) => keyword != e)
                                 setKeywords(temp)
