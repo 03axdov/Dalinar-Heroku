@@ -38,6 +38,7 @@ class Dataset(models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="datasets")
     image = models.ImageField(upload_to='images/', null=True)
     downloaders = models.ManyToManyField(Profile, related_name="downloaded_datasets", blank=True)
+    verified = models.BooleanField(default=False)
     keywords = models.JSONField(
         default=list,
         validators=[MaxLengthValidator(3)],

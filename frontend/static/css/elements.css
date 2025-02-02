@@ -28,6 +28,15 @@
     overflow: hidden; 
     text-overflow: ellipsis;
     white-space: nowrap;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.dataset-element-name-verified {
+    height: 22px;
+    width: 22px;
+    margin-left: 7px;
 }
 
 .dataset-element-date {
@@ -150,8 +159,8 @@
 
 .dataset-element-keyword {
     border-radius: 3px;
-    padding: 3px 10px;
-    font-size: 0.9rem;
+    padding: 1px 10px;
+    font-size: 0.8rem;
     margin-right: 3px;
     margin-left: 3px;
     max-width: calc(33% - 6px);

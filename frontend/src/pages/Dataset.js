@@ -1350,8 +1350,14 @@ function Dataset({currentProfile, activateConfirmPopup, notification}) {
                     <p className="dataset-sidebar-title">Elements</p>
                     
                     <div className="dataset-sidebar-button-container">
-                        <button type="button" className="sidebar-button" onClick={folderInputClick} title="Upload folder">+ Upload folder</button>
-                        <button type="button" className="sidebar-button dataset-upload-button dataset-upload-files-button" onClick={fileInputClick} title="Upload files">+ Upload files</button>
+                        <button type="button" className="sidebar-button dataset-upload-button" onClick={folderInputClick} title="Upload folder">
+                            <img className="dataset-upload-button-icon" src={window.location.origin + "/static/images/upload.svg"} />
+                            <span>Upload folder</span>
+                        </button>
+                        <button type="button" className="sidebar-button dataset-upload-button dataset-upload-files-button" onClick={fileInputClick} title="Upload files">
+                            <img className="dataset-upload-button-icon" src={window.location.origin + "/static/images/upload.svg"} />
+                            <span>Upload files</span>
+                        </button>
                     </div>
                     
                     {dataset && dataset.datatype == "classification" && elements.map((element, idx) => (

@@ -95,7 +95,7 @@ export default function App() {
         <div id="main">
             <Notification show={showNotification} message={notificationMessage} type={notificationType}/>
 
-            {showAccountPopup && <AccountPopup setShowAccountPopup={setShowAccountPopup} message={"Please sign in to access the homepage."}/>}
+            {showAccountPopup && <AccountPopup setShowAccountPopup={setShowAccountPopup} message={"Please sign in to access this functionality."}/>}
             <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile} checkLoggedIn={checkLoggedIn}></Toolbar>
             {showConfirmPopup && <ConfirmPopup setShowConfirmPopup={setShowConfirmPopup} message={confirmPopupMessage} onConfirm={confirmPopupOnConfirm} />}
 
