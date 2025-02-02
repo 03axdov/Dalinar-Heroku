@@ -164,11 +164,22 @@
 
 .create-dataset-submit {
     padding: 7px 20px;
+    width: 160px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
 }
 
 .create-dataset-submit:hover {
     background: var(--blue-dark);
     cursor: pointer;
+}
+
+.create-dataset-loading {
+    height: 20px;
+    width: 20px;
+    margin-right: 5px;
 }
 
 .create-dataset-cancel {
@@ -384,3 +395,4 @@
     width: 125px;
     margin: 0;
 }
+

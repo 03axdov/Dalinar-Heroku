@@ -291,9 +291,12 @@ class EditDataset(APIView):
                     dataset.description = description   
                     if image: dataset.image = image # As optional 
                     dataset.visibility = visibility
-                    dataset.keywords = keywords.split(",")
-                    dataset.imageWidth = imageWidth
-                    dataset.imageHeight = imageHeight
+                    if keywords:
+                        dataset.keywords = keywords.split(",")
+                    if imageWidth:
+                        dataset.imageWidth = int(imageWidth)
+                    if imageHeight:
+                        dataset.imageHeight = int(imageHeight)
                         
                     dataset.save()
                 

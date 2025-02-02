@@ -39,6 +39,16 @@ function CreateDataset({notification, BACKEND_URL}) {
             return;
         }
 
+        if (!name) {
+            notification("Please enter a dataset name.", "failure")
+            return;
+        }
+
+        if (!image) {
+            notification("Please upload an image.", "failure")
+            return;
+        }
+
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';    
@@ -51,7 +61,10 @@ function CreateDataset({notification, BACKEND_URL}) {
         formData.append('description', description)
         formData.append('image', image)
         formData.append("visibility", visibility)
-        formData.append("keywords", JSON.stringify(keywords))
+        if (keywords.length > 0) {
+            formData.append("keywords", JSON.stringify(keywords))
+        }
+        
         formData.append("imageWidth", imageWidth)
         formData.append("imageHeight", imageHeight)
 
@@ -66,7 +79,7 @@ function CreateDataset({notification, BACKEND_URL}) {
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
 
         if (loading) {
-            notification("Currently loading.", "failure")
+            return;
         }
 
         setLoading(true)
@@ -336,7 +349,10 @@ function CreateDataset({notification, BACKEND_URL}) {
 
                 <div className="create-dataset-buttons">
                     <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Cancel</button>
-                    <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>Create dataset</button>
+                    <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>
+                        {loading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                        {(!loading ? "Create dataset" : "Loading...")}
+                    </button>
                 </div>
                 
             

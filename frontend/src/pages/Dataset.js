@@ -698,8 +698,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 
                 setTimeout(() => {
                     setUploadLoading(false)
+                    getDataset()
                 }, 200)
-                getDataset()
+                
                 return
             }
 
@@ -714,9 +715,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
                     setTimeout(() => {
                         setUploadLoading(false)
+                        getDataset()
                     }, 200)
                     
-                    getDataset()
                     break
                 } else {
                     AXIOS_OUTSTANDING -= 1
@@ -746,15 +747,17 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 AXIOS_OUTSTANDING -= 1
                 setUploadPercentage(Math.round(100 * (1- AXIOS_OUTSTANDING / NUM_FILES)))
                 if (AXIOS_OUTSTANDING == 0) {
+                    console.log("A")
                     setTimeout(() => {
                         setUploadLoading(false)
+                        getDataset()
+                        if (errorMessages) {
+                            notification(errorMessages, "failure")
+                        } else {
+                            notification("Successfully uploaded file" + (NUM_FILES != 1 ? "s" : "") + ".", "success")
+                        }
                     }, 200)
-                    getDataset()
-                    if (errorMessages) {
-                        notification(errorMessages, "failure")
-                    } else {
-                        notification("Successfully uploaded file" + (NUM_FILES != 1 ? "s" : "") + ".", "success")
-                    }
+                    
                 }
             })
         }
@@ -1536,7 +1539,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
                         Upload folder
                     </button>}
-                    {(elements.length == 0 && !loading && uploadLoading) && <div className="dataset-upload-bar-container">
+                    {uploadLoading && <div className="dataset-upload-bar-container">
                         <p className="dataset-upload-bar-text">Uploading...</p>
                         <div className="dataset-upload-bar">
                             <div className="dataset-upload-bar-completed" style={{width: (uploadPercentage + "%")}}></div>

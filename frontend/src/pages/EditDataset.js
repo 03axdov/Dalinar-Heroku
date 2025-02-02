@@ -55,6 +55,9 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
 
     function formOnSubmit(e) {
         e.preventDefault()
+        if (loading) {
+            return;
+        }
 
         if ((imageWidth && !imageHeight) || (!imageWidth && imageHeight)) {
             notification("You must specify either both image dimensions or neither.", "failure")
@@ -81,6 +84,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         const URL = window.location.origin + '/api/edit-dataset/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
 
+        setLoading(true)
         axios.post(URL, formData, config)
         .then((data) => {
             console.log("Success:", data);
@@ -89,6 +93,8 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         }).catch((error) => {
             notification("An error occurred.", "failure")
             console.log("Error: ", error)
+        }).finally(() => {
+            setLoading(false)
         })
     }
 
@@ -234,7 +240,10 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
 
                 <div className="create-dataset-buttons">
                     <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Back to home</button>
-                    <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>Save changes</button>
+                    <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>
+                        {loading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                        {(!loading ? "Save changes" : "Loading...")}
+                    </button>
                 </div>
                 
             

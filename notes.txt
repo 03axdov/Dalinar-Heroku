@@ -1,2 +1,3 @@
 TO-DO:
-- ?
+- Loading animations
+- Prevent multiple api calls
