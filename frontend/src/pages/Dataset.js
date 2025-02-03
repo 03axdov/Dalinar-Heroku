@@ -173,6 +173,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             updatedPoints.splice(pointIdx, 1)
         }
 
+        if (!updatedPoints) {return}
 
         const data = {
             "area": area.id,
@@ -236,15 +237,18 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     key={idx} 
                     style={{top: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[1] : point[1]) + "%", 
                             left: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[0] : point[0]) + "%", 
-                            "background": (idToLabel[area.label].color)}} 
+                            "background": (idToLabel[area.label].color),
+                        }} 
                     onClick={(e) => {
                         e.stopPropagation()
                         if (pointSelected[0] != area.id || pointSelected[1] != idx) {
+                            console.log("A")
                             setPointSelectedCoords([point[0], point[1]])
                             setSelectedAreaIdx(areaIdx)
                             setSelectedArea(area)
                             setPointSelected([area.id, idx])
                         } else {
+                            console.log("B")
                             updatePoints(area, pointSelectedCoords, idx)
                         }
                     }}
@@ -298,6 +302,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             axios.defaults.withCredentials = true;
             axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
             axios.defaults.xsrfCookieName = 'csrftoken';
+
+            console.log("IMAGE")
     
             if (selectedAreaIdx === null) {    // Create new area
                 const URL = window.location.origin + '/api/create-area/'
@@ -330,6 +336,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 })
 
             } else {    // Update existing area for this label and element
+                console.log(pointSelected)
+
                 const URL = window.location.origin + '/api/edit-area/'
                 const config = {headers: {'Content-Type': 'application/json'}}
 
@@ -601,9 +609,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             } else {
                 return <div className="dataset-element-view-image-container-area" 
                 onClick={(e) => {
-                    setLabelSelected(null)
+                    console.log("C")
+                    /*setLabelSelected(null)
                     setSelectedArea(null)
-                    setSelectedAreaIdx(null)
+                    setSelectedAreaIdx(null)*/
                 }}
                 ref={elementContainerRef}
                 onWheel={handleElementScroll}
@@ -615,14 +624,16 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         transform: `scale(${zoom}) translate(${(50 - position.x) * (zoom - 1)}%, ${(50 - position.y) * (zoom - 1)}%)`,
                         transformOrigin: "center",
                         transition: "transform 0.1s ease-out",
-                    }}>
+                    }}
+                    onClick={(e) => e.stopPropagation()}>
                         <img onLoad={() => setUpdateArea(!updateArea)} 
                         ref={elementRef} 
                         className="dataset-element-view-image-area" 
                         src={element.file} 
                         onClick={(e) => {
                             e.stopPropagation()
-                            if (pointSelected == null || labelSelected != null || selectedArea != null) {
+                            if ((pointSelected[0] == -1 && pointSelected[1] == -1) && (labelSelected != null || selectedArea != null)) {
+                                console.log(pointSelected)
                                 handleImageClick(e)
                             }
                             
@@ -707,7 +718,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             let extension = file.name.split(".").pop()
             if (!IMAGE_FILE_EXTENSIONS.has(extension) && (dataset.datatype == "area" || !TEXT_FILE_EXTENSIONS.has(extension))) {    // Only image files for area datasets
                 if (errorMessages) {errorMessages += "\n\n"}
-                errorMessages += "Did not upload file with extension " + extension + " as this filetype is not supported."
+                errorMessages += "Did not upload " + extension + " as this filetype is not supported."
 
                 if (i == files.length - 1) {
                     notification(errorMessages, "failure")
@@ -741,7 +752,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 
             }).catch((error) => {
                 if (errorMessages) {errorMessages += "\n\n"}
-                errorMessages += "Did not upload file with extension ." + extension + " as this filetype is not supported."
+                errorMessages += "Failed to upload " + file.name + "."
                 console.log("Error: ", error)
             }).finally(() => {
                 AXIOS_OUTSTANDING -= 1

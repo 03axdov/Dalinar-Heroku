@@ -132,7 +132,7 @@
     border-radius: 3px;
     background: var(--element);
     bottom: 17px;
-    color: var(--gray-text);
+    color: white;
 }
 
 .dataset-element-date {

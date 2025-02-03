@@ -592,10 +592,10 @@
 }
 
 .dataset-element-view-image-wrapper {
-    display: flex; /* Matches the size of its content */
+    display: flex;
     position: relative;
-    width: max-content; /* Ensures wrapper matches image size */
-    height: max-content; /* Ensures wrapper matches image size */
+    width: fit-content; /* Ensures wrapper matches image size */
+    height: fit-content; /* Ensures wrapper matches image size */
     max-width: 95%;
     max-height: 95%;
 }
@@ -616,7 +616,6 @@
     height: auto; /* Ensure natural aspect ratio */
     box-shadow: 0 0 50px 0 var(--background-shadow);
     object-fit: fill;
-    box-sizing: border-box;
 }
 
 .dataset-element-view-point {
