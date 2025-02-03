@@ -242,13 +242,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     onClick={(e) => {
                         e.stopPropagation()
                         if (pointSelected[0] != area.id || pointSelected[1] != idx) {
-                            console.log("A")
                             setPointSelectedCoords([point[0], point[1]])
                             setSelectedAreaIdx(areaIdx)
                             setSelectedArea(area)
                             setPointSelected([area.id, idx])
                         } else {
-                            console.log("B")
                             updatePoints(area, pointSelectedCoords, idx)
                         }
                     }}
@@ -302,8 +300,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             axios.defaults.withCredentials = true;
             axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
             axios.defaults.xsrfCookieName = 'csrftoken';
-
-            console.log("IMAGE")
     
             if (selectedAreaIdx === null) {    // Create new area
                 const URL = window.location.origin + '/api/create-area/'
@@ -336,7 +332,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 })
 
             } else {    // Update existing area for this label and element
-                console.log(pointSelected)
 
                 const URL = window.location.origin + '/api/edit-area/'
                 const config = {headers: {'Content-Type': 'application/json'}}
@@ -609,10 +604,12 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             } else {
                 return <div className="dataset-element-view-image-container-area" 
                 onClick={(e) => {
-                    console.log("C")
-                    /*setLabelSelected(null)
-                    setSelectedArea(null)
-                    setSelectedAreaIdx(null)*/
+                    if (pointSelected[0] == -1 && pointSelected[1] == -1) { // Don't do this if a point is selected
+                        setLabelSelected(null)
+                        setSelectedArea(null)
+                        setSelectedAreaIdx(null)
+                    }
+                    
                 }}
                 ref={elementContainerRef}
                 onWheel={handleElementScroll}
@@ -633,7 +630,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         onClick={(e) => {
                             e.stopPropagation()
                             if ((pointSelected[0] == -1 && pointSelected[1] == -1) && (labelSelected != null || selectedArea != null)) {
-                                console.log(pointSelected)
                                 handleImageClick(e)
                             }
                             
@@ -758,7 +754,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 AXIOS_OUTSTANDING -= 1
                 setUploadPercentage(Math.round(100 * (1- AXIOS_OUTSTANDING / NUM_FILES)))
                 if (AXIOS_OUTSTANDING == 0) {
-                    console.log("A")
+
                     setTimeout(() => {
                         setUploadLoading(false)
                         getDataset()
