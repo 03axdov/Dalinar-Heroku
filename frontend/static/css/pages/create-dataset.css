@@ -358,6 +358,10 @@
 .edit-dataset-delete {
     margin-left: auto;
     background: var(--sidebar-button);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
 }
 
 .edit-dataset-delete:hover {

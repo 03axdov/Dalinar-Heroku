@@ -138,7 +138,7 @@ class GetDatasetPublic(APIView):
             return Response({'Bad Request': 'Id parameter not found in call to GetDataset.'}, status=status.HTTP_400_BAD_REQUEST)
 
     
-def resize_and_crop(instance, target_width, target_height):
+def createDatasetSmallImage(instance, target_width=230, target_height=190):
     img = Image.open(instance.image)
     
     new_name = instance.image.name.split("/")[-1]     # Otherwise includes files
@@ -201,7 +201,7 @@ class CreateDataset(APIView):
                 
                 dataset_instance = serializer.save(owner=request.user.profile)
                 
-                resize_and_crop(dataset_instance, 230, 190)    # Create a smaller image for displaying dataset elements
+                createDatasetSmallImage(dataset_instance, 230, 190)    # Create a smaller image for displaying dataset elements
                 
                 if "labels" in data_dict.keys():
                     labels = data_dict["labels"]
@@ -274,6 +274,7 @@ class EditDataset(APIView):
         name = request.data["name"]
         description = request.data["description"]
         image = request.data["image"]
+        print(image)
         visibility = request.data["visibility"]
         dataset_id = request.data["id"]
         keywords = request.data["keywords"]
@@ -289,7 +290,12 @@ class EditDataset(APIView):
                 if dataset.owner == user.profile:
                     dataset.name = name
                     dataset.description = description   
-                    if image: dataset.image = image # As optional 
+                    if image: 
+                        dataset.image.delete(save=False)
+                        dataset.imageSmall.delete(save=False)
+                        dataset.image = image
+                        createDatasetSmallImage(dataset, 230, 190)
+                        
                     dataset.visibility = visibility
                     if keywords:
                         dataset.keywords = keywords.split(",")

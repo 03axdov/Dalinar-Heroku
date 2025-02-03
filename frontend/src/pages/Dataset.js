@@ -7,6 +7,8 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import DownloadCode from "../components/DownloadCode";
 
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+
 
 const TOOLBAR_HEIGHT = 60
 
@@ -1279,6 +1281,25 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         }
     }
 
+
+    const elementsHandleDragEnd = (result) => {
+        if (!result.destination) return; // Dropped outside
+    
+        const reorderElements = [...elements];
+        const [movedItem] = reorderElements.splice(result.source.index, 1);
+        reorderElements.splice(result.destination.index, 0, movedItem);
+        
+        let currId = elements[elementsIndex].id
+        setElements(reorderElements);
+
+        for (let i=0; i < elements.length; i++) {
+            if (reorderElements[i].id == currId) {
+                setElementsIndex(i)
+            }
+        }
+        
+    };
+
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef}>
 
@@ -1370,103 +1391,122 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         </button>
                     </div>
                     
-                    {dataset && dataset.datatype == "classification" && elements.map((element, idx) => (
-                        <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
-                        key={element.id} 
-                        onClick={() => {
-                            if (loading) {
-                                notification("Cannot switch element while loading.", "failure")
-                                return;
-                            }
-                            setElementsIndex(idx)
-                        }}
-                        onMouseEnter={(e) => {
-                            setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                            setHoveredElement(idx)
-                        }}
-                        onMouseLeave={() => {
-                            setHoveredElement(null)
-                        }}>
+                    <DragDropContext className="dataset-elements-list" onDragEnd={elementsHandleDragEnd}>
+                        <Droppable droppableId="elements-droppable">
+                        {(provided) => (<div className="dataset-elements-list"
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}>
+                                {dataset && dataset.datatype == "classification" && elements.map((element, idx) => (
+                                    <Draggable key={element.id} draggableId={"" + element.id} index={idx}>
+                                        {(provided) => (<div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        onClick={() => {
+                                            if (loading) {
+                                                notification("Cannot switch element while loading.", "failure")
+                                                return;
+                                            }
+                                            setElementsIndex(idx)
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                            setHoveredElement(idx)
+                                        }}
+                                        onMouseLeave={() => {
+                                            setHoveredElement(null)
+                                        }}
+                                        style={{...provided.draggableProps.style}}
+                                        ref={provided.innerRef}>
 
-                            {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
-                            {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.png"}/>}
+                                            {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
+                                            {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.png"}/>}
 
-                            <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
+                                            <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
 
-                            {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
-                                className="dataset-sidebar-options dataset-sidebar-options-margin"
-                                src={BACKEND_URL + "/static/images/options.png"}
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    setEditingElementName(element.name)
-                                    if (editingElement != element.id) {
-                                        setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                                        setEditingElement(element.id)
-                                        setEditingElementIdx(idx)
-                                        closePopups("editing-element")
-                                    } else {
-                                        setEditingElement(null)
-                                        setEditingElementIdx(null)
-                                    }
-                                    
-                            }}/>}
+                                            {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
+                                                className="dataset-sidebar-options dataset-sidebar-options-margin"
+                                                src={BACKEND_URL + "/static/images/options.png"}
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setEditingElementName(element.name)
+                                                    if (editingElement != element.id) {
+                                                        setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                                        setEditingElement(element.id)
+                                                        setEditingElementIdx(idx)
+                                                        closePopups("editing-element")
+                                                    } else {
+                                                        setEditingElement(null)
+                                                        setEditingElementIdx(null)
+                                                    }
+                                                    
+                                            }}/>}
 
-                            {element.label && idToLabel[element.label] && <span className={"dataset-sidebar-color dataset-sidebar-color-element " + (hoveredElement == idx ? "dataset-sidebar-color-margin" : "")} 
-                                style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
-                            >
-                            </span>}
-                            
-                        </div>
-                    ))}
-                    {dataset && dataset.datatype == "area" && elements.map((element, idx) => (
-                        <div className="dataset-sidebar-element-container" key={element.id} >
-                            <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
-                            onClick={() => {
-                                if (loading) {
-                                    notification("Cannot switch element while loading.", "failure")
-                                    return;
-                                }
-                                setElementsIndex(idx)
-                            }}
-                            onMouseEnter={(e) => {
-                                setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                                setHoveredElement(idx)
-                            }}
-                            onMouseLeave={() => {
-                                setHoveredElement(null)
-                            }}>
+                                            {element.label && idToLabel[element.label] && <span className={"dataset-sidebar-color dataset-sidebar-color-element " + (hoveredElement == idx ? "dataset-sidebar-color-margin" : "")} 
+                                                style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
+                                            >
+                                            </span>}
+                                            
+                                        </div>)}
+                                    </Draggable>
+                                ))}
+                                
+                                {dataset && dataset.datatype == "area" && elements.map((element, idx) => (
+                                    <Draggable key={element.id} draggableId={"" + element.id} index={idx}>
+                                        {(provided) => (<div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        onClick={() => {
+                                            if (loading) {
+                                                notification("Cannot switch element while loading.", "failure")
+                                                return;
+                                            }
+                                            setElementsIndex(idx)
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                            setHoveredElement(idx)
+                                        }}
+                                        onMouseLeave={() => {
+                                            setHoveredElement(null)
+                                        }}
+                                        style={{...provided.draggableProps.style}}
+                                        ref={provided.innerRef}>
 
-                                {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
-                                {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.png"}/>}
+                                            {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
+                                            {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.png"}/>}
 
-                                <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
+                                            <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
 
-                                {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
-                                    className="dataset-sidebar-options dataset-sidebar-options-margin"
-                                    src={BACKEND_URL + "/static/images/options.png"}
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        setEditingElementName(element.name)
-                                        if (editingElement != element.id) {
-                                            setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                                            setEditingElement(element.id)
-                                            setEditingElementIdx(idx)
-                                            closePopups("editing-element")
-                                        } else {
-                                            setEditingElement(null)
-                                            setEditingElementIdx(null)
-                                        }
-                                        
-                                }}/>}
+                                            {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
+                                                className="dataset-sidebar-options dataset-sidebar-options-margin"
+                                                src={BACKEND_URL + "/static/images/options.png"}
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setEditingElementName(element.name)
+                                                    if (editingElement != element.id) {
+                                                        setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                                        setEditingElement(element.id)
+                                                        setEditingElementIdx(idx)
+                                                        closePopups("editing-element")
+                                                    } else {
+                                                        setEditingElement(null)
+                                                        setEditingElementIdx(null)
+                                                    }
+                                                    
+                                            }}/>}
 
-                                {element.areas && element.areas.length > 0 && <img title="Labelled" 
-                                    className={"dataset-sidebar-labeled " + (hoveredElement == "idx" ? "dataset-sidebar-labeled-margin" : "")} 
-                                    src={BACKEND_URL + "/static/images/area.svg"} />}
+                                            {element.areas && element.areas.length > 0 && <img title="Labelled" 
+                                                className={"dataset-sidebar-labeled " + (hoveredElement == "idx" ? "dataset-sidebar-labeled-margin" : "")} 
+                                                src={BACKEND_URL + "/static/images/area.svg"} />}
 
-                            </div>
-
-                        </div>
-                    ))}
+                                    </div>)}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder} 
+                        </div>)}
+                        </Droppable>
+                    </DragDropContext>
+                    
                     {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
                 </div>
                 

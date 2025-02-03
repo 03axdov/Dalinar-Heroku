@@ -9,6 +9,8 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
     const navigate = useNavigate()
     const { id } = useParams();
     const [loading, setLoading] = useState(true)
+    const [processing, setProcessing] = useState(false)
+    const [processingDelete, setProcessingDelete] = useState(false)
 
     const [originalName, setOriginalName] = useState("")
     const [name, setName] = useState("")
@@ -72,7 +74,9 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
 
         formData.append('name', name)
         formData.append('description', description)
+        console.log(image)
         if (image) {
+            
             formData.append('image', image)
         } else {formData.append("image", "")}
         formData.append("visibility", visibility)
@@ -84,7 +88,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         const URL = window.location.origin + '/api/edit-dataset/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
 
-        setLoading(true)
+        setProcessing(true)
         axios.post(URL, formData, config)
         .then((data) => {
             console.log("Success:", data);
@@ -94,7 +98,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
             notification("An error occurred.", "failure")
             console.log("Error: ", error)
         }).finally(() => {
-            setLoading(false)
+            setProcessing(false)
         })
     }
 
@@ -111,6 +115,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         const URL = window.location.origin + '/api/delete-dataset/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
+        setProcessingDelete(true)
         axios.post(URL, data, config)
         .then((data) => {
             navigate("/home")
@@ -118,7 +123,8 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
 
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
-
+        }).finally(() => {
+            setProcessingDelete(false)
         })
     }
 
@@ -133,7 +139,10 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
             <div className="create-dataset-form">
                 <div className="edit-dataset-title-container">
                     <h1 className="create-dataset-title"><span className="gray-text">Edit dataset — </span>{originalName}</h1>
-                    <button type="button" className="edit-dataset-delete" onClick={deleteDataset}>Delete dataset</button>
+                    <button type="button" className="edit-dataset-delete" onClick={deleteDataset}>
+                        {processingDelete && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                        {(!processingDelete ? "Delete dataset" : "Processing...")}
+                    </button>
                 </div>
                 
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
@@ -228,6 +237,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                         </div>
                     ))}
                 </div>}
+                {loading && <div className="create-dataset-keywords-container"></div>}
 
                 <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="dataset-image">New Image</label>
@@ -241,8 +251,8 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                 <div className="create-dataset-buttons">
                     <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Back to home</button>
                     <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>
-                        {loading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
-                        {(!loading ? "Save changes" : "Loading...")}
+                        {processing && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                        {(!processing ? "Save changes" : "Processing...")}
                     </button>
                 </div>
                 

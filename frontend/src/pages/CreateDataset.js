@@ -351,7 +351,7 @@ function CreateDataset({notification, BACKEND_URL}) {
                     <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Cancel</button>
                     <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>
                         {loading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
-                        {(!loading ? "Create dataset" : "Loading...")}
+                        {(!loading ? "Create dataset" : "Processing...")}
                     </button>
                 </div>
                 

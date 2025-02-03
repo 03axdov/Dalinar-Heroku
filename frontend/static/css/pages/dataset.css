@@ -35,6 +35,13 @@
     border-radius: 0;
 }
 
+.dataset-elements-list {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 .dataset-labels-container {
     width: 100%;
     display: flex;
