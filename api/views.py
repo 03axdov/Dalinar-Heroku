@@ -197,11 +197,14 @@ class CreateDataset(APIView):
         
         if user.is_authenticated:
             serializer = self.serializer_class(data=data)
+            print("0")
             if serializer.is_valid():
                 
                 dataset_instance = serializer.save(owner=request.user.profile)
                 
+                print("A")
                 createDatasetSmallImage(dataset_instance, 230, 190)    # Create a smaller image for displaying dataset elements
+                print("B")
                 
                 if "labels" in data_dict.keys():
                     labels = data_dict["labels"]

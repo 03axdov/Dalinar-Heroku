@@ -55,10 +55,9 @@ function CreateDataset({notification, BACKEND_URL}) {
 
         let formData = new FormData()
 
-
         formData.append('name', name)
         formData.append('datatype', type)
-        formData.append('description', description)
+        formData.append('description', (description ? description : ""))
         formData.append('image', image)
         formData.append("visibility", visibility)
         if (keywords.length > 0) {

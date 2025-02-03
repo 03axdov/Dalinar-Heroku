@@ -1300,6 +1300,17 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         
     };
 
+    const labelsHandleDragEnd = (result) => {
+        if (!result.destination) return; // Dropped outside
+    
+        const reorderLabels = [...labels];
+        const [movedItem] = reorderLabels.splice(result.source.index, 1);
+        reorderLabels.splice(result.destination.index, 0, movedItem);
+        
+        setLabels(reorderLabels);
+        
+    };
+
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef}>
 
@@ -1595,11 +1606,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     {elements.length != 0 && !showDatasetDescription && <div className="dataset-element-view-container">
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}
+
+                    {/* For preloading images */}
                     <div className="hidden-preload">
                         {elements.map((e, idx) => {getPreviewElement(e)})}
                     </div>
 
-                    {showDatasetDescription && dataset && dataset.description && <div className="dataset-description-display-container">
+                    {showDatasetDescription && dataset &&<div className="dataset-description-display-container">
 
                         <div className="dataset-description-image-container">
                             <img className="dataset-description-image" src={dataset.image} />
@@ -1666,41 +1679,56 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         <img className="dataset-sidebar-icon" src={BACKEND_URL + "/static/images/cross.svg"}/>
                         Clear label
                     </div>}
-                    <div className={"dataset-labels-container " + ((dataset && dataset.datatype == "area") ? "dataset-labels-container-area" : "")}>
-                        {labels.map((label, idx) => (
-                            <div className={"dataset-sidebar-element " + (dataset.datatype == "area" && labelSelected == label.id ? "dataset-sidebar-element-selected" : "")} 
-                            key={label.id} onClick={() => labelOnClick(label)}
-                            onMouseEnter={() => setHoveredLabel(idx)}
-                            onMouseLeave={() => setHoveredLabel(null)}>
-                                <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
-                                <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
-                                
-                                
-                                {hoveredLabel == idx && <img title="Edit label" 
-                                    className={"dataset-sidebar-options " + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
-                                    src={BACKEND_URL + "/static/images/options.png"}
-                                    onClick={(e) => {
-                                        e.stopPropagation()
-                                        closePopups("editing-label")
-                                        if (editingLabel == label.id) {
-                                            setEditingLabel(null)
-                                        } else {
-                                            setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                                            setEditingLabelName(label.name)
-                                            setEditingLabelColor(label.color)
-                                            setEditingLabelKeybind(label.keybind)
-                                            setEditingLabel(label.id)
-                                        }
+                    <DragDropContext className="dataset-labels-list" onDragEnd={labelsHandleDragEnd}>
+                        <div className={"dataset-labels-container " + ((dataset && dataset.datatype == "area") ? "dataset-labels-container-area" : "")}>
+                            <Droppable droppableId="labels-droppable" className="dataset-labels-container-inner">
+                            {(provided) => (<div className="dataset-labels-container-inner"
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}>
+                                {labels.map((label, idx) => (
+                                    <Draggable key={label.id} draggableId={"" + label.id} index={idx}>
+                                        {(provided) => (<div className={"dataset-sidebar-element " + (dataset.datatype == "area" && labelSelected == label.id ? "dataset-sidebar-element-selected" : "")} 
+                                        key={label.id} onClick={() => labelOnClick(label)}
+                                        onMouseEnter={() => setHoveredLabel(idx)}
+                                        onMouseLeave={() => setHoveredLabel(null)}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        style={{...provided.draggableProps.style}}
+                                        ref={provided.innerRef}>
+                                            <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
+                                            <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
+                                            
+                                            
+                                            {hoveredLabel == idx && <img title="Edit label" 
+                                                className={"dataset-sidebar-options " + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
+                                                src={BACKEND_URL + "/static/images/options.png"}
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    closePopups("editing-label")
+                                                    if (editingLabel == label.id) {
+                                                        setEditingLabel(null)
+                                                    } else {
+                                                        setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                                        setEditingLabelName(label.name)
+                                                        setEditingLabelColor(label.color)
+                                                        setEditingLabelKeybind(label.keybind)
+                                                        setEditingLabel(label.id)
+                                                    }
 
-                                    }}/>}
-                                
-                                {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} 
-                                    className={"dataset-sidebar-label-keybind " + (hoveredLabel == idx ? "dataset-sidebar-label-keybind-margin" : "")}>
-                                        {label.keybind.toUpperCase()}
-                                </span>}
-                            </div>
-                        ))}
-                    </div>
+                                                }}/>}
+                                            
+                                            {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} 
+                                                className={"dataset-sidebar-label-keybind " + (hoveredLabel == idx ? "dataset-sidebar-label-keybind-margin" : "")}>
+                                                    {label.keybind.toUpperCase()}
+                                            </span>}
+                                        </div>)}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder} 
+                            </div>)}
+                            </Droppable>
+                        </div>
+                    </DragDropContext>  
 
                     {dataset && dataset.datatype == "area" && elements.length > 0 && <div className="dataset-areas-container">
                         {elements[elementsIndex].areas.map((area, areaIdx) => (
