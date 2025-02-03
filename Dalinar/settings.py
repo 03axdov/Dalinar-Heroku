@@ -12,8 +12,8 @@ with open('./SECRET_KEY.txt') as f:
     SECRET_KEY = f.read().strip() 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
-PRODUCTION = True
+DEBUG = True
+PRODUCTION = False
 
 ALLOWED_HOSTS = ["dalinar-041d6630f0a7.herokuapp.com", "127.0.0.1"]
 
@@ -82,12 +82,17 @@ WSGI_APPLICATION = 'Dalinar.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if not DEBUG:
+    DATABASES = {
+        'default': dj_database_url.config(default=os.getenv('DATABASE_URL'), conn_max_age=600)
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation

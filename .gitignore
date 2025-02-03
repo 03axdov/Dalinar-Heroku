@@ -1,4 +1,3 @@
-migrations
 venv
 SECRET_KEY.txt
 AWS_SECRET_KEY.txt
