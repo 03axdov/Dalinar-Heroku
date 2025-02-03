@@ -1,4 +1,4 @@
-<h1>Dalinar</h1>
+<h1><a href="http://dalinar-041d6630f0a7.herokuapp.com/" target="_blank">Dalinar</a></a></h1>
 
 > A Machine Learning website for data labeling and model creation. Currently in development using Python Django and Javascript React. Data labelling (both classification and area) are currently functioning.
 
