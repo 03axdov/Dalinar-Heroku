@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from django.dispatch import receiver
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
@@ -81,9 +81,13 @@ class Label(models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="labels", null=True)
     color = models.CharField(max_length=7, default="#ffffff") # Hexadecimal format -- #000000
     keybind = models.CharField(max_length=20, blank=True)
+    index = models.PositiveIntegerField(default=0)  # Specifies the order of labels, updated when reordering label list in datasets
         
     def __str__(self):
         return self.name + " - " + self.dataset.name
+
+    class Meta:
+        ordering = ["index"]
 
 
 # ELEMENTS
@@ -99,10 +103,13 @@ class Element(models.Model):
     imageHeight = models.PositiveIntegerField(blank=True, null=True)    # Only used if file is image
     imageWidth = models.PositiveIntegerField(blank=True, null=True)     # Only used if file is image
     
+    index = models.PositiveIntegerField(default=0)  # Specifies the order of elements, updated when reordering element list in datasets
+    
     def __str__(self):
         return self.name + " - " + self.dataset.name
     
     def save(self, *args, **kwargs):
+
         # If a new file is uploaded
         if self.file and not self.name:
             # Set the name field to the file's name (without the path)
@@ -118,6 +125,9 @@ class Element(models.Model):
                     self.imageWidth, self.imageHeight = None, None    
             
         super().save(*args, **kwargs)
+        
+    class Meta:
+        ordering = ["index"]
         
         
 @receiver(post_delete, sender=Element)

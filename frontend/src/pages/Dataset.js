@@ -7,7 +7,7 @@ import JSZip from "jszip";
 import { saveAs } from "file-saver";
 import DownloadCode from "../components/DownloadCode";
 
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 
 const TOOLBAR_HEIGHT = 60
@@ -77,8 +77,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         let extension = currentElement.file.split(".").pop()
 
         if (IMAGE_FILE_EXTENSIONS.has(extension)) {
-            setCurrentImageWidth(currentElement.imageWidth)
-            setCurrentImageHeight(currentElement.imageHeight)
+            if (currentElement.imageWidth) {setCurrentImageWidth(currentElement.imageWidth)}
+            
+            if (currentElement.imageHeight) {setCurrentImageHeight(currentElement.imageHeight)}
         }
     }, [elements, elementsIndex])
 
@@ -1292,12 +1293,35 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         let currId = elements[elementsIndex].id
         setElements(reorderElements);
 
-        for (let i=0; i < elements.length; i++) {
+        let idToIdx = {}
+
+        for (let i=0; i < reorderElements.length; i++) {
+            idToIdx[reorderElements[i].id] = i
             if (reorderElements[i].id == currId) {
                 setElementsIndex(i)
             }
         }
         
+        // For updating the order, so it stays the same after refresh
+        const URL = window.location.origin + '/api/reorder-dataset-elements/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": dataset.id,
+            "order": idToIdx
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        axios.post(URL, data, config)
+        .then((data) => {
+
+        }).catch((error) => {
+            notification("Error: " + error, "failure")
+            
+        })
     };
 
     const labelsHandleDragEnd = (result) => {
@@ -1309,6 +1333,31 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         
         setLabels(reorderLabels);
         
+        let idToIdx = {}
+        for (let i=0; i < reorderLabels.length; i++) {
+            idToIdx[reorderLabels[i].id] = i
+        }
+        
+        // For updating the order, so it stays the same after refresh
+        const URL = window.location.origin + '/api/reorder-dataset-labels/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": dataset.id,
+            "order": idToIdx
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        axios.post(URL, data, config)
+        .then((data) => {
+
+        }).catch((error) => {
+            notification("Error: " + error, "failure")
+            
+        })
     };
 
     return (

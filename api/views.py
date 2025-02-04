@@ -366,6 +366,64 @@ class DeleteDataset(APIView):
         else:
             return Response({'Unauthorized': 'Must be logged in to delete datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
         
+        
+class ReorderDatasetElements(APIView):
+    serializer_class = DatasetSerializer
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        idToIdx = request.data["order"]
+        dataset_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+                
+                if dataset.owner == user.profile:
+                    for element in dataset.elements.all():
+                        element.index = int(idToIdx[str(element.id)])
+                        element.save()
+        
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only reorder elements in your own datasets."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Dataset.DoesNotExist:
+                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "Must be logged in to reorder elements."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class ReorderDatasetLabels(APIView):
+    serializer_class = DatasetSerializer
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        idToIdx = request.data["order"]
+        dataset_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+                
+                if dataset.owner == user.profile:
+                    for label in dataset.labels.all():
+                        label.index = int(idToIdx[str(label.id)])
+                        label.save()
+        
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only reorder labels in your own datasets."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Dataset.DoesNotExist:
+                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "Must be logged in to reorder labels."}, status=status.HTTP_401_UNAUTHORIZED)
+            
     
 # ELEMENT HANDLING
 
@@ -418,7 +476,6 @@ class CreateElement(APIView):
             if user.is_authenticated:
                 
                 if user.profile == dataset.owner:
-                
                     instance = serializer.save(owner=request.user.profile)
                     
                     fileExtension = instance.file.name.split("/")[-1].split(".")[-1]
