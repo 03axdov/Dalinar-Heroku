@@ -1632,13 +1632,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     }}>
                         
                         <label htmlFor="resize-width" className="resize-label">Width</label>
-                        <input type="number" id="resize-width" className="resize-inp" value={currentImageWidth} min="0" max="10000" onChange={(e) => {
-                            setCurrentImageWidth(Math.min(10000, Math.max(0, e.target.value)))
+                        <input type="number" id="resize-width" className="resize-inp" value={currentImageWidth} min="0" max="1024" onChange={(e) => {
+                            setCurrentImageWidth(Math.min(1024, Math.max(0, e.target.value)))
                         }}/>
 
                         <label htmlFor="resize-height" className="resize-label resize-label-margin">Height</label>
-                        <input type="number" id="resize-height" className="resize-inp" value={currentImageHeight} min="0" max="10000" onChange={(e) => {
-                            setCurrentImageHeight(Math.min(10000, Math.max(0, e.target.value)))
+                        <input type="number" id="resize-height" className="resize-inp" value={currentImageHeight} min="0" max="1024" onChange={(e) => {
+                            setCurrentImageHeight(Math.min(1024, Math.max(0, e.target.value)))
                         }}/>
 
                         <button type="submit" className="resize-apply">Apply</button>

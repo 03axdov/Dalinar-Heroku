@@ -204,7 +204,9 @@ function CreateDataset({notification, BACKEND_URL}) {
                     }}/>
                     <span className="create-dataset-image-dimensions-right">)</span>
                 </div>
-                <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images can also be manually resized.</p>
+                <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images can also be manually resized.
+                    Note that images with dimensions larger than 1024px will be resized so their largest dimension is at most 1024px regardless.
+                </p>
 
                 <div className="create-dataset-label-inp create-dataset-label-inp-description">
                     <label className="create-dataset-label" htmlFor="dataset-description">Description</label>

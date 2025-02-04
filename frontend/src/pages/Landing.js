@@ -25,7 +25,7 @@ function Landing({BACKEND_URL}) {
         <div className="landing-container">
             <div className="landing-header">
                 <div className="landing-header-col landing-header-left">
-                    <h1 className="landing-title"><img className="landing-logo" src={BACKEND_URL + "/static/images/logoWhite.svg"}/>Dalinar.ai</h1>
+                    <h1 className="landing-title"><img className="landing-logo" src={BACKEND_URL + "/static/images/logoWhite.svg"}/>Dalinar</h1>
                     <p className="landing-description"><span className="landing-pitch">Data labeling made easy.</span> 
                     Dalinar allows users to <span className="landing-description-highlighted">create and discover</span> 
                     both classification and area <span className="landing-description-highlighted no-margin">datasets</span>, while being easy to use and providing clear instructions 

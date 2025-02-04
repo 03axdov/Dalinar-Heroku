@@ -7,6 +7,8 @@ import os
 from django.core.validators import MaxLengthValidator
 
 from PIL import Image
+from io import BytesIO
+from django.core.files.base import ContentFile
 import pillow_avif # Adds .avif support
 
 
@@ -122,6 +124,30 @@ class Element(models.Model):
                 try:
                     with Image.open(self.file) as img:
                         self.imageWidth, self.imageHeight = img.size
+                        
+                        # Check if resizing is needed, to prevent too large images
+                        max_size = 1024
+                        if self.imageWidth > max_size or self.imageHeight > max_size:
+                            # Calculate new size while preserving aspect ratio
+                            ratio = min(max_size / self.imageWidth, max_size / self.imageHeight)
+                            new_size = (int(self.imageWidth * ratio), int(self.imageHeight * ratio))
+
+                            # Resize image
+                            img = img.resize(new_size, Image.Resampling.LANCZOS)
+
+                            # Save resized image to file field
+                            img_io = BytesIO()
+                            img_format = "JPEG" if ext in ["jpg", "jpeg"] else "PNG"
+                            img.save(img_io, format=img_format, quality=90)  # Adjust quality if needed
+
+                            # Replace the uploaded file with the resized image
+                            old_name = self.file.name
+                            self.file.delete(save=False)
+                            self.file.save(old_name, ContentFile(img_io.getvalue()), save=False)
+
+                            # Update image size attributes
+                            self.imageWidth, self.imageHeight = new_size
+                        
                 except Exception as e:
                     print(f"Error processing image: {e}")
                     self.imageWidth, self.imageHeight = None, None    
