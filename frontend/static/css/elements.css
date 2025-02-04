@@ -124,7 +124,7 @@
     background: var(--element-icon-hover);
 }
 
-.dataset-element-date, .dataset-element-count, .dataset-element-labels {
+.dataset-element-date, .dataset-element-count, .dataset-element-labels, .dataset-element-shape {
     position: absolute;
     font-size: 0.9rem;
     padding: 2px 5px;
@@ -146,6 +146,13 @@
 .dataset-element-labels {
     right: 15px;
     bottom: calc(17px + 30px);
+}
+
+.dataset-element-shape {
+    right: 15px;
+    top: 50px;
+    font-size: 0.8rem;
+    bottom: auto;
 }
 
 .dataset-element-keywords-container {

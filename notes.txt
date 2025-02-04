@@ -1,12 +1,15 @@
 TO-DO:
-- Loading animations
-- Prevent multiple api calls
+- ?
 
 For building:
+- Update DEBUG and PRODUCTION in settings.py
+- Update SECRET_KEY and AWS_SECRET_KEY
+- Remove migrations (not __init__.py)
+- python manage.py makemigrations api
+
 Django Allauth 0.50.0
 setuptools>=58.0
 Remove backports.zoneInfo
 dj-database-url==2.3.0
 psycopg==3.2.4
 psycopg2-binary==2.9.3
--Update allowed hosts

@@ -70,6 +70,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [currentImageWidth, setCurrentImageWidth] = useState(0)    // Only used if current element is an image
     const [currentImageHeight, setCurrentImageHeight] = useState(0)  // Only used if current element is an image
 
+    const [descriptionWidth, setDescriptionWidth] = useState(45)
+
     // Update current image dimensions
     useEffect(() => {
         let currentElement = elements[elementsIndex]
@@ -1368,6 +1370,29 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         })
     };
 
+    const descriptionContainerRef = useRef(null)
+
+    const resizeDescriptionHandleMouseDown = (e) => {
+        e.preventDefault();
+    
+        const startX = e.clientX;
+        const startWidth = descriptionWidth;
+    
+        const handleMouseMove = (e) => {
+          const newWidth = startWidth - 100 * ((e.clientX - startX) / descriptionContainerRef.current.offsetWidth);
+          console.log(newWidth)
+          setDescriptionWidth(Math.max(35, Math.min(newWidth, 75)));
+        };
+    
+        const handleMouseUp = () => {
+          document.removeEventListener("mousemove", handleMouseMove);
+          document.removeEventListener("mouseup", handleMouseUp);
+        };
+    
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
+    };
+
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef}>
 
@@ -1669,13 +1694,15 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         {elements.map((e, idx) => {getPreviewElement(e)})}
                     </div>
 
-                    {showDatasetDescription && dataset &&<div className="dataset-description-display-container">
+                    {showDatasetDescription && dataset &&<div className="dataset-description-display-container" ref={descriptionContainerRef}>
 
-                        <div className="dataset-description-image-container">
+                        <div className="dataset-description-image-container" style={{width: "calc(100% - " + descriptionWidth + "%)"}}>
                             <img className="dataset-description-image" src={dataset.image} />
                         </div>
 
-                        <div className="dataset-description-display">
+                        <div className="dataset-description-resize" onMouseDown={resizeDescriptionHandleMouseDown}></div>
+
+                        <div className="dataset-description-display" style={{width: "calc(" + descriptionWidth + "%" + " - 5px)"}}>
                             <div className="dataset-description-stats">
                                 {dataset.downloaders && <div className="dataset-description-stats-element">
                                     <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/download.svg"}/>
