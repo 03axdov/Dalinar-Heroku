@@ -78,8 +78,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         if (IMAGE_FILE_EXTENSIONS.has(extension)) {
             if (currentElement.imageWidth) {setCurrentImageWidth(currentElement.imageWidth)}
+            else {setCurrentImageWidth("")}
             
             if (currentElement.imageHeight) {setCurrentImageHeight(currentElement.imageHeight)}
+            else {setCurrentImageHeight("")}
         }
     }, [elements, elementsIndex])
 
@@ -741,6 +743,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
             formData.append('file', file)
             formData.append('dataset', dataset.id)
+            if (elements.length > 0) {  // So it's added to the bottom of the list
+                formData.append("index", elements.length)
+            }
 
             const URL = window.location.origin + '/api/create-element/'
             const config = {headers: {'Content-Type': 'multipart/form-data'}}
@@ -954,6 +959,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         formData.append('color', createLabelColor)
         formData.append('keybind', createLabelKeybind)
         formData.append('dataset', dataset.id)
+        if (labels.length > 0) {    // So it's added to bottom of list
+            formData.append("index", labels.length)
+        }
 
         const URL = window.location.origin + '/api/create-label/'
         const config = {headers: {'Content-Type': 'application/json'}}

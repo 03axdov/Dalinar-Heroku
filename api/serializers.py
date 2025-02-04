@@ -32,7 +32,7 @@ class ElementSerializer(serializers.ModelSerializer):
 class CreateElementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Element
-        fields = ("dataset", "file")
+        fields = ("dataset", "file", "index")
         
         
 class EditElementSerializer(serializers.ModelSerializer):
@@ -51,7 +51,7 @@ class LabelSerializer(serializers.ModelSerializer):
 class CreateLabelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Label
-        fields = ("name", "color", "keybind", "dataset")    # Dataset and Owner provided by view
+        fields = ("name", "color", "keybind", "dataset", "index")    # Dataset and Owner provided by view
         
         
 class EditLabelSerializer(serializers.ModelSerializer):

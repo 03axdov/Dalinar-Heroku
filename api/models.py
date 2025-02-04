@@ -5,7 +5,9 @@ from django.db.models.signals import post_save, post_delete
 from django.core.validators import FileExtensionValidator
 import os
 from django.core.validators import MaxLengthValidator
+
 from PIL import Image
+import pillow_avif # Adds .avif support
 
 
 ALLOWED_IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "avif"]

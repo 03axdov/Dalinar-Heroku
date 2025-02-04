@@ -7,6 +7,8 @@ import axios from "axios"
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
 
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+
 
 const TOOLBAR_HEIGHT = 60
 
@@ -46,6 +48,24 @@ function PublicDataset({BACKEND_URL}) {
     const canvasRefs = useRef([])
 
     const [hoveredAreaId, setHoveredAreaId] = useState(null)
+    
+    const [currentImageWidth, setCurrentImageWidth] = useState(0)    // Only used if current element is an image
+    const [currentImageHeight, setCurrentImageHeight] = useState(0)  // Only used if current element is an image
+
+    // Update current image dimensions
+    useEffect(() => {
+        let currentElement = elements[elementsIndex]
+        if (!currentElement) {return}
+        let extension = currentElement.file.split(".").pop()
+
+        if (IMAGE_FILE_EXTENSIONS.has(extension)) {
+            if (currentElement.imageWidth) {setCurrentImageWidth(currentElement.imageWidth)}
+            else {setCurrentImageWidth("")}
+            
+            if (currentElement.imageHeight) {setCurrentImageHeight(currentElement.imageHeight)}
+            else {setCurrentImageHeight("")}
+        }
+    }, [elements, elementsIndex])
 
     // Zoom functionality
     const elementContainerRef = useRef(null)
@@ -506,6 +526,36 @@ function PublicDataset({BACKEND_URL}) {
 
     // FRONTEND FUNCTIONALITY
 
+    const elementsHandleDragEnd = (result) => {
+            if (!result.destination) return; // Dropped outside
+        
+            const reorderElements = [...elements];
+            const [movedItem] = reorderElements.splice(result.source.index, 1);
+            reorderElements.splice(result.destination.index, 0, movedItem);
+            
+            let currId = elements[elementsIndex].id
+            setElements(reorderElements);
+    
+            for (let i=0; i < reorderElements.length; i++) {
+                if (reorderElements[i].id == currId) {
+                    setElementsIndex(i)
+                }
+            }
+
+        };
+    
+        const labelsHandleDragEnd = (result) => {
+            if (!result.destination) return; // Dropped outside
+        
+            const reorderLabels = [...labels];
+            const [movedItem] = reorderLabels.splice(result.source.index, 1);
+            reorderLabels.splice(result.destination.index, 0, movedItem);
+            
+            setLabels(reorderLabels);
+            
+        };
+    
+
     return (
         <div className="dataset-container" ref={pageRef}>
 
@@ -581,36 +631,52 @@ function PublicDataset({BACKEND_URL}) {
                 <div className="dataset-elements-scrollable">
                     <p className="dataset-sidebar-title">Elements</p>
                     
-                    {elements.map((element, idx) => (
-                        <div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
-                        key={element.id} 
-                        onClick={() => {
-                            setElementsIndex(idx)
-                        }}
-                        onMouseEnter={(e) => {
-                            setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                            setHoveredElement(idx)
-                        }}
-                        onMouseLeave={() => {
-                            setHoveredElement(null)
-                        }}>
+                    <DragDropContext className="dataset-elements-list" onDragEnd={elementsHandleDragEnd}>
+                        <Droppable droppableId="elements-droppable">
+                            {(provided) => (<div className="dataset-elements-list"
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}>
+                                {elements.map((element, idx) => (
+                                    <Draggable key={element.id} draggableId={"" + element.id} index={idx}>
+                                        {(provided) => (<div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        style={{...provided.draggableProps.style}}
+                                        ref={provided.innerRef}
+                                        key={element.id} 
+                                        onClick={() => {
+                                            setElementsIndex(idx)
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                            setHoveredElement(idx)
+                                        }}
+                                        onMouseLeave={() => {
+                                            setHoveredElement(null)
+                                        }}>
 
-                            {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
-                            {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.png"}/>}
+                                            {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
+                                            {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.png"}/>}
 
-                            <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
-                            
-                            {dataset && dataset.datatype == "classification" && element.label && idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
-                                style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
-                                > 
-                            </span>}
+                                            <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
+                                            
+                                            {dataset && dataset.datatype == "classification" && element.label && idToLabel[element.label] && <span className="dataset-sidebar-color dataset-sidebar-color-element" 
+                                                style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
+                                                > 
+                                            </span>}
 
-                            {dataset && dataset.datatype == "area" && element.areas && element.areas.length > 0 && <img title="Labelled" 
-                                className="dataset-sidebar-labeled"
-                                src={BACKEND_URL + "/static/images/area.svg"} />}
-     
-                        </div>
-                    ))}
+                                            {dataset && dataset.datatype == "area" && element.areas && element.areas.length > 0 && <img title="Labelled" 
+                                                className="dataset-sidebar-labeled"
+                                                src={BACKEND_URL + "/static/images/area.svg"} />}
+                    
+                                        </div>)}
+                                    </Draggable>
+                                ))}
+                                {provided.placeholder} 
+                                </div>
+                            )}
+                        </Droppable>
+                    </DragDropContext>
                     {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
                 </div>
                 
@@ -633,6 +699,22 @@ function PublicDataset({BACKEND_URL}) {
                     </div>}
 
                     {dataset && <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>Download</button>}
+                
+                    {elements && elements[elementsIndex] && IMAGE_FILE_EXTENSIONS.has(elements[elementsIndex].file.split(".").pop()) && <div className="resize-form" onSubmit={(e) => {
+                        e.preventDefault()
+                        resizeElementImage()
+                    }}>
+                        
+                        <label className="resize-label">Width</label>
+                        <div className="resize-inp">
+                            {currentImageWidth}
+                        </div>
+
+                        <label className="resize-label resize-label-margin">Height</label>
+                        <div className="resize-inp">
+                            {currentImageHeight}
+                        </div>
+                    </div>}
                 </div>
                 
                 <div className="dataset-main-display">
@@ -690,14 +772,30 @@ function PublicDataset({BACKEND_URL}) {
                 <div className="dataset-labels-scrollable">
                     <p className="dataset-sidebar-title">Labels</p>
    
-                    <div className={"dataset-labels-container " + ((dataset && dataset.datatype == "area") ? "dataset-labels-container-area" : "")}>
-                        {labels.map((label) => (
-                            <div className="dataset-sidebar-element default-cursor" key={label.id}>
-                                <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
-                                <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
-                            </div>
-                        ))}
-                    </div>
+                    <DragDropContext className="dataset-labels-list" onDragEnd={labelsHandleDragEnd}>
+                        <div className={"dataset-labels-container " + ((dataset && dataset.datatype == "area") ? "dataset-labels-container-area" : "")}>
+                        <Droppable droppableId="labels-droppable" className="dataset-labels-container-inner">
+
+                                {(provided) => (<div className="dataset-labels-container-inner"
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}>
+                                    {labels.map((label, idx) => (
+                                        <Draggable key={label.id} draggableId={"" + label.id} index={idx}>
+                                            {(provided) => (<div className="dataset-sidebar-element default-cursor" key={label.id}
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            style={{...provided.draggableProps.style}}
+                                            ref={provided.innerRef}>
+                                                <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
+                                                <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
+                                            </div>)}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder} 
+                                </div>)}
+                            </Droppable>
+                        </div>
+                    </DragDropContext>
 
                     {dataset && dataset.datatype == "area" && <div className="dataset-areas-container dataset-areas-container-public">
                         {elements[elementsIndex].areas.map((area, areaIdx) => (
