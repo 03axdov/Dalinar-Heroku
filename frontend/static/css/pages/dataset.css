@@ -12,7 +12,22 @@
     flex-direction: column;
     align-items: center;
     box-sizing: border-box;
+    width: calc(100% - 5px);
+    max-width: calc(100% - 5px);
     position: relative;
+}
+
+.dataset-toolbar-left, .dataset-toolbar-right {
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+.dataset-toolbar-resizeable {
+    height: 100%;
+    width: 5px;
+    background: var(--sidebar-light);
+    cursor: pointer;
 }
 
 .dataset-elements-scrollable, .dataset-labels-scrollable {
@@ -40,6 +55,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
 .dataset-labels-container {
@@ -95,15 +112,6 @@
     border-radius: 0;
 }
 
-.dataset-elements {
-    width: var(--dataset-elements-width);
-    z-index: 2;
-}
-
-.dataset-labels {
-    width: var(--dataset-labels-width);
-}
-
 .dataset-main {
     width: calc(100% - var(--dataset-elements-width) - var(--dataset-labels-width));
     display: flex;
@@ -118,6 +126,7 @@
     height: 50px;
     min-height: 50px;
     width: 100%;
+    padding: 0 10px;
     background: var(--toolbar);
     box-sizing: border-box;
     display: flex;
@@ -235,6 +244,7 @@
 
 .dataset-description-resize {
     height: 100%;
+    min-width: 5px;
     width: 5px;
     box-sizing: border-box;
     border: 1px solid var(--border);
@@ -365,6 +375,14 @@
     border-bottom: 1px solid var(--border);
 }
 
+.dataset-sidebar-title-small {
+    font-size: 1.3rem;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
 .dataset-sidebar-element {
     font-size: 0.9rem;
     width: 100%;
@@ -380,6 +398,11 @@
     overflow: visible;
     z-index: 1;
     position: relative;
+}
+
+.dataset-sidebar-element-small {
+    font-size: 0.8rem;
+    padding: 3px 10px;
 }
 
 .dataset-sidebar-element-container {
@@ -688,6 +711,12 @@
     height: 17px;
     width: 17px;
     margin-right: 7px;
+}
+
+.dataset-upload-button-small {
+    padding: 3px 7px;
+    border-radius: 3px;
+    font-size: 0.9rem;
 }
 
 .dataset-no-items {
@@ -1004,9 +1033,6 @@ canvas {
 
 
 @media all and (max-width: 975px) {
-    .dataset-upload-button-icon {
-        display: none;
-    }
 
     .dataset-create-label-container, .dataset-label-expanded, .dataset-element-expanded {
         position: absolute;
@@ -1118,14 +1144,6 @@ canvas {
 
     .dataset-description-display {
         height: calc(100% - 300px);
-    }
-
-    .dataset-elements {
-        border-right: 1px solid var(--border);
-    }
-
-    .dataset-labels {
-        border-left: 1px solid var(--border);
     }
 
     .dataset-title-container {

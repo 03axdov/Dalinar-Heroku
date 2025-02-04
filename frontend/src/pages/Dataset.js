@@ -70,7 +70,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [currentImageWidth, setCurrentImageWidth] = useState(0)    // Only used if current element is an image
     const [currentImageHeight, setCurrentImageHeight] = useState(0)  // Only used if current element is an image
 
-    const [descriptionWidth, setDescriptionWidth] = useState(45)
+    const [descriptionWidth, setDescriptionWidth] = useState(45)    // As percentage
+    const [toolbarLeftWidth, setToolbarLeftWidth] = useState(185)   // In pixels
+    const [toolbarRightWidth, setToolbarRightWidth] = useState(185)
+
 
     // Update current image dimensions
     useEffect(() => {
@@ -1380,8 +1383,50 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     
         const handleMouseMove = (e) => {
           const newWidth = startWidth - 100 * ((e.clientX - startX) / descriptionContainerRef.current.offsetWidth);
-          console.log(newWidth)
+
           setDescriptionWidth(Math.max(35, Math.min(newWidth, 75)));
+        };
+    
+        const handleMouseUp = () => {
+          document.removeEventListener("mousemove", handleMouseMove);
+          document.removeEventListener("mouseup", handleMouseUp);
+        };
+    
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
+    };
+
+    const resizeLeftToolbarHandleMouseDown = (e) => {
+        e.preventDefault();
+    
+        const startX = e.clientX;
+        const startWidth = toolbarLeftWidth;
+    
+        const handleMouseMove = (e) => {
+          const newWidth = startWidth + (e.clientX - startX)
+
+          setToolbarLeftWidth(Math.max(135, Math.min(newWidth, 250)));  // Arbitrary max and min width
+        };
+    
+        const handleMouseUp = () => {
+          document.removeEventListener("mousemove", handleMouseMove);
+          document.removeEventListener("mouseup", handleMouseUp);
+        };
+    
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
+    };
+
+    const resizeRightToolbarHandleMouseDown = (e) => {
+        e.preventDefault();
+    
+        const startX = e.clientX;
+        const startWidth = toolbarRightWidth;
+    
+        const handleMouseMove = (e) => {
+          const newWidth = startWidth - (e.clientX - startX)
+
+          setToolbarRightWidth(Math.max(135, Math.min(newWidth, 250)));  // Arbitrary max and min width
         };
     
         const handleMouseUp = () => {
@@ -1469,167 +1514,177 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             <input id="dataset-file-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFolderInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
             <input id="dataset-file-upload-inp" type="file" className="hidden" multiple ref={hiddenFileInputRef} onChange={(e) => {elementFilesUploaded(e)}}/>
             
-            <div className="dataset-elements">
-                <div className="dataset-elements-scrollable">
-                    <p className="dataset-sidebar-title">Elements</p>
-                    
-                    <div className="dataset-sidebar-button-container">
-                        <button type="button" className="sidebar-button dataset-upload-button" onClick={folderInputClick} title="Upload folder">
-                            <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
-                            <span>Upload folder</span>
-                        </button>
-                        <button type="button" className="sidebar-button dataset-upload-button dataset-upload-files-button" onClick={fileInputClick} title="Upload files">
-                            <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
-                            <span>Upload files</span>
-                        </button>
+            <div className="dataset-toolbar-left" style={{width: toolbarLeftWidth + "px"}}>
+                <div className="dataset-elements">
+                    <div className="dataset-elements-scrollable">
+                        <p className={"dataset-sidebar-title " + (toolbarLeftWidth < 150 ? "dataset-sidebar-title-small" : "")}>Elements</p>
+                        
+                        <div className="dataset-sidebar-button-container">
+                            <button type="button" 
+                            className={"sidebar-button dataset-upload-button " + (toolbarLeftWidth < 150 ? "dataset-upload-button-small" : "")} 
+                            onClick={folderInputClick} 
+                            title="Upload folder">
+                                {toolbarLeftWidth > 170 && <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />}
+                                <span>Upload folder</span>
+                            </button>
+                            <button type="button" 
+                            className={"sidebar-button dataset-upload-button dataset-upload-files-button " + (toolbarLeftWidth < 150 ? "dataset-upload-button-small" : "")} 
+                            onClick={fileInputClick} 
+                            title="Upload files">
+                                {toolbarLeftWidth > 170 && <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />}
+                                <span>Upload files</span>
+                            </button>
+                        </div>
+                        
+                        <DragDropContext className="dataset-elements-list" onDragEnd={elementsHandleDragEnd}>
+                            <Droppable droppableId="elements-droppable">
+                            {(provided) => (<div className="dataset-elements-list"
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}>
+                                    {dataset && dataset.datatype == "classification" && elements.map((element, idx) => (
+                                        <Draggable key={element.id} draggableId={"" + element.id} index={idx}>
+                                            {(provided) => (<div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected " : "") + (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")} 
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            onClick={() => {
+                                                if (loading) {
+                                                    notification("Cannot switch element while loading.", "failure")
+                                                    return;
+                                                }
+                                                setElementsIndex(idx)
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                                setHoveredElement(idx)
+                                            }}
+                                            onMouseLeave={() => {
+                                                setHoveredElement(null)
+                                            }}
+                                            style={{...provided.draggableProps.style}}
+                                            ref={provided.innerRef}>
+
+                                                {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
+                                                {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.png"}/>}
+
+                                                <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
+
+                                                {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
+                                                    className="dataset-sidebar-options dataset-sidebar-options-margin"
+                                                    src={BACKEND_URL + "/static/images/options.png"}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        setEditingElementName(element.name)
+                                                        if (editingElement != element.id) {
+                                                            setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                                            setEditingElement(element.id)
+                                                            setEditingElementIdx(idx)
+                                                            closePopups("editing-element")
+                                                        } else {
+                                                            setEditingElement(null)
+                                                            setEditingElementIdx(null)
+                                                        }
+                                                        
+                                                }}/>}
+
+                                                {element.label && idToLabel[element.label] && <span className={"dataset-sidebar-color dataset-sidebar-color-element " + (hoveredElement == idx ? "dataset-sidebar-color-margin" : "")} 
+                                                    style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
+                                                >
+                                                </span>}
+                                                
+                                            </div>)}
+                                        </Draggable>
+                                    ))}
+                                    
+                                    {dataset && dataset.datatype == "area" && elements.map((element, idx) => (
+                                        <Draggable key={element.id} draggableId={"" + element.id} index={idx}>
+                                            {(provided) => (<div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            onClick={() => {
+                                                if (loading) {
+                                                    notification("Cannot switch element while loading.", "failure")
+                                                    return;
+                                                }
+                                                setElementsIndex(idx)
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                                setHoveredElement(idx)
+                                            }}
+                                            onMouseLeave={() => {
+                                                setHoveredElement(null)
+                                            }}
+                                            style={{...provided.draggableProps.style}}
+                                            ref={provided.innerRef}>
+
+                                                {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
+                                                {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.png"}/>}
+
+                                                <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
+
+                                                {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
+                                                    className="dataset-sidebar-options dataset-sidebar-options-margin"
+                                                    src={BACKEND_URL + "/static/images/options.png"}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        setEditingElementName(element.name)
+                                                        if (editingElement != element.id) {
+                                                            setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                                            setEditingElement(element.id)
+                                                            setEditingElementIdx(idx)
+                                                            closePopups("editing-element")
+                                                        } else {
+                                                            setEditingElement(null)
+                                                            setEditingElementIdx(null)
+                                                        }
+                                                        
+                                                }}/>}
+
+                                                {element.areas && element.areas.length > 0 && <img title="Labelled" 
+                                                    className={"dataset-sidebar-labeled " + (hoveredElement == "idx" ? "dataset-sidebar-labeled-margin" : "")} 
+                                                    src={BACKEND_URL + "/static/images/area.svg"} />}
+
+                                        </div>)}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder} 
+                            </div>)}
+                            </Droppable>
+                        </DragDropContext>
+                        
+                        {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
                     </div>
                     
-                    <DragDropContext className="dataset-elements-list" onDragEnd={elementsHandleDragEnd}>
-                        <Droppable droppableId="elements-droppable">
-                        {(provided) => (<div className="dataset-elements-list"
-                            {...provided.droppableProps}
-                            ref={provided.innerRef}>
-                                {dataset && dataset.datatype == "classification" && elements.map((element, idx) => (
-                                    <Draggable key={element.id} draggableId={"" + element.id} index={idx}>
-                                        {(provided) => (<div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        onClick={() => {
-                                            if (loading) {
-                                                notification("Cannot switch element while loading.", "failure")
-                                                return;
-                                            }
-                                            setElementsIndex(idx)
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                                            setHoveredElement(idx)
-                                        }}
-                                        onMouseLeave={() => {
-                                            setHoveredElement(null)
-                                        }}
-                                        style={{...provided.draggableProps.style}}
-                                        ref={provided.innerRef}>
+                    {/* Shows an element's label */}
+                    {dataset && dataset.datatype == "classification" && hoveredElement != null && elements[hoveredElement].label && !editingElement &&
+                        <div className="dataset-sidebar-element-label" style={{top: elementLabelTop}}>{idToLabel[elements[hoveredElement].label].name}</div>
+                    }
 
-                                            {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
-                                            {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.png"}/>}
+                    {/* Editing element */}
+                    {editingElement && <div className="dataset-element-expanded" style={{top: Math.min(editExpandedTop, pageRef.current.getBoundingClientRect().height - 275 + TOOLBAR_HEIGHT)}} onClick={(e) => {e.stopPropagation()}}>
+                        <form className="dataset-edit-element-form" onSubmit={updateElement}>
+                            <div className="dataset-create-label-row">
+                                <label className="dataset-create-label-label" htmlFor="element-name-inp">Name</label>
+                                <input id="element-name-inp" className="dataset-create-label-inp" type="text" value={editingElementName} onChange={(e) => {
+                                    setEditingElementName(e.target.value)
+                                }} onClick={(e) => {
+                                    e.stopPropagation()
+                                }} onFocus={inputOnFocus} onBlur={() => {
+                                    inputOnBlur()
+                                }}></input>
+                            </div>
 
-                                            <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
+                            <button type="submit" className="edit-element-submit">Apply</button>
+                            <button type="button" className="edit-element-submit edit-element-delete" onClick={deleteElement}>Delete</button>
+                        </form>       
+                    </div>}
 
-                                            {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
-                                                className="dataset-sidebar-options dataset-sidebar-options-margin"
-                                                src={BACKEND_URL + "/static/images/options.png"}
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    setEditingElementName(element.name)
-                                                    if (editingElement != element.id) {
-                                                        setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                                                        setEditingElement(element.id)
-                                                        setEditingElementIdx(idx)
-                                                        closePopups("editing-element")
-                                                    } else {
-                                                        setEditingElement(null)
-                                                        setEditingElementIdx(null)
-                                                    }
-                                                    
-                                            }}/>}
-
-                                            {element.label && idToLabel[element.label] && <span className={"dataset-sidebar-color dataset-sidebar-color-element " + (hoveredElement == idx ? "dataset-sidebar-color-margin" : "")} 
-                                                style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
-                                            >
-                                            </span>}
-                                            
-                                        </div>)}
-                                    </Draggable>
-                                ))}
-                                
-                                {dataset && dataset.datatype == "area" && elements.map((element, idx) => (
-                                    <Draggable key={element.id} draggableId={"" + element.id} index={idx}>
-                                        {(provided) => (<div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        onClick={() => {
-                                            if (loading) {
-                                                notification("Cannot switch element while loading.", "failure")
-                                                return;
-                                            }
-                                            setElementsIndex(idx)
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                                            setHoveredElement(idx)
-                                        }}
-                                        onMouseLeave={() => {
-                                            setHoveredElement(null)
-                                        }}
-                                        style={{...provided.draggableProps.style}}
-                                        ref={provided.innerRef}>
-
-                                            {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
-                                            {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.png"}/>}
-
-                                            <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
-
-                                            {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
-                                                className="dataset-sidebar-options dataset-sidebar-options-margin"
-                                                src={BACKEND_URL + "/static/images/options.png"}
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    setEditingElementName(element.name)
-                                                    if (editingElement != element.id) {
-                                                        setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                                                        setEditingElement(element.id)
-                                                        setEditingElementIdx(idx)
-                                                        closePopups("editing-element")
-                                                    } else {
-                                                        setEditingElement(null)
-                                                        setEditingElementIdx(null)
-                                                    }
-                                                    
-                                            }}/>}
-
-                                            {element.areas && element.areas.length > 0 && <img title="Labelled" 
-                                                className={"dataset-sidebar-labeled " + (hoveredElement == "idx" ? "dataset-sidebar-labeled-margin" : "")} 
-                                                src={BACKEND_URL + "/static/images/area.svg"} />}
-
-                                    </div>)}
-                                    </Draggable>
-                                ))}
-                                {provided.placeholder} 
-                        </div>)}
-                        </Droppable>
-                    </DragDropContext>
-                    
-                    {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
                 </div>
-                
-                {/* Shows an element's label */}
-                {dataset && dataset.datatype == "classification" && hoveredElement != null && elements[hoveredElement].label && !editingElement &&
-                    <div className="dataset-sidebar-element-label" style={{top: elementLabelTop}}>{idToLabel[elements[hoveredElement].label].name}</div>
-                }
 
-                {/* Editing element */}
-                {editingElement && <div className="dataset-element-expanded" style={{top: Math.min(editExpandedTop, pageRef.current.getBoundingClientRect().height - 275 + TOOLBAR_HEIGHT)}} onClick={(e) => {e.stopPropagation()}}>
-                    <form className="dataset-edit-element-form" onSubmit={updateElement}>
-                        <div className="dataset-create-label-row">
-                            <label className="dataset-create-label-label" htmlFor="element-name-inp">Name</label>
-                            <input id="element-name-inp" className="dataset-create-label-inp" type="text" value={editingElementName} onChange={(e) => {
-                                setEditingElementName(e.target.value)
-                            }} onClick={(e) => {
-                                e.stopPropagation()
-                            }} onFocus={inputOnFocus} onBlur={() => {
-                                inputOnBlur()
-                            }}></input>
-                        </div>
-
-                        <button type="submit" className="edit-element-submit">Apply</button>
-                        <button type="button" className="edit-element-submit edit-element-delete" onClick={deleteElement}>Delete</button>
-                    </form>       
-                </div>}
-
+                <div className="dataset-toolbar-resizeable" onMouseDown={resizeLeftToolbarHandleMouseDown}></div>
             </div>
 
-            <div className="dataset-main">
+            <div className="dataset-main" style={{width: "calc(100% - " + toolbarLeftWidth + "px - " + toolbarRightWidth + "px)"}}>
                 <div className="dataset-main-toolbar">
                     {dataset && <div className="dataset-title-container unselectable" onClick={() => {setShowDatasetDescription(!showDatasetDescription)}}>
                         {dataset.datatype == "classification" && <img title="Type: Classification" className="dataset-title-icon" src={BACKEND_URL + "/static/images/classification.png"}/>}
@@ -1745,185 +1800,188 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 
             </div>
 
-            <div className="dataset-labels">
-                <div className="dataset-labels-scrollable">
-                    <p className="dataset-sidebar-title">Labels</p>
-                    <div className="dataset-sidebar-button-container">
-                        <button type="button" className="sidebar-button" onClick={(e) => {
-                            e.stopPropagation()
-                            closePopups("create-label")
-                            setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                            setDisplayCreateLabel(!displayCreateLabel)
-                        }}>
-                            {(displayCreateLabel ? "- Hide form" : "+ Add label")}
-                        </button>
-                        
+            <div className="dataset-toolbar-right" style={{width: toolbarRightWidth + "px"}}>
+                <div className="dataset-toolbar-resizeable" onMouseDown={resizeRightToolbarHandleMouseDown}></div>
+                <div className="dataset-labels" style={{width: toolbarRightWidth + "px"}}>
+                    <div className="dataset-labels-scrollable">
+                        <p className="dataset-sidebar-title">Labels</p>
+                        <div className="dataset-sidebar-button-container">
+                            <button type="button" className="sidebar-button" onClick={(e) => {
+                                e.stopPropagation()
+                                closePopups("create-label")
+                                setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                setDisplayCreateLabel(!displayCreateLabel)
+                            }}>
+                                {(displayCreateLabel ? "- Hide form" : "+ Add label")}
+                            </button>
+                            
+                        </div>
+                        {dataset && dataset.datatype=="classification" && <div className="dataset-sidebar-element" onClick={removeCurrentElementLabel}>
+                            <img className="dataset-sidebar-icon" src={BACKEND_URL + "/static/images/cross.svg"}/>
+                            Clear label
+                        </div>}
+                        <DragDropContext className="dataset-labels-list" onDragEnd={labelsHandleDragEnd}>
+                            <div className={"dataset-labels-container " + ((dataset && dataset.datatype == "area") ? "dataset-labels-container-area" : "")}>
+                                <Droppable droppableId="labels-droppable" className="dataset-labels-container-inner">
+                                {(provided) => (<div className="dataset-labels-container-inner"
+                                {...provided.droppableProps}
+                                ref={provided.innerRef}>
+                                    {labels.map((label, idx) => (
+                                        <Draggable key={label.id} draggableId={"" + label.id} index={idx}>
+                                            {(provided) => (<div className={"dataset-sidebar-element " + (dataset.datatype == "area" && labelSelected == label.id ? "dataset-sidebar-element-selected" : "")} 
+                                            key={label.id} onClick={() => labelOnClick(label)}
+                                            onMouseEnter={() => setHoveredLabel(idx)}
+                                            onMouseLeave={() => setHoveredLabel(null)}
+                                            {...provided.draggableProps}
+                                            {...provided.dragHandleProps}
+                                            style={{...provided.draggableProps.style}}
+                                            ref={provided.innerRef}>
+                                                <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
+                                                <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
+                                                
+                                                
+                                                {hoveredLabel == idx && <img title="Edit label" 
+                                                    className={"dataset-sidebar-options " + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
+                                                    src={BACKEND_URL + "/static/images/options.png"}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        closePopups("editing-label")
+                                                        if (editingLabel == label.id) {
+                                                            setEditingLabel(null)
+                                                        } else {
+                                                            setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                                            setEditingLabelName(label.name)
+                                                            setEditingLabelColor(label.color)
+                                                            setEditingLabelKeybind(label.keybind)
+                                                            setEditingLabel(label.id)
+                                                        }
+
+                                                    }}/>}
+                                                
+                                                {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} 
+                                                    className={"dataset-sidebar-label-keybind " + (hoveredLabel == idx ? "dataset-sidebar-label-keybind-margin" : "")}>
+                                                        {label.keybind.toUpperCase()}
+                                                </span>}
+                                            </div>)}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder} 
+                                </div>)}
+                                </Droppable>
+                            </div>
+                        </DragDropContext>  
+
+                        {dataset && dataset.datatype == "area" && elements.length > 0 && <div className="dataset-areas-container">
+                            {elements[elementsIndex].areas.map((area, areaIdx) => (
+                                <div className={"dataset-sidebar-element-area " + (selectedAreaIdx == areaIdx ? "dataset-sidebar-element-selected" : "")} 
+                                    title={"Area: " + idToLabel[area.label].name}
+                                    onMouseEnter={(e) => setHoveredAreaId(area.id)}
+                                    onMouseLeave={(e) => setHoveredAreaId(null)}
+                                    key={areaIdx}
+                                    onClick={() => {
+                                        if (areaIdx === null || areaIdx != selectedAreaIdx) {
+                                            setLabelSelected(null)
+                                            setSelectedArea(area)
+                                            setSelectedAreaIdx(areaIdx)
+                                        } else {
+                                            setSelectedArea(null)
+                                            setSelectedAreaIdx(null)
+                                        }
+                                        
+                                    }}>
+                                        <img className="dataset-element-area-icon" src={BACKEND_URL + "/static/images/area.svg"} />
+                                        <span className="dataset-area-name">{idToLabel[area.label].name}</span>
+                                        <span title={"Points: " + JSON.parse(area.area_points).length} 
+                                        className="dataset-sidebar-label-keybind no-box-shadow border"
+                                        style={{borderColor: (idToLabel[area.label].color)}}>{JSON.parse(area.area_points).length}</span>
+                                        <img title="Delete area" className="dataset-sidebar-options dataset-delete-area" src={BACKEND_URL + "/static/images/cross.svg"} onClick={(e) => {
+                                            deleteArea(area, elementsIndex, areaIdx)
+                                        }}/>
+                                </div>
+                            ))}
+                        </div>}
                     </div>
-                    {dataset && dataset.datatype=="classification" && <div className="dataset-sidebar-element" onClick={removeCurrentElementLabel}>
-                        <img className="dataset-sidebar-icon" src={BACKEND_URL + "/static/images/cross.svg"}/>
-                        Clear label
-                    </div>}
-                    <DragDropContext className="dataset-labels-list" onDragEnd={labelsHandleDragEnd}>
-                        <div className={"dataset-labels-container " + ((dataset && dataset.datatype == "area") ? "dataset-labels-container-area" : "")}>
-                            <Droppable droppableId="labels-droppable" className="dataset-labels-container-inner">
-                            {(provided) => (<div className="dataset-labels-container-inner"
-                            {...provided.droppableProps}
-                            ref={provided.innerRef}>
-                                {labels.map((label, idx) => (
-                                    <Draggable key={label.id} draggableId={"" + label.id} index={idx}>
-                                        {(provided) => (<div className={"dataset-sidebar-element " + (dataset.datatype == "area" && labelSelected == label.id ? "dataset-sidebar-element-selected" : "")} 
-                                        key={label.id} onClick={() => labelOnClick(label)}
-                                        onMouseEnter={() => setHoveredLabel(idx)}
-                                        onMouseLeave={() => setHoveredLabel(null)}
-                                        {...provided.draggableProps}
-                                        {...provided.dragHandleProps}
-                                        style={{...provided.draggableProps.style}}
-                                        ref={provided.innerRef}>
-                                            <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
-                                            <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
-                                            
-                                            
-                                            {hoveredLabel == idx && <img title="Edit label" 
-                                                className={"dataset-sidebar-options " + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
-                                                src={BACKEND_URL + "/static/images/options.png"}
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    closePopups("editing-label")
-                                                    if (editingLabel == label.id) {
-                                                        setEditingLabel(null)
-                                                    } else {
-                                                        setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                                                        setEditingLabelName(label.name)
-                                                        setEditingLabelColor(label.color)
-                                                        setEditingLabelKeybind(label.keybind)
-                                                        setEditingLabel(label.id)
-                                                    }
 
-                                                }}/>}
-                                            
-                                            {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} 
-                                                className={"dataset-sidebar-label-keybind " + (hoveredLabel == idx ? "dataset-sidebar-label-keybind-margin" : "")}>
-                                                    {label.keybind.toUpperCase()}
-                                            </span>}
-                                        </div>)}
-                                    </Draggable>
-                                ))}
-                                {provided.placeholder} 
-                            </div>)}
-                            </Droppable>
-                        </div>
-                    </DragDropContext>  
-
-                    {dataset && dataset.datatype == "area" && elements.length > 0 && <div className="dataset-areas-container">
-                        {elements[elementsIndex].areas.map((area, areaIdx) => (
-                            <div className={"dataset-sidebar-element-area " + (selectedAreaIdx == areaIdx ? "dataset-sidebar-element-selected" : "")} 
-                                title={"Area: " + idToLabel[area.label].name}
-                                onMouseEnter={(e) => setHoveredAreaId(area.id)}
-                                onMouseLeave={(e) => setHoveredAreaId(null)}
-                                key={areaIdx}
-                                onClick={() => {
-                                    if (areaIdx === null || areaIdx != selectedAreaIdx) {
-                                        setLabelSelected(null)
-                                        setSelectedArea(area)
-                                        setSelectedAreaIdx(areaIdx)
-                                    } else {
-                                        setSelectedArea(null)
-                                        setSelectedAreaIdx(null)
-                                    }
-                                    
-                                }}>
-                                    <img className="dataset-element-area-icon" src={BACKEND_URL + "/static/images/area.svg"} />
-                                    <span className="dataset-area-name">{idToLabel[area.label].name}</span>
-                                    <span title={"Points: " + JSON.parse(area.area_points).length} 
-                                    className="dataset-sidebar-label-keybind no-box-shadow border"
-                                    style={{borderColor: (idToLabel[area.label].color)}}>{JSON.parse(area.area_points).length}</span>
-                                    <img title="Delete area" className="dataset-sidebar-options dataset-delete-area" src={BACKEND_URL + "/static/images/cross.svg"} onClick={(e) => {
-                                        deleteArea(area, elementsIndex, areaIdx)
-                                    }}/>
-                            </div>
-                        ))}
-                    </div>}
-                </div>
-
-                <div className="dataset-create-label-container" 
-                    style={{display: (displayCreateLabel ? "flex" : "none"), top: editExpandedTop}}
-                    onClick={(e) => e.stopPropagation()}>
-                    <form className="dataset-create-label-form" onSubmit={createLabelSubmit}>
-                        <div className="dataset-create-label-row">
-                            <label className="dataset-create-label-label" htmlFor="label-create-name-inp">Name</label>
-                            <input id="label-create-name-inp" className="dataset-create-label-inp" type="text"
-                                placeholder="Name" value={createLabelName} onChange={(e) => {
-                                setCreateLabelName(e.target.value)
-                            }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
-                        </div>
-                        
-                        <div className="dataset-create-label-row">
-                            <label className="dataset-create-label-label" htmlFor="label-create-color-inp">Color</label>
-                            <div className="create-label-color-container" style={{background: createLabelColor}}>
-                                <input id="label-create-color-inp" className="dataset-create-label-color" type="color" value={createLabelColor} onChange={(e) => {
-                                    setCreateLabelColor(e.target.value)
+                    <div className="dataset-create-label-container" 
+                        style={{display: (displayCreateLabel ? "flex" : "none"), top: editExpandedTop}}
+                        onClick={(e) => e.stopPropagation()}>
+                        <form className="dataset-create-label-form" onSubmit={createLabelSubmit}>
+                            <div className="dataset-create-label-row">
+                                <label className="dataset-create-label-label" htmlFor="label-create-name-inp">Name</label>
+                                <input id="label-create-name-inp" className="dataset-create-label-inp" type="text"
+                                    placeholder="Name" value={createLabelName} onChange={(e) => {
+                                    setCreateLabelName(e.target.value)
                                 }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
                             </div>
-                        </div>
+                            
+                            <div className="dataset-create-label-row">
+                                <label className="dataset-create-label-label" htmlFor="label-create-color-inp">Color</label>
+                                <div className="create-label-color-container" style={{background: createLabelColor}}>
+                                    <input id="label-create-color-inp" className="dataset-create-label-color" type="color" value={createLabelColor} onChange={(e) => {
+                                        setCreateLabelColor(e.target.value)
+                                    }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
+                                </div>
+                            </div>
 
-                        <div className="dataset-create-label-row">
-                            <label className="dataset-create-label-label" htmlFor="label-create-keybinding">Keybind</label>
-                            <input
-                                id="label-create-keybinding"
-                                className="dataset-create-label-inp"
-                                type="text"
-                                value={createLabelKeybind}
-                                onKeyDown={handleKeyDown}
-                                placeholder="Press keys..."
-                                onFocus={inputOnFocus} onBlur={inputOnBlur}
-                                readOnly
-                            />
-                        </div>
+                            <div className="dataset-create-label-row">
+                                <label className="dataset-create-label-label" htmlFor="label-create-keybinding">Keybind</label>
+                                <input
+                                    id="label-create-keybinding"
+                                    className="dataset-create-label-inp"
+                                    type="text"
+                                    value={createLabelKeybind}
+                                    onKeyDown={handleKeyDown}
+                                    placeholder="Press keys..."
+                                    onFocus={inputOnFocus} onBlur={inputOnBlur}
+                                    readOnly
+                                />
+                            </div>
 
-                        <button type="submit" className="create-label-submit">Create</button>
-                        
-                    </form>
-                </div>
-                
-                {/* Editing label */}
-                {editingLabel && <div className="dataset-label-expanded" style={{top: Math.min(editExpandedTop, pageRef.current.getBoundingClientRect().height - 375 + TOOLBAR_HEIGHT)}} onClick={(e) => {e.stopPropagation()}}>
-                    <form className="dataset-create-label-form" onSubmit={editLabelOnSubmit}>
-                        <div className="dataset-create-label-row">
-                            <label className="dataset-create-label-label" htmlFor="label-name-inp">Name</label>
-                            <input id="label-name-inp" className="dataset-create-label-inp" type="text" placeholder="Name" value={editingLabelName} onChange={(e) => {
-                                setEditingLabelName(e.target.value)
-                            }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
-                        </div>
-                        
-                        <div className="dataset-create-label-row">
-                            <label className="dataset-create-label-label" htmlFor="label-color-inp">Color</label>
-                            <div className="create-label-color-container" style={{background: editingLabelColor}}>
-                                <input id="label-color-inp" className="dataset-create-label-color" type="color" value={editingLabelColor} onChange={(e) => {
-                                    setEditingLabelColor(e.target.value)
+                            <button type="submit" className="create-label-submit">Create</button>
+                            
+                        </form>
+                    </div>
+                    
+                    {/* Editing label */}
+                    {editingLabel && <div className="dataset-label-expanded" style={{top: Math.min(editExpandedTop, pageRef.current.getBoundingClientRect().height - 375 + TOOLBAR_HEIGHT)}} onClick={(e) => {e.stopPropagation()}}>
+                        <form className="dataset-create-label-form" onSubmit={editLabelOnSubmit}>
+                            <div className="dataset-create-label-row">
+                                <label className="dataset-create-label-label" htmlFor="label-name-inp">Name</label>
+                                <input id="label-name-inp" className="dataset-create-label-inp" type="text" placeholder="Name" value={editingLabelName} onChange={(e) => {
+                                    setEditingLabelName(e.target.value)
                                 }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
                             </div>
-                        </div>
+                            
+                            <div className="dataset-create-label-row">
+                                <label className="dataset-create-label-label" htmlFor="label-color-inp">Color</label>
+                                <div className="create-label-color-container" style={{background: editingLabelColor}}>
+                                    <input id="label-color-inp" className="dataset-create-label-color" type="color" value={editingLabelColor} onChange={(e) => {
+                                        setEditingLabelColor(e.target.value)
+                                    }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
+                                </div>
+                            </div>
 
-                        <div className="dataset-create-label-row">
-                            <label className="dataset-create-label-label" htmlFor="keybinding">Keybind</label>
-                            <input
-                                id="keybinding"
-                                className="dataset-create-label-inp"
-                                type="text"
-                                value={editingLabelKeybind}
-                                onKeyDown={(e) => {handleKeyDown(e, "editing-label")}}
-                                placeholder="Press keys..."
-                                onFocus={inputOnFocus} onBlur={inputOnBlur}
-                                readOnly
-                            />
-                        </div>
+                            <div className="dataset-create-label-row">
+                                <label className="dataset-create-label-label" htmlFor="keybinding">Keybind</label>
+                                <input
+                                    id="keybinding"
+                                    className="dataset-create-label-inp"
+                                    type="text"
+                                    value={editingLabelKeybind}
+                                    onKeyDown={(e) => {handleKeyDown(e, "editing-label")}}
+                                    placeholder="Press keys..."
+                                    onFocus={inputOnFocus} onBlur={inputOnBlur}
+                                    readOnly
+                                />
+                            </div>
 
-                        <button type="submit" className="create-label-submit">Save</button>
-                        <button type="button" className="create-label-submit edit-label-delete" onClick={deleteLabel}>Delete</button>
-                        
-                    </form>
-                    </div>}
+                            <button type="submit" className="create-label-submit">Save</button>
+                            <button type="button" className="create-label-submit edit-label-delete" onClick={deleteLabel}>Delete</button>
+                            
+                        </form>
+                        </div>}
 
+                </div>
             </div>
         </div>
     )
