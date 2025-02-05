@@ -127,16 +127,36 @@
 }
 
 .dataset-main-toolbar {
-    height: 50px;
-    min-height: 50px;
+    height: calc(100% - 3px);
     width: 100%;
     padding: 0 10px;
-    background: var(--toolbar);
     box-sizing: border-box;
     display: flex;
     flex-direction: row;
     align-items: center;
     overflow-x: auto;
+}
+
+.dataset-main-toolbar-outer {
+    height: 50px;
+    width: 100%;
+    background: var(--toolbar);
+    display: flex;
+    flex-direction: column;
+}
+
+.dataset-main-toolbar-resize {
+    background: var(--sidebar-light);
+    cursor: n-resize;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.toolbar-main-dropdown {
+    height: 10px;
 }
 
 .dataset-main-toolbar::-webkit-scrollbar {
@@ -233,9 +253,6 @@
     padding: 20px;
     box-sizing: border-box;
     font-size: 1.1rem;
-    border: 1px solid var(--border);
-    border-left: none;
-    border-right: none;
     display: flex;
     flex-direction: column;
 }
@@ -252,9 +269,6 @@
     min-width: 5px;
     width: 5px;
     box-sizing: border-box;
-    border: 1px solid var(--border);
-    border-right: none;
-    border-left: none;
     background: var(--border);
     cursor: e-resize;
 }
@@ -291,9 +305,6 @@
     justify-content: center;
     align-items: center;
     position: relative;
-    border: 1px solid var(--border);
-    border-right: none;
-    border-left: none;
     box-sizing: border-box;
     overflow: hidden;
 }
@@ -1097,7 +1108,6 @@ canvas {
     .dataset-description-image-container {
         width: 100%!important;
         height: 400px;
-        border: 1px solid var(--border);
         border-bottom: none;
     }
 
@@ -1132,7 +1142,7 @@ canvas {
 }
 
 @media all and (max-width: 1300px) {
-    .dataset-title-button {
+    .dataset-title-button, .dataset-download-button {
         font-size: 0;
         padding: 0;
         display: flex;
@@ -1142,7 +1152,7 @@ canvas {
         min-width: 35px;
     }
 
-    .dataset-title-edit-icon {
+    .dataset-title-edit-icon, .dataset-download-icon {
         margin: 0;
         height: 20px;
         width: 20px;

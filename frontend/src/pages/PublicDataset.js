@@ -56,6 +56,7 @@ function PublicDataset({BACKEND_URL}) {
 
     const [toolbarLeftWidth, setToolbarLeftWidth] = useState(185)   // In pixels
     const [toolbarRightWidth, setToolbarRightWidth] = useState(185) // In pixels
+    const [toolbarMainHeight, setToolbarMainHeight] = useState(50)
 
     const [cursor, setCursor] = useState("")
 
@@ -636,6 +637,34 @@ function PublicDataset({BACKEND_URL}) {
         document.addEventListener("mouseup", handleMouseUp);
     };
     
+    const resizeMainToolbarHandleMouseDown = (e) => {
+        e.preventDefault();
+    
+        const startY = e.clientY;
+        const startHeight = toolbarMainHeight;
+
+        setCursor("n-resize")
+    
+        const handleMouseMove = (e) => {
+          const newHeight = startHeight + (e.clientY - startY)
+        
+          if (newHeight < 25) { // Hide toolbar
+            setToolbarMainHeight(15)
+          } else {  // Show toolbar
+            setToolbarMainHeight(50)
+          }
+        };
+    
+        const handleMouseUp = () => {
+            setCursor("")
+          document.removeEventListener("mousemove", handleMouseMove);
+          document.removeEventListener("mouseup", handleMouseUp);
+        };
+    
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
+    };
+
 
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
@@ -773,33 +802,42 @@ function PublicDataset({BACKEND_URL}) {
             </div>
 
             <div className="dataset-main" style={{width: "calc(100% - " + toolbarLeftWidth + "px - " + toolbarRightWidth + "px)"}}>
-                <div className="dataset-main-toolbar">
-                    {dataset && <div className="dataset-title-container unselectable" onClick={() => {setShowDatasetDescription(!showDatasetDescription)}}>
-                        {dataset.datatype == "classification" && <img title="Type: Classification" className="dataset-title-icon" src={BACKEND_URL + "/static/images/classification.png"}/>}
-                        {dataset.datatype == "area" && <img title="Type: Area" className="dataset-title-icon" src={BACKEND_URL + "/static/images/area.svg"}/>}
-                        
-                        <p className="dataset-title" title={(!showDatasetDescription ? "Show description" : "Hide description")}>{dataset && dataset.name}</p>
+                <div className="dataset-main-toolbar-outer" style={{height: toolbarMainHeight + "px"}}>
+                    <div className="dataset-main-toolbar" style={{display: (toolbarMainHeight > 25 ? "flex" : "none")}}>
+                        {dataset && <div className="dataset-title-container unselectable" onClick={() => {setShowDatasetDescription(!showDatasetDescription)}}>
+                            {dataset.datatype == "classification" && <img title="Type: Classification" className="dataset-title-icon" src={BACKEND_URL + "/static/images/classification.png"}/>}
+                            {dataset.datatype == "area" && <img title="Type: Area" className="dataset-title-icon" src={BACKEND_URL + "/static/images/area.svg"}/>}
+                            
+                            <p className="dataset-title" title={(!showDatasetDescription ? "Show description" : "Hide description")}>{dataset && dataset.name}</p>
 
-                        <img className="dataset-title-expand-icon" src={BACKEND_URL + "/static/images/" + (!showDatasetDescription ? "plus.png" : "minus.png")} />
-                    </div>}
+                            <img className="dataset-title-expand-icon" src={BACKEND_URL + "/static/images/" + (!showDatasetDescription ? "plus.png" : "minus.png")} />
+                        </div>}
 
-                    {dataset && <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>Download</button>}
-                
-                    {elements && elements[elementsIndex] && IMAGE_FILE_EXTENSIONS.has(elements[elementsIndex].file.split(".").pop()) && <div className="resize-form" onSubmit={(e) => {
-                        e.preventDefault()
-                        resizeElementImage()
-                    }}>
-                        
-                        <label className="resize-label">Width</label>
-                        <div className="resize-inp">
-                            {currentImageWidth}
-                        </div>
+                        {dataset && <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={BACKEND_URL + "/static/images/download.svg"} title="Download dataset"/>Download</button>}
+                    
+                        {elements && elements[elementsIndex] && IMAGE_FILE_EXTENSIONS.has(elements[elementsIndex].file.split(".").pop()) && <div className="resize-form" onSubmit={(e) => {
+                            e.preventDefault()
+                            resizeElementImage()
+                        }}>
+                            
+                            <label className="resize-label">Width</label>
+                            <div className="resize-inp">
+                                {currentImageWidth}
+                            </div>
 
-                        <label className="resize-label resize-label-margin">Height</label>
-                        <div className="resize-inp">
-                            {currentImageHeight}
-                        </div>
-                    </div>}
+                            <label className="resize-label resize-label-margin">Height</label>
+                            <div className="resize-inp">
+                                {currentImageHeight}
+                            </div>
+                        </div>}
+                    </div>
+
+                    <div className="dataset-main-toolbar-resize" 
+                        onMouseDown={resizeMainToolbarHandleMouseDown} 
+                        style={{height: (toolbarMainHeight == 15 ? "15px" : "5px")}}
+                        >
+                        {toolbarMainHeight == 15 && <img className="toolbar-main-dropdown" src={BACKEND_URL + "/static/images/down.svg"} />}
+                    </div>
                 </div>
                 
                 <div className="dataset-main-display">
@@ -870,7 +908,7 @@ function PublicDataset({BACKEND_URL}) {
                                     ref={provided.innerRef}>
                                         {labels.map((label, idx) => (
                                             <Draggable key={label.id} draggableId={"" + label.id} index={idx}>
-                                                {(provided) => (<div className={"dataset-sidebar-element default-cursor " + (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")} key={label.id}
+                                                {(provided) => (<div className={"dataset-sidebar-element default-cursor " + (toolbarRightWidth < 150 ? "dataset-sidebar-element-small" : "")} key={label.id}
                                                 {...provided.draggableProps}
                                                 {...provided.dragHandleProps}
                                                 style={{...provided.draggableProps.style}}
@@ -888,7 +926,7 @@ function PublicDataset({BACKEND_URL}) {
 
                         {dataset && dataset.datatype == "area" && <div className="dataset-areas-container dataset-areas-container-public">
                             {elements[elementsIndex].areas.map((area, areaIdx) => (
-                                <div className={"dataset-sidebar-element-area " + (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")}
+                                <div className={"dataset-sidebar-element-area " + (toolbarRightWidth < 150 ? "dataset-sidebar-element-small" : "")}
                                     title={"Area: " + idToLabel[area.label].name}
                                     onMouseEnter={(e) => setHoveredAreaId(area.id)}
                                     onMouseLeave={(e) => setHoveredAreaId(null)}
