@@ -306,7 +306,6 @@ function PublicDataset({BACKEND_URL}) {
     const maxZoom = 2
 
     const handleElementScroll = (e) => {
-        console.log(e)
         const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.00125, minZoom), maxZoom);
         setZoom(newZoom);
     };
@@ -575,7 +574,6 @@ function PublicDataset({BACKEND_URL}) {
     
         const handleMouseMove = (e) => {
             const newWidth = startWidth - 100 * ((e.clientX - startX) / descriptionContainerRef.current.offsetWidth);
-            console.log(newWidth)
             setDescriptionWidth(Math.max(35, Math.min(newWidth, 75)));
         };
     
