@@ -1521,14 +1521,14 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         
                         <div className="dataset-sidebar-button-container">
                             <button type="button" 
-                            className={"sidebar-button dataset-upload-button " + (toolbarLeftWidth < 150 ? "dataset-upload-button-small" : "")} 
+                            className={"sidebar-button dataset-upload-button " + (toolbarLeftWidth < 150 ? "sidebar-button-small" : "")} 
                             onClick={folderInputClick} 
                             title="Upload folder">
                                 {toolbarLeftWidth > 170 && <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />}
                                 <span>Upload folder</span>
                             </button>
                             <button type="button" 
-                            className={"sidebar-button dataset-upload-button dataset-upload-files-button " + (toolbarLeftWidth < 150 ? "dataset-upload-button-small" : "")} 
+                            className={"sidebar-button dataset-upload-button dataset-upload-files-button " + (toolbarLeftWidth < 150 ? "sidebar-button-small" : "")} 
                             onClick={fileInputClick} 
                             title="Upload files">
                                 {toolbarLeftWidth > 170 && <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />}
@@ -1597,7 +1597,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                     
                                     {dataset && dataset.datatype == "area" && elements.map((element, idx) => (
                                         <Draggable key={element.id} draggableId={"" + element.id} index={idx}>
-                                            {(provided) => (<div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected" : "")} 
+                                            {(provided) => (<div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected " : "") + (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")} 
                                             {...provided.draggableProps}
                                             {...provided.dragHandleProps}
                                             onClick={() => {
@@ -1803,16 +1803,18 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             <div className="dataset-toolbar-right" style={{width: toolbarRightWidth + "px"}}>
                 <div className="dataset-toolbar-resizeable" onMouseDown={resizeRightToolbarHandleMouseDown}></div>
                 <div className="dataset-labels" style={{width: toolbarRightWidth + "px"}}>
-                    <div className="dataset-labels-scrollable">
-                        <p className="dataset-sidebar-title">Labels</p>
+                    <div className={"dataset-labels-scrollable " + (dataset && dataset.datatype=="area" ? "dataset-labels-nonscrollable" : "")}>
+                        <p className={"dataset-sidebar-title " + (toolbarRightWidth < 150 ? "dataset-sidebar-title-small" : "")}>Labels</p>
                         <div className="dataset-sidebar-button-container">
-                            <button type="button" className="sidebar-button" onClick={(e) => {
+                            <button type="button" 
+                            className={"sidebar-button " + (toolbarRightWidth < 150 ? "sidebar-button-small" : "")}
+                            onClick={(e) => {
                                 e.stopPropagation()
                                 closePopups("create-label")
                                 setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
                                 setDisplayCreateLabel(!displayCreateLabel)
                             }}>
-                                {(displayCreateLabel ? "- Hide form" : "+ Add label")}
+                                {(displayCreateLabel ? (toolbarRightWidth >= 150 ? "- " : "") + "Hide form" : (toolbarRightWidth >= 150 ? "+ " : "") + "Add label")}
                             </button>
                             
                         </div>
@@ -1828,7 +1830,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 ref={provided.innerRef}>
                                     {labels.map((label, idx) => (
                                         <Draggable key={label.id} draggableId={"" + label.id} index={idx}>
-                                            {(provided) => (<div className={"dataset-sidebar-element " + (dataset.datatype == "area" && labelSelected == label.id ? "dataset-sidebar-element-selected" : "")} 
+                                            {(provided) => (<div className={"dataset-sidebar-element " + (dataset.datatype == "area" && labelSelected == label.id ? "dataset-sidebar-element-selected" : "") + (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")} 
                                             key={label.id} onClick={() => labelOnClick(label)}
                                             onMouseEnter={() => setHoveredLabel(idx)}
                                             onMouseLeave={() => setHoveredLabel(null)}
@@ -1859,7 +1861,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                                     }}/>}
                                                 
                                                 {label.keybind && <span title={"Keybind: " + label.keybind.toUpperCase()} 
-                                                    className={"dataset-sidebar-label-keybind " + (hoveredLabel == idx ? "dataset-sidebar-label-keybind-margin" : "")}>
+                                                    className={"dataset-sidebar-label-keybind " + (hoveredLabel == idx ? "dataset-sidebar-label-keybind-margin " : "") + (toolbarRightWidth < 150 ? "dataset-sidebar-label-keybind-small" : "")}>
                                                         {label.keybind.toUpperCase()}
                                                 </span>}
                                             </div>)}
@@ -1892,7 +1894,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                         <img className="dataset-element-area-icon" src={BACKEND_URL + "/static/images/area.svg"} />
                                         <span className="dataset-area-name">{idToLabel[area.label].name}</span>
                                         <span title={"Points: " + JSON.parse(area.area_points).length} 
-                                        className="dataset-sidebar-label-keybind no-box-shadow border"
+                                        className={"dataset-sidebar-label-keybind no-box-shadow border " + (toolbarRightWidth < 150 ? "dataset-sidebar-label-keybind-small" : "")}
                                         style={{borderColor: (idToLabel[area.label].color)}}>{JSON.parse(area.area_points).length}</span>
                                         <img title="Delete area" className="dataset-sidebar-options dataset-delete-area" src={BACKEND_URL + "/static/images/cross.svg"} onClick={(e) => {
                                             deleteArea(area, elementsIndex, areaIdx)

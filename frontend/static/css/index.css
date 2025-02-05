@@ -207,6 +207,13 @@ input[type="radio"]:checked {
     cursor: pointer;
 }
 
+.sidebar-button-small {
+    padding: 3px 7px;
+    border-radius: 3px;
+    font-size: 0.9rem;
+}
+
+
 .sidebar-button-disabled {
     cursor: default;
     user-select: none;

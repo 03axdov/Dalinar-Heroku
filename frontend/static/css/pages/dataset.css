@@ -50,6 +50,10 @@
     border-radius: 0;
 }
 
+.dataset-labels-nonscrollable {
+    overflow-y: hidden;
+}
+
 .dataset-elements-list {
     width: 100%;
     display: flex;
@@ -713,12 +717,6 @@
     margin-right: 7px;
 }
 
-.dataset-upload-button-small {
-    padding: 3px 7px;
-    border-radius: 3px;
-    font-size: 0.9rem;
-}
-
 .dataset-no-items {
     color: var(--gray-text);
     font-size: 0.9rem;
@@ -782,6 +780,8 @@
     background: var(--sidebar-button);
     margin-left: auto;
     border-radius: 3px;
+    min-width: 18px;
+    box-sizing: border-box;
 
     white-space: nowrap;
     overflow: hidden;
@@ -790,6 +790,12 @@
 
 .dataset-sidebar-label-keybind:hover {
     box-shadow: 0 0 0 1px white;
+}
+
+.dataset-sidebar-label-keybind-small {
+    overflow: visible;
+    font-size: 0.7rem;
+    text-overflow: clip;
 }
 
 .dataset-sidebar-label-keybind-margin {
