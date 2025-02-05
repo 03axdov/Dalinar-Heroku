@@ -3,7 +3,7 @@ import React from "react"
 function AccountPopup({setShowAccountPopup, message}) {
 
     return (
-        <div className="popup" onClick={() => setShowAccountPopup(false)}>
+        <div className="popup account-popup" onClick={() => setShowAccountPopup(false)}>
             <div className="account-popup-container" onClick={(e) => {
                 e.stopPropagation()
             }}>

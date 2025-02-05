@@ -896,7 +896,7 @@ function PublicDataset({BACKEND_URL}) {
             <div className="dataset-toolbar-right" style={{width: toolbarRightWidth + "px"}}>
                 <div className="dataset-toolbar-resizeable" onMouseDown={resizeRightToolbarHandleMouseDown}></div>
                 <div className="dataset-labels">
-                    <div className="dataset-labels-scrollable">
+                    <div className={"dataset-labels-scrollable " + (dataset && dataset.datatype=="area" ? "dataset-labels-nonscrollable" : "")}>
                         <p className={"dataset-sidebar-title " + (toolbarRightWidth < 150 ? "dataset-sidebar-title-small" : "")}>Labels</p>
     
                         <DragDropContext className="dataset-labels-list" onDragEnd={labelsHandleDragEnd}>

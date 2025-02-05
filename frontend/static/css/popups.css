@@ -10,6 +10,10 @@
     z-index: 5;
 }
 
+.account-popup {
+    z-index: 6;
+}
+
 .account-popup-container, .confirm-popup-container {
     width: 450px;
     border-radius: 5px;
