@@ -71,8 +71,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [currentImageHeight, setCurrentImageHeight] = useState(0)  // Only used if current element is an image
 
     const [descriptionWidth, setDescriptionWidth] = useState(45)    // As percentage
+
     const [toolbarLeftWidth, setToolbarLeftWidth] = useState(185)   // In pixels
-    const [toolbarRightWidth, setToolbarRightWidth] = useState(185)
+    const [toolbarRightWidth, setToolbarRightWidth] = useState(185) // In pixels
+
+    const [cursor, setCursor] = useState("")
 
 
     // Update current image dimensions
@@ -1380,6 +1383,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     
         const startX = e.clientX;
         const startWidth = descriptionWidth;
+
+        setCursor("e-resize")
     
         const handleMouseMove = (e) => {
           const newWidth = startWidth - 100 * ((e.clientX - startX) / descriptionContainerRef.current.offsetWidth);
@@ -1388,6 +1393,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         };
     
         const handleMouseUp = () => {
+            setCursor("")
           document.removeEventListener("mousemove", handleMouseMove);
           document.removeEventListener("mouseup", handleMouseUp);
         };
@@ -1401,6 +1407,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     
         const startX = e.clientX;
         const startWidth = toolbarLeftWidth;
+
+        setCursor("e-resize")
     
         const handleMouseMove = (e) => {
           const newWidth = startWidth + (e.clientX - startX)
@@ -1409,6 +1417,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         };
     
         const handleMouseUp = () => {
+            setCursor("")
           document.removeEventListener("mousemove", handleMouseMove);
           document.removeEventListener("mouseup", handleMouseUp);
         };
@@ -1422,6 +1431,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     
         const startX = e.clientX;
         const startWidth = toolbarRightWidth;
+
+        setCursor("e-resize")
     
         const handleMouseMove = (e) => {
           const newWidth = startWidth - (e.clientX - startX)
@@ -1430,6 +1441,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         };
     
         const handleMouseUp = () => {
+            setCursor("")
           document.removeEventListener("mousemove", handleMouseMove);
           document.removeEventListener("mouseup", handleMouseUp);
         };
@@ -1439,7 +1451,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     };
 
     return (
-        <div className="dataset-container" onClick={closePopups} ref={pageRef}>
+        <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
             {/* Download popup - Classification */}
             {showDownloadPopup && !isDownloaded && dataset && dataset.datatype == "classification" && <DownloadPopup 
@@ -1802,7 +1814,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
             <div className="dataset-toolbar-right" style={{width: toolbarRightWidth + "px"}}>
                 <div className="dataset-toolbar-resizeable" onMouseDown={resizeRightToolbarHandleMouseDown}></div>
-                <div className="dataset-labels" style={{width: toolbarRightWidth + "px"}}>
+                <div className="dataset-labels">
                     <div className={"dataset-labels-scrollable " + (dataset && dataset.datatype=="area" ? "dataset-labels-nonscrollable" : "")}>
                         <p className={"dataset-sidebar-title " + (toolbarRightWidth < 150 ? "dataset-sidebar-title-small" : "")}>Labels</p>
                         <div className="dataset-sidebar-button-container">
