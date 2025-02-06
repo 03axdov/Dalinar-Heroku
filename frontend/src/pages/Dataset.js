@@ -1920,6 +1920,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                     <div title={e} className="dataset-description-keyword" key={i}>{e}</div>
                                 ))}
                             </div>}
+
+                            <button className="hide-description-button" onClick={() => {setShowDatasetDescription(false)}}>Hide description</button>
                         </div>
 
                     </div>}

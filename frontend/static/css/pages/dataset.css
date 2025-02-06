@@ -297,6 +297,15 @@
     margin-right: 10px;
 }
 
+.hide-description-button {
+    margin-top: 40px;
+    background: var(--toolbar-light);
+}
+
+.hide-description-button:hover {
+    background: var(--toolbar-lighter);
+}
+
 .dataset-description-image-container {
     max-width: 100%;
     height: 100%;

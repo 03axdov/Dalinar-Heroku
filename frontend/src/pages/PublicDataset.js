@@ -885,6 +885,8 @@ function PublicDataset({BACKEND_URL}) {
                                     <div title={e} className="dataset-description-keyword" key={i}>{e}</div>
                                 ))}
                             </div>}
+
+                            <button className="hide-description-button" onClick={() => {setShowDatasetDescription(false)}}>Hide description</button>
                         </div>
                     </div>}
                 </div>
@@ -932,7 +934,7 @@ function PublicDataset({BACKEND_URL}) {
                                     >
                                         <img className="dataset-element-area-icon" src={BACKEND_URL + "/static/images/area.svg"} />
                                         <span className="dataset-area-name">{idToLabel[area.label].name}</span>
-                                        <span title={"Points: " + area.area_points.length} 
+                                        <span title={"Points: " + JSON.parse(area.area_points).length} 
                                         className={"dataset-sidebar-label-keybind no-box-shadow border " + (toolbarRightWidth < 150 ? "dataset-sidebar-label-keybind-small" : "")}
                                         style={{borderColor: (idToLabel[area.label].color)}}>{JSON.parse(area.area_points).length}</span>
                                         
