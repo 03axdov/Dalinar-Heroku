@@ -344,7 +344,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 const endXPercent = Math.round((endX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
                 const endYPercent = Math.round((endY / boundingRect.height) * 100 * 10) / 10
 
-                if (Math.abs(endXPercent - startXPercent) < 3 || Math.abs(endYPercent - startYPercent) < 3) {   // Only create one point
+                if ((Math.abs(endXPercent - startXPercent) < 3 || Math.abs(endYPercent - startYPercent) < 3 || !labelSelected)) {   // Only create one point
                     createPoint(areas, endXPercent, endYPercent)
                 } else {    // Create square
                     const points = [[startXPercent, startYPercent],
@@ -671,19 +671,31 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const maxZoom = 2
 
     const handleElementScroll = (e) => {
+
+        const rect = elementContainerRef.current.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        
+        setPosition({ x, y });
+        
+        
+
         const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.00125, minZoom), maxZoom);
         setZoom(newZoom);
     };
 
     const handleElementMouseMove = (e) => {
-        if (zoom === 1) return;
+        if (zoom == 1 || e.buttons != 2) {return}  // Allow user to move with cursor if zoomed in and holding right mouse
+
         const rect = elementContainerRef.current.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
         const y = ((e.clientY - rect.top) / rect.height) * 100;
-    
+        
+        
         setPosition({ x, y });
+    
+        
     };
-
 
     const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "avif"])
     const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
@@ -743,7 +755,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 handleImageMouseDown(e)
                             }
                         }}
-                        draggable="false"/>
+                        draggable="false"
+                        onContextMenu={(e) => e.preventDefault()}/>
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
                             getPoints(area, idx)
                         ))}

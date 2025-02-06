@@ -692,6 +692,7 @@
     height: auto; /* Ensure natural aspect ratio */
     box-shadow: 0 0 50px 0 var(--background-shadow);
     object-fit: fill;
+    user-select: none;
 }
 
 .dataset-element-view-point {
