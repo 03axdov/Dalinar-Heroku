@@ -296,86 +296,160 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }
 
     // For Area datasets
-    const handleImageClick = (event) => {
-        event.stopPropagation()
-        const imageElement = elementRef.current;
 
-        if (imageElement && ((selectedAreaIdx !== null) || labelSelected)) {    // Only update point if a label is selected
-            
+    const handleImageMouseDown = (event) => {
+        event.preventDefault();
+        const imageElement = elementRef.current;
+        if (imageElement ) {
+
             let areas = elements[elementsIndex].areas
 
             const boundingRect = imageElement.getBoundingClientRect();
-            const clickX = Math.max(0, event.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
-            const clickY = Math.max(0, event.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
 
-            const clickXPercent = Math.round((clickX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
-            const clickYPercent = Math.round((clickY / boundingRect.height) * 100 * 10) / 10
+            const startX = Math.max(0, event.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
+            const startY = Math.max(0, event.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
 
-            axios.defaults.withCredentials = true;
-            axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-            axios.defaults.xsrfCookieName = 'csrftoken';
-    
-            if (selectedAreaIdx === null) {    // Create new area
-                const URL = window.location.origin + '/api/create-area/'
-                const config = {headers: {'Content-Type': 'application/json'}}
+            const startXPercent = Math.round((startX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
+            const startYPercent = Math.round((startY / boundingRect.height) * 100 * 10) / 10
         
-                const data = {
-                    "element": elements[elementsIndex].id,
-                    "label": labelSelected,
-                    "area_points": JSON.stringify([[clickXPercent, clickYPercent]])
-                }
-        
-                setLoading(true)
-                axios.post(URL, data, config)
-                .then((res) => {
-                    let temp = [...elements]
-                    temp[elementsIndex].areas.push(res.data)
-
-                    setLabelSelected(null)
-                    setSelectedAreaIdx(temp[elementsIndex].areas.length - 1)
-                    setSelectedArea(res.data)
-
-                    setElements(temp)
-                    
-                })
-                .catch((err) => {
-                    notification("Error: " + err + ".", "failure")
-                    console.log(err)
-                }).finally(() => {
-                    setLoading(false)
-                })
-
-            } else {    // Update existing area for this label and element
-
-                const URL = window.location.origin + '/api/edit-area/'
-                const config = {headers: {'Content-Type': 'application/json'}}
-
-                let updatedPoints = JSON.parse(areas[selectedAreaIdx].area_points)
-                updatedPoints.push([clickXPercent, clickYPercent])
-        
-                const data = {
-                    "area": areas[selectedAreaIdx].id,
-                    "area_points": JSON.stringify(updatedPoints)
-                }
-        
-                setLoading(true)
-                axios.post(URL, data, config)
-                .then((res) => {
-                    let temp = [...elements]
-                    temp[elementsIndex].areas[selectedAreaIdx].area_points = JSON.stringify(updatedPoints)
-                    setElements(temp)
-                    
-                })
-                .catch((err) => {
-                    notification("Error: " + err, "failure")
-                    console.log(err)
-                }).finally(() => {
-                    setLoading(false)
-                })
-            }
+            const handleMouseMove = (e) => {
             
+            };
+        
+            const handleMouseUp = (e) => {
+                
+                const endX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
+                const endY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
+
+                const endXPercent = Math.round((endX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
+                const endYPercent = Math.round((endY / boundingRect.height) * 100 * 10) / 10
+
+                console.log(endXPercent - startXPercent)
+                console.log(endYPercent - startYPercent)
+
+                if (Math.abs(endXPercent - startXPercent) < 3 || Math.abs(endYPercent - startYPercent) < 3) {   // Only create one point
+                    createPoint(areas, endXPercent, endYPercent)
+                } else {    // Create square
+                    const points = [[startXPercent, startYPercent],
+                                    [endXPercent, startYPercent],
+                                    [endXPercent, endYPercent],
+                                    [startXPercent, endYPercent]]
+                    createPoints(areas, points)
+                }
+
+                document.removeEventListener("mousemove", handleMouseMove);
+                document.removeEventListener("mouseup", handleMouseUp);
+            };
+        
+            document.addEventListener("mousemove", handleMouseMove);
+            document.addEventListener("mouseup", handleMouseUp);
         }
-    };
+    
+        
+    }
+
+
+    function createPoints(areas, points) {  // Points is an array of [clickXPercent, clickYPercent]
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';
+        
+        const URL = window.location.origin + '/api/create-area/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        const data = {
+            "element": elements[elementsIndex].id,
+            "label": labelSelected,
+            "area_points": JSON.stringify(points)
+        }
+
+        setLoading(true)
+        axios.post(URL, data, config)
+        .then((res) => {
+            let temp = [...elements]
+            temp[elementsIndex].areas.push(res.data)
+
+            setLabelSelected(null)
+            setSelectedAreaIdx(temp[elementsIndex].areas.length - 1)
+            setSelectedArea(res.data)
+
+            setElements(temp)
+            
+        })
+        .catch((err) => {
+            notification("Error: " + err + ".", "failure")
+            console.log(err)
+        }).finally(() => {
+            setLoading(false)
+        })
+    }
+
+
+    function createPoint(areas, clickXPercent, clickYPercent) {
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';
+
+        if (selectedAreaIdx === null) {    // Create new area
+            const URL = window.location.origin + '/api/create-area/'
+            const config = {headers: {'Content-Type': 'application/json'}}
+    
+            const data = {
+                "element": elements[elementsIndex].id,
+                "label": labelSelected,
+                "area_points": JSON.stringify([[clickXPercent, clickYPercent]])
+            }
+    
+            setLoading(true)
+            axios.post(URL, data, config)
+            .then((res) => {
+                let temp = [...elements]
+                temp[elementsIndex].areas.push(res.data)
+
+                setLabelSelected(null)
+                setSelectedAreaIdx(temp[elementsIndex].areas.length - 1)
+                setSelectedArea(res.data)
+
+                setElements(temp)
+                
+            })
+            .catch((err) => {
+                notification("Error: " + err + ".", "failure")
+                console.log(err)
+            }).finally(() => {
+                setLoading(false)
+            })
+
+        } else {    // Update existing area for this label and element
+
+            const URL = window.location.origin + '/api/edit-area/'
+            const config = {headers: {'Content-Type': 'application/json'}}
+
+            let updatedPoints = JSON.parse(areas[selectedAreaIdx].area_points)
+            updatedPoints.push([clickXPercent, clickYPercent])
+    
+            const data = {
+                "area": areas[selectedAreaIdx].id,
+                "area_points": JSON.stringify(updatedPoints)
+            }
+    
+            setLoading(true)
+            axios.post(URL, data, config)
+            .then((res) => {
+                let temp = [...elements]
+                temp[elementsIndex].areas[selectedAreaIdx].area_points = JSON.stringify(updatedPoints)
+                setElements(temp)
+                
+            })
+            .catch((err) => {
+                notification("Error: " + err, "failure")
+                console.log(err)
+            }).finally(() => {
+                setLoading(false)
+            })
+        }
+    }
+
 
     function deleteArea(area, elementIdx, areaIdx) {
         
@@ -613,7 +687,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             transform: `scale(${zoom}) translate(${(50 - position.x) * (zoom - 1)}%, ${(50 - position.y) * (zoom - 1)}%)`,
                             transformOrigin: "center",
                             transition: "transform 0.1s ease-out",
-                        }}/>
+                        }}
+                        draggable="false"/>
                 </div>
             } else {
                 return <div className="dataset-element-view-image-container-area" 
@@ -643,11 +718,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         src={element.file} 
                         onClick={(e) => {
                             e.stopPropagation()
+                        }}
+                        onMouseDown={(e) => {
                             if ((pointSelected[0] == -1 && pointSelected[1] == -1) && (labelSelected != null || selectedArea != null)) {
-                                handleImageClick(e)
+                                handleImageMouseDown(e)
                             }
-                            
-                        }}/>
+                        }}
+                        draggable="false"/>
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
                             getPoints(area, idx)
                         ))}

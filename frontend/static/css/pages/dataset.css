@@ -157,6 +157,7 @@
 
 .toolbar-main-dropdown {
     height: 10px;
+    user-select: none;
 }
 
 .dataset-main-toolbar::-webkit-scrollbar {

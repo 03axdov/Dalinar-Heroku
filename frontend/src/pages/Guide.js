@@ -101,9 +101,9 @@ function Guide({BACKEND_URL}) {
                             The number of points is shown to the right. Clicking on an area selects it.
                         </div>
 
-                        <div className="instructions-area-comment" style={{top: "78%", right: "25%"}}>
+                        <div className="instructions-area-comment" style={{top: "79%", right: "25%"}}>
                             Areas consist of an arbitrary number of points. 
-                            Clicking on the image with a label or area selected adds a point to that area.
+                            Clicking on the image with a label or area selected adds a point to that area. Dragging will create a square of points.
                         </div>
 
                         <div className="instructions-area-comment" style={{top: "66%", right: "67%"}}>
