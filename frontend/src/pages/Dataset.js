@@ -677,15 +677,16 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         const y = ((e.clientY - rect.top) / rect.height) * 100;
         
         setPosition({ x, y });
-        
-        
 
         const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.00125, minZoom), maxZoom);
         setZoom(newZoom);
     };
 
     const handleElementMouseMove = (e) => {
+        setCursor("")
         if (zoom == 1 || e.buttons != 2) {return}  // Allow user to move with cursor if zoomed in and holding right mouse
+
+        if (e.buttons == 2) {setCursor("grabbing")}
 
         const rect = elementContainerRef.current.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -694,7 +695,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         
         setPosition({ x, y });
     
-        
     };
 
     const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "avif"])
