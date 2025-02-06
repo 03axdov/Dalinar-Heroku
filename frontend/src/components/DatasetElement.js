@@ -55,10 +55,11 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false}) {
                 </div>}
             </div>
             
+            {dataset && !isPublic && <p className="dataset-element-private">{dataset.visibility}</p>}
             <p className="dataset-element-date">{dataset.downloaders.length + " download" + (dataset.downloaders.length != 1 ? "s" : "")}</p>
             <p className="dataset-element-count">{dataset.elements.length + " element" + (dataset.elements.length != 1 ? "s" : "")}</p>
             <p className="dataset-element-labels">{dataset.labels.length + " label" + (dataset.labels.length != 1 ? "s" : "")}</p>
-            {dataset.imageWidth && dataset.imageHeight && <p className="dataset-element-shape">
+            {dataset && dataset.imageWidth && dataset.imageHeight && <p className="dataset-element-shape">
                 {dataset.imageWidth}x{dataset.imageHeight}
             </p>}
 

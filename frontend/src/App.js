@@ -18,7 +18,7 @@ import Notification from "./components/Notification"
 
 // Local: "http://127.0.0.1:8000"
 // Production: "https://dalinar.s3.eu-north-1.amazonaws.com"
-const BACKEND_URL = "https://dalinar.s3.eu-north-1.amazonaws.com"   // no dash
+const BACKEND_URL = "http://127.0.0.1:8000"   // no dash
 
 
 export default function App() {

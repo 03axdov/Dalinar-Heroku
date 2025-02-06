@@ -12,6 +12,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.urls import resolve
 import json
 from rest_framework.test import APIRequestFactory
+import math
 
 from django.core.files.base import ContentFile
 from io import BytesIO
@@ -806,6 +807,21 @@ class CreateArea(APIView):
         user = self.request.user
         
 
+def polar_angle(p1, p2):
+    """Compute the polar angle of p2 relative to p1."""
+    return math.atan2(p2[1] - p1[1], p2[0] - p1[0])
+
+
+def reorder_points(points):
+    """Reorder points to surround the area naturally without removing any points."""
+    start_point = points[0]
+
+    # Sort remaining points by polar angle relative to the first point
+    remaining_points = sorted(points[1:], key=lambda p: polar_angle(start_point, p))
+    
+    return [start_point] + remaining_points
+
+
 class EditArea(APIView):
     serializer_class = AreaSerializer
     parser_classes = [JSONParser]
@@ -822,7 +838,9 @@ class EditArea(APIView):
                 
                 if area.element.owner == user.profile:
                     if len(json.loads(area_points)) > 0:
+                        
                         area.area_points = area_points
+
                         area.save()
                         
                         return Response({"deleted": False}, status=status.HTTP_200_OK)

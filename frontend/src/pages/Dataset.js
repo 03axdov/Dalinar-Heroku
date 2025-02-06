@@ -172,6 +172,24 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         });
     }, [elements, elementsIndex, canvasRefs, updateArea, labels]);   // When element areas update
 
+
+    function polarAngle(p1, p2) {
+        return Math.atan2(p2[1] - p1[1], p2[0] - p1[0]);
+    }
+    
+    function reorderPoints(points) {
+        if (points.length <= 1) return points;
+    
+        const startPoint = points[0];
+    
+        // Sort the remaining points by polar angle relative to the start point
+        const sortedPoints = points.slice(1).sort((a, b) => 
+            polarAngle(startPoint, a) - polarAngle(startPoint, b)
+        );
+    
+        return [startPoint, ...sortedPoints];
+    }
+
     function updatePoints(area, newPoint, pointIdx, remove=false) {
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -188,6 +206,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         }
 
         if (!updatedPoints) {return}
+
+        updatedPoints = reorderPoints(updatedPoints)
 
         const data = {
             "area": area.id,
@@ -324,9 +344,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 const endXPercent = Math.round((endX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
                 const endYPercent = Math.round((endY / boundingRect.height) * 100 * 10) / 10
 
-                console.log(endXPercent - startXPercent)
-                console.log(endYPercent - startYPercent)
-
                 if (Math.abs(endXPercent - startXPercent) < 3 || Math.abs(endYPercent - startYPercent) < 3) {   // Only create one point
                     createPoint(areas, endXPercent, endYPercent)
                 } else {    // Create square
@@ -432,6 +449,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 "area": areas[selectedAreaIdx].id,
                 "area_points": JSON.stringify(updatedPoints)
             }
+
+            updatedPoints = reorderPoints(updatedPoints)
     
             setLoading(true)
             axios.post(URL, data, config)
