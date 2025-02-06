@@ -358,7 +358,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 const endXPercent = Math.round((endX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
                 const endYPercent = Math.round((endY / boundingRect.height) * 100 * 10) / 10
 
-                if ((Math.abs(endXPercent - startXPercent) < 3 || Math.abs(endYPercent - startYPercent) < 3 || !labelSelected)) {   // Only create one point
+                if ((Math.abs(endXPercent - startXPercent) < 0.5 || Math.abs(endYPercent - startYPercent) < 0.5 || !labelSelected)) {   // Only create one point
                     createPoint(areas, endXPercent, endYPercent)
                 } else {    // Create square
                     const points = [[startXPercent, startYPercent],
