@@ -76,6 +76,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [toolbarRightWidth, setToolbarRightWidth] = useState(185) // In pixels
     const [toolbarMainHeight, setToolbarMainHeight] = useState(50)
 
+    const [imageMouseDown, setImageMouseDown] = useState(false)
+    const [rectanglePreviewOffset, setRectanglePreviewOffset] = useState(0) // x, y
+    const [rectanglePreviewDimensions, setRectanglePreviewDimensions] = useState([0,0]) // x, y
+
     const [cursor, setCursor] = useState("")
 
 
@@ -101,7 +105,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
 
     // AREA DATASET FUNCTIONALITY
-    const [labelSelected, setLabelSelected] = useState(null)
+    const [labelSelected, setLabelSelected] = useState(null)    // Id of selected label
     const [updateArea, setUpdateArea] = useState(false)
     const [hoveredAreaId, setHoveredAreaId] = useState(null)
 
@@ -331,13 +335,23 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
             const startXPercent = Math.round((startX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
             const startYPercent = Math.round((startY / boundingRect.height) * 100 * 10) / 10
+
+            setImageMouseDown(true)
         
             const handleMouseMove = (e) => {
-            
+                const newX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
+                const newY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
+
+                const newXPercent = Math.round((newX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
+                const newYPercent = Math.round((newY / boundingRect.height) * 100 * 10) / 10
+
+                setRectanglePreviewOffset([Math.min(startXPercent, newXPercent), Math.min(startYPercent, newYPercent)])
+                setRectanglePreviewDimensions([Math.abs(startXPercent - newXPercent), Math.abs(startYPercent - newYPercent)])
+                  
             };
         
             const handleMouseUp = (e) => {
-                
+
                 const endX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
                 const endY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
 
@@ -356,6 +370,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
                 document.removeEventListener("mousemove", handleMouseMove);
                 document.removeEventListener("mouseup", handleMouseUp);
+
+                setImageMouseDown(false)
+                setRectanglePreviewOffset([0,0])
+                setRectanglePreviewDimensions([0,0])
             };
         
             document.addEventListener("mousemove", handleMouseMove);
@@ -760,6 +778,18 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
                             getPoints(area, idx)
                         ))}
+
+                        {imageMouseDown && <div 
+                        className="dataset-rectangle-preview"
+                        style={{
+                            width: "calc(" + rectanglePreviewDimensions[0] + "% + " + Math.round(10 / (1 + (zoom - 1)* 3)) + "px)",
+                            height: "calc(" + rectanglePreviewDimensions[1] + "% + " + Math.round(10 / (1 + (zoom - 1)* 3)) + "px)",
+                            left: "calc(" + rectanglePreviewOffset[0] + "% + " + Math.round(10 / (1 + (zoom - 1)* 3)) + "px)",
+                            top: "calc(" + rectanglePreviewOffset[1] + "% + " + Math.round(10 / (1 +(zoom - 1)* 3)) + "px)",
+                            background: idToLabel[labelSelected].color + "50"
+                        }}>
+                            
+                        </div>}
                     </div>
                 </div>
             }

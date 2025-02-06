@@ -676,6 +676,11 @@
     max-height: 95%;
 }
 
+.dataset-rectangle-preview {
+    z-index: 2;
+    position: absolute;
+}
+
 .dataset-element-view-image {
     display: block;
     width: 97%;
