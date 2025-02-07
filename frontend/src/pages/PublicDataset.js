@@ -791,8 +791,13 @@ function PublicDataset({BACKEND_URL}) {
                     
                     {/* Shows an element's label */}
                     {dataset && dataset.datatype == "classification" && hoveredElement != null && elements[hoveredElement].label &&
-                        <div className="dataset-sidebar-element-label" style={{top: elementLabelTop}}>{idToLabel[elements[hoveredElement].label].name}</div>
+                        <div className="dataset-sidebar-element-label" style={{top: (elementLabelTop + (IMAGE_FILE_EXTENSIONS.has(elements[hoveredElement].file.split(".").pop()) ? 5 : 0))}}>{idToLabel[elements[hoveredElement].label].name}</div>
                     }
+
+                    {dataset && hoveredElement != null && IMAGE_FILE_EXTENSIONS.has(elements[hoveredElement].file.split(".").pop()) &&
+                        <img className="dataset-sidebar-element-preview" style={{top: elementLabelTop}} src={elements[hoveredElement].file}/>
+                    }
+
                     
                 </div>
 

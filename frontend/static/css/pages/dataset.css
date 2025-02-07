@@ -762,13 +762,26 @@
 
 .dataset-sidebar-element-label {
     position: absolute;
-    left: calc(100% + 10px);
+    left: calc(100% + 10px + 5px);
     background: var(--toolbar-dark);
     padding: 5px 7px;
     box-shadow: 0 0 0 1px var(--border);
     font-size: 1.1rem;
     display: hidden;
     white-space: nowrap;
+    z-index: 3;
+}
+
+.dataset-sidebar-element-preview {
+    position: absolute;
+    left: calc(100% + 10px);
+    background: var(--toolbar-dark);
+    box-sizing: border-box;
+    display: hidden;
+    height: 150px;
+    width: auto;
+    max-width: 450px;
+    z-index: 2;
 }
 
 .hidden-preload {
