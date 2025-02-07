@@ -267,6 +267,10 @@ input {
     box-shadow: none!important;
 }
 
+.no-border {
+    border: none!important;
+}
+
 .border {
     border: 1px solid;
 }

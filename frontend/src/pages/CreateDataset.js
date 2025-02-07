@@ -1,4 +1,4 @@
-import React, {useState, useRef} from "react"
+import React, {useState, useRef, useEffect} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 
@@ -19,6 +19,9 @@ function CreateDataset({notification, BACKEND_URL}) {
     const [imageWidth, setImageWidth] = useState("")
     const [imageHeight, setImageHeight] = useState("")
 
+    const imageInputRef = useRef(null)
+    const [imageURL, setImageURL] = useState("")
+
     const [uploadDropdownVisible, setUploadDropdownVisible] = useState(false)
 
     const [uploadedFoldersAsLabels, setUploadedFoldersAsLabels] = useState([])
@@ -30,6 +33,16 @@ function CreateDataset({notification, BACKEND_URL}) {
     const hiddenFilenamesInputRef = useRef(null)
 
     const INVALID_LABELS = new Set(["name", "datatype", "description", "image", "visibility", "labels"]) // Would impact formData below, temporary fix
+
+    useEffect(() => {
+        if (image === null) return
+        if (image === '') return
+        if (image === undefined) return
+        var binaryData = [];
+        binaryData.push(image);
+        const url = URL.createObjectURL(new Blob(binaryData, {type: "application/zip"}))
+        setImageURL(url)
+    }, [image])
 
     function formOnSubmit(e) {
         e.preventDefault()
@@ -167,11 +180,35 @@ function CreateDataset({notification, BACKEND_URL}) {
         }
     }
 
+
+    function imageOnClick() {
+        if (imageInputRef.current) {
+            imageInputRef.current.click()
+        }
+    }
+
     return (
         <div className="create-dataset-container">
             <div className="create-dataset-form">
                 <h1 className="create-dataset-title">Create a dataset</h1>
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
+
+                <div className="create-dataset-label-inp">
+                    <input type="file" accept="image/png, image/jpeg, image/webp" required className="hidden" ref={imageInputRef} onChange={(e) => {
+                        if (e.target.files[0]) {
+                            setImage(e.target.files[0])
+                        }
+                    }} />
+                    {imageURL && <div className="create-dataset-image-container no-border" onClick={imageOnClick}>
+                        <img className="create-dataset-image no-border" src={imageURL} onClick={imageOnClick}/>
+                        <div className="create-dataset-image-hover">
+                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                        </div>
+                    </div>}
+                    {!imageURL && <div className="create-dataset-image-container" onClick={imageOnClick}>
+                        <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                    </div>}
+                </div>
 
                 <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="dataset-name">Dataset name <span className="create-dataset-required">(required)</span></label>
@@ -271,14 +308,10 @@ function CreateDataset({notification, BACKEND_URL}) {
                     ))}
                 </div>}
 
-                <div className="create-dataset-label-inp">
+                {/*<div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="create-dataset-image">Image <span className="create-dataset-required">(required)</span></label>
-                    <input type="file" accept="image/png, image/jpeg, image/webp" id="create-dataset-image" name="image" required className="create-dataset-file-inp" onChange={(e) => {
-                        if (e.target.files[0]) {
-                            setImage(e.target.files[0])
-                        }
-                    }} />
-                </div>
+                    
+                </div>*/}
 
                 { type == "classification" && <h1 className="create-dataset-title create-dataset-subtitle upload-dataset-title" onClick={() => {
                         setUploadDropdownVisible(!uploadDropdownVisible)

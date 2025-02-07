@@ -400,3 +400,59 @@
     margin: 0;
 }
 
+.create-dataset-image-container {
+    width: 230px;
+    height: 190px;
+    background: var(--background-dark);
+    box-sizing: border-box;
+    border: 1px solid var(--border);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.create-dataset-image-container:hover {
+    cursor: pointer;
+    border: 1px solid var(--border-light);
+}
+
+.create-dataset-image {
+    height: 100%;
+    width: 100%;
+    outline: none;
+    object-fit: cover;
+    overflow-clip-margin: unset;
+}
+
+.create-dataset-image-hover {
+    opacity: 0;
+    display: flex;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
+    top: 0;
+    left: 0;
+    background: rgb(0,0,0,0.7);
+    z-index: 1;
+    box-sizing: border-box;
+}
+
+.create-dataset-image-hover:hover {
+    opacity: 1;
+    border: 1px solid var(--border-light);
+}
+
+.create-dataset-image-icon {
+    height: 20px;
+    width: 23px;
+    margin-right: 10px;
+}
+
+.create-dataset-image-text {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}

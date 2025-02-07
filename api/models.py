@@ -164,7 +164,7 @@ def delete_element_file(sender, instance, **kwargs):
         instance.file.delete(save=False)
 
 
-# MISCELLANEOUS
+# AREAS
 class Area(models.Model):   # Only used for datasets of datatype "area"
     label = models.ForeignKey(Label, on_delete=models.CASCADE, related_name="areas", null=True)
     element = models.ForeignKey(Element, on_delete=models.CASCADE, related_name="areas", null=True)
@@ -172,3 +172,38 @@ class Area(models.Model):   # Only used for datasets of datatype "area"
     
     def __str__(self):
         return "Element: " + self.element.name + ", Label: " + self.label.name + ". Points: " + str(self.area_points)
+    
+    
+# MODELS
+class Model(models.Model):
+    name = models.CharField(max_length=100)
+    owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="models")
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    image = models.ImageField(upload_to='images/', null=True)
+    imageSmall = models.ImageField(upload_to="images/", null=True)
+    
+    VISIBILITY_CHOICES = [
+        ("private", "Private"),
+        ("public", "Public")
+    ]
+    visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default="private")
+    
+    
+@receiver(post_delete, sender=Model)
+def delete_model_images(sender, instance, **kwargs):
+    if instance.image:
+        instance.image.delete(save=False)
+        instance.imageSmall.delete(save=False)
+    
+    
+# LAYERS
+class AbstractLayer(models.Model):
+    model = models.ForeignKey(Model, on_delete=models.CASCADE, related_name="layers")
+    
+    class Meta:
+        abstract = True  # Marks this model as abstract
+        
+        
+class DenseLayer(AbstractLayer):
+    nodes_count = models.PositiveIntegerField(default=1)

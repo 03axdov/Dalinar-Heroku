@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react"
+import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 import { useParams } from "react-router-dom";
@@ -11,6 +11,9 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
     const [loading, setLoading] = useState(true)
     const [processing, setProcessing] = useState(false)
     const [processingDelete, setProcessingDelete] = useState(false)
+
+    const imageInputRef = useRef(null)
+    const [imageURL, setImageURL] = useState("")
 
     const [originalName, setOriginalName] = useState("")
     const [name, setName] = useState("")
@@ -27,6 +30,16 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         getDataset()
     }, [])
 
+    useEffect(() => {
+        if (image === null) return
+        if (image === '') return
+        if (image === undefined) return
+        var binaryData = [];
+        binaryData.push(image);
+        const url = URL.createObjectURL(new Blob(binaryData, {type: "application/zip"}))
+        setImageURL(url)
+        }, [image])
+
     function getDataset() {
         setLoading(true)
         axios({
@@ -42,6 +55,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
             setVisibility(dataset.visibility)
             setType(dataset.datatype)
             setKeywords(dataset.keywords)
+            setImageURL(dataset.image)
             setImageWidth(dataset.imageWidth || "")
             setImageHeight(dataset.imageHeight || "")
 
@@ -76,7 +90,6 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         formData.append('description', description)
         console.log(image)
         if (image) {
-            
             formData.append('image', image)
         } else {formData.append("image", "")}
         formData.append("visibility", visibility)
@@ -134,6 +147,12 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         activateConfirmPopup("Are you sure you want to delete the dataset " + originalName + "? This action cannot be undone.", deleteDatasetInner)
     }
 
+    function imageOnClick() {
+        if (imageInputRef.current) {
+            imageInputRef.current.click()
+        }
+    }
+
     return (
         <div className="create-dataset-container">
             <div className="create-dataset-form">
@@ -146,6 +165,23 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                 </div>
                 
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
+
+                <div className="create-dataset-label-inp">
+                    <input type="file" accept="image/png, image/jpeg, image/webp" required className="hidden" ref={imageInputRef} onChange={(e) => {
+                        if (e.target.files[0]) {
+                            setImage(e.target.files[0])
+                        }
+                    }} />
+                    {imageURL && <div className="create-dataset-image-container no-border" onClick={imageOnClick}>
+                        <img className="create-dataset-image no-border" src={imageURL} onClick={imageOnClick}/>
+                        <div className="create-dataset-image-hover">
+                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                        </div>
+                    </div>}
+                    {!imageURL && <div className="create-dataset-image-container" onClick={imageOnClick}>
+                        <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                    </div>}
+                </div>
 
                 <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="dataset-name">Dataset name</label>
@@ -238,15 +274,6 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                     ))}
                 </div>}
                 {loading && <div className="create-dataset-keywords-container"></div>}
-
-                <div className="create-dataset-label-inp">
-                    <label className="create-dataset-label" htmlFor="dataset-image">New Image</label>
-                    <input type="file" accept="image/png, image/jpeg, image/webp" id="dataset-image" className="create-dataset-file-inp" onChange={(e) => {
-                        if (e.target.files[0]) {
-                            setImage(e.target.files[0])
-                        }
-                    }} />
-                </div>
 
                 <div className="create-dataset-buttons">
                     <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Back to home</button>

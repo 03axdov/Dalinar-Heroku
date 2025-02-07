@@ -8,6 +8,7 @@ urlpatterns = [
     path('explore/', index_no_login),
     path("guide/", index_no_login),
     path("create-dataset/", index),
+    path("create-model/", index),
     path("edit-dataset/<int:id>", index),
     path("datasets/<int:id>", index),
     path("datasets/public/<int:id>", index_no_login)
