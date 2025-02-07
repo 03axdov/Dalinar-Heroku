@@ -67,7 +67,7 @@ class Dataset(models.Model):
     datatype = models.CharField(max_length=20, choices=DATATYPE_CHOICES, default="image")
     
     def __str__(self):
-        return self.name
+        return self.name + " - " + owner.name
 
 
 @receiver(post_delete, sender=Dataset)
@@ -189,6 +189,9 @@ class Model(models.Model):
     ]
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default="private")
     
+    def __str__(self):
+        return self.name + " - " + self.owner.name
+    
     
 @receiver(post_delete, sender=Model)
 def delete_model_images(sender, instance, **kwargs):
@@ -207,3 +210,6 @@ class AbstractLayer(models.Model):
         
 class DenseLayer(AbstractLayer):
     nodes_count = models.PositiveIntegerField(default=1)
+    
+    def __str__(Self):
+        return "Dense - " + self.model.name

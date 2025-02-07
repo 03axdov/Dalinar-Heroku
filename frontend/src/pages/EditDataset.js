@@ -55,7 +55,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
             setVisibility(dataset.visibility)
             setType(dataset.datatype)
             setKeywords(dataset.keywords)
-            setImageURL(dataset.image)
+            setImageURL(dataset.imageSmall)
             setImageWidth(dataset.imageWidth || "")
             setImageHeight(dataset.imageHeight || "")
 
@@ -167,6 +167,21 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
 
                 <div className="create-dataset-label-inp">
+                    <label className="create-dataset-label" htmlFor="dataset-name">Dataset name</label>
+                    <input className="create-dataset-inp" id="dataset-name" type="text" required placeholder={name} value={name} onChange={(e) => {
+                        setName(e.target.value)
+                    }} />
+                </div>
+
+                <div className="create-dataset-label-inp">
+                    <p className="create-dataset-label create-dataset-type edit-dataset-deactivated">Dataset type <span className="create-dataset-required">(unchangeable)</span></p>
+                    <input type="radio" id="create-dataset-type-image" name="classification" value="classification" className="edit-dataset-deactivated" checked={type == "classification"} unselectable={"true"} onChange={() => {}} />
+                    <label htmlFor="create-dataset-type-image" className="edit-dataset-deactivated create-dataset-type-label">Classification</label>
+                    <input type="radio" id="create-dataset-type-text" name="area" value="area" className="edit-dataset-deactivated" checked={type == "area"} unselectable={"true"} onChange={() => {}} />
+                    <label htmlFor="create-dataset-type-text" className="edit-dataset-deactivated create-dataset-type-label">Area</label>
+                </div>
+
+                <div className="create-dataset-label-inp">
                     <input type="file" accept="image/png, image/jpeg, image/webp" required className="hidden" ref={imageInputRef} onChange={(e) => {
                         if (e.target.files[0]) {
                             setImage(e.target.files[0])
@@ -183,20 +198,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                     </div>}
                 </div>
 
-                <div className="create-dataset-label-inp">
-                    <label className="create-dataset-label" htmlFor="dataset-name">Dataset name</label>
-                    <input className="create-dataset-inp" id="dataset-name" type="text" required placeholder={name} value={name} onChange={(e) => {
-                        setName(e.target.value)
-                    }} />
-                </div>
-
-                <div className="create-dataset-label-inp">
-                    <p className="create-dataset-label create-dataset-type edit-dataset-deactivated">Dataset type <span className="create-dataset-required">(unchangeable)</span></p>
-                    <input type="radio" id="create-dataset-type-image" name="classification" value="classification" className="edit-dataset-deactivated" checked={type == "classification"} unselectable={"true"} onChange={() => {}} />
-                    <label htmlFor="create-dataset-type-image" className="edit-dataset-deactivated create-dataset-type-label">Classification</label>
-                    <input type="radio" id="create-dataset-type-text" name="area" value="area" className="edit-dataset-deactivated" checked={type == "area"} unselectable={"true"} onChange={() => {}} />
-                    <label htmlFor="create-dataset-type-text" className="edit-dataset-deactivated create-dataset-type-label">Area</label>
-                </div>
+                <p className="create-dataset-image-description">The image that will represent this dataset. Elements are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.</p>
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label" style={{margin: 0}}>Image dimensions</p>

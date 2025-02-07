@@ -139,7 +139,7 @@ class GetDatasetPublic(APIView):
             return Response({'Bad Request': 'Id parameter not found in call to GetDataset.'}, status=status.HTTP_400_BAD_REQUEST)
 
     
-def createDatasetSmallImage(instance, target_width=230, target_height=190):
+def createSmallImage(instance, target_width=230, target_height=190):
     img = Image.open(instance.image)
     
     new_name = instance.image.name.split("/")[-1]     # Otherwise includes files
@@ -198,14 +198,11 @@ class CreateDataset(APIView):
         
         if user.is_authenticated:
             serializer = self.serializer_class(data=data)
-            print("0")
             if serializer.is_valid():
                 
                 dataset_instance = serializer.save(owner=request.user.profile)
                 
-                print("A")
-                createDatasetSmallImage(dataset_instance, 230, 190)    # Create a smaller image for displaying dataset elements
-                print("B")
+                createSmallImage(dataset_instance, 230, 190)    # Create a smaller image for displaying dataset elements
                 
                 if "labels" in data_dict.keys():
                     labels = data_dict["labels"]
@@ -245,10 +242,7 @@ class CreateDataset(APIView):
                                     status=element_response.status_code
                                 )
                             
-                            print(element_response.data)
                             element_id = element_response.data["id"]
-                            print(f"element_id: {element_id}")
-                            print(f"label_id: {label_id}")
                             
                             label_element_request = factory.post("/edit-element-label/", data=json.dumps({
                                 "label": label_id,
@@ -278,7 +272,6 @@ class EditDataset(APIView):
         name = request.data["name"]
         description = request.data["description"]
         image = request.data["image"]
-        print(image)
         visibility = request.data["visibility"]
         dataset_id = request.data["id"]
         keywords = request.data["keywords"]
@@ -298,7 +291,7 @@ class EditDataset(APIView):
                         dataset.image.delete(save=False)
                         dataset.imageSmall.delete(save=False)
                         dataset.image = image
-                        createDatasetSmallImage(dataset, 230, 190)
+                        createSmallImage(dataset, 230, 190)
                         
                     dataset.visibility = visibility
                     if keywords:
@@ -881,3 +874,31 @@ class DeleteArea(APIView):
                 return Response({"Not found": "Could not find area with the id " + str(area_id + ".")}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to delete areas.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+# MODEL FUNCTIONALITY
+
+class CreateModel(APIView):
+    serializer_class = CreateModelSerializer
+    parser_classes = [MultiPartParser, FormParser]
+    
+    def post(self, request, format=None):
+        data = request.data
+        data_dict = dict(data)
+        
+        user = request.user
+        
+        if user.is_authenticated:
+            serializer = self.serializer_class(data=data)
+
+            if serializer.is_valid():
+                
+                model_instance = serializer.save(owner=request.user.profile)
+                
+                createSmallImage(model_instance, 230, 190)    # Create a smaller image for displaying model elements
+                       
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({'Bad Request': 'An error occurred while creating model.'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to create models.'}, status=status.HTTP_401_UNAUTHORIZED)

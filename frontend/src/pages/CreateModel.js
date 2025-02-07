@@ -1,4 +1,4 @@
-import React, {useState, useRef} from "react"
+import React, {useState, useRef, useEffect} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 
@@ -15,13 +15,22 @@ function CreateModel({notification, BACKEND_URL}) {
     const [image, setImage] = useState(null)
     const [visibility, setVisibility] = useState("private")
 
+    const imageInputRef = useRef(null)
+    const [imageURL, setImageURL] = useState("")
+
+
+    useEffect(() => {
+        if (image === null) return
+        if (image === '') return
+        if (image === undefined) return
+        var binaryData = [];
+        binaryData.push(image);
+        const url = URL.createObjectURL(new Blob(binaryData, {type: "application/zip"}))
+        setImageURL(url)
+    }, [image])
+
     function formOnSubmit(e) {
         e.preventDefault()
-
-        if ((imageWidth && !imageHeight) || (!imageWidth && imageHeight)) {
-            notification("You must specify either both image dimensions or neither.", "failure")
-            return;
-        }
 
         if (!name) {
             notification("Please enter a dataset name.", "failure")
@@ -66,6 +75,12 @@ function CreateModel({notification, BACKEND_URL}) {
         })
     }
 
+    function imageOnClick() {
+        if (imageInputRef.current) {
+            imageInputRef.current.click()
+        }
+    }
+
     return (
         <div className="create-dataset-container">
             <div className="create-dataset-form">
@@ -80,6 +95,26 @@ function CreateModel({notification, BACKEND_URL}) {
                         setName(e.target.value)
                     }} />
                 </div>
+
+                <div className="create-dataset-label-inp">
+                    <input type="file" accept="image/png, image/jpeg, image/webp" required className="hidden" ref={imageInputRef} onChange={(e) => {
+                        if (e.target.files[0]) {
+                            setImage(e.target.files[0])
+                        }
+                    }} />
+                    {imageURL && <div className="create-dataset-image-container no-border" onClick={imageOnClick}>
+                        <img className="create-dataset-image no-border" src={imageURL} onClick={imageOnClick}/>
+                        <div className="create-dataset-image-hover">
+                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                        </div>
+                    </div>}
+                    {!imageURL && <div className="create-dataset-image-container" onClick={imageOnClick}>
+                        <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                    </div>}
+                </div>
+
+                <p className="create-dataset-image-description">The image that will represent this dataset. Elements are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.</p>
+
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Model visibility</p>
@@ -97,15 +132,6 @@ function CreateModel({notification, BACKEND_URL}) {
                     <label className="create-dataset-label" htmlFor="dataset-description">Description</label>
                     <textarea className="create-dataset-inp create-dataset-full-width create-dataset-description-inp" id="dataset-description" type="text" value={description} onChange={(e) => {
                         setDescription(e.target.value)
-                    }} />
-                </div>
-
-                <div className="create-dataset-label-inp">
-                    <label className="create-dataset-label" htmlFor="create-dataset-image">Image <span className="create-dataset-required">(required)</span></label>
-                    <input type="file" accept="image/png, image/jpeg, image/webp" id="create-dataset-image" name="image" required className="create-dataset-file-inp" onChange={(e) => {
-                        if (e.target.files[0]) {
-                            setImage(e.target.files[0])
-                        }
                     }} />
                 </div>
 

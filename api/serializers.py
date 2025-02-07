@@ -75,4 +75,36 @@ class DatasetSerializer(serializers.ModelSerializer):
 class CreateDatasetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
-        fields = ("name", "description", "visibility", "image", "datatype", "keywords", "imageWidth", "imageHeight")
+        fields = ("name", "description", "visibility", "image", "datatype", "keywords", "imageWidth", "imageHeight")    # Not image small as this is added post-creation
+        
+        
+# LAYER HANDLING
+
+class LayerSerializer(serializers.BaseSerializer):
+    def to_representation(self, instance):
+        if isinstance(instance, DenseLayer):
+            return DenseLayerSerializer(instance).data
+        return None  # Handles unexpected cases
+
+
+class DenseLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DenseLayer
+        fields = "__all__"
+        
+        
+# MODEL HANDLING
+
+class ModelSerializer(serializers.ModelSerializer):
+    layers = LayerSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Model
+        fields = "__all__"
+        extra_kwargs = {"owner": {"read_only": True}}
+        
+
+class CreateModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Model
+        fields = ("name", "description", "visibility", "image")

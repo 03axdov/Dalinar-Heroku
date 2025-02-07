@@ -194,23 +194,6 @@ function CreateDataset({notification, BACKEND_URL}) {
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
 
                 <div className="create-dataset-label-inp">
-                    <input type="file" accept="image/png, image/jpeg, image/webp" required className="hidden" ref={imageInputRef} onChange={(e) => {
-                        if (e.target.files[0]) {
-                            setImage(e.target.files[0])
-                        }
-                    }} />
-                    {imageURL && <div className="create-dataset-image-container no-border" onClick={imageOnClick}>
-                        <img className="create-dataset-image no-border" src={imageURL} onClick={imageOnClick}/>
-                        <div className="create-dataset-image-hover">
-                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
-                        </div>
-                    </div>}
-                    {!imageURL && <div className="create-dataset-image-container" onClick={imageOnClick}>
-                        <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
-                    </div>}
-                </div>
-
-                <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="dataset-name">Dataset name <span className="create-dataset-required">(required)</span></label>
                     <input className="create-dataset-inp" id="dataset-name" type="text" required value={name} onChange={(e) => {
                         setName(e.target.value)
@@ -228,6 +211,25 @@ function CreateDataset({notification, BACKEND_URL}) {
                     }} />
                     <label htmlFor="create-dataset-type-text" className="create-dataset-type-label">Area <span className="create-dataset-required">(images only)</span></label>
                 </div>
+
+                <div className="create-dataset-label-inp">
+                    <input type="file" accept="image/png, image/jpeg, image/webp" required className="hidden" ref={imageInputRef} onChange={(e) => {
+                        if (e.target.files[0]) {
+                            setImage(e.target.files[0])
+                        }
+                    }} />
+                    {imageURL && <div className="create-dataset-image-container no-border" onClick={imageOnClick}>
+                        <img className="create-dataset-image no-border" src={imageURL} onClick={imageOnClick}/>
+                        <div className="create-dataset-image-hover">
+                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                        </div>
+                    </div>}
+                    {!imageURL && <div className="create-dataset-image-container" onClick={imageOnClick}>
+                        <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                    </div>}
+                </div>
+
+                <p className="create-dataset-image-description">The image that will represent this dataset. Elements are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.</p>
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label" style={{margin: 0}}>Image dimensions</p>

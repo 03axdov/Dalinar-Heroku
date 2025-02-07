@@ -34,5 +34,8 @@ urlpatterns = [
     # AREA HANDLING
     path("create-area/", CreateArea.as_view(), name="create-area"),
     path("edit-area/", EditArea.as_view(), name="edit-area"),
-    path("delete-area/", DeleteArea.as_view(), name="delete-area")
+    path("delete-area/", DeleteArea.as_view(), name="delete-area"),
+    
+    # MODEL HANDLING
+    path("create-model/", CreateModel.as_view(), name="create-model")
 ]
