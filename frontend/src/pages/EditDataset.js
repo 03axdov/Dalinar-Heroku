@@ -88,7 +88,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
 
         formData.append('name', name)
         formData.append('description', description)
-        console.log(image)
+
         if (image) {
             formData.append('image', image)
         } else {formData.append("image", "")}
@@ -106,7 +106,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         .then((data) => {
             console.log("Success:", data);
             navigate("/home")
-            notification("Successfully edited dataset " + name + ".", "success")
+            notification("Successfully updated dataset " + name + ".", "success")
         }).catch((error) => {
             notification("An error occurred.", "failure")
             console.log("Error: ", error)
@@ -198,7 +198,9 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                     </div>}
                 </div>
 
-                <p className="create-dataset-image-description">The image that will represent this dataset. Elements are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.</p>
+                <p className="create-dataset-image-description">
+                    The image that will represent this dataset. Elements (in Home or Explore) are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.
+                </p>
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label" style={{margin: 0}}>Image dimensions</p>

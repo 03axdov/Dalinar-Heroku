@@ -85,7 +85,8 @@ function CreateModel({notification, BACKEND_URL}) {
         <div className="create-dataset-container">
             <div className="create-dataset-form">
                 <h1 className="create-dataset-title">Create a model</h1>
-                <p className="create-dataset-description">Machine learning models consist of an arbitrary number of different layers, which can be added to created models.
+                <p className="create-dataset-description">
+                    Machine learning models consist of an arbitrary number of different layers, which can be added to created models.
                     Once layers have been specified, the model can be trained and downloaded.
                 </p>
 
@@ -113,8 +114,16 @@ function CreateModel({notification, BACKEND_URL}) {
                     </div>}
                 </div>
 
-                <p className="create-dataset-image-description">The image that will represent this dataset. Elements are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.</p>
+                <p className="create-dataset-image-description">
+                    The image that will represent this model. Elements (in Home or Explore) are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.
+                </p>
 
+                <div className="create-dataset-label-inp create-dataset-label-inp-description">
+                    <label className="create-dataset-label" htmlFor="dataset-description">Description</label>
+                    <textarea className="create-dataset-inp create-dataset-full-width create-dataset-description-inp" id="dataset-description" type="text" value={description} onChange={(e) => {
+                        setDescription(e.target.value)
+                    }} />
+                </div>
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Model visibility</p>
@@ -126,13 +135,6 @@ function CreateModel({notification, BACKEND_URL}) {
                         setVisibility(e.target.value)
                     }} />
                     <label htmlFor="create-dataset-visibility-public" className="create-dataset-type-label">Public</label>
-                </div>
-
-                <div className="create-dataset-label-inp create-dataset-label-inp-description">
-                    <label className="create-dataset-label" htmlFor="dataset-description">Description</label>
-                    <textarea className="create-dataset-inp create-dataset-full-width create-dataset-description-inp" id="dataset-description" type="text" value={description} onChange={(e) => {
-                        setDescription(e.target.value)
-                    }} />
                 </div>
 
                 <div className="create-dataset-buttons">

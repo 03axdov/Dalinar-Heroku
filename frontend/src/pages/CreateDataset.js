@@ -229,7 +229,9 @@ function CreateDataset({notification, BACKEND_URL}) {
                     </div>}
                 </div>
 
-                <p className="create-dataset-image-description">The image that will represent this dataset. Elements are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.</p>
+                <p className="create-dataset-image-description">
+                    The image that will represent this dataset. Elements (in Home or Explore) are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.
+                </p>
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label" style={{margin: 0}}>Image dimensions</p>

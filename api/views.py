@@ -28,6 +28,55 @@ from .models import *
 ALLOWED_IMAGE_FILE_EXTENSIONS = set(["png", "jpg", "jpeg", "webp", "avif"])
 
 
+# HELPER FUNCTIONS
+
+def createSmallImage(instance, target_width=230, target_height=190):
+    img = Image.open(instance.image)
+    
+    new_name = instance.image.name.split("/")[-1]     # Otherwise includes files
+    new_name, extension = new_name.split(".")     
+    new_name = new_name.split("-")[0]   # Remove previous resize information      
+    new_name += ("-" + str(target_width) + "x" + str(target_height) + "." + extension) 
+    
+    # Get original dimensions
+    img_width, img_height = img.size
+    
+    # Calculate the aspect ratios
+    target_ratio = target_width / target_height
+    img_ratio = img_width / img_height
+
+    # Determine how to resize (fit width or height)
+    if img_ratio > target_ratio:
+        # Wider than target: Fit height, then crop width
+        new_height = target_height
+        new_width = int(target_height * img_ratio)
+    else:
+        # Taller than target: Fit width, then crop height
+        new_width = target_width
+        new_height = int(target_width / img_ratio)
+
+    # Resize while keeping aspect ratio
+    img = img.resize((new_width, new_height), Image.LANCZOS)
+
+    # Calculate cropping box
+    left = (new_width - target_width) / 2
+    top = (new_height - target_height) / 2
+    right = left + target_width
+    bottom = top + target_height
+
+    # Crop the center
+    img = img.crop((left, top, right, bottom))
+
+    # Save to BytesIO buffer
+    buffer = BytesIO()
+    img_format = img.format if img.format else "JPEG"  # Default to JPEG
+    img.save(buffer, format=img_format, quality=90)
+    buffer.seek(0)
+                            
+    instance.imageSmall.save(new_name, ContentFile(buffer.read()), save=False)
+    instance.save()
+    
+
 # PROFILE HANDLING
 
 class GetCurrentProfile(APIView):
@@ -139,54 +188,7 @@ class GetDatasetPublic(APIView):
         else:
             return Response({'Bad Request': 'Id parameter not found in call to GetDataset.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    
-def createSmallImage(instance, target_width=230, target_height=190):
-    img = Image.open(instance.image)
-    
-    new_name = instance.image.name.split("/")[-1]     # Otherwise includes files
-    new_name, extension = new_name.split(".")     
-    new_name = new_name.split("-")[0]   # Remove previous resize information      
-    new_name += ("-" + str(target_width) + "x" + str(target_height) + "." + extension) 
-    
-    # Get original dimensions
-    img_width, img_height = img.size
-    
-    # Calculate the aspect ratios
-    target_ratio = target_width / target_height
-    img_ratio = img_width / img_height
 
-    # Determine how to resize (fit width or height)
-    if img_ratio > target_ratio:
-        # Wider than target: Fit height, then crop width
-        new_height = target_height
-        new_width = int(target_height * img_ratio)
-    else:
-        # Taller than target: Fit width, then crop height
-        new_width = target_width
-        new_height = int(target_width / img_ratio)
-
-    # Resize while keeping aspect ratio
-    img = img.resize((new_width, new_height), Image.LANCZOS)
-
-    # Calculate cropping box
-    left = (new_width - target_width) / 2
-    top = (new_height - target_height) / 2
-    right = left + target_width
-    bottom = top + target_height
-
-    # Crop the center
-    img = img.crop((left, top, right, bottom))
-
-    # Save to BytesIO buffer
-    buffer = BytesIO()
-    img_format = img.format if img.format else "JPEG"  # Default to JPEG
-    img.save(buffer, format=img_format, quality=90)
-    buffer.seek(0)
-                            
-    instance.imageSmall.save(new_name, ContentFile(buffer.read()), save=False)
-    instance.save()
-
-        
 class CreateDataset(APIView):
     serializer_class = CreateDatasetSerializer
     parser_classes = [MultiPartParser, FormParser]
@@ -962,3 +964,68 @@ class CreateModel(APIView):
                 return Response({'Bad Request': 'An error occurred while creating model.'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'Unauthorized': 'Must be logged in to create models.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class DeleteModel(APIView):
+    serializer_class = ModelSerializer
+    
+    def post(self, request, format=None):
+        model_id = request.data["model"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                model = Model.objects.get(id=model_id)
+                
+                if model.owner == user.profile:
+                    model.delete()
+                    
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only delete your own models."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Model.DoesNotExist:
+                return Response({"Not found": "Could not find model with the id " + str(model_id + ".")}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to delete models.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class EditModel(APIView):
+    serializer_class = CreateModelSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, format=None):   # A put request may fit better, post for now
+        name = request.data["name"]
+        description = request.data["description"]
+        image = request.data["image"]
+        visibility = request.data["visibility"]
+        model_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                model = Model.objects.get(id=model_id)
+                
+                if model.owner == user.profile:
+                    model.name = name
+                    model.description = description   
+                    if image: 
+                        model.image.delete(save=False)
+                        model.imageSmall.delete(save=False)
+                        model.image = image
+                        createSmallImage(model, 230, 190)
+                        
+                    model.visibility = visibility
+                        
+                    model.save()
+                
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({'Unauthorized': 'You can only edit your own models.'}, status=status.HTTP_401_UNAUTHORIZED)
+            except Model.DoesNotExist:
+                return Response({'Not found': 'Could not find model with the id ' + str(model_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to edit models.'}, status=status.HTTP_401_UNAUTHORIZED)

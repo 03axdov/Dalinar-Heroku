@@ -35,8 +35,8 @@ function DatasetElement({model, BACKEND_URL, isPublic=false}) {
             
             <div className="dataset-element-image-container">
                 {model.imageSmall && <img className="dataset-element-image" src={model.imageSmall}/>}
-                {showDescription && model.description && <div className="dataset-element-description-container">
-                    <p className="dataset-element-description">{model.description}</p>
+                {showDescription && model.description && <div className="model-element-description-container">
+                    <p className="model-element-description">{model.description}</p>
                 </div>}
             </div>
             

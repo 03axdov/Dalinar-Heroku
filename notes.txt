@@ -1,5 +1,5 @@
 TO-DO:
-- ?
+- Adjust URLs in Home and Explore to show if on models or datasets
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

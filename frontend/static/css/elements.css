@@ -97,6 +97,32 @@
     white-space: pre-wrap;
 }
 
+.model-element-description-container {
+    width: 100%;
+    border-radius: 3px;
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    background: rgb(0,0,0,0.9);
+    z-index: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.model-element-description {
+    margin: 0;
+    font-size: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 7; /* Number of lines before truncation */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: pre-wrap;
+}
+
 .dataset-element-header {
     display: flex;
     width: 100%;
@@ -171,7 +197,6 @@
 }
 
 .dataset-element-keyword {
-    border-radius: 3px;
     padding: 1px 10px;
     font-size: 0.8rem;
     margin-right: 3px;
@@ -181,7 +206,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     background: var(--element-light);
-
+    border: 1px solid var(--border-light);
 }
 
 @media all and (max-width: 1110px) {
@@ -193,6 +218,11 @@
     .dataset-element-description {
         font-size: 0.9rem;
         -webkit-line-clamp: 4; /* Number of lines before truncation */
+    }
+
+    .model-element-description {
+        font-size: 0.9rem;
+        -webkit-line-clamp: 6; /* Number of lines before truncation */
     }
 
     .dataset-element-image-container {
@@ -253,6 +283,11 @@
     .dataset-element-description {
         font-size: 1rem;
         -webkit-line-clamp: 5; /* Number of lines before truncation */
+    }
+
+    .model-element-description {
+        font-size: 1rem;
+        -webkit-line-clamp: 7; /* Number of lines before truncation */
     }
 
 }
