@@ -1977,7 +1977,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 {dataset.datatype}
                             </p>
 
-                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p>
+                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p><br></br>
 
                             {(dataset.description ? <p className="dataset-description-text dataset-description-text-margin"><span className="dataset-description-start">Description: </span>{dataset.description}</p> : "This dataset does not have a description.")}
 

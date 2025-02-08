@@ -20,6 +20,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     const [cursor, setCursor] = useState("")
 
+    const descriptionContainerRef = useRef(null)
+
     const navigate = useNavigate()
 
 
@@ -119,6 +121,30 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         document.addEventListener("mouseup", handleMouseUp);
     };
 
+    const resizeDescriptionHandleMouseDown = (e) => {
+        e.preventDefault();
+    
+        const startX = e.clientX;
+        const startWidth = descriptionWidth;
+
+        setCursor("e-resize")
+    
+        const handleMouseMove = (e) => {
+          const newWidth = startWidth - 100 * ((e.clientX - startX) / descriptionContainerRef.current.offsetWidth);
+
+          setDescriptionWidth(Math.max(35, Math.min(newWidth, 75)));
+        };
+    
+        const handleMouseUp = () => {
+            setCursor("")
+          document.removeEventListener("mousemove", handleMouseMove);
+          document.removeEventListener("mouseup", handleMouseUp);
+        };
+    
+        document.addEventListener("mousemove", handleMouseMove);
+        document.addEventListener("mouseup", handleMouseUp);
+    };
+
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
@@ -130,7 +156,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         <button type="button" 
                         className={"sidebar-button dataset-upload-button " + (toolbarLeftWidth < 150 ? "sidebar-button-small" : "")} 
                         title="Add layer">
-                            {toolbarLeftWidth > 170 && <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/plus.png"} />}
+                            <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} src={BACKEND_URL + "/static/images/plus.png"} />
                             <span>Add layer</span>
                         </button>
                     </div>
@@ -169,6 +195,37 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         >
                         {toolbarMainHeight == 15 && <img className="toolbar-main-dropdown" src={BACKEND_URL + "/static/images/down.svg"} />}
                     </div>
+                </div>
+
+                <div className="dataset-main-display">
+                    {showModelDescription && model &&<div className="dataset-description-display-container" ref={descriptionContainerRef}>
+                        <div className="dataset-description-image-container" style={{width: "calc(100% - " + descriptionWidth + "%)"}}>
+                            <img className="dataset-description-image" src={model.image} />
+                        </div>
+
+                        <div className="dataset-description-resize" onMouseDown={resizeDescriptionHandleMouseDown}></div>
+
+                        <div className="dataset-description-display" style={{width: "calc(" + descriptionWidth + "%" + " - 5px)"}}>
+                            <div className="model-description-stats">
+                                {model.downloaders && <div className="model-description-stats-element">
+                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/download.svg"}/>
+                                    {model.downloaders.length + (model.downloaders.length == 1 ? " download" : " downloads")}
+                                </div>}
+
+                                {layers && <div className="model-description-stats-element">
+                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/classification.png"}/>
+                                    {layers.length + (layers.length == 1 ? " layer" : " layers")}
+                                </div>}
+                            </div>
+
+                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{model.ownername}</p>
+
+                            {(model.description ? <p className="dataset-description-text dataset-description-text-margin"><span className="dataset-description-start">Description: </span>{model.description}</p> : "This dataset does not have a description.")}
+
+                            <button className="hide-description-button" onClick={() => {setShowModelDescription(false)}}>Hide description</button>
+                        </div>
+
+                    </div>}
                 </div>
             </div>
         </div>
