@@ -15,6 +15,7 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
     const [showArea, setShowArea] = useState(true)
 
     const [loading, setLoading] = useState(true)
+    const [showDatasetType, setShowDatasetType] = useState(false)
 
     useEffect(() => {
         getDatasets()
@@ -113,23 +114,6 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
                 checkLoggedIn("/create-dataset")
             }}>+ Create dataset</button>
             <button title="Work in progress" className="sidebar-button sidebar-button-disabled create-model">+ Create model</button>
-
-            <div className="explore-datasets-types-container">
-                <div className="explore-datasets-type">
-                    <input className="explore-datasets-checkbox" type="checkbox" id="classification" name="classification" checked={showClassification} onChange={() => {
-                        setShowClassification(!showClassification)
-                    }}/>
-                    <label htmlFor="classification" className="explore-label">Classification</label>
-                </div>
-                
-                <div className="explore-datasets-type no-margin"> 
-                    <input className="explore-datasets-checkbox" type="checkbox" id="area" name="area" checked={showArea} onChange={() => {
-                        setShowArea(!showArea)
-                    }}/> 
-                    <label htmlFor="area" className="explore-label">Area</label>
-                </div>
-                       
-            </div>
             
         </div>
         <div className="explore-non-sidebar">
@@ -138,6 +122,34 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
                     <h2 className="explore-datasets-title">Public Datasets</h2>
 
                     <div className="title-forms">
+
+                        <div className="dataset-type-options-container" onClick={(e) => {
+                            e.stopPropagation()
+                        }}>
+                            <button className="dataset-type-options-button" onClick={(e) => {
+                                
+                                setShowDatasetType(!showDatasetType)
+                            }}>
+                                Types<img className="dataset-type-options-icon" src={BACKEND_URL + "/static/images/down.svg"}/>
+                            </button>
+                            
+                            {showDatasetType && <div className="dataset-type-options">
+                                <div className="explore-datasets-type">
+                                    <input className="explore-datasets-checkbox" type="checkbox" id="classification" name="classification" checked={showClassification} onChange={() => {
+                                        setShowClassification(!showClassification)
+                                    }}/>
+                                    <label htmlFor="classification" className="explore-label">Classification</label>
+                                </div>
+                                
+                                <div className="explore-datasets-type no-margin"> 
+                                    <input className="explore-datasets-checkbox" type="checkbox" id="area" name="area" checked={showArea} onChange={() => {
+                                        setShowArea(!showArea)
+                                    }}/> 
+                                    <label htmlFor="area" className="explore-label">Area</label>
+                                </div>
+                            </div>}
+                        </div>
+
                         <select title="Sort by" className="explore-datasets-sort" value={sort} onChange={(e) => {
                             setSort(e.target.value)
                         }}>

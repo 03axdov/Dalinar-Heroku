@@ -44,8 +44,8 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false}) {
             </div>
             
             <div className="dataset-element-image-container">
-                {dataset.image && <img className="dataset-element-image" src={dataset.imageSmall}/>}
-                {showDescription && dataset.description && <div className="dataset-element-description-container">
+                {dataset.imageSmall && <img className="dataset-element-image" src={dataset.imageSmall}/>}
+                {showDescription && (dataset.description || keywords.length > 0) && <div className="dataset-element-description-container">
                     <p className="dataset-element-description">{dataset.description}</p>
                     {keywords.length > 0 && <div className="dataset-element-keywords-container">
                         {keywords.map((e, i) => (
@@ -55,7 +55,7 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false}) {
                 </div>}
             </div>
             
-            {dataset && !isPublic && <p className="dataset-element-private">{dataset.visibility}</p>}
+            {!isPublic && <p className="dataset-element-private">{dataset.visibility}</p>}
             <p className="dataset-element-date">{dataset.downloaders.length + " download" + (dataset.downloaders.length != 1 ? "s" : "")}</p>
             <p className="dataset-element-count">{dataset.elements.length + " element" + (dataset.elements.length != 1 ? "s" : "")}</p>
             <p className="dataset-element-labels">{dataset.labels.length + " label" + (dataset.labels.length != 1 ? "s" : "")}</p>

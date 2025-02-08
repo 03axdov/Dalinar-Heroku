@@ -10,11 +10,15 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
     const [datasets, setDatasets] = useState([])
     const [loading, setLoading] = useState(true)
+    
+    const [typeShown, setTypeShown] = useState("datasets") // Either "datasets" or "models"
 
     const [sort, setSort] = useState("downloads")
     const [search, setSearch] = useState("")
     const [showClassification, setShowClassification] = useState(true)
     const [showArea, setShowArea] = useState(true)
+    
+    const [showDatasetType, setShowDatasetType] = useState(false)
 
     useEffect(() => {
         getDatasets()
@@ -108,7 +112,9 @@ function Home({currentProfile, notification, BACKEND_URL}) {
     }, [search]);
 
 
-    return <div className="home-container">
+    return <div className="home-container" onClick={(e) => {
+        setShowDatasetType(false)
+    }}>
         
         <div className="home-sidebar">
             <button className="sidebar-button" onClick={() => {
@@ -118,30 +124,40 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 navigate("/create-model")
             }}>+ Create model</button>
 
-            <div className="explore-datasets-types-container">
-                <div className="explore-datasets-type">
-                    <input className="explore-datasets-checkbox" type="checkbox" id="classification" name="classification" checked={showClassification} onChange={() => {
-                        setShowClassification(!showClassification)
-                    }}/>
-                    <label htmlFor="classification" className="explore-label">Classification</label>
-                </div>
-                
-                <div className="explore-datasets-type no-margin"> 
-                    <input className="explore-datasets-checkbox" type="checkbox" id="area" name="area" checked={showArea} onChange={() => {
-                        setShowArea(!showArea)
-                    }}/> 
-                    <label htmlFor="area" className="explore-label">Area</label>
-                </div>
-                       
-            </div>
-
         </div>
         <div className="home-non-sidebar">
-            <div>
+            {typeShown == "datasets" && <div>
                 <div className="explore-datasets-title-container">
                     <h2 className="my-datasets-title">My Datasets</h2>
 
                     <div className="title-forms">
+                        <div className="dataset-type-options-container" onClick={(e) => {
+                            e.stopPropagation()
+                        }}>
+                            <button className="dataset-type-options-button" onClick={(e) => {
+                                
+                                setShowDatasetType(!showDatasetType)
+                            }}>
+                                Types<img className="dataset-type-options-icon" src={BACKEND_URL + "/static/images/down.svg"}/>
+                            </button>
+                            
+                            {showDatasetType && <div className="dataset-type-options">
+                                <div className="explore-datasets-type">
+                                    <input className="explore-datasets-checkbox" type="checkbox" id="classification" name="classification" checked={showClassification} onChange={() => {
+                                        setShowClassification(!showClassification)
+                                    }}/>
+                                    <label htmlFor="classification" className="explore-label">Classification</label>
+                                </div>
+                                
+                                <div className="explore-datasets-type no-margin"> 
+                                    <input className="explore-datasets-checkbox" type="checkbox" id="area" name="area" checked={showArea} onChange={() => {
+                                        setShowArea(!showArea)
+                                    }}/> 
+                                    <label htmlFor="area" className="explore-label">Area</label>
+                                </div>
+                            </div>}
+                        </div>
+
                         <select title="Sort by" className="explore-datasets-sort" value={sort} onChange={(e) => {
                                 setSort(e.target.value)
                             }}>
@@ -175,7 +191,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                     ))}
                 </div>
                 
-            </div>
+            </div>}
         </div>
         
 

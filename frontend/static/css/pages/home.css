@@ -62,3 +62,35 @@
     height: 17px;
     margin-right: 10px;
 }
+
+.dataset-type-options-container {
+    margin-left: 20px;
+    z-index:3;
+    position: relative;
+}
+
+.dataset-type-options-button {
+    background: var(--toolbar);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.dataset-type-options-button:hover {
+    background: var(--toolbar-light);
+}
+
+.dataset-type-options-icon {
+    width: 12px;
+    margin-left: 10px;
+}
+
+.dataset-type-options {
+    position: absolute;
+    top: calc(100% + 5px);
+    background: var(--toolbar-darker);
+    box-shadow: 0 0 10px black;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}

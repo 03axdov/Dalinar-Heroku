@@ -67,7 +67,7 @@ class Dataset(models.Model):
     datatype = models.CharField(max_length=20, choices=DATATYPE_CHOICES, default="image")
     
     def __str__(self):
-        return self.name + " - " + owner.name
+        return self.name + " - " + self.owner.name
 
 
 @receiver(post_delete, sender=Dataset)
@@ -102,6 +102,7 @@ class Element(models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="elements", null=True)
     name = models.CharField(max_length=100)
     file = models.FileField(upload_to="files/", null=True, validators=[FileExtensionValidator(allowed_extensions=ALLOWED_IMAGE_FILE_EXTENSIONS + ALLOWED_TEXT_FILE_EXTENSIONS)])
+    
     label = models.ForeignKey(Label, on_delete=models.SET_NULL, related_name="labels", blank=True, null=True)
     
     imageHeight = models.PositiveIntegerField(blank=True, null=True)    # Only used if file is image
@@ -147,6 +148,7 @@ class Element(models.Model):
 
                             # Update image size attributes
                             self.imageWidth, self.imageHeight = new_size
+                            
                         
                 except Exception as e:
                     print(f"Error processing image: {e}")
@@ -182,6 +184,7 @@ class Model(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     image = models.ImageField(upload_to='images/', null=True)
     imageSmall = models.ImageField(upload_to="images/", null=True)
+    verified = models.BooleanField(default=False)
     
     VISIBILITY_CHOICES = [
         ("private", "Private"),
