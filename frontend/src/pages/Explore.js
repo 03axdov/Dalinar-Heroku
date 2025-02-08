@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react"
 import DatasetElement from "../components/DatasetElement"
+import ModelElement from "../components/ModelElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import { useNavigate } from "react-router-dom"
 import axios from 'axios'
@@ -8,19 +9,27 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
     const navigate = useNavigate()
 
     const [datasets, setDatasets] = useState([])
+    const [models, setModels] = useState([])
+
+    const [loading, setLoading] = useState(true)
+    const [loadingModels, setLoadingModels] = useState(true)
 
     const [typeShown, setTypeShown] = useState("datasets") // Either "datasets" or "models"
 
-    const [sort, setSort] = useState("downloads")
+    const [sortDatasets, setSortDatasets] = useState("downloads")
+    const [sortModels, setSortModels] = useState("downloads")
+
     const [search, setSearch] = useState("")
+    const [searchModels, setSearchModels] = useState("")
+
     const [showClassification, setShowClassification] = useState(true)
     const [showArea, setShowArea] = useState(true)
 
-    const [loading, setLoading] = useState(true)
     const [showDatasetType, setShowDatasetType] = useState(false)
 
     useEffect(() => {
         getDatasets()
+        getModels()
     }, [])
 
     const getDatasets = () => {
@@ -31,7 +40,7 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
         })
         .then((res) => {
             if (res.data) {
-                setDatasets(sortDatasets(res.data))
+                setDatasets(sort_datasets(res.data))
             } else {
                 setDatasets([])
             }
@@ -45,31 +54,71 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
 
     }
 
-    function sortDatasets(ds) {
+    const getModels = () => {
+        setLoadingModels(true)
+        axios({
+            method: 'GET',
+            url: window.location.origin + '/api/my-models/' + (search ? "?search=" + search : ""),
+        })
+        .then((res) => {
+            if (res.data) {
+                setModels(sort_models(res.data))
+            } else {
+                setModels([])
+            }
+
+        }).catch((err) => {
+            notification("An error occured while loading your models.", "failure")
+            console.log(err)
+        }).finally(() => {
+            setLoadingModels(false)
+        })
+
+    }
+    
+    function sort_models(ms) {
+        let tempModels = [...ms]
+
+        
+        tempModels.sort((m1, m2) => {
+            if (sortModels == "downloads") {
+                if (m1.downloaders.length != m2.downloaders.length) {
+                    return m2.downloaders.length - m1.downloaders.length
+                } else {
+                    return m1.name.localeCompare(m2.name)
+                }
+                
+            }
+        })
+
+        return tempModels
+    }
+
+    function sort_datasets(ds) {
 
         let tempDatasets = [...ds]
 
         
         tempDatasets.sort((d1, d2) => {
-            if (sort == "downloads") {
+            if (sortDatasets == "downloads") {
                 if (d1.downloaders.length != d2.downloaders.length) {
                     return d2.downloaders.length - d1.downloaders.length
                 } else {
                     return d1.name.localeCompare(d2.name)
                 }
                 
-            } else if (sort == "alphabetical") {
+            } else if (sortDatasets == "alphabetical") {
                 return d1.name.localeCompare(d2.name)
-            } else if (sort == "date") {
+            } else if (sortDatasets == "date") {
                 return new Date(d2.created_at) - new Date(d1.created_at)
-            } else if (sort == "elements") {
+            } else if (sortDatasets == "elements") {
                 if (d1.elements.length != d2.elements.length) {
                     return d2.elements.length - d1.elements.length
                 } else {
                     return d1.name.localeCompare(d2.name)
                 }
                 
-            } else if (sort == "labels") {
+            } else if (sortDatasets == "labels") {
                 if (d1.labels.length != d2.labels.length) {
                     return d2.labels.length - d1.labels.length
                 } else {
@@ -85,9 +134,9 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
 
     useEffect(() => {
         if (!loading) {
-            setDatasets(sortDatasets(datasets))
+            setDatasets(sort_datasets(datasets))
         }
-    }, [sort])
+    }, [sortDatasets])
 
 
     // Search input timing
@@ -163,8 +212,8 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
                             </div>}
                         </div>
 
-                        <select title="Sort by" className="explore-datasets-sort" value={sort} onChange={(e) => {
-                            setSort(e.target.value)
+                        <select title="Sort by" className="explore-datasets-sort" value={sortDatasets} onChange={(e) => {
+                            setSortDatasets(e.target.value)
                         }}>
                             <option value="downloads">Downloads</option>
                             <option value="elements">Elements</option>
@@ -195,6 +244,40 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
                         <DatasetElementLoading key={i} isPublic={true} BACKEND_URL={BACKEND_URL}/>
                     ))}
                     {!loading && datasets.length == 0 && search.length > 0 && <p className="gray-text">No such datasets found.</p>}
+                </div>
+                
+            </div>}
+
+            {typeShown == "models" && <div>
+                <div className="explore-datasets-title-container">
+                    <h2 className="my-datasets-title">My Models</h2>
+
+                    <div className="title-forms">
+
+                        <select title="Sort by" className="explore-datasets-sort" value={sortModels} onChange={(e) => {
+                                setSortModels(e.target.value)
+                            }}>
+                            <option value="downloads">Downloads</option>
+                        </select>
+                        
+                        <div className="explore-datasets-search-container">
+                            <input title="Will search names." type="text" className="explore-datasets-search" value={searchModels} placeholder="Search models" onChange={(e) => {
+                                    setLoadingModels(true)
+                                    setSearchModels(e.target.value)
+                            }} /> 
+                            <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="my-datasets-container">
+                    {models.map((model) => (
+                       <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL} isPublic={true}/>
+                    ))}
+                    {!loadingModels && models.length == 0 && search.length > 0 && <p className="gray-text">No such models found.</p>}
+                    {loadingModels && models.length == 0 && currentProfile.modelsCount != null && currentProfile.modelsCount.length > 0 && [...Array(currentProfile.modelsCount)].map((e, i) => (
+                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
+                    ))}
                 </div>
                 
             </div>}

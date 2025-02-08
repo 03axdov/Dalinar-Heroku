@@ -184,6 +184,7 @@ class Model(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     image = models.ImageField(upload_to='images/', null=True)
     imageSmall = models.ImageField(upload_to="images/", null=True)
+    downloaders = models.ManyToManyField(Profile, related_name="downloaded_models", blank=True)
     verified = models.BooleanField(default=False)
     
     VISIBILITY_CHOICES = [

@@ -18,7 +18,7 @@ function DatasetElement({model, BACKEND_URL, isPublic=false}) {
         <div className="dataset-element" onClick={onClick} onMouseEnter={() => setShowDescription(true)} onMouseLeave={() => {setShowDescription(false)}} >
             <div className="dataset-element-header">
                     
-                <img title="Model" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/model.png"}/>
+                <img title="Model" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/model.svg"}/>
                 
                 <p className="dataset-element-name" title={model.name}>
                     {model.name}
@@ -41,7 +41,8 @@ function DatasetElement({model, BACKEND_URL, isPublic=false}) {
             </div>
             
             {!isPublic && <p className="dataset-element-private">{model.visibility}</p>}
-            <p className="dataset-element-date">{model.layers.length + " layer" + (dataset.downloaders.length != 1 ? "s" : "")}</p>
+            {model.downloaders && <p className="dataset-element-date">{model.downloaders.length + " download" + (model.downloaders.length != 1 ? "s" : "")}</p>}
+            {model.layers && <p className="dataset-element-count">{model.layers.length + " layer" + (model.layers.length != 1 ? "s" : "")}</p>}
 
         </div>
     )

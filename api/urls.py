@@ -37,5 +37,7 @@ urlpatterns = [
     path("delete-area/", DeleteArea.as_view(), name="delete-area"),
     
     # MODEL HANDLING
+    path("models/", ModelListPublic.as_view(), name="models"),
+    path("my-models/", ModelListProfile.as_view(), name="my-models"),
     path("create-model/", CreateModel.as_view(), name="create-model")
 ]

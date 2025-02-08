@@ -181,7 +181,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     background: var(--element-light);
-    border: 1px solid var(--border);
+
 }
 
 @media all and (max-width: 1110px) {

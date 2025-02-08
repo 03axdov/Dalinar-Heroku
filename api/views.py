@@ -40,6 +40,7 @@ class GetCurrentProfile(APIView):
         profileSerialized = ProfileSerializer(profile)
         data = profileSerialized.data
         data["datasetsCount"] = profile.datasets.count()
+        data["modelsCount"] = profile.models.count()
         
         return Response(data, status=status.HTTP_200_OK)
 
@@ -877,6 +878,36 @@ class DeleteArea(APIView):
         
         
 # MODEL FUNCTIONALITY
+
+class ModelListPublic(generics.ListAPIView):
+    serializer_class = ModelSerializer
+    permission_classes = [AllowAny]
+    
+    def get_queryset(self):
+        search = self.request.GET.get("search")
+        if search == None: search = ""
+        models = Model.objects.filter(Q(visibility="public") & (
+            # Search handling
+            Q(name__icontains=search)
+        ))
+        return models
+
+
+class ModelListProfile(generics.ListCreateAPIView):
+    serializer_class = ModelSerializer
+    permission_classes  = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        profile = user.profile
+        models = profile.models
+        
+        search = self.request.GET.get("search")
+        if (search):
+            models = models.filter(Q(name__contains=search))
+
+        return models
+    
 
 class CreateModel(APIView):
     serializer_class = CreateModelSerializer
