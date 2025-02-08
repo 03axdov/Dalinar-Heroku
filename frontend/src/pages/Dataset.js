@@ -737,7 +737,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             transformOrigin: "center",
                             transition: "transform 0.1s ease-out",
                         }}
-                        draggable="false"/>
+                        draggable="false"
+                        onContextMenu={(e) => e.preventDefault()}/>
                 </div>
             } else {
                 return <div className="dataset-element-view-image-container-area" 

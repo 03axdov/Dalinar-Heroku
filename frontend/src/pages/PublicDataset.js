@@ -306,12 +306,22 @@ function PublicDataset({BACKEND_URL}) {
     const maxZoom = 2
 
     const handleElementScroll = (e) => {
+        const rect = elementContainerRef.current.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        
+        setPosition({ x, y });
+
+        
         const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.00125, minZoom), maxZoom);
         setZoom(newZoom);
     };
 
     const handleElementMouseMove = (e) => {
-        if (zoom === 1) return;
+        setCursor("")
+        if (zoom == 1 || e.buttons != 2) {return}  // Allow user to move with cursor if zoomed in and holding right mouse
+
+        if (e.buttons == 2) {setCursor("grabbing")}
     
         const rect = elementContainerRef.current.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -340,7 +350,9 @@ function PublicDataset({BACKEND_URL}) {
                                 transform: `scale(${zoom}) translate(${(50 - position.x) * (zoom - 1)}%, ${(50 - position.y) * (zoom - 1)}%)`,
                                 transformOrigin: "center",
                                 transition: "transform 0.1s ease-out",
-                            }}/>
+                            }}
+                            draggable="false"
+                            onContextMenu={(e) => e.preventDefault()}/>
                 </div>
             } else {
                 return <div className="dataset-element-view-image-container-area"
@@ -354,7 +366,12 @@ function PublicDataset({BACKEND_URL}) {
                         transformOrigin: "center",
                         transition: "transform 0.1s ease-out",
                     }}>
-                        <img onLoad={() => setUpdateArea(!updateArea)} ref={elementRef} className="dataset-element-view-image-area" src={element.file} />
+                        <img onLoad={() => setUpdateArea(!updateArea)} 
+                        ref={elementRef} 
+                        className="dataset-element-view-image-area" 
+                        src={element.file} 
+                        draggable="false"
+                        onContextMenu={(e) => e.preventDefault()}/>
                         {elements[elementsIndex].areas && elements[elementsIndex].areas.map((area, idx) => (
                             getPoints(area, idx)
                         ))}
