@@ -9,6 +9,8 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
 
     const [datasets, setDatasets] = useState([])
 
+    const [typeShown, setTypeShown] = useState("datasets") // Either "datasets" or "models"
+
     const [sort, setSort] = useState("downloads")
     const [search, setSearch] = useState("")
     const [showClassification, setShowClassification] = useState(true)
@@ -115,9 +117,20 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
             }}>+ Create dataset</button>
             <button title="Work in progress" className="sidebar-button sidebar-button-disabled create-model">+ Create model</button>
             
+            <div className="sidebar-types-container">
+                <div className={"sidebar-types-element " + (typeShown == "datasets" ? "sidebar-types-element-selected" : "")}
+                onClick={() => setTypeShown("datasets")}>
+                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/database.svg"} />Datasets
+                </div>
+                <div className={"sidebar-types-element " + (typeShown == "models" ? "sidebar-types-element-selected" : "")}
+                onClick={() => setTypeShown("models")}>
+                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/modelSidebar.svg"} />Models
+                </div>
+            </div>
+
         </div>
         <div className="explore-non-sidebar">
-            <div>
+            {typeShown == "datasets" && <div>
                 <div className="explore-datasets-title-container">
                     <h2 className="explore-datasets-title">Public Datasets</h2>
 
@@ -184,7 +197,7 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
                     {!loading && datasets.length == 0 && search.length > 0 && <p className="gray-text">No such datasets found.</p>}
                 </div>
                 
-            </div>
+            </div>}
         </div>
         
 

@@ -124,6 +124,16 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 navigate("/create-model")
             }}>+ Create model</button>
 
+            <div className="sidebar-types-container">
+                <div className={"sidebar-types-element " + (typeShown == "datasets" ? "sidebar-types-element-selected" : "")}
+                onClick={() => setTypeShown("datasets")}>
+                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/database.svg"} />Datasets
+                </div>
+                <div className={"sidebar-types-element " + (typeShown == "models" ? "sidebar-types-element-selected" : "")}
+                onClick={() => setTypeShown("models")}>
+                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/modelSidebar.svg"} />Models
+                </div>
+            </div>
         </div>
         <div className="home-non-sidebar">
             {typeShown == "datasets" && <div>
