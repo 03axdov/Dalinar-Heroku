@@ -250,7 +250,7 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
 
             {typeShown == "models" && <div>
                 <div className="explore-datasets-title-container">
-                    <h2 className="my-datasets-title">My Models</h2>
+                    <h2 className="my-datasets-title">Public Models</h2>
 
                     <div className="title-forms">
 

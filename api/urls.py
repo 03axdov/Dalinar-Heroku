@@ -39,5 +39,6 @@ urlpatterns = [
     # MODEL HANDLING
     path("models/", ModelListPublic.as_view(), name="models"),
     path("my-models/", ModelListProfile.as_view(), name="my-models"),
+    path("models/<int:id>", GetModel.as_view(), name="get-model"),
     path("create-model/", CreateModel.as_view(), name="create-model")
 ]

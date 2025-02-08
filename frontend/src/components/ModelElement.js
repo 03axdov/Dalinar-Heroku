@@ -25,10 +25,10 @@ function DatasetElement({model, BACKEND_URL, isPublic=false}) {
                     {model.verified && <img title="Verified" className="dataset-element-name-verified" src={BACKEND_URL + "/static/images/blueCheck.png"} />}
                 </p>
 
-                {!isPublic && <img title="Edit dataset" className="dataset-element-icon dataset-element-options" src={BACKEND_URL + "/static/images/options.png"} onClick={(e) => {
+                {!isPublic && <img title="Edit model" className="dataset-element-icon dataset-element-options" src={BACKEND_URL + "/static/images/options.png"} onClick={(e) => {
                     e.stopPropagation()
 
-                    navigate("/edit-dataset/" + model.id)
+                    navigate("/edit-model/" + model.id)
                 }}/>}
                 {isPublic && <span className="dataset-element-icon-empty"></span>} {/* As the container is flex space-between */}
             </div>

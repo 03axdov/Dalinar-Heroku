@@ -1,0 +1,12 @@
+.model-toolbar-left-inner {
+    display: flex;
+    height: 100%;
+    background: var(--sidebar);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+    width: calc(100% - 5px);
+    max-width: calc(100% - 5px);
+    position: relative;
+}

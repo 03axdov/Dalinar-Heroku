@@ -86,7 +86,7 @@ function CreateModel({notification, BACKEND_URL}) {
             <div className="create-dataset-form">
                 <h1 className="create-dataset-title">Create a model</h1>
                 <p className="create-dataset-description">Machine learning models consist of an arbitrary number of different layers, which can be added to created models.
-                    Once layers have been specified, the model can be built, and later trained on datasets.
+                    Once layers have been specified, the model can be trained and downloaded.
                 </p>
 
                 <div className="create-dataset-label-inp">
