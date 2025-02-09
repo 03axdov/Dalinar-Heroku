@@ -109,7 +109,7 @@
     background: var(--toolbar);
     max-height: 95%;
     min-width: 150px;
-    margin-right: 100px;
+    margin-right: 50px;
     padding: 10px;
     box-sizing: border-box;
     border-radius: 3px;
@@ -127,18 +127,23 @@
 }
 
 .layer-element-title {
-    font-size: 1.5rem;
-    text-align: center;
+    font-size: 1.3rem;
+    text-align: left;
     font-weight: 500;
     margin: 0;
-    padding: 5px;
+    margin-bottom: 15px;
+    padding: 5px 10px;
     border-radius: 3px;
     box-sizing: border-box;
     background: var(--toolbar-light);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .layer-element-stat {
-    margin-top: 10px;
+    margin-bottom: 10px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -157,4 +162,29 @@
 
 .layer-element-stat-lightblue, .model-sidebar-color-lightblue {
     background: rgb(0, 255, 255);
+}
+
+.layer-element-stat-blue, .model-sidebar-color-blue {
+    background: rgb(0, 174, 255);
+}
+
+.create-layer-line {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    border-top: 1px solid var(--border);
+    width: 100%;
+}
+
+.layer-element-delete {
+    height: 22px;
+    width: 22px;
+    padding: 5px;
+    box-sizing: border-box;
+    border-radius: 11px;
+    margin-left: 20px;
+}
+
+.layer-element-delete:hover {
+    cursor: pointer;
+    background: var(--sidebar-lighter);
 }

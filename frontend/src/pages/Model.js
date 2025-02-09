@@ -83,6 +83,14 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     // LAYER FUNCTIONALITY
 
+    function getLayerName(layer) {
+        if (layer.layer_type == "dense") {
+            return "Dense - " + layer.nodes_count
+        } else if (layer.layer_type == "conv2d") {
+            return "Conv2D - (" + layer.filters + ", " + layer.kernel_size + ")"
+        }
+    }
+
     const layersHandleDragEnd = (result) => {
         if (!result.destination) return; // Dropped outside
     
@@ -298,7 +306,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                     {...provided.dragHandleProps}
                                     style={{...provided.draggableProps.style}}
                                     ref={provided.innerRef}
-                                    title={(layer.layer_type == "dense" ? "Dense - " + layer.nodes_count : "Layer")}
+                                    title={getLayerName(layer)}
                                     onMouseEnter={() => {
                                         // Set a timeout to show the preview after 200ms
                                         const timeoutId = setTimeout(() => {
@@ -316,8 +324,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                         <span className={"model-sidebar-color model-sidebar-color-" + typeToColor[layer.layer_type]}></span>
 
                                         <span className="model-sidebar-layer-name">
-                                            {layer.layer_type == "dense" && "Dense - " + layer.nodes_count}
-                                            {layer.layer_type != "dense" && "Layer"}
+                                            {getLayerName(layer)}
                                         </span>
 
                                         <img title="Delete layer" className="model-sidebar-delete" onClick={(e) => {
@@ -403,7 +410,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
                     {!showModelDescription && <div className="model-layers-container">
                         {layers.map((layer, idx) => (
-                            <LayerElement key={idx} BACKEND_URL={BACKEND_URL} layer={layer} hoveredLayer={hoveredLayer}></LayerElement>
+                            <LayerElement key={idx} BACKEND_URL={BACKEND_URL} layer={layer} hoveredLayer={hoveredLayer} deleteLayer={deleteLayer}></LayerElement>
                         ))}
                     </div>}
                 </div>

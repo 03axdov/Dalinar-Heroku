@@ -84,6 +84,8 @@ class LayerSerializer(serializers.BaseSerializer):
     def to_representation(self, instance):
         if isinstance(instance, DenseLayer):
             return DenseLayerSerializer(instance).data
+        elif isinstance(instance, Conv2DLayer):
+            return Conv2DLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     
@@ -91,6 +93,8 @@ class CreateLayerSerializer(serializers.BaseSerializer):
     def to_representation(self, instance):
         if isinstance(instance, DenseLayer):
             return CreateDenseLayerSerializer(instance).data
+        elif isinstance(instance, Conv2DLayer):
+            return CreateConv2DLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
 
@@ -104,6 +108,18 @@ class CreateDenseLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = DenseLayer
         fields = ["nodes_count"]
+        
+        
+class Conv2DLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Conv2DLayer
+        fields = "__all__"
+        
+        
+class CreateConv2DLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Conv2DLayer
+        fields = ["filters", "kernel_size"]
         
         
 # MODEL HANDLING

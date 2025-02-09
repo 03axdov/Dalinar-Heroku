@@ -2,8 +2,13 @@ import React, {useState} from "react"
 
 function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, processingCreateLayer}) {
 
+    // Data fields for different layers
     const [type, setType] = useState("dense")
-    const [nodesCount, setNodesCount] = useState(5) // Used for layers of type ["dense"]
+
+    const [filters, setFilters] = useState(1)   // Used for layers of type ["conv2d"]
+    const [kernelSize, setKernelSize] = useState(3) // Used for layers of type ["conv2d"]
+
+    const [nodesCount, setNodesCount] = useState(8) // Used for layers of type ["dense"]
 
     return (
         <div className="popup create-layer-popup" onClick={() => setShowCreateLayerPopup(false)}>
@@ -21,7 +26,13 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
                     let data = {
                         "type": type,
-                        "nodes_count": nodesCount
+                    }
+
+                    if (type == "dense") {
+                        data["nodes_count"] = nodesCount
+                    } else if (type == "conv2d") {
+                        data["filters"] = filters
+                        data["kernel_size"] = kernelSize
                     }
 
                     onSubmit(data)
@@ -36,11 +47,29 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         </select>
                     </div>
 
+                    <div className="create-layer-line"></div>
+
                     {type == "dense" && <div className="create-layer-type-fields">
-                        <div className="create-dataset-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-nodes-count">Number of nodes <span className="create-dataset-required">(required)</span></label>
+                        <div className="create-dataset-label-inp no-margin">
+                            <label className="create-dataset-label" htmlFor="layer-nodes-count">Number of nodes</label>
                             <input className="create-dataset-inp" id="layer-nodes-count" type="number" required value={nodesCount} onChange={(e) => {
                                 setNodesCount(Math.max(0, Math.min(100, e.target.value)))
+                            }} />
+                        </div>
+                    </div>}
+
+                    {type == "conv2d" && <div className="create-layer-type-fields">
+                        <div className="create-dataset-label-inp no-margin">
+                            <label className="create-dataset-label" htmlFor="layer-nodes-count">Number of filters</label>
+                            <input className="create-dataset-inp" id="layer-nodes-count" type="number" required value={filters} onChange={(e) => {
+                                setFilters(Math.max(0, Math.min(512, e.target.value)))
+                            }} />
+                        </div>
+
+                        <div className="create-dataset-label-inp">
+                            <label className="create-dataset-label" htmlFor="layer-nodes-count">Kernel size</label>
+                            <input className="create-dataset-inp" id="layer-nodes-count" type="number" required value={kernelSize} onChange={(e) => {
+                                setKernelSize(Math.max(0, Math.min(100, e.target.value)))
                             }} />
                         </div>
                     </div>}

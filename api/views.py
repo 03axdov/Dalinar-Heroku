@@ -1075,15 +1075,19 @@ class CreateLayer(APIView):
     def post(self, request, format=None):
         data = self.request.data
         
-        layer_type = data["type"]   # One of ["dense"]
+        print(data)
         
-        ALLOWED_TYPES = set(["dense"])
+        layer_type = data["type"]   # One of ["dense", "conv2d"]
+        
+        ALLOWED_TYPES = set(["dense", "conv2d"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
         serializer = None
         if layer_type == "dense":
             serializer = CreateDenseLayerSerializer(data=data)
+        elif layer_type == "conv2d":
+            serializer = CreateConv2DLayerSerializer(data=data)
         
         if serializer and serializer.is_valid():
             

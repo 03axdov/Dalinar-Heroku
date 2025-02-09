@@ -217,17 +217,25 @@ class AbstractLayer(models.Model):
     layer_type = models.CharField(max_length=100, choices=LAYER_CHOICES, default="dense")
     
     class Meta:
-        abstract = True  # Marks this model as abstract
-        ordering = ["index"]        
+        abstract = True  # Marks this model as abstract  
         
         
 # Concrete Model (Inherit from PolymorphicModel)
 class BaseLayer(PolymorphicModel, AbstractLayer):
-    pass
+    class Meta:
+        ordering = ["index"]
 
         
 class DenseLayer(BaseLayer):
     nodes_count = models.PositiveIntegerField(default=1)
     
     def __str__(self):
-        return "Dense - " + self.model.name
+        return f"Dense ({self.nodes_count}) - {self.model.name}"
+    
+    
+class Conv2DLayer(BaseLayer):
+    filters = models.PositiveIntegerField(default=1)
+    kernel_size = models.PositiveIntegerField(default=3)
+    
+    def __str__(self):
+        return f"Conv2D ({self.filters}, {self.kernel_size}) - {self.model.name}"
