@@ -24,6 +24,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     const [elementsIndex, setElementsIndex] = useState(0)
 
+    const [showElementPreview, setShowElementPreview] = useState(false)
+    const [showElementPreviewTimeout, setShowElementPreviewTimeout] = useState(null);
+
     const [loading, setLoading] = useState(true)
     const [uploadLoading, setUploadLoading] = useState(false)
     const [uploadPercentage, setUploadPercentage] = useState(0) // Used for the loading bar
@@ -1737,9 +1740,22 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                             onMouseEnter={(e) => {
                                                 setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
                                                 setHoveredElement(idx)
+
+                                                // Set a timeout to show the preview after 200ms
+                                                const timeoutId = setTimeout(() => {
+                                                    setShowElementPreview(true);
+                                                }, 750);
+
+                                                // Store the timeout ID so it can be cleared later
+                                                setShowElementPreviewTimeout(timeoutId);
                                             }}
                                             onMouseLeave={() => {
                                                 setHoveredElement(null)
+
+                                                clearTimeout(showElementPreviewTimeout);
+    
+                                                // Hide the preview immediately
+                                                setShowElementPreview(false);
                                             }}
                                             style={{...provided.draggableProps.style}}
                                             ref={provided.innerRef}>
@@ -1791,9 +1807,22 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                             onMouseEnter={(e) => {
                                                 setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
                                                 setHoveredElement(idx)
+
+                                                // Set a timeout to show the preview after 200ms
+                                                const timeoutId = setTimeout(() => {
+                                                    setShowElementPreview(true);
+                                                }, 750);
+
+                                                // Store the timeout ID so it can be cleared later
+                                                setShowElementPreviewTimeout(timeoutId);
                                             }}
                                             onMouseLeave={() => {
                                                 setHoveredElement(null)
+
+                                                clearTimeout(showElementPreviewTimeout);
+    
+                                                // Hide the preview immediately
+                                                setShowElementPreview(false);
                                             }}
                                             style={{...provided.draggableProps.style}}
                                             ref={provided.innerRef}>
@@ -1837,11 +1866,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     </div>
                     
                     {/* Shows an element's label */}
-                    {dataset && dataset.datatype == "classification" && hoveredElement != null && elements[hoveredElement].label && !editingElement &&
+                    {dataset && showElementPreview && dataset.datatype == "classification" && hoveredElement != null && elements[hoveredElement].label && !editingElement &&
                         <div className="dataset-sidebar-element-label" style={{top: (elementLabelTop + (IMAGE_FILE_EXTENSIONS.has(elements[hoveredElement].file.split(".").pop()) ? 5 : 0))}}>{idToLabel[elements[hoveredElement].label].name}</div>
                     }
 
-                    {dataset && hoveredElement != null && IMAGE_FILE_EXTENSIONS.has(elements[hoveredElement].file.split(".").pop()) && !editingElement &&
+                    {dataset && showElementPreview && hoveredElement != null && IMAGE_FILE_EXTENSIONS.has(elements[hoveredElement].file.split(".").pop()) && !editingElement &&
                         <img className="dataset-sidebar-element-preview" style={{top: elementLabelTop}} src={elements[hoveredElement].file}/>
                     }
 

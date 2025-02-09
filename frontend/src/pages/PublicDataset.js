@@ -25,6 +25,9 @@ function PublicDataset({BACKEND_URL}) {
 
     const [elementsIndex, setElementsIndex] = useState(0)
 
+    const [showElementPreview, setShowElementPreview] = useState(false)
+    const [showElementPreviewTimeout, setShowElementPreviewTimeout] = useState(null);
+
     const [elementLabelTop, setElementLabelTop] = useState(0)
 
     const [loading, setLoading] = useState(true)
@@ -776,9 +779,22 @@ function PublicDataset({BACKEND_URL}) {
                                             onMouseEnter={(e) => {
                                                 setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
                                                 setHoveredElement(idx)
+
+                                                 // Set a timeout to show the preview after 200ms
+                                                 const timeoutId = setTimeout(() => {
+                                                    setShowElementPreview(true);
+                                                }, 750);
+
+                                                // Store the timeout ID so it can be cleared later
+                                                setShowElementPreviewTimeout(timeoutId);
                                             }}
                                             onMouseLeave={() => {
                                                 setHoveredElement(null)
+
+                                                clearTimeout(showElementPreviewTimeout);
+    
+                                                // Hide the preview immediately
+                                                setShowElementPreview(false);
                                             }}>
 
                                                 {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
@@ -807,11 +823,11 @@ function PublicDataset({BACKEND_URL}) {
                     </div>
                     
                     {/* Shows an element's label */}
-                    {dataset && dataset.datatype == "classification" && hoveredElement != null && elements[hoveredElement].label &&
+                    {dataset && dataset.datatype == "classification" && showElementPreview && hoveredElement != null && elements[hoveredElement].label &&
                         <div className="dataset-sidebar-element-label" style={{top: (elementLabelTop + (IMAGE_FILE_EXTENSIONS.has(elements[hoveredElement].file.split(".").pop()) ? 5 : 0))}}>{idToLabel[elements[hoveredElement].label].name}</div>
                     }
 
-                    {dataset && hoveredElement != null && IMAGE_FILE_EXTENSIONS.has(elements[hoveredElement].file.split(".").pop()) &&
+                    {dataset && showElementPreview && hoveredElement != null && IMAGE_FILE_EXTENSIONS.has(elements[hoveredElement].file.split(".").pop()) &&
                         <img className="dataset-sidebar-element-preview" style={{top: elementLabelTop}} src={elements[hoveredElement].file}/>
                     }
 
