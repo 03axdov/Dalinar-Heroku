@@ -207,6 +207,7 @@ def delete_model_images(sender, instance, **kwargs):
 # LAYERS
 class AbstractLayer(models.Model):
     model = models.ForeignKey(Model, on_delete=models.CASCADE, related_name="layers")
+    index = models.PositiveIntegerField(default=0)
     
     LAYER_CHOICES = [
         ("dense", "Dense"),
@@ -215,7 +216,7 @@ class AbstractLayer(models.Model):
     
     class Meta:
         abstract = True  # Marks this model as abstract
-        
+        ordering = ["index"]        
         
 class DenseLayer(AbstractLayer):
     nodes_count = models.PositiveIntegerField(default=1)

@@ -14,7 +14,7 @@
     z-index: 6;
 }
 
-.account-popup-container, .confirm-popup-container {
+.account-popup-container, .confirm-popup-container, .create-layer-popup-container {
     width: 450px;
     border-radius: 5px;
     background: var(--toolbar);
@@ -27,6 +27,10 @@
 
 .confirm-popup-container {
     width: 400px;
+}
+
+.create-layer-popup-container {
+    height: 500px;
 }
 
 .account-popup-button {
@@ -267,7 +271,7 @@
     color: #9CDCFE;
 }
 
-.download-popup {
+.download-popup, .create-layer-popup {
     padding-bottom: var(--toolbar-height);
     height: calc(100% - var(--toolbar-height));
     box-sizing: border-box;

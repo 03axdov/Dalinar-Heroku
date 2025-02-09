@@ -2,6 +2,10 @@ import React, {useEffect, useState, useRef} from "react"
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios"
 
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import CreateLayerPopup from "../components/CreateLayerPopup";
+
+
 // The default page. Login not required.
 function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}) {
 
@@ -11,6 +15,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [loading, setLoading] = useState(true)
 
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
+    const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
+
     const [showModelDescription, setShowModelDescription] = useState(false)
     const pageRef = useRef(null)
     const [descriptionWidth, setDescriptionWidth] = useState(45)    // As percentage
@@ -63,10 +69,57 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         })
     }
 
+
+    // LAYER FUNCTIONALITY
+
+    const layersHandleDragEnd = (result) => {
+        if (!result.destination) return; // Dropped outside
+    
+        const reorderLayers = [...layers];
+        const [movedItem] = reorderLayers.splice(result.source.index, 1);
+        reorderLayers.splice(result.destination.index, 0, movedItem);
+        
+        setLayers(reorderLayers);
+
+        return;
+
+        let idToIdx = {}
+
+        for (let i=0; i < reorderLayers.length; i++) {
+            idToIdx[reorderLayers[i].id] = i
+        }
+        
+        // For updating the order, so it stays the same after refresh
+        const URL = window.location.origin + '/api/reorder-model-layers/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": model.id,
+            "order": idToIdx
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        axios.post(URL, data, config)
+        .then((data) => {
+
+        }).catch((error) => {
+            notification("Error: " + error, "failure")
+            
+        })
+    };
+
+    function createLabel() {
+
+    }
+
+
     // FRONTEND FUNCTIONALITY
 
     function closePopups(exception) {
-        
+
     }
 
     const resizeLeftToolbarHandleMouseDown = (e) => {
@@ -145,10 +198,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         document.addEventListener("mouseup", handleMouseUp);
     };
 
-    console.log(layers)
-
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
+
+            {showCreateLayerPopup && <CreateLayerPopup onSubmit={createLabel} setShowCreateLayerPopup={setShowCreateLayerPopup}></CreateLayerPopup>}
 
             <div className="dataset-toolbar-left" style={{width: toolbarLeftWidth + "px"}}>
                 <div className="model-toolbar-left-inner">
@@ -157,17 +210,40 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                     <div className="dataset-sidebar-button-container">
                         <button type="button" 
                         className={"sidebar-button dataset-upload-button " + (toolbarLeftWidth < 150 ? "sidebar-button-small" : "")} 
-                        title="Add layer">
+                        title="Add layer"
+                        onClick={() => setShowCreateLayerPopup(true)}>
                             <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} src={BACKEND_URL + "/static/images/plus.png"} />
                             <span>Add layer</span>
                         </button>
                     </div>
 
-                    {layers.map((layer, idx) => (
-                        <div className="model-layer-element" key={idx}>
-                            {layer.toString()}
-                        </div>
-                    ))}
+                    
+                    <DragDropContext className="dataset-elements-list" onDragEnd={layersHandleDragEnd}>
+                        <Droppable droppableId="models-droppable">
+                            
+                        {(provided) => (<div className="model-layers-list"
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}>
+                            {layers.map((layer, idx) => (
+                                <Draggable key={layer.id} draggableId={"" + layer.id} index={idx}>
+                                    {(provided) => (<div className="model-sidebar-layer"
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    style={{...provided.draggableProps.style}}
+                                    ref={provided.innerRef}>
+                                        <img className="model-sidebar-layer-icon" src={BACKEND_URL + "/static/images/image.png"} />
+                                        {layer.layer_type == "dense" && "Dense - " + layer.nodes_count}
+                                        {layer.layer_type != "dense" && "Layer"}
+                                    </div>)}
+                                </Draggable>
+                            ))}
+                            {provided.placeholder}
+                            </div>)}
+                                                        
+                        </Droppable>
+                    </DragDropContext>
+                    
+
                 </div>
                 <div className="dataset-toolbar-resizeable" onMouseDown={resizeLeftToolbarHandleMouseDown}></div>
             </div>
