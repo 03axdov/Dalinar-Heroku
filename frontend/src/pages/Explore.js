@@ -87,7 +87,16 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
                 } else {
                     return m1.name.localeCompare(m2.name)
                 }
-                
+
+            } else if (sortModels == "alphabetical") {
+                return m1.name.localeCompare(m2.name)
+
+            } else if (sortDatasets == "layers") {
+                if (m1.layers.length != m2.layers.length) {
+                    return m2.layers.length - m1.layers.length
+                } else {
+                    return m1.name.localeCompare(m2.name)
+                }
             }
         })
 
@@ -164,7 +173,9 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
             <button className="sidebar-button" onClick={() => {
                 checkLoggedIn("/create-dataset")
             }}>+ Create dataset</button>
-            <button title="Work in progress" className="sidebar-button sidebar-button-disabled create-model">+ Create model</button>
+            <button title="Work in progress" className="sidebar-button create-model" onClick={() => {
+                checkLoggedIn("/create-model")
+            }}>+ Create model</button>
             
             <div className="sidebar-types-container">
                 <div className={"sidebar-types-element " + (typeShown == "datasets" ? "sidebar-types-element-selected" : "")}
@@ -258,6 +269,8 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
                                 setSortModels(e.target.value)
                             }}>
                             <option value="downloads">Downloads</option>
+                            <option value="alphabetical">Alphabetical</option>
+                            <option value="layers">Layers</option>
                         </select>
                         
                         <div className="explore-datasets-search-container">

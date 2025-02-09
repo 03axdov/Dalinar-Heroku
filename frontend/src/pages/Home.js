@@ -88,7 +88,16 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 } else {
                     return m1.name.localeCompare(m2.name)
                 }
-                
+
+            } else if (sortModels == "alphabetical") {
+                return m1.name.localeCompare(m2.name)
+
+            } else if (sortDatasets == "layers") {
+                if (m1.layers.length != m2.layers.length) {
+                    return m2.layers.length - m1.layers.length
+                } else {
+                    return m1.name.localeCompare(m2.name)
+                }
             }
         })
 
@@ -261,6 +270,8 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                                 setSortModels(e.target.value)
                             }}>
                             <option value="downloads">Downloads</option>
+                            <option value="alphabetical">Alphabetical</option>
+                            <option value="layers">Layers</option>
                         </select>
                         
                         <div className="explore-datasets-search-container">

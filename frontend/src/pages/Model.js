@@ -4,6 +4,7 @@ import axios from "axios"
 
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import CreateLayerPopup from "../components/CreateLayerPopup";
+import LayerElement from "../components/LayerElement";
 
 
 // The default page. Login not required.
@@ -336,6 +337,12 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             <button className="hide-description-button" onClick={() => {setShowModelDescription(false)}}>Hide description</button>
                         </div>
 
+                    </div>}
+
+                    {!showModelDescription && <div className="model-layers-container">
+                        {layers.map((layer, idx) => (
+                            <LayerElement key={idx} BACKEND_URL={BACKEND_URL} layer={layer}></LayerElement>
+                        ))}
                     </div>}
                 </div>
             </div>
