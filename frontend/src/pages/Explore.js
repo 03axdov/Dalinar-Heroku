@@ -173,7 +173,7 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
                 </div>
                 <div className={"sidebar-types-element " + (typeShown == "models" ? "sidebar-types-element-selected" : "")}
                 onClick={() => setTypeShown("models")}>
-                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/modelSidebar.svg"} />Models
+                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/model.svg"} />Models
                 </div>
             </div>
 

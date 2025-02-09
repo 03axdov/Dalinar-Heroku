@@ -85,12 +85,25 @@ class LayerSerializer(serializers.BaseSerializer):
         if isinstance(instance, DenseLayer):
             return DenseLayerSerializer(instance).data
         return None  # Handles unexpected cases
-
+    
+    
+class CreateLayerSerializer(serializers.BaseSerializer):
+    def to_representation(self, instance):
+        if isinstance(instance, DenseLayer):
+            return CreateDenseLayerSerializer(instance).data
+        return None  # Handles unexpected cases
+    
 
 class DenseLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = DenseLayer
         fields = "__all__"
+        
+        
+class CreateDenseLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DenseLayer
+        fields = ["nodes_count"]
         
         
 # MODEL HANDLING

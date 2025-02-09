@@ -466,28 +466,31 @@ class CreateElement(APIView):
         if serializer.is_valid():
             
             dataset_id = data["dataset"]
-            dataset = Dataset.objects.get(id=dataset_id)
             
-            user = self.request.user
-            
-            if user.is_authenticated:
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
                 
-                if user.profile == dataset.owner:
-                    instance = serializer.save(owner=request.user.profile)
+                user = self.request.user
+                
+                if user.is_authenticated:
                     
-                    fileExtension = instance.file.name.split("/")[-1].split(".")[-1]
-                    # Resize images if dataset has specified dimensions
-                    if dataset.imageHeight and dataset.imageWidth and fileExtension in ALLOWED_IMAGE_FILE_EXTENSIONS:
-                        resize_element_image(instance, dataset.imageWidth, dataset.imageHeight)
+                    if user.profile == dataset.owner:
+                        instance = serializer.save(owner=request.user.profile)
                         
-                    return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
+                        fileExtension = instance.file.name.split("/")[-1].split(".")[-1]
+                        # Resize images if dataset has specified dimensions
+                        if dataset.imageHeight and dataset.imageWidth and fileExtension in ALLOWED_IMAGE_FILE_EXTENSIONS:
+                            resize_element_image(instance, dataset.imageWidth, dataset.imageHeight)
+                            
+                        return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
+                    
+                    else:
+                        return Response({'Unauthorized': 'You can only add elements to your own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
                 
                 else:
-                    return Response({'Unauthorized': 'You can only add elements to your own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
-            
-            else:
-                return Response({'Unauthorized': 'Must be logged in to create elements.'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+                    return Response({'Unauthorized': 'Must be logged in to create elements.'}, status=status.HTTP_401_UNAUTHORIZED)
+            except Dataset.DoesNotExist:
+                return Response({'Not found': 'Could not find dataset with the id ' + str(dataset_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Bad Request": "An error occured while creating element"}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -671,21 +674,24 @@ class CreateLabel(APIView):
         if serializer.is_valid():
             
             dataset_id = data["dataset"]
-            dataset = Dataset.objects.get(id=dataset_id)
             
-            user = self.request.user
-            
-            if user.is_authenticated:
-                if user.profile == dataset.owner:
-                    instance = serializer.save(owner=request.user.profile)
-                    return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+                
+                user = self.request.user
+                
+                if user.is_authenticated:
+                    if user.profile == dataset.owner:
+                        instance = serializer.save(owner=request.user.profile)
+                        return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
+                    
+                    else:
+                        return Response({'Unauthorized': 'Users can only add labels to their  own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
                 
                 else:
-                    return Response({'Unauthorized': 'Users can only add labels to their  own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
-            
-            else:
-                return Response({'Unauthorized': 'Users must be logged in to create labels.'}, status=status.HTTP_401_UNAUTHORIZED)
-        
+                    return Response({'Unauthorized': 'Users must be logged in to create labels.'}, status=status.HTTP_401_UNAUTHORIZED)
+            except Dataset.DoesNotExist:
+                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Bad Request": "An error occured while creating label. Invalid input."}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1029,3 +1035,48 @@ class EditModel(APIView):
                 return Response({'Not found': 'Could not find model with the id ' + str(model_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to edit models.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+# LAYER FUNCTIONALITY
+
+class CreateLayer(APIView):
+    serializer_class = CreateLayerSerializer
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        data = self.request.data
+        
+        layer_type = data["type"]   # One of ["dense"]
+        
+        ALLOWED_TYPES = set(["dense"])
+        if not layer_type in ALLOWED_TYPES:
+            return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = None
+        if layer_type == "dense":
+            serializer = CreateDenseLayerSerializer(data=data)
+        
+        if serializer and serializer.is_valid():
+            
+            model_id = data["model"]
+            try:
+                model = Model.objects.get(id=model_id)
+                
+                user = self.request.user
+                
+                if user.is_authenticated:
+                    
+                    if user.profile == model.owner:
+                        instance = serializer.save(model=model, layer_type=layer_type)
+                            
+                        return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
+                    
+                    
+                    else:
+                        return Response({'Unauthorized': 'You can only add layers to your own models.'}, status=status.HTTP_401_UNAUTHORIZED)
+                else:
+                    return Response({'Unauthorized': 'Must be logged in to create layers.'}, status=status.HTTP_401_UNAUTHORIZED)
+            except Model.DoesNotExist:
+                return Response({'Not found': 'Could not find model with the id ' + str(model_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Bad Request": "An error occured while creating layer."}, status=status.HTTP_400_BAD_REQUEST)

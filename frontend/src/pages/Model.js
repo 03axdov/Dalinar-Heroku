@@ -145,6 +145,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         document.addEventListener("mouseup", handleMouseUp);
     };
 
+    console.log(layers)
+
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
@@ -160,6 +162,12 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             <span>Add layer</span>
                         </button>
                     </div>
+
+                    {layers.map((layer, idx) => (
+                        <div className="model-layer-element" key={idx}>
+                            {layer.toString()}
+                        </div>
+                    ))}
                 </div>
                 <div className="dataset-toolbar-resizeable" onMouseDown={resizeLeftToolbarHandleMouseDown}></div>
             </div>
