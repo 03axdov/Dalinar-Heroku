@@ -1037,6 +1037,35 @@ class EditModel(APIView):
             return Response({'Unauthorized': 'Must be logged in to edit models.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         
+class ReorderModelLayers(APIView):
+    serializer_class = DatasetSerializer
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        idToIdx = request.data["order"]
+        model_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                model = Model.objects.get(id=model_id)
+                
+                if model.owner == user.profile:
+                    for layer in model.layers.all():
+                        layer.index = int(idToIdx[str(layer.id)])
+                        layer.save()
+        
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only reorder layers in your own models."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Model.DoesNotExist:
+                return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "Must be logged in to reorder layers."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
 # LAYER FUNCTIONALITY
 
 class CreateLayer(APIView):
@@ -1067,7 +1096,7 @@ class CreateLayer(APIView):
                 if user.is_authenticated:
                     
                     if user.profile == model.owner:
-                        instance = serializer.save(model=model, layer_type=layer_type)
+                        instance = serializer.save(model=model, layer_type=layer_type, index=data["index"])
                             
                         return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
                     

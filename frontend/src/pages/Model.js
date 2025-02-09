@@ -17,6 +17,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
     const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
 
+    const [processingCreateLayer, setProcessingCreateLayer] = useState(false)
+
     const [showModelDescription, setShowModelDescription] = useState(false)
     const pageRef = useRef(null)
     const [descriptionWidth, setDescriptionWidth] = useState(45)    // As percentage
@@ -81,8 +83,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         
         setLayers(reorderLayers);
 
-        return;
-
         let idToIdx = {}
 
         for (let i=0; i < reorderLayers.length; i++) {
@@ -111,15 +111,39 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         })
     };
 
-    function createLabel() {
+    function createLayer(data) {
+        setProcessingCreateLayer(true)
 
+        data["model"] = model.id
+        data["index"] = layers.length
+        
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+        
+        const URL = window.location.origin + '/api/create-layer/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            notification("Successfully created layer.", "success")
+            
+            getModel()
+            
+            setShowCreateLayerPopup(false)
+
+        }).catch((error) => {
+            notification("Error: " + error + ".", "failure")
+        }).finally(() => {
+            setProcessingCreateLayer(false)
+        })
     }
 
 
     // FRONTEND FUNCTIONALITY
 
     function closePopups(exception) {
-
+        
     }
 
     const resizeLeftToolbarHandleMouseDown = (e) => {
@@ -201,7 +225,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
-            {showCreateLayerPopup && <CreateLayerPopup onSubmit={createLabel} setShowCreateLayerPopup={setShowCreateLayerPopup}></CreateLayerPopup>}
+            {showCreateLayerPopup && <CreateLayerPopup BACKEND_URL={BACKEND_URL}
+                                                    onSubmit={createLayer} 
+                                                    setShowCreateLayerPopup={setShowCreateLayerPopup}
+                                                    processingCreateLayer={processingCreateLayer}></CreateLayerPopup>}
 
             <div className="dataset-toolbar-left" style={{width: toolbarLeftWidth + "px"}}>
                 <div className="model-toolbar-left-inner">

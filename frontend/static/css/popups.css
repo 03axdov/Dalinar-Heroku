@@ -30,7 +30,68 @@
 }
 
 .create-layer-popup-container {
-    height: 500px;
+    height: 650px;
+    max-height: 90%;
+    width: 600px;
+    padding: 30px 40px;
+    max-width: 90%;
+    align-items: center;
+    background: var(--background);
+    overflow-y: auto;
+    border-radius: 0;
+}
+
+.create-layer-popup-title {
+    font-size: 2rem;
+    margin: 0;
+    text-align: left;
+    width: 100%;
+    font-weight: 500;
+}
+
+.create-layer-popup-description {
+    font-size: 0.9rem;
+    line-height: 150%;
+    margin: 0;
+    margin-top: 10px;
+    text-align: justify;
+    color: var(--gray-text);
+}
+
+.create-layer-popup-form {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.create-layer-type-fields {
+    width: 100%;
+}
+
+.create-layer-popup-buttons {
+    display: flex;
+    flex-direction: row;
+    margin-top: auto;
+    justify-content: end;
+}
+
+.create-layer-popup-cancel {
+    padding: 7px 20px;
+    background: var(--gray);
+    margin-right: 20px;
+}
+
+.create-layer-popup-cancel:hover {
+    background: var(--gray-dark);
+}
+
+.create-layer-popup-submit {
+    width: 160px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
 }
 
 .account-popup-button {
