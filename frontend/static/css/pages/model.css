@@ -84,3 +84,78 @@
     padding: 50px;
     box-sizing: border-box;
 }
+
+.model-sidebar-delete {
+    margin-right: 0;
+    margin-left: auto;
+    height: 22px;
+    width: 22px;
+    border-radius: 11px;
+    padding: 5px;
+    box-sizing: border-box;
+    display: inline-block;
+    position: relative;
+    margin-left: auto;
+}
+
+.model-sidebar-delete:hover {
+    background: var(--sidebar-lighter);
+    cursor: pointer;
+}
+
+.model-sidebar-layer-name {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    margin-right: 5px;
+}
+
+.layer-element {
+    background: var(--toolbar);
+    max-height: 95%;
+    min-width: 150px;
+    margin-right: 100px;
+    padding: 10px;
+    box-sizing: border-box;
+    border-radius: 3px;
+}
+
+.layer-element-hovered {
+    box-shadow: 0 0 0 1px var(--border-light);
+}
+
+.layer-element-inner {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.layer-element-title {
+    font-size: 1.5rem;
+    text-align: center;
+    font-weight: 500;
+    margin: 0;
+    padding: 5px;
+    border-radius: 3px;
+    box-sizing: border-box;
+    background: var(--toolbar-light);
+}
+
+.layer-element-stat {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.layer-element-stat-color {
+    height: 14px;
+    width: 14px;
+    margin-right: 7px;
+    border-radius: 7px;
+}
+
+.layer-element-stat-purple {
+    background: rgb(153, 0, 255);
+}

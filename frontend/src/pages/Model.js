@@ -27,6 +27,9 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [toolbarLeftWidth, setToolbarLeftWidth] = useState(185)   // In pixels
     const [toolbarMainHeight, setToolbarMainHeight] = useState(50)
 
+    const [hoveredLayerTimeout, setHoveredLayerTimeout] = useState(null)
+    const [hoveredLayer, setHoveredLayer] = useState(null)  // id of hovered layer
+
     const [cursor, setCursor] = useState("")
 
     const descriptionContainerRef = useRef(null)
@@ -258,10 +261,30 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                     {...provided.draggableProps}
                                     {...provided.dragHandleProps}
                                     style={{...provided.draggableProps.style}}
-                                    ref={provided.innerRef}>
+                                    ref={provided.innerRef}
+                                    title={(layer.layer_type == "dense" ? "Dense - " + layer.nodes_count : "Layer")}
+                                    onMouseEnter={() => {
+                                        // Set a timeout to show the preview after 200ms
+                                        const timeoutId = setTimeout(() => {
+                                            setHoveredLayer(layer.id)
+                                        }, 500);
+
+                                        // Store the timeout ID so it can be cleared later
+                                        setHoveredLayerTimeout(timeoutId);
+                                        
+                                    }}
+                                    onMouseLeave={() => {
+                                        clearTimeout(hoveredLayerTimeout);
+                                        setHoveredLayer(null)
+                                    }}>
                                         <img className="model-sidebar-layer-icon" src={BACKEND_URL + "/static/images/image.png"} />
-                                        {layer.layer_type == "dense" && "Dense - " + layer.nodes_count}
-                                        {layer.layer_type != "dense" && "Layer"}
+
+                                        <span className="model-sidebar-layer-name">
+                                            {layer.layer_type == "dense" && "Dense - " + layer.nodes_count}
+                                            {layer.layer_type != "dense" && "Layer"}
+                                        </span>
+
+                                        <img title="Delete layer" className="model-sidebar-delete" src={BACKEND_URL + "/static/images/cross.svg"} />
                                     </div>)}
                                 </Draggable>
                             ))}
@@ -341,7 +364,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
                     {!showModelDescription && <div className="model-layers-container">
                         {layers.map((layer, idx) => (
-                            <LayerElement key={idx} BACKEND_URL={BACKEND_URL} layer={layer}></LayerElement>
+                            <LayerElement key={idx} BACKEND_URL={BACKEND_URL} layer={layer} hoveredLayer={hoveredLayer}></LayerElement>
                         ))}
                     </div>}
                 </div>
