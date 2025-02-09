@@ -1772,7 +1772,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                                         e.stopPropagation()
                                                         setEditingElementName(element.name)
                                                         if (editingElement != element.id) {
-                                                            setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                                            setEditExpandedTop(e.target.getBoundingClientRect().y - 5 - TOOLBAR_HEIGHT) // -5 due to padding, e is the image
                                                             setEditingElement(element.id)
                                                             setEditingElementIdx(idx)
                                                             closePopups("editing-element")
@@ -1839,7 +1839,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                                         e.stopPropagation()
                                                         setEditingElementName(element.name)
                                                         if (editingElement != element.id) {
-                                                            setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                                            setEditExpandedTop(e.target.getBoundingClientRect().y - 5 - TOOLBAR_HEIGHT) // -5 due to padding, e is the image
                                                             setEditingElement(element.id)
                                                             setEditingElementIdx(idx)
                                                             closePopups("editing-element")
@@ -2076,7 +2076,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                                         if (editingLabel == label.id) {
                                                             setEditingLabel(null)
                                                         } else {
-                                                            setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
+                                                            setEditExpandedTop(e.target.getBoundingClientRect().y - 5 - TOOLBAR_HEIGHT) // -5 due to padding, e is the image
                                                             setEditingLabelName(label.name)
                                                             setEditingLabelColor(label.color)
                                                             setEditingLabelKeybind(label.keybind)
