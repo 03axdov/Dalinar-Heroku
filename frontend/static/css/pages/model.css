@@ -63,11 +63,6 @@
     background: var(--sidebar-light);
 }
 
-.model-sidebar-layer-icon {
-    width: 15px;
-    margin-right: 7px;
-}
-
 .model-layers-list {
     width: 100%;
     display: flex;
@@ -149,13 +144,17 @@
     align-items: center;
 }
 
-.layer-element-stat-color {
+.layer-element-stat-color, .model-sidebar-color {
     height: 14px;
     width: 14px;
     margin-right: 7px;
     border-radius: 7px;
 }
 
-.layer-element-stat-purple {
+.layer-element-stat-purple, .model-sidebar-color-purple {
     background: rgb(153, 0, 255);
+}
+
+.layer-element-stat-lightblue, .model-sidebar-color-lightblue {
+    background: rgb(0, 255, 255);
 }

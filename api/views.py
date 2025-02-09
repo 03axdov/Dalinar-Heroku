@@ -1109,3 +1109,28 @@ class CreateLayer(APIView):
                 return Response({'Not found': 'Could not find model with the id ' + str(model_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Bad Request": "An error occured while creating layer."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+class DeleteLayer(APIView):
+    serializer_class = LayerSerializer
+    
+    def post(self, request, format=None):
+        layer_id = request.data["layer"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                layer = BaseLayer.objects.get(id=layer_id)
+                
+                if layer.model.owner == user.profile:
+                    layer.delete()
+                    
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only delete your own layers."}, status=status.HTTP_401_UNAUTHORIZED)
+            except BaseLayer.DoesNotExist:
+                return Response({"Not found": "Could not find layer with the id " + str(layer_id + ".")}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to delete layers.'}, status=status.HTTP_401_UNAUTHORIZED)

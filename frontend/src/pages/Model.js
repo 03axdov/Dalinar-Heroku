@@ -36,6 +36,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     const navigate = useNavigate()
 
+    // Used to map layer types to colors in sidebar
+    const typeToColor = {
+        "dense": "purple",
+        "conv2d": "lightblue"
+    }
 
     useEffect(() => {
         getModel()
@@ -143,6 +148,37 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         })
     }
 
+    function deleteLayerInner(id) {
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        let data = {
+            "layer": id
+        }
+
+        const URL = window.location.origin + '/api/delete-layer/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        setLoading(true)
+        axios.post(URL, data, config)
+        .then((data) => {
+
+            getModel()
+
+            notification("Successfully deleted label.", "success")
+
+        }).catch((error) => {
+            notification("Error: " + error + ".")
+
+        }).finally(() => {
+            setLoading(false)
+        })
+    }
+
+    function deleteLayer(id) {
+        activateConfirmPopup("Are you sure you want to delete this layer? This action cannot be undone.", () => deleteLayerInner(id))
+    }
 
     // FRONTEND FUNCTIONALITY
 
@@ -277,14 +313,17 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                         clearTimeout(hoveredLayerTimeout);
                                         setHoveredLayer(null)
                                     }}>
-                                        <img className="model-sidebar-layer-icon" src={BACKEND_URL + "/static/images/image.png"} />
+                                        <span className={"model-sidebar-color model-sidebar-color-" + typeToColor[layer.layer_type]}></span>
 
                                         <span className="model-sidebar-layer-name">
                                             {layer.layer_type == "dense" && "Dense - " + layer.nodes_count}
                                             {layer.layer_type != "dense" && "Layer"}
                                         </span>
 
-                                        <img title="Delete layer" className="model-sidebar-delete" src={BACKEND_URL + "/static/images/cross.svg"} />
+                                        <img title="Delete layer" className="model-sidebar-delete" onClick={(e) => {
+                                            e.stopPropagation()
+                                            deleteLayer(layer.id)
+                                        }} src={BACKEND_URL + "/static/images/cross.svg"} />
                                     </div>)}
                                 </Draggable>
                             ))}

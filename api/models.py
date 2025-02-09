@@ -10,6 +10,7 @@ from PIL import Image
 from io import BytesIO
 from django.core.files.base import ContentFile
 import pillow_avif # Adds .avif support
+from polymorphic.models import PolymorphicModel
 
 
 ALLOWED_IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "avif"]
@@ -211,6 +212,7 @@ class AbstractLayer(models.Model):
     
     LAYER_CHOICES = [
         ("dense", "Dense"),
+        ("conv2d", "Conv2D")
     ]
     layer_type = models.CharField(max_length=100, choices=LAYER_CHOICES, default="dense")
     
@@ -218,7 +220,13 @@ class AbstractLayer(models.Model):
         abstract = True  # Marks this model as abstract
         ordering = ["index"]        
         
-class DenseLayer(AbstractLayer):
+        
+# Concrete Model (Inherit from PolymorphicModel)
+class BaseLayer(PolymorphicModel, AbstractLayer):
+    pass
+
+        
+class DenseLayer(BaseLayer):
     nodes_count = models.PositiveIntegerField(default=1)
     
     def __str__(self):
