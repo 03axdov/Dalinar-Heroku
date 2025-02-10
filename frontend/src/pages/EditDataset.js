@@ -1,12 +1,15 @@
 import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 
 
 function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
 
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams();
+    const expandedParam = searchParams.get("expanded"); // Get the 'start' param
+
     const { id } = useParams();
     const [loading, setLoading] = useState(true)
     const [processing, setProcessing] = useState(false)
@@ -280,7 +283,14 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                 {loading && <div className="create-dataset-keywords-container"></div>}
 
                 <div className="create-dataset-buttons">
-                    <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Back to home</button>
+                    <button type="button" className="create-dataset-cancel" onClick={() => {
+                        if (expandedParam) {
+                            navigate("/datasets/" + id)
+                        } else {
+                            navigate("/home")
+                        }
+                        
+                    }}>Back</button>
                     <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>
                         {processing && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
                         {(!processing ? "Save changes" : "Processing...")}

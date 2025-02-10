@@ -1911,7 +1911,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         </div>}
 
                         {dataset && <button type="button" title="Edit dataset" className="dataset-title-button" onClick={() => {
-                            navigate("/edit-dataset/" + dataset.id)
+                            navigate("/edit-dataset/" + dataset.id + "?expanded=true")
                         }}>
                             <img className="dataset-title-edit-icon" src={BACKEND_URL + "/static/images/edit.png"}/>
                             Edit dataset

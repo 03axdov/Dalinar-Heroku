@@ -205,4 +205,41 @@
     flex-direction: row;
     align-items: start;
     justify-content: start;
+    margin-bottom: 15px;
+}
+
+.trained-on-text {
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.trained-on-container {
+    min-height: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.trained-on-element {
+    padding: 3px 7px;
+    border-radius: 3px;
+    background: var(--sidebar-button);
+    margin-right: 5px;
+}
+
+.trained-on-element:hover {
+    cursor: pointer;
+    background: var(--sidebar-button-hover);
+}
+
+.trained-on-icon {
+    width: 15px;
+    margin-left: 5px;
+}
+
+.model-download-button {
+    margin-left: auto;
+    margin-right: 0;
 }

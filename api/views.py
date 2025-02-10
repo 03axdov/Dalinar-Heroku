@@ -934,6 +934,15 @@ class GetModel(APIView):
                     data = modelSerialized.data
                     data["ownername"] = model.owner.name
                     
+                    trained_on_names = []
+                    trained_on_visibility = []
+                    for dataset in model.trained_on.all():
+                        trained_on_names.append(dataset.name)
+                        trained_on_visibility.append(dataset.visibility)
+                        
+                    data["trained_on_names"] = trained_on_names
+                    data["trained_on_visibility"] = trained_on_visibility
+                    
                     return Response(data, status=status.HTTP_200_OK)
                     
                 except Model.DoesNotExist:
@@ -1066,6 +1075,13 @@ class ReorderModelLayers(APIView):
             return Response({"Unauthorized": "Must be logged in to reorder layers."}, status=status.HTTP_401_UNAUTHORIZED)
         
         
+class BuildModel(APIView):
+    parser_classes = [JSONParser]
+
+    def post(self, request, format=None):
+        pass
+           
+        
 # LAYER FUNCTIONALITY
 
 class CreateLayer(APIView):
@@ -1136,3 +1152,4 @@ class DeleteLayer(APIView):
                 return Response({"Not found": "Could not find layer with the id " + str(layer_id + ".")}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to delete layers.'}, status=status.HTTP_401_UNAUTHORIZED)
+        

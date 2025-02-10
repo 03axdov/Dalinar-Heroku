@@ -14,6 +14,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [model, setModel] = useState(null)
     const [layers, setLayers] = useState([])
     const [loading, setLoading] = useState(true)
+    const [changed, setChanged] = useState(false)   // True if changes have been made since last load
 
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
     const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
@@ -78,6 +79,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         }).finally(() => {
             setLoading(false)
         })
+    }
+
+
+    function buildModel(e) {
+
     }
 
 
@@ -358,13 +364,18 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         </div>}
 
                         {model && <button type="button" title="Edit model" className="dataset-title-button" onClick={() => {
-                            navigate("/edit-model/" + model.id)
+                            navigate("/edit-model/" + model.id + "?expanded=true")
                         }}>
                             <img className="dataset-title-edit-icon" src={BACKEND_URL + "/static/images/edit.png"}/>
                             Edit model
                         </button>}
 
-                        {model && <button className="dataset-download-button" onClick={() => {
+                        {model && <button type="button" title="Build model" className="dataset-title-button" onClick={buildModel}>
+                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/build.svg"} />
+                            Build model
+                        </button>}
+
+                        {model && <button className="dataset-download-button model-download-button" onClick={() => {
                             setShowDownloadPopup(true)
                         }} title="Download model"><img className="dataset-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>Download</button>}
 
@@ -405,6 +416,18 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
                             {model.trained_on && model.trained_on.length > 0 && <div className="model-description-trained">
                                 <p className="dataset-description-text trained-on-text dataset-description-start">Trained on:</p>
+                                <div className="trained-on-container">
+                                    {model.trained_on.map((id, idx) => (
+                                        <div key={idx} className="trained-on-element" onClick={() => {
+                                            const URL = window.location.origin + "/datasets/" + id
+                                            var win = window.open(URL, '_blank');
+                                            win.focus();
+                                        }}>
+                                            {model.trained_on_names[idx]}
+                                            <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                                        </div>
+                                    ))}
+                                </div>
                             </div>}
 
                             <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{model.ownername}</p>

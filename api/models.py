@@ -187,13 +187,15 @@ class Model(models.Model):
     imageSmall = models.ImageField(upload_to="images/", null=True)
     downloaders = models.ManyToManyField(Profile, related_name="downloaded_models", blank=True)
     verified = models.BooleanField(default=False)
-    trained_on = models.ManyToManyField(Dataset, related_name="trained_with", blank=True)
+    trained_on = models.ManyToManyField(Dataset, related_name="trained_with", blank=True)   # Only names and id of these datasets
     
     VISIBILITY_CHOICES = [
         ("private", "Private"),
         ("public", "Public")
     ]
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default="private")
+    
+    model_file = models.FileField(upload_to="models/", null=True)
     
     def __str__(self):
         return self.name + " - " + self.owner.name
