@@ -387,6 +387,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         <div className="dataset-description-resize" onMouseDown={resizeDescriptionHandleMouseDown}></div>
 
                         <div className="dataset-description-display" style={{width: "calc(" + descriptionWidth + "%" + " - 5px)"}}>
+                            <div className="dataset-description-header" title={model.name}>
+                                {model.name}
+                            </div>
+
                             <div className="model-description-stats">
                                 {model.downloaders && <div className="model-description-stats-element">
                                     <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/download.svg"}/>
@@ -399,9 +403,13 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                 </div>}
                             </div>
 
+                            {model.trained_on && model.trained_on.length > 0 && <div className="model-description-trained">
+                                <p className="dataset-description-text trained-on-text dataset-description-start">Trained on:</p>
+                            </div>}
+
                             <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{model.ownername}</p>
 
-                            {(model.description ? <p className="dataset-description-text dataset-description-text-margin"><span className="dataset-description-start">Description: </span>{model.description}</p> : "This dataset does not have a description.")}
+                            {(model.description ? <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{model.description}</p> : "This dataset does not have a description.")}
 
                             <button className="hide-description-button" onClick={() => {setShowModelDescription(false)}}>Hide description</button>
                         </div>
@@ -409,8 +417,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                     </div>}
 
                     {!showModelDescription && <div className="model-layers-container">
-                        {layers.map((layer, idx) => (<div className="layer-element-outer">
-                            <LayerElement key={idx} BACKEND_URL={BACKEND_URL} layer={layer} hoveredLayer={hoveredLayer} deleteLayer={deleteLayer}></LayerElement>
+                        {layers.map((layer, idx) => (<div key={idx} className="layer-element-outer">
+                            <LayerElement BACKEND_URL={BACKEND_URL} layer={layer} hoveredLayer={hoveredLayer} deleteLayer={deleteLayer}></LayerElement>
                             {idx != layers.length - 1 && <div className="layer-element-connection"></div>}
                         </div>))}
                     </div>}

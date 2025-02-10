@@ -997,10 +997,16 @@ canvas {
     margin-bottom: 20px;
 }
 
+.dataset-description-description {
+    margin-top: 20px;
+}
+
 .dataset-description-start {
-    color: var(--gray-text);
     margin-right: 10px;
-    min-width: 100px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    background: var(--sidebar-light);
+    box-sizing: border-box;
     display: inline-block;
 }
 
@@ -1081,6 +1087,21 @@ canvas {
     margin-left: 20px;
 }
 
+.dataset-description-header {
+    font-size: 2rem;
+    width: 100%;
+    min-height: 54px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    white-space: nowrap;
+    max-width: 100%;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+}
 
 @media all and (max-width: 975px) {
 
@@ -1121,6 +1142,7 @@ canvas {
 }
 
 @media all and (max-width: 1350px) {
+
     .dataset-description-display-container {
         flex-direction: column;
         overflow-y: auto;

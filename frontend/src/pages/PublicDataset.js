@@ -889,6 +889,10 @@ function PublicDataset({BACKEND_URL}) {
                         <div className="dataset-description-resize" onMouseDown={resizeDescriptionHandleMouseDown}></div>
 
                         <div className="dataset-description-display" style={{width: "calc(" + descriptionWidth + "%" + " - 5px)"}}>
+                            <div className="dataset-description-header" title={dataset.name}>
+                                {dataset.name}
+                            </div>
+
                             <div className="dataset-description-stats">
                                 {dataset.downloaders && <div className="dataset-description-stats-element">
                                     <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/download.svg"}/>
@@ -914,8 +918,9 @@ function PublicDataset({BACKEND_URL}) {
                                 {dataset.datatype}
                             </p>
 
-                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p><br></br>
-                            {(dataset.description ? <p className="dataset-description-text dataset-description-text-margin"><span className="dataset-description-start">Description: </span>{dataset.description}</p> : "This dataset does not have a description.")}
+                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p>
+
+                            {(dataset.description ? <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{dataset.description}</p> : "This dataset does not have a description.")}
 
                             {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">
                                 {dataset.keywords.length > 0 && <span className="gray-text dataset-description-keywords-title">Keywords: </span>}
