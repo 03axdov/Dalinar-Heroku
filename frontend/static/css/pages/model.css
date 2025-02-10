@@ -141,12 +141,7 @@
     align-items: center;
 }
 
-.layer-element-stat {
-    margin-bottom: 10px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
+
 
 .layer-element-stat-color, .model-sidebar-color {
     height: 14px;
@@ -239,7 +234,66 @@
     margin-left: 5px;
 }
 
+
+.model-title-button, .model-download-button {
+    height: 35px;
+    background: var(--sidebar-button);
+    border-radius: 3px;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
 .model-download-button {
     margin-left: auto;
     margin-right: 0;
+}
+
+.model-title-edit-icon, .model-download-icon {
+    width: 20px;
+    margin-right: 10px;
+}
+
+.layer-element-stat {
+    margin-bottom: 10px;
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    align-items: center;
+}
+
+.layer-element-label {
+    margin-right: 20px;
+}
+
+.layer-element-input {
+    background: var(--background);
+    box-sizing: border-box;
+    padding: 3px 5px;
+    margin-left: auto;
+    width: 75px;
+    border: none;
+    outline: 0;
+    border-radius: 3px;
+}
+
+.layer-element-save {
+    margin-top: 20px;
+    font-size: 1rem;
+    width: 100%;
+    padding: 5px 10px;
+    user-select: none;
+}
+
+.layer-element-save-disabled {
+    background: var(--background);
+    opacity: 0.8;
+    pointer-events: none;
+    cursor: default;
+}
+
+.layer-element-save-disabled:hover {
+    cursor: default;
+    background: var(--background);
 }

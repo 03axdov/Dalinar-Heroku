@@ -14,7 +14,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [model, setModel] = useState(null)
     const [layers, setLayers] = useState([])
     const [loading, setLoading] = useState(true)
-    const [changed, setChanged] = useState(false)   // True if changes have been made since last load
+    const [changed, setChanged] = useState(false)   // True if changes have been made since last load or build
 
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
     const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
@@ -79,6 +79,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         }).finally(() => {
             setLoading(false)
         })
+    }
+
+
+    function updateModel(data) {
+
     }
 
 
@@ -363,19 +368,26 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             <img className="dataset-title-expand-icon" src={BACKEND_URL + "/static/images/" + (!showModelDescription ? "plus.png" : "minus.png")} />
                         </div>}
 
-                        {model && <button type="button" title="Edit model" className="dataset-title-button" onClick={() => {
+                        {model && <button type="button" title="Edit model" className="model-title-button" onClick={() => {
                             navigate("/edit-model/" + model.id + "?expanded=true")
                         }}>
-                            <img className="dataset-title-edit-icon" src={BACKEND_URL + "/static/images/edit.png"}/>
+                            <img className="model-title-edit-icon" src={BACKEND_URL + "/static/images/edit.png"}/>
                             Edit model
                         </button>}
 
-                        {model && <button type="button" title="Build model" className="dataset-title-button" onClick={buildModel}>
-                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/build.svg"} />
+                        {model && <button type="button" title="Build model" className="model-title-button" onClick={buildModel}>
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/build.svg"} />
                             Build model
                         </button>}
 
-                        {model && <button className="dataset-download-button model-download-button" onClick={() => {
+                        {model && <button type="button" title="Train model" className="model-title-button" onClick={() => {
+
+                        }}>
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/lightbulb.svg"} />
+                            Train model
+                        </button>}
+
+                        {model && <button className="model-download-button model-download-button" onClick={() => {
                             setShowDownloadPopup(true)
                         }} title="Download model"><img className="dataset-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>Download</button>}
 
@@ -441,7 +453,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
                     {!showModelDescription && <div className="model-layers-container">
                         {layers.map((layer, idx) => (<div key={idx} className="layer-element-outer">
-                            <LayerElement BACKEND_URL={BACKEND_URL} layer={layer} hoveredLayer={hoveredLayer} deleteLayer={deleteLayer}></LayerElement>
+                            <LayerElement BACKEND_URL={BACKEND_URL} 
+                                        layer={layer} 
+                                        hoveredLayer={hoveredLayer} 
+                                        deleteLayer={deleteLayer}
+                                        updateModel={updateModel}></LayerElement>
                             {idx != layers.length - 1 && <div className="layer-element-connection"></div>}
                         </div>))}
                     </div>}
