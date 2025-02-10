@@ -1075,8 +1075,6 @@ class CreateLayer(APIView):
     def post(self, request, format=None):
         data = self.request.data
         
-        print(data)
-        
         layer_type = data["type"]   # One of ["dense", "conv2d"]
         
         ALLOWED_TYPES = set(["dense", "conv2d"])
@@ -1125,7 +1123,7 @@ class DeleteLayer(APIView):
         
         if user.is_authenticated:
             try:
-                layer = BaseLayer.objects.get(id=layer_id)
+                layer = Layer.objects.get(id=layer_id)
                 
                 if layer.model.owner == user.profile:
                     layer.delete()
@@ -1134,7 +1132,7 @@ class DeleteLayer(APIView):
                 
                 else:
                     return Response({"Unauthorized": "You can only delete your own layers."}, status=status.HTTP_401_UNAUTHORIZED)
-            except BaseLayer.DoesNotExist:
+            except Layer.DoesNotExist:
                 return Response({"Not found": "Could not find layer with the id " + str(layer_id + ".")}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to delete layers.'}, status=status.HTTP_401_UNAUTHORIZED)

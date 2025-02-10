@@ -187,6 +187,7 @@ class Model(models.Model):
     imageSmall = models.ImageField(upload_to="images/", null=True)
     downloaders = models.ManyToManyField(Profile, related_name="downloaded_models", blank=True)
     verified = models.BooleanField(default=False)
+    trained_on = models.ManyToManyField(Dataset, related_name="trained_with", blank=True)
     
     VISIBILITY_CHOICES = [
         ("private", "Private"),
@@ -221,19 +222,19 @@ class AbstractLayer(models.Model):
         
         
 # Concrete Model (Inherit from PolymorphicModel)
-class BaseLayer(PolymorphicModel, AbstractLayer):
+class Layer(PolymorphicModel, AbstractLayer):
     class Meta:
         ordering = ["index"]
 
         
-class DenseLayer(BaseLayer):
+class DenseLayer(Layer):
     nodes_count = models.PositiveIntegerField(default=1)
     
     def __str__(self):
         return f"Dense ({self.nodes_count}) - {self.model.name}"
     
     
-class Conv2DLayer(BaseLayer):
+class Conv2DLayer(Layer):
     filters = models.PositiveIntegerField(default=1)
     kernel_size = models.PositiveIntegerField(default=3)
     

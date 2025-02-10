@@ -409,9 +409,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                     </div>}
 
                     {!showModelDescription && <div className="model-layers-container">
-                        {layers.map((layer, idx) => (
+                        {layers.map((layer, idx) => (<div className="layer-element-outer">
                             <LayerElement key={idx} BACKEND_URL={BACKEND_URL} layer={layer} hoveredLayer={hoveredLayer} deleteLayer={deleteLayer}></LayerElement>
-                        ))}
+                            {idx != layers.length - 1 && <div className="layer-element-connection"></div>}
+                        </div>))}
                     </div>}
                 </div>
             </div>

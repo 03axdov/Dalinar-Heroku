@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from "react"
 import DatasetElement from "../components/DatasetElement"
 import ModelElement from "../components/ModelElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import axios from 'axios'
 
 function Explore({checkLoggedIn, BACKEND_URL}) {
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams();
+    const startParam = searchParams.get("start"); // Get the 'start' param
 
     const [datasets, setDatasets] = useState([])
     const [models, setModels] = useState([])
@@ -14,7 +16,7 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
     const [loading, setLoading] = useState(true)
     const [loadingModels, setLoadingModels] = useState(true)
 
-    const [typeShown, setTypeShown] = useState("datasets") // Either "datasets" or "models"
+    const [typeShown, setTypeShown] = useState(startParam == "models" ? "models" : "datasets") // Either "datasets" or "models"
 
     const [sortDatasets, setSortDatasets] = useState("downloads")
     const [sortModels, setSortModels] = useState("downloads")

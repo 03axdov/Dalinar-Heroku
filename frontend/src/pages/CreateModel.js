@@ -65,7 +65,7 @@ function CreateModel({notification, BACKEND_URL}) {
         axios.post(URL, formData, config)
         .then((data) => {
             console.log("Success:", data);
-            navigate("/home")
+            navigate("/home?start=models")
             notification("Successfully created model " + name + ".", "success")
         }).catch((error) => {
             notification("An error occured.", "failure")
@@ -138,7 +138,7 @@ function CreateModel({notification, BACKEND_URL}) {
                 </div>
 
                 <div className="create-dataset-buttons">
-                    <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Cancel</button>
+                    <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home?start=models")}>Cancel</button>
                     <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>
                         {loading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
                         {(!loading ? "Create dataset" : "Processing...")}

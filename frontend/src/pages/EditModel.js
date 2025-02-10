@@ -201,7 +201,7 @@ function EditModel({activateConfirmPopup, notification, BACKEND_URL}) {
                 </div>
 
                 <div className="create-dataset-buttons">
-                    <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Back to home</button>
+                    <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home?start=models")}>Back to home</button>
                     <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>
                         {processing && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
                         {(!processing ? "Save changes" : "Processing...")}
