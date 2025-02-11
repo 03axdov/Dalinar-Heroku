@@ -48,5 +48,6 @@ urlpatterns = [
     
     # LAYER HANDLING
     path("create-layer/", CreateLayer.as_view(), name="create-layer"),
-    path("delete-layer/", DeleteLayer.as_view(), name="delete-layer")
+    path("delete-layer/", DeleteLayer.as_view(), name="delete-layer"),
+    path("edit-layer/", EditLayer.as_view(), name="edit-layer")
 ]

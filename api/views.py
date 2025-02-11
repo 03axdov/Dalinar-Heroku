@@ -1153,3 +1153,34 @@ class DeleteLayer(APIView):
         else:
             return Response({'Unauthorized': 'Must be logged in to delete layers.'}, status=status.HTTP_401_UNAUTHORIZED)
         
+        
+class EditLayer(APIView):
+    parser_classes = [JSONParser]
+
+    def post(self, request, format=None):   # A put request may fit better, post for now
+        layer_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                layer = Layer.objects.get(id=layer_id)
+                
+                if layer.model.owner == user.profile:
+                    
+                    if request.data["type"] == "dense":
+                        layer.nodes_count = request.data["nodes_count"]
+                    elif request.data["type"] == "conv2d":
+                        layer.filters = request.data["filters"]
+                        layer.kernel_size = request.data["kernel_size"]
+                        
+                    layer.save()
+                
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({'Unauthorized': 'You can only edit layers belonging to your own models.'}, status=status.HTTP_401_UNAUTHORIZED)
+            except Layer.DoesNotExist:
+                return Response({'Not found': 'Could not find model with the id ' + str(model_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to edit layers.'}, status=status.HTTP_401_UNAUTHORIZED)

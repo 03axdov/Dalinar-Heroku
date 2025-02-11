@@ -108,7 +108,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         const reorderLayers = [...layers];
         const [movedItem] = reorderLayers.splice(result.source.index, 1);
         reorderLayers.splice(result.destination.index, 0, movedItem);
-        
+        console.log(layers)
+        console.log(reorderLayers)
         setLayers(reorderLayers);
 
         let idToIdx = {}
@@ -452,14 +453,14 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                     </div>}
 
                     {!showModelDescription && <div className="model-layers-container">
-                        {layers.map((layer, idx) => (<div key={idx} className="layer-element-outer">
-                            <LayerElement BACKEND_URL={BACKEND_URL} 
-                                        layer={layer} 
-                                        hoveredLayer={hoveredLayer} 
-                                        deleteLayer={deleteLayer}
-                                        updateModel={updateModel}></LayerElement>
-                            {idx != layers.length - 1 && <div className="layer-element-connection"></div>}
-                        </div>))}
+                        {layers.map((layer, idx) => (<LayerElement key={idx} BACKEND_URL={BACKEND_URL} 
+                            layer={layer} 
+                            hoveredLayer={hoveredLayer} 
+                            deleteLayer={deleteLayer}
+                            getModel={getModel}
+                            notification={notification}
+                            hasLine={idx != layers.length - 1}></LayerElement>
+                        ))}
                     </div>}
                 </div>
             </div>
