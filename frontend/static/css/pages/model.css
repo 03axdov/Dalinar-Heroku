@@ -323,3 +323,10 @@
     cursor: default;
     background: var(--background);
 }
+
+.create-layer-label-inp {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 20px;
+    align-items: center;
+}

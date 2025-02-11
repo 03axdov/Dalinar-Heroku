@@ -65,6 +65,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
             notification("Successfully updated layer.", "success")
             
             getModel()
+            setUpdated(false)
 
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
@@ -113,7 +114,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         <span className="layer-element-stat-color layer-element-stat-purple"></span>
                         <label className="layer-element-label" htmlFor="denseNodes">Nodes</label>
                         <input type="number" className="layer-element-input" id="denseNodes" value={nodes} onChange={(e) => {
-                            setNodes(e.target.value)
+                            setNodes(Math.max(0, Math.min(e.target.value, 512)))
                         }}></input>
                     </div>
                 </form>}
@@ -130,7 +131,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
                         <label className="layer-element-label" htmlFor="filters">Filters</label>
                         <input type="number" className="layer-element-input" id="filters" value={filters} onChange={(e) => {
-                            setFilters(e.target.value)
+                            setFilters(Math.max(0, Math.min(e.target.value, 100)))
                         }}></input>
                     </div>
 
@@ -138,7 +139,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                     <span className="layer-element-stat-color layer-element-stat-blue"></span>
                         <label className="layer-element-label" htmlFor="kernelSize">Kernel size</label>
                         <input type="number" className="layer-element-input" id="kernelSize" value={kernelSize} onChange={(e) => {
-                            setKernelSize(e.target.value)
+                            setKernelSize(Math.max(0, Math.min(100, e.target.value)))
                         }}></input>
                     </div>
                 </form>}

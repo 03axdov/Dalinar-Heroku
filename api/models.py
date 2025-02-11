@@ -219,6 +219,12 @@ class AbstractLayer(models.Model):
     ]
     layer_type = models.CharField(max_length=100, choices=LAYER_CHOICES, default="dense")
     
+    ACTIVATION_CHOICES = [
+        ("relu", "ReLU"),
+        ("softmax", "Softmax")
+    ]
+    activation_function = models.CharField(max_length=100, choices=ACTIVATION_CHOICES, default="")
+    
     class Meta:
         abstract = True  # Marks this model as abstract  
         
@@ -242,3 +248,14 @@ class Conv2DLayer(Layer):
     
     def __str__(self):
         return f"Conv2D ({self.filters}, {self.kernel_size}) - {self.model.name}"
+    
+    
+class Flatten(Layer):
+    input_x = models.PositiveIntegerField(default=256)
+    input_y = models.PositiveIntegerField(default=256)
+    
+    def __str__(self):
+        res = "Flatten"
+        if self.input_x:
+            res += f" ({input_x}, {input_y})"
+        return res + " - " + self.model.name

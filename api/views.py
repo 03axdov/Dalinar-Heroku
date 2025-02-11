@@ -1114,7 +1114,7 @@ class CreateLayer(APIView):
                 if user.is_authenticated:
                     
                     if user.profile == model.owner:
-                        instance = serializer.save(model=model, layer_type=layer_type, index=data["index"])
+                        instance = serializer.save(model=model, layer_type=layer_type, index=data["index"], activation_function=data["activation_function"])
                             
                         return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
                     

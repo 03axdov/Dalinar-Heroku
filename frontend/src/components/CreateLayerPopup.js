@@ -10,6 +10,8 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
     const [nodesCount, setNodesCount] = useState(8) // Used for layers of type ["dense"]
 
+    const [activation, setActivation] = useState("")    // Used for layers of type ["dense", "conv2d"]
+
     return (
         <div className="popup create-layer-popup" onClick={() => setShowCreateLayerPopup(false)}>
             <div className="create-layer-popup-container" onClick={(e) => {
@@ -26,6 +28,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
                     let data = {
                         "type": type,
+                        "activation_function": activation
                     }
 
                     if (type == "dense") {
@@ -50,28 +53,51 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     <div className="create-layer-line"></div>
 
                     {type == "dense" && <div className="create-layer-type-fields">
-                        <div className="create-dataset-label-inp no-margin">
+                        <div className="create-layer-label-inp">
                             <label className="create-dataset-label" htmlFor="layer-nodes-count">Number of nodes</label>
                             <input className="create-dataset-inp" id="layer-nodes-count" type="number" required value={nodesCount} onChange={(e) => {
-                                setNodesCount(Math.max(0, Math.min(100, e.target.value)))
+                                setNodesCount(Math.max(0, Math.min(512, e.target.value)))
                             }} />
+                        </div>
+
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label" htmlFor="dense-activation-function">Activation function</label>
+                            <select className="create-dataset-inp" id="dense-activation-function" required value={activation} onChange={(e) => {
+                                setActivation(e.target.value)
+                            }}>
+                                <option value="">None</option>
+                                <option value="relu">ReLU</option>
+                                <option value="softmax">Softmax</option>
+                            </select>
                         </div>
                     </div>}
 
                     {type == "conv2d" && <div className="create-layer-type-fields">
-                        <div className="create-dataset-label-inp no-margin">
+                        <div className="create-layer-label-inp">
                             <label className="create-dataset-label" htmlFor="layer-nodes-count">Number of filters</label>
                             <input className="create-dataset-inp" id="layer-nodes-count" type="number" required value={filters} onChange={(e) => {
-                                setFilters(Math.max(0, Math.min(512, e.target.value)))
+                                setFilters(Math.max(0, Math.min(100, e.target.value)))
                             }} />
                         </div>
 
-                        <div className="create-dataset-label-inp">
+                        <div className="create-layer-label-inp">
                             <label className="create-dataset-label" htmlFor="layer-nodes-count">Kernel size</label>
                             <input className="create-dataset-inp" id="layer-nodes-count" type="number" required value={kernelSize} onChange={(e) => {
                                 setKernelSize(Math.max(0, Math.min(100, e.target.value)))
                             }} />
                         </div>
+
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label" htmlFor="dense-activation-function">Activation function</label>
+                            <select className="create-dataset-inp" id="dense-activation-function" required value={activation} onChange={(e) => {
+                                setActivation(e.target.value)
+                            }}>
+                                <option value="">None</option>
+                                <option value="relu">ReLU</option>
+                                <option value="softmax">Softmax</option>
+                            </select>
+                        </div>
+                        
                     </div>}
 
                     <div className="create-layer-popup-buttons">
