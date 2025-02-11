@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from "react"
+import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 
-function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, notification, hasLine}) {
+function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, notification, hasLine, prevLayer}) {
 
     const [type, setType] = useState(null)  // Workaround to stop warning when reordering layers.
 
@@ -12,16 +12,23 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
 
     const [updated, setUpdated] = useState(false)
 
+    const [errorMessage, setErrorMessage] = useState("")
+
+    const elementRef = useRef(null)
+
     useEffect(() => {
         setNodes(layer.nodes_count)
 
         setFilters(layer.filters)
         setKernelSize(layer.kernel_size)
-        
 
         setType(layer.layer_type)
 
     }, [layer])
+
+    useEffect(() => {
+        getErrorMessage()
+    }, [layer, prevLayer])
 
     useEffect(() => {
         if (nodes != layer.nodes_count) {
@@ -64,11 +71,37 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
         })
     }
 
+    function getErrorMessage() {
+        if (!prevLayer) {return}    // Currently no issues that can arise in this case
+
+        let errorMessage = ""
+        let type = layer.layer_type
+        let prevType = prevLayer.layer_type
+
+        if (type == "dense") {
+            if (prevType == "conv2d") {
+                errorMessage += "A Dense layer cannot follow a Conv2D layer."
+            }
+        }
+
+        if (type == "conv2d") {
+            if (prevType == "dense") {
+                errorMessage += "A Conv2D layer cannot follow a Dense layer."
+            }
+        }
+
+        setErrorMessage(errorMessage)
+    }
+
     return (<div className="layer-element-outer">
 
+            {type && <div className={"layer-element " + (hoveredLayer == layer.id ? "layer-element-hovered" : "")} ref={elementRef}>
 
-        <div className="layer-element-outer-bottom">
-            <div className={"layer-element " + (hoveredLayer == layer.id ? "layer-element-hovered" : "")}>
+                {errorMessage && <p className="layer-element-warning">
+                    <img className="layer-element-warning-icon" src={BACKEND_URL + "/static/images/failure.png"} />
+                    <span className="layer-element-warning-text">{errorMessage}</span>
+                </p>}
+
                 {type == "dense" && <form className="layer-element-inner">
                     <h1 className="layer-element-title">
                         Dense
@@ -110,16 +143,15 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                     </div>
                 </form>}
 
-                {type && <button type="button" 
+                <button type="button" 
                 className={"layer-element-save " + (!updated ? "layer-element-save-disabled" : "")}
                 title={(updated ? "Save changes" : "No changes")}
                 onClick={updateLayer}>
                 Save changes
-                </button>}
-            </div>
+                </button>
+            </div>}
 
             {hasLine && type && <div className="layer-element-connection"></div>}
-        </div>
     </div>)
 }
 

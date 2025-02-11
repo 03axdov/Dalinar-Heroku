@@ -459,7 +459,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             deleteLayer={deleteLayer}
                             getModel={getModel}
                             notification={notification}
-                            hasLine={idx != layers.length - 1}></LayerElement>
+                            hasLine={idx != layers.length - 1}
+                            prevLayer={(idx > 0 ? layers[idx - 1] : null)}></LayerElement>
                         ))}
                     </div>}
                 </div>
