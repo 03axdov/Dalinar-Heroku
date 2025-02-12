@@ -9,8 +9,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     const [nodes, setNodes] = useState(layer.nodes_count)   // Used by ["dense"]
     const [filters, setFilters] = useState(layer.filters)   // Used by ["conv2d"]
     const [kernelSize, setKernelSize] = useState(layer.kernel_size) // USed by ["conv2d"]
-    const [inputX, setInputX] = useState(layer.input_x) // Used by ["flatten"]
-    const [inputY, setInputY] = useState(layer.input_y) // Used by ["flatten"]
+    const [inputX, setInputX] = useState(layer.input_x || "") // Used by ["flatten"]
+    const [inputY, setInputY] = useState(layer.input_y || "") // Used by ["flatten"]
     const [probability, setProbability] = useState(layer.probability)   // Used by ["dropout"]
     const [activation, setActivation] = useState(layer.activation_function) // Used by ["dense", "conv2d"]
 
@@ -24,8 +24,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
         setNodes(layer.nodes_count)
         setFilters(layer.filters)
         setKernelSize(layer.kernel_size)
-        setInputX(layer.input_x)
-        setInputY(layer.input_y)
+        setInputX(layer.input_x || "")
+        setInputY(layer.input_y || "")
         setProbability(layer.probability)
         setActivation(layer.activation_function)
 
@@ -38,26 +38,57 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     }, [layer, prevLayer])
 
     useEffect(() => {
-        if (nodes != layer.nodes_count) {
-            setUpdated(true)
-        } else if (filters != layer.filters) {
-            setUpdated(true)
-        } else if (kernelSize != layer.kernel_size) {
-            setUpdated(true)
-        } else if (activation != layer.activation_function) {
-            setUpdated(true)
-        } else if (inputX != layer.input_x) {
-            setUpdated(true)
-        } else if (inputY != layer.input_y) {
-            setUpdated(true)
-        } else if (probability != layer.probability) {
-            setUpdated(true)
-        } else {
-            setUpdated(false)
+        setUpdated(false)
+
+        if (type == "dense") {
+            if (nodes != layer.nodes_count) {
+                setUpdated(true)
+            }
+        } 
+        if (type == "conv2d") {
+            if (filters != layer.filters) {
+                setUpdated(true)
+            } else if (kernelSize != layer.kernel_size) {
+                setUpdated(true)
+            }
         }
+        if (type != "flatten" && type != "dropout") { // Do not have activation functions
+            if (activation != layer.activation_function) {  
+                setUpdated(true)
+            }
+        }
+        if (type == "flatten") {
+            if (inputX != (layer.input_x || "")) {
+                setUpdated(true)
+            } else if (inputY != (layer.input_y || "")) {
+                setUpdated(true)
+            }
+        }
+        if (type == "dropout") {
+            if (probability != layer.probability) {
+                setUpdated(true)
+            }
+        }
+
     }, [nodes, filters, kernelSize, activation, inputX, inputY, probability])
 
+
+    function checkValidity() {
+        if (type == "flatten") {
+            if (inputX && !inputY || !inputX && inputY) {
+                notification("Either neither or both of width and height must be specified", "failure")
+                return false
+            }
+        }
+
+        return true;
+    }
+
     function updateLayer(e) {
+
+        let valid = checkValidity()
+        if (!valid) {return}
+
         const data = {
             "id": layer.id,
             "type": layer.layer_type,
@@ -107,8 +138,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
         }
 
         if (type == "conv2d") {
-            if (prevType == "dense") {
-                errorMessage += "A Conv2D layer cannot follow a Dense layer."
+            if (prevType != "conv2d") {
+                errorMessage += "A Conv2D layer must follow another Conv2d layer."
                 setWarnings(true)
             }
         }
@@ -211,21 +242,21 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         }}/>
                     </h1>
 
-                    {inputX && <div className="layer-element-stat">
+                    <div className="layer-element-stat">
                         <span className="layer-element-stat-color layer-element-stat-pink"></span>
                         <label className="layer-element-label" htmlFor="flattenX">Input width</label>
                         <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
                             setInputX(e.target.value)
                         }}></input>
-                    </div>}
+                    </div>
 
-                    {inputY && <div className="layer-element-stat">
+                    <div className="layer-element-stat">
                         <span className="layer-element-stat-color layer-element-stat-pink"></span>
                         <label className="layer-element-label" htmlFor="flattenY">Input height</label>
                         <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
                             setInputY(e.target.value)
                         }}></input>
-                    </div>}
+                    </div>
                 </form>}
 
                 {type == "dropout" && <form className="layer-element-inner">

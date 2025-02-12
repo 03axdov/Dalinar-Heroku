@@ -215,7 +215,9 @@ class AbstractLayer(models.Model):
     
     LAYER_CHOICES = [
         ("dense", "Dense"),
-        ("conv2d", "Conv2D")
+        ("conv2d", "Conv2D"),
+        ("flatten", "Flatten"),
+        ("dropout", "Dropout")
     ]
     layer_type = models.CharField(max_length=100, choices=LAYER_CHOICES, default="dense")
     
@@ -223,7 +225,7 @@ class AbstractLayer(models.Model):
         ("relu", "ReLU"),
         ("softmax", "Softmax")
     ]
-    activation_function = models.CharField(max_length=100, choices=ACTIVATION_CHOICES, default="")
+    activation_function = models.CharField(max_length=100, choices=ACTIVATION_CHOICES, default="", blank=True)
     
     class Meta:
         abstract = True  # Marks this model as abstract  
@@ -246,13 +248,21 @@ class Conv2DLayer(Layer):
     filters = models.PositiveIntegerField(default=1)
     kernel_size = models.PositiveIntegerField(default=3)
     
+    input_x = models.PositiveIntegerField(default=256, blank=True, null=True)
+    input_y = models.PositiveIntegerField(default=256, blank=True, null=True)
+    input_z = models.PositiveIntegerField(default=3, blank=True, null=True)
+    
     def __str__(self):
         return f"Conv2D ({self.filters}, {self.kernel_size}) - {self.model.name}"
     
     
+class MaxPooling2DLayer(Layer):
+    pool_size = models
+    
+    
 class FlattenLayer(Layer):
-    input_x = models.PositiveIntegerField(default=256, blank=True, null=True)
-    input_y = models.PositiveIntegerField(default=256, blank=True, null=True)
+    input_x = models.PositiveIntegerField(blank=True, null=True)
+    input_y = models.PositiveIntegerField(blank=True, null=True)
     
     def __str__(self):
         res = "Flatten"

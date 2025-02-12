@@ -1105,6 +1105,9 @@ class CreateLayer(APIView):
         elif layer_type == "conv2d":
             serializer = CreateConv2DLayerSerializer(data=data)
         elif layer_type == "flatten":
+            if not data["input_x"]: data["input_x"] = None
+            if not data["input_y"]: data["input_y"] = None
+            
             serializer = CreateFlattenLayerSerializer(data=data)
         elif layer_type == "dropout":
             serializer = CreateDropoutLayerSerializer(data=data)
@@ -1181,6 +1184,9 @@ class EditLayer(APIView):
                         layer.filters = request.data["filters"]
                         layer.kernel_size = request.data["kernel_size"]
                     elif layer_type == "flatten":
+                        if not request.data["input_x"]: request.data["input_x"] = None
+                        if not request.data["input_y"]: request.data["input_y"] = None
+            
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]
                     elif layer_type == "dropout":
