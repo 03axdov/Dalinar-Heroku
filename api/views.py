@@ -1093,7 +1093,7 @@ class CreateLayer(APIView):
         
         layer_type = data["type"]   # One of ["dense", "conv2d"]
         
-        ALLOWED_TYPES = set(["dense", "conv2d"])
+        ALLOWED_TYPES = set(["dense", "conv2d", "flatten"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1102,6 +1102,8 @@ class CreateLayer(APIView):
             serializer = CreateDenseLayerSerializer(data=data)
         elif layer_type == "conv2d":
             serializer = CreateConv2DLayerSerializer(data=data)
+        elif layer_type == "flatten":
+            serializer = CreateFlattenLayerSerializer(data=data)
         
         if serializer and serializer.is_valid():
             
@@ -1168,11 +1170,15 @@ class EditLayer(APIView):
                 
                 if layer.model.owner == user.profile:
                     
-                    if request.data["type"] == "dense":
+                    layer_type = request.data["type"]
+                    if layer_type == "dense":
                         layer.nodes_count = request.data["nodes_count"]
-                    elif request.data["type"] == "conv2d":
+                    elif layer_type == "conv2d":
                         layer.filters = request.data["filters"]
                         layer.kernel_size = request.data["kernel_size"]
+                    elif layer_type == "flatten":
+                        layer.input_x = request.data["input_x"]
+                        layer.input_y = request.data["input_y"]
                         
                     layer.save()
                 

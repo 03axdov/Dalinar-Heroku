@@ -2,13 +2,15 @@ import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 
-function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, notification, hasLine, prevLayer}) {
+function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, notification, hasLine, prevLayer, setWarnings}) {
 
     const [type, setType] = useState(null)  // Workaround to stop warning when reordering layers.
 
     const [nodes, setNodes] = useState(layer.nodes_count)   // Used by ["dense"]
     const [filters, setFilters] = useState(layer.filters)   // Used by ["conv2d"]
     const [kernelSize, setKernelSize] = useState(layer.kernel_size) // USed by ["conv2d"]
+    const [inputX, setInputX] = useState(layer.input_x)
+    const [inputY, setInputY] = useState(layer.input_y)
 
     const [updated, setUpdated] = useState(false)
 
@@ -18,9 +20,10 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
 
     useEffect(() => {
         setNodes(layer.nodes_count)
-
         setFilters(layer.filters)
         setKernelSize(layer.kernel_size)
+        setInputX(layer.input_x)
+        setInputY(layer.input_y)
 
         setType(layer.layer_type)
 
@@ -82,12 +85,14 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
         if (type == "dense") {
             if (prevType == "conv2d") {
                 errorMessage += "A Dense layer cannot follow a Conv2D layer."
+                setWarnings(true)
             }
         }
 
         if (type == "conv2d") {
             if (prevType == "dense") {
                 errorMessage += "A Conv2D layer cannot follow a Dense layer."
+                setWarnings(true)
             }
         }
 
@@ -96,7 +101,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
 
     return (<div className="layer-element-outer">
 
-            {type && <div className={"layer-element " + (hoveredLayer == layer.id ? "layer-element-hovered" : "")} ref={elementRef}>
+            {type && layer && <div className={"layer-element " + (hoveredLayer == layer.id ? "layer-element-hovered" : "")} ref={elementRef}>
 
                 {errorMessage && <p className="layer-element-warning">
                     <img className="layer-element-warning-icon" src={BACKEND_URL + "/static/images/failure.png"} />
@@ -143,6 +148,31 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         }}></input>
                     </div>
                 </form>}
+
+                {type == "flatten" && <form className="layer-element-inner">
+                <h1 className="layer-element-title">
+                    Flatten
+                    <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                        deleteLayer(layer.id)
+                    }}/>
+                </h1>
+
+                {inputX && <div className="layer-element-stat">
+                    <span className="layer-element-stat-color layer-element-stat-pink"></span>
+                    <label className="layer-element-label" htmlFor="flattenX">Input width</label>
+                    <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
+                        setInputX(e.target.value)
+                    }}></input>
+                </div>}
+
+                {inputY && <div className="layer-element-stat">
+                    <span className="layer-element-stat-color layer-element-stat-purple"></span>
+                    <label className="layer-element-label" htmlFor="flattenY">Input height</label>
+                    <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
+                        setInputY(e.target.value)
+                    }}></input>
+                </div>}
+            </form>}
 
                 <button type="button" 
                 className={"layer-element-save " + (!updated ? "layer-element-save-disabled" : "")}

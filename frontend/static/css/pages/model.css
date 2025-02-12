@@ -168,6 +168,7 @@
 .layer-element-stat-color, .model-sidebar-color {
     height: 14px;
     width: 14px;
+    min-width: 14px;
     margin-right: 7px;
     border-radius: 7px;
 }
@@ -182,6 +183,10 @@
 
 .layer-element-stat-blue, .model-sidebar-color-blue {
     background: rgb(0, 174, 255);
+}
+
+.layer-element-stat-pink, .model-sidebar-color-pink {
+    background: rgb(255, 38, 172);
 }
 
 .create-layer-line {

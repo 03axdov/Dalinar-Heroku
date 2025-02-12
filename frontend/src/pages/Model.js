@@ -31,6 +31,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [hoveredLayerTimeout, setHoveredLayerTimeout] = useState(null)
     const [hoveredLayer, setHoveredLayer] = useState(null)  // id of hovered layer
 
+    const [warnings, setWarnings] = useState(false)
+
     const [cursor, setCursor] = useState("")
 
     const descriptionContainerRef = useRef(null)
@@ -40,11 +42,16 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     // Used to map layer types to colors in sidebar
     const typeToColor = {
         "dense": "purple",
-        "conv2d": "lightblue"
+        "conv2d": "lightblue",
+        "flatten": "pink"
     }
 
     useEffect(() => {
         getModel()
+    }, [])
+
+    useEffect(() => {
+        setWarnings(false)
     }, [])
 
     useEffect(() => {
@@ -59,6 +66,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }, [currentProfile, model])
 
     function getModel() {
+
         setLoading(true)
         axios({
             method: 'GET',
@@ -88,17 +96,22 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
 
     function buildModel(e) {
-
+        if (warnings) {
+            notification("Warnings must be addressed before building model.", "failure")
+        }
     }
 
 
     // LAYER FUNCTIONALITY
 
     function getLayerName(layer) {
-        if (layer.layer_type == "dense") {
+        let type = layer.layer_type
+        if (type == "dense") {
             return "Dense - " + layer.nodes_count
-        } else if (layer.layer_type == "conv2d") {
+        } else if (type == "conv2d") {
             return "Conv2D - (" + layer.filters + ", " + layer.kernel_size + ")"
+        } else if (type == "flatten") {
+            return "Flatten" + (layer.input_x ? " - (" + layer.input_x + ", " + layer.input_y + ")" : "")
         }
     }
 
@@ -282,13 +295,16 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         document.addEventListener("mouseup", handleMouseUp);
     };
 
+    console.log(layers)
+
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
             {showCreateLayerPopup && <CreateLayerPopup BACKEND_URL={BACKEND_URL}
                                                     onSubmit={createLayer} 
                                                     setShowCreateLayerPopup={setShowCreateLayerPopup}
-                                                    processingCreateLayer={processingCreateLayer}></CreateLayerPopup>}
+                                                    processingCreateLayer={processingCreateLayer}
+                                                    notification={notification}></CreateLayerPopup>}
 
             <div className="dataset-toolbar-left" style={{width: toolbarLeftWidth + "px"}}>
                 <div className="model-toolbar-left-inner">
@@ -460,7 +476,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             getModel={getModel}
                             notification={notification}
                             hasLine={idx != layers.length - 1}
-                            prevLayer={(idx > 0 ? layers[idx - 1] : null)}></LayerElement>
+                            prevLayer={(idx > 0 ? layers[idx - 1] : null)}
+                            setWarnings={setWarnings}></LayerElement>
                         ))}
                     </div>}
                 </div>

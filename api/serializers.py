@@ -86,6 +86,8 @@ class LayerSerializer(serializers.BaseSerializer):
             return DenseLayerSerializer(instance).data
         elif isinstance(instance, Conv2DLayer):
             return Conv2DLayerSerializer(instance).data
+        elif isinstance(instance, Flatten):
+            return FlattenLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     
@@ -95,6 +97,8 @@ class CreateLayerSerializer(serializers.BaseSerializer):
             return CreateDenseLayerSerializer(instance).data
         elif isinstance(instance, Conv2DLayer):
             return CreateConv2DLayerSerializer(instance).data
+        elif isinstance(instance, Flatten):
+            return CreateFlattenLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
 
@@ -120,6 +124,18 @@ class CreateConv2DLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conv2DLayer
         fields = ["filters", "kernel_size"]
+        
+        
+class FlattenLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Flatten
+        fields = "__all__"
+        
+
+class CreateFlattenLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Flatten
+        fields = ["input_x", "input_y"]
         
         
 # MODEL HANDLING

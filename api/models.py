@@ -251,11 +251,11 @@ class Conv2DLayer(Layer):
     
     
 class Flatten(Layer):
-    input_x = models.PositiveIntegerField(default=256)
-    input_y = models.PositiveIntegerField(default=256)
+    input_x = models.PositiveIntegerField(default=256, blank=True, null=True)
+    input_y = models.PositiveIntegerField(default=256, blank=True, null=True)
     
     def __str__(self):
         res = "Flatten"
         if self.input_x:
-            res += f" ({input_x}, {input_y})"
+            res += f" ({self.input_x}, {self.input_y})"
         return res + " - " + self.model.name
