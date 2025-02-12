@@ -1091,9 +1091,11 @@ class CreateLayer(APIView):
     def post(self, request, format=None):
         data = self.request.data
         
-        layer_type = data["type"]   # One of ["dense", "conv2d"]
+        layer_type = data["type"]
         
-        ALLOWED_TYPES = set(["dense", "conv2d", "flatten"])
+        print(data)
+        
+        ALLOWED_TYPES = set(["dense", "conv2d", "flatten", "dropout"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1104,6 +1106,8 @@ class CreateLayer(APIView):
             serializer = CreateConv2DLayerSerializer(data=data)
         elif layer_type == "flatten":
             serializer = CreateFlattenLayerSerializer(data=data)
+        elif layer_type == "dropout":
+            serializer = CreateDropoutLayerSerializer(data=data)
         
         if serializer and serializer.is_valid():
             
@@ -1179,6 +1183,8 @@ class EditLayer(APIView):
                     elif layer_type == "flatten":
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]
+                    elif layer_type == "dropout":
+                        layer.probability = request.data["probability"]
                         
                     layer.activation_function = request.data["activation_function"]
                     layer.save()

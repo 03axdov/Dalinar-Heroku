@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save, post_delete
 from django.core.validators import FileExtensionValidator
 import os
-from django.core.validators import MaxLengthValidator
+from django.core.validators import MaxLengthValidator, MinValueValidator, MaxValueValidator
 
 from PIL import Image
 from io import BytesIO
@@ -250,7 +250,7 @@ class Conv2DLayer(Layer):
         return f"Conv2D ({self.filters}, {self.kernel_size}) - {self.model.name}"
     
     
-class Flatten(Layer):
+class FlattenLayer(Layer):
     input_x = models.PositiveIntegerField(default=256, blank=True, null=True)
     input_y = models.PositiveIntegerField(default=256, blank=True, null=True)
     
@@ -259,3 +259,12 @@ class Flatten(Layer):
         if self.input_x:
             res += f" ({self.input_x}, {self.input_y})"
         return res + " - " + self.model.name
+    
+    
+class DropoutLayer(Layer):
+    probability = models.FloatField(
+        validators=[MinValueValidator(0.0), MaxValueValidator(1.0)]
+    )
+    
+    def __str__(self):
+        return f"Dropout ({self.probability})"

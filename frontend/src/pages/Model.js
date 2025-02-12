@@ -43,7 +43,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const typeToColor = {
         "dense": "purple",
         "conv2d": "lightblue",
-        "flatten": "pink"
+        "flatten": "pink",
+        "dropout": "blue"
     }
 
     useEffect(() => {
@@ -112,6 +113,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             return "Conv2D - (" + layer.filters + ", " + layer.kernel_size + ")"
         } else if (type == "flatten") {
             return "Flatten" + (layer.input_x ? " - (" + layer.input_x + ", " + layer.input_y + ")" : "")
+        } else if (type == "dropout") {
+            return "Dropout (" + layer.probability + ")"
         }
     }
 
@@ -121,8 +124,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         const reorderLayers = [...layers];
         const [movedItem] = reorderLayers.splice(result.source.index, 1);
         reorderLayers.splice(result.destination.index, 0, movedItem);
-        console.log(layers)
-        console.log(reorderLayers)
         setLayers(reorderLayers);
 
         let idToIdx = {}
@@ -295,8 +296,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         document.addEventListener("mouseup", handleMouseUp);
     };
 
-    console.log(layers)
-
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
@@ -339,7 +338,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                         // Set a timeout to show the preview after 200ms
                                         const timeoutId = setTimeout(() => {
                                             setHoveredLayer(layer.id)
-                                        }, 500);
+                                        }, 0);  // Currently no delay
 
                                         // Store the timeout ID so it can be cleared later
                                         setHoveredLayerTimeout(timeoutId);
@@ -368,9 +367,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         </Droppable>
                     </DragDropContext>
                     
-
+                    <div className="model-reorder-text">Drag layers to reorder.</div>
                 </div>
                 <div className="dataset-toolbar-resizeable" onMouseDown={resizeLeftToolbarHandleMouseDown}></div>
+                
             </div>
 
             <div className="dataset-main" style={{width: "calc(100% - " + toolbarLeftWidth + "px)"}}>

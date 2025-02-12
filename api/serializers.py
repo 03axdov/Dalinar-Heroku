@@ -86,8 +86,10 @@ class LayerSerializer(serializers.BaseSerializer):
             return DenseLayerSerializer(instance).data
         elif isinstance(instance, Conv2DLayer):
             return Conv2DLayerSerializer(instance).data
-        elif isinstance(instance, Flatten):
+        elif isinstance(instance, FlattenLayer):
             return FlattenLayerSerializer(instance).data
+        elif isinstance(instance, DropoutLayer):
+            return DropoutLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     
@@ -97,8 +99,10 @@ class CreateLayerSerializer(serializers.BaseSerializer):
             return CreateDenseLayerSerializer(instance).data
         elif isinstance(instance, Conv2DLayer):
             return CreateConv2DLayerSerializer(instance).data
-        elif isinstance(instance, Flatten):
+        elif isinstance(instance, FlattenLayer):
             return CreateFlattenLayerSerializer(instance).data
+        elif isinstance(instance, DropoutLayer):
+            return CreateDropoutLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
 
@@ -128,15 +132,26 @@ class CreateConv2DLayerSerializer(serializers.ModelSerializer):
         
 class FlattenLayerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Flatten
+        model = FlattenLayer
         fields = "__all__"
         
 
 class CreateFlattenLayerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Flatten
+        model = FlattenLayer
         fields = ["input_x", "input_y"]
         
+        
+class DropoutLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DropoutLayer
+        fields = "__all__"
+        
+
+class CreateDropoutLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DropoutLayer
+        fields = ["probability"]        
         
 # MODEL HANDLING
 

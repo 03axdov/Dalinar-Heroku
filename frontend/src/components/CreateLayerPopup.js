@@ -13,6 +13,8 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
     const [inputX, setInputX] = useState("")    // Used for layers of type ["flatten"]
     const [inputY, setInputY] = useState("")    // Used for layers of type ["flatten"]
 
+    const [probability, setProbability] = useState(0.2) // Used for layers of type ["dropout"]
+
     const [activation, setActivation] = useState("")    // Used for layers of type ["dense", "conv2d"]
 
     return (
@@ -34,23 +36,34 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         "activation_function": activation
                     }
  
-                    data["nodes_count"] = nodesCount
-
-                    data["filters"] = filters
-                    data["kernel_size"] = kernelSize
-
-                    data["input_x"] = inputX
-                    if (inputX && (inputX > 512 || inputX <= 0)) {
-                        notification("Input width must be positive and no more than 512.", "failure")
-                        return;
+                    if (type == "dense") {
+                        data["nodes_count"] = nodesCount
                     }
-                    data["input_y"] = inputY
-                    if (inputY && (inputY > 512 || inputY <= 0)) {
-                        notification("Input height must be positive and no more than 512.", "failure")
-                        return;
+                    
+                    if (type == "conv2d") {
+                        data["filters"] = filters
+                        data["kernel_size"] = kernelSize
                     }
 
-                    if (type == "flatten") {    // Flatten layers cannot have activation functions
+                    if (type == "flatten") {
+                        data["input_x"] = inputX
+                        if (inputX && (inputX > 512 || inputX <= 0)) {
+                            notification("Input width must be positive and no more than 512.", "failure")
+                            return;
+                        }
+                        data["input_y"] = inputY
+                        if (inputY && (inputY > 512 || inputY <= 0)) {
+                            notification("Input height must be positive and no more than 512.", "failure")
+                            return;
+                        }
+                    }
+                    
+                    if (type == "dropout") {
+                        data["probability"] = probability
+                    }
+                    
+
+                    if (type == "flatten" || type == "dropout") {    // These layers cannot have activation functions
                         data["activation_function"] = ""
                     }
 
@@ -64,6 +77,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             <option value="dense">Dense</option>
                             <option value="conv2d">Conv2D</option>
                             <option value="flatten">Flatten</option>
+                            <option value="dropout">Dropout</option>
                         </select>
                     </div>
 
@@ -129,6 +143,15 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             <label className="create-dataset-label" htmlFor="layer-inputY">Input height <span className="create-dataset-required">(optional)</span></label>
                             <input className="create-dataset-inp" id="layer-inputY" type="number" value={inputY} onChange={(e) => {
                                 setInputY(e.target.value)
+                            }} />
+                        </div>
+                    </div>}
+
+                    {type == "dropout" && <div className="create-layer-type-fields">
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label" htmlFor="layer-probability">Probability</label>
+                            <input className="create-dataset-inp" id="layer-probability" type="number" value={probability} step="0.05" onChange={(e) => {
+                                setProbability(Math.max(0, Math.min(1, e.target.value)))
                             }} />
                         </div>
                     </div>}

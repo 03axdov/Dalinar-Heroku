@@ -193,7 +193,7 @@
     background: rgb(255, 38, 172);
 }
 
-.layer-element-stat-pink2, .model-sidebar-color-pink {
+.layer-element-stat-pink2, .model-sidebar-color-pink-2 {
     background: rgb(255, 38, 74);
 }
 
@@ -208,14 +208,18 @@
     width: 100%;
 }
 
-.layer-element-delete {
-    height: 22px;
-    width: 22px;
+.layer-element-delete, .layer-element-drag {
+    height: 24px;
+    width: 24px;
     padding: 5px;
     box-sizing: border-box;
     border-radius: 11px;
-    margin-left: auto;
+    margin-left: 5px;
     margin-right: 0;
+}
+
+.layer-element-drag {
+    margin-left: auto;
 }
 
 .layer-element-delete:hover {
@@ -360,3 +364,13 @@
     font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
 }
 
+.model-reorder-text {
+    width: 100%;
+    padding: 0 10px;
+    box-sizing: border-box;
+    text-align: center;
+    font-size: 0.9rem;
+    margin-top: auto;
+    margin-bottom: 10px;
+    color: var(--gray-text);
+}
