@@ -2,7 +2,7 @@ import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 
-function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, notification, hasLine, prevLayer, setWarnings}) {
+function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, notification, hasLine, prevLayer, setWarnings, provided, updateWarnings}) {
 
     const [type, setType] = useState(null)  // Workaround to stop warning when reordering layers.
 
@@ -35,7 +35,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
 
     useEffect(() => {
         getErrorMessage()
-    }, [layer, prevLayer])
+    }, [updateWarnings])
 
     useEffect(() => {
         setUpdated(false)
@@ -138,7 +138,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
         }
 
         if (type == "conv2d") {
-            if (prevType != "conv2d") {
+            console.log(prevType)
+            if (prevType && prevType != "conv2d") {
                 errorMessage += "A Conv2D layer must follow another Conv2d layer."
                 setWarnings(true)
             }
@@ -154,7 +155,11 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
         setErrorMessage(errorMessage)
     }
 
-    return (<div className="layer-element-outer">
+    return (<div className="layer-element-outer" 
+        {...provided.draggableProps}
+        style={{...provided.draggableProps.style}}
+        ref={provided.innerRef}
+        >
 
             {type && layer && <div className={"layer-element " + (hoveredLayer == layer.id ? "layer-element-hovered" : "")} ref={elementRef}>
 
@@ -167,7 +172,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                     <h1 className="layer-element-title">
                         <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/dense.svg"} />
                         Dense
-                        <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"}/>
+                        <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
                         <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                             deleteLayer(layer.id)
                         }}/>
@@ -197,7 +202,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                     <h1 className="layer-element-title">
                         <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
                         Conv2D
-                        <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"}/>
+                        <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
                         <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                             deleteLayer(layer.id)
                         }}/>
@@ -236,7 +241,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                     <h1 className="layer-element-title">
                         <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/area.svg"} />
                         Flatten
-                        <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"}/>
+                        <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
                         <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                             deleteLayer(layer.id)
                         }}/>
@@ -263,7 +268,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                     <h1 className="layer-element-title">
                         <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/dropout.svg"} />
                         Dropout
-                        <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"}/>
+                        <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
                         <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                             deleteLayer(layer.id)
                         }}/>
@@ -280,14 +285,14 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                 </form>}
 
                 <button type="button" 
-                className={"layer-element-save " + (!updated ? "layer-element-save-disabled" : "")}
-                title={(updated ? "Save changes" : "No changes")}
-                onClick={updateLayer}>
-                Save changes
+                    className={"layer-element-save " + (!updated ? "layer-element-save-disabled" : "")}
+                    title={(updated ? "Save changes" : "No changes")}
+                    onClick={updateLayer}>
+                    Save changes
                 </button>
             </div>}
 
-            {hasLine && type && <div className="layer-element-connection"></div>}
+            {/*hasLine && type && <div className="layer-element-connection"></div>*/}   {/* Hide for now */}
     </div>)
 }
 

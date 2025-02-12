@@ -32,6 +32,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [hoveredLayer, setHoveredLayer] = useState(null)  // id of hovered layer
 
     const [warnings, setWarnings] = useState(false)
+    const [updateWarnings, setUpdateWarnings] = useState(false)
 
     const [cursor, setCursor] = useState("")
 
@@ -54,6 +55,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     useEffect(() => {
         setWarnings(false)
     }, [])
+
+    useEffect(() => {
+        console.log("UPDATE WARNINGS")
+        setUpdateWarnings(!updateWarnings)
+    }, [layers])
 
     useEffect(() => {
         if (currentProfile && model && !loading) {
@@ -418,7 +424,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                     </div>
                 </div>
 
-                <div className="dataset-main-display">
+                <div className="dataset-main-display" style={{overflow: "hidden"}}>
                     {showModelDescription && model &&<div className="dataset-description-display-container" ref={descriptionContainerRef}>
                         <div className="dataset-description-image-container" style={{width: "calc(100% - " + descriptionWidth + "%)"}}>
                             <img className="dataset-description-image" src={model.image} />
@@ -468,18 +474,32 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
                     </div>}
 
-                    {!showModelDescription && <div className="model-layers-container">
-                        {layers.map((layer, idx) => (<LayerElement key={idx} BACKEND_URL={BACKEND_URL} 
-                            layer={layer} 
-                            hoveredLayer={hoveredLayer} 
-                            deleteLayer={deleteLayer}
-                            getModel={getModel}
-                            notification={notification}
-                            hasLine={idx != layers.length - 1}
-                            prevLayer={(idx > 0 ? layers[idx - 1] : null)}
-                            setWarnings={setWarnings}></LayerElement>
-                        ))}
-                    </div>}
+                    {!showModelDescription && <DragDropContext className="model-layers-container-outer" onDragEnd={layersHandleDragEnd}>
+                        <Droppable droppableId="models-droppable" direction="horizontal">
+                        {(provided) => (<div className="model-layers-container"
+                        {...provided.droppableProps}
+                        ref={provided.innerRef}>
+                            {layers.map((layer, idx) => (<Draggable key={layer.id} draggableId={"" + layer.id} index={idx} >
+                                    {(provided) => (<LayerElement BACKEND_URL={BACKEND_URL} 
+                                        layer={layer} 
+                                        hoveredLayer={hoveredLayer} 
+                                        deleteLayer={deleteLayer}
+                                        getModel={getModel}
+                                        notification={notification}
+                                        hasLine={idx != layers.length - 1}
+                                        prevLayer={(idx > 0 ? layers[idx - 1] : null)}
+                                        setWarnings={setWarnings}
+                                        provided={provided}
+                                        updateWarnings={updateWarnings}>
+
+                                    </LayerElement>)}
+                                </Draggable>
+                            ))}
+                            {provided.placeholder}
+                        </div>)}
+                        </Droppable>
+                    </DragDropContext>}
+                    
                 </div>
             </div>
         </div>
