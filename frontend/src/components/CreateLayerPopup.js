@@ -82,7 +82,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             <select className="create-dataset-inp" id="dense-activation-function" required value={activation} onChange={(e) => {
                                 setActivation(e.target.value)
                             }}>
-                                <option value="">None</option>
+                                <option value="">-</option>
                                 <option value="relu">ReLU</option>
                                 <option value="softmax">Softmax</option>
                             </select>
@@ -109,7 +109,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             <select className="create-dataset-inp" id="dense-activation-function" value={activation} onChange={(e) => {
                                 setActivation(e.target.value)
                             }}>
-                                <option value="">None</option>
+                                <option value="">-</option>
                                 <option value="relu">ReLU</option>
                                 <option value="softmax">Softmax</option>
                             </select>

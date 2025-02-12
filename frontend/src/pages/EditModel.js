@@ -94,7 +94,12 @@ function EditModel({activateConfirmPopup, notification, BACKEND_URL}) {
         axios.post(URL, formData, config)
         .then((data) => {
             console.log("Success:", data);
-            navigate("/home")
+            
+            if (expandedParam) {
+                navigate("/models/" + id)
+            } else {
+                navigate("/home?start=models")
+            }
             notification("Successfully updated model " + name + ".", "success")
         }).catch((error) => {
             notification("An error occurred.", "failure")

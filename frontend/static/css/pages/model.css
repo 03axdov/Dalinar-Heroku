@@ -159,10 +159,14 @@
     background: var(--toolbar-light);
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: start;
     align-items: center;
 }
 
+.layer-element-title-icon {
+    width: 20px;
+    margin-right: 10px;
+}
 
 
 .layer-element-stat-color, .model-sidebar-color {
@@ -189,6 +193,14 @@
     background: rgb(255, 38, 172);
 }
 
+.layer-element-stat-pink2, .model-sidebar-color-pink {
+    background: rgb(255, 38, 74);
+}
+
+.layer-element-stat-gray {
+    background: rgb(150, 150, 150);
+}
+
 .create-layer-line {
     margin-top: 30px;
     margin-bottom: 30px;
@@ -202,7 +214,8 @@
     padding: 5px;
     box-sizing: border-box;
     border-radius: 11px;
-    margin-left: 20px;
+    margin-left: auto;
+    margin-right: 0;
 }
 
 .layer-element-delete:hover {
@@ -290,8 +303,14 @@
     align-items: center;
 }
 
+.model-download-icon {
+    width: 20px;
+    margin-right: 10px;
+}
+
 .layer-element-label {
     margin-right: 20px;
+    white-space: nowrap;
 }
 
 .layer-element-input {
@@ -335,3 +354,9 @@
     margin-bottom: 20px;
     align-items: center;
 }
+
+.layer-element-activation-input {
+    width: 100px;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+}
+

@@ -11,6 +11,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     const [kernelSize, setKernelSize] = useState(layer.kernel_size) // USed by ["conv2d"]
     const [inputX, setInputX] = useState(layer.input_x)
     const [inputY, setInputY] = useState(layer.input_y)
+    const [activation, setActivation] = useState(layer.activation_function)
 
     const [updated, setUpdated] = useState(false)
 
@@ -24,6 +25,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
         setKernelSize(layer.kernel_size)
         setInputX(layer.input_x)
         setInputY(layer.input_y)
+        setActivation(layer.activation_function)
 
         setType(layer.layer_type)
 
@@ -40,10 +42,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
             setUpdated(true)
         } else if (kernelSize != layer.kernel_size) {
             setUpdated(true)
+        } else if (activation != layer.activation_function) {
+            setUpdated(true)
         } else {
             setUpdated(false)
         }
-    }, [nodes, filters, kernelSize])
+    }, [nodes, filters, kernelSize, activation])
 
     function updateLayer(e) {
         const data = {
@@ -52,7 +56,9 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
 
             "nodes_count": nodes,
             "filters": filters,
-            "kernel_size": kernelSize
+            "kernel_size": kernelSize,
+
+            "activation_function": activation
         }
         
         axios.defaults.withCredentials = true;
@@ -110,6 +116,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
 
                 {type == "dense" && <form className="layer-element-inner">
                     <h1 className="layer-element-title">
+                        <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/dense.svg"} />
                         Dense
                         <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                             deleteLayer(layer.id)
@@ -122,10 +129,23 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                             setNodes(Math.max(0, Math.min(e.target.value, 512)))
                         }}></input>
                     </div>
+
+                    <div className="layer-element-stat layer-element-activation">
+                    <span className="layer-element-stat-color layer-element-stat-gray"></span>
+                        <label className="layer-element-label" htmlFor="activation">Activation function</label>
+                        <select className="layer-element-input layer-element-activation-input" id="activation" value={activation} onChange={(e) => {
+                                setActivation(e.target.value)
+                            }}>
+                                <option value="">-</option>
+                                <option value="relu">ReLU</option>
+                                <option value="softmax">Softmax</option>
+                            </select>
+                    </div>
                 </form>}
 
                 {type == "conv2d" && <form className="layer-element-inner">
                     <h1 className="layer-element-title">
+                        <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
                         Conv2D
                         <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                             deleteLayer(layer.id)
@@ -147,32 +167,45 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                             setKernelSize(Math.max(0, Math.min(100, e.target.value)))
                         }}></input>
                     </div>
+
+                    <div className="layer-element-stat layer-element-activation">
+                    <span className="layer-element-stat-color layer-element-stat-gray"></span>
+                        <label className="layer-element-label" htmlFor="activation">Activation function</label>
+                        <select className="layer-element-input layer-element-activation-input" id="activation" value={activation} onChange={(e) => {
+                                setActivation(e.target.value)
+                            }}>
+                                <option value="">-</option>
+                                <option value="relu">ReLU</option>
+                                <option value="softmax">Softmax</option>
+                            </select>
+                    </div>
                 </form>}
 
                 {type == "flatten" && <form className="layer-element-inner">
-                <h1 className="layer-element-title">
-                    Flatten
-                    <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                        deleteLayer(layer.id)
-                    }}/>
-                </h1>
+                    <h1 className="layer-element-title">
+                        <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/area.svg"} />
+                        Flatten
+                        <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                            deleteLayer(layer.id)
+                        }}/>
+                    </h1>
 
-                {inputX && <div className="layer-element-stat">
-                    <span className="layer-element-stat-color layer-element-stat-pink"></span>
-                    <label className="layer-element-label" htmlFor="flattenX">Input width</label>
-                    <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
-                        setInputX(e.target.value)
-                    }}></input>
-                </div>}
+                    {inputX && <div className="layer-element-stat">
+                        <span className="layer-element-stat-color layer-element-stat-pink"></span>
+                        <label className="layer-element-label" htmlFor="flattenX">Input width</label>
+                        <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
+                            setInputX(e.target.value)
+                        }}></input>
+                    </div>}
 
-                {inputY && <div className="layer-element-stat">
-                    <span className="layer-element-stat-color layer-element-stat-purple"></span>
-                    <label className="layer-element-label" htmlFor="flattenY">Input height</label>
-                    <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
-                        setInputY(e.target.value)
-                    }}></input>
-                </div>}
-            </form>}
+                    {inputY && <div className="layer-element-stat">
+                        <span className="layer-element-stat-color layer-element-stat-pink2"></span>
+                        <label className="layer-element-label" htmlFor="flattenY">Input height</label>
+                        <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
+                            setInputY(e.target.value)
+                        }}></input>
+                    </div>}
+                </form>}
 
                 <button type="button" 
                 className={"layer-element-save " + (!updated ? "layer-element-save-disabled" : "")}

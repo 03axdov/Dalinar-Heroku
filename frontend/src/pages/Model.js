@@ -406,7 +406,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
                         {model && <button className="model-download-button model-download-button" onClick={() => {
                             setShowDownloadPopup(true)
-                        }} title="Download model"><img className="dataset-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>Download</button>}
+                        }} title="Download model"><img className="model-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>Download</button>}
 
                     </div>
                     

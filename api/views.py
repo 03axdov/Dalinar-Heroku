@@ -1180,6 +1180,7 @@ class EditLayer(APIView):
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]
                         
+                    layer.activation_function = request.data["activation_function"]
                     layer.save()
                 
                     return Response(None, status=status.HTTP_200_OK)

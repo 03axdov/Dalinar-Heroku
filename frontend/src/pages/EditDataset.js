@@ -108,7 +108,11 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         axios.post(URL, formData, config)
         .then((data) => {
             console.log("Success:", data);
-            navigate("/home")
+            if (expandedParam) {
+                navigate("/datasets/" + id)
+            } else {
+                navigate("/home")
+            }
             notification("Successfully updated dataset " + name + ".", "success")
         }).catch((error) => {
             notification("An error occurred.", "failure")

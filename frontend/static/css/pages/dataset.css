@@ -1221,9 +1221,6 @@ canvas {
         height: calc(100% - 300px);
     }
 
-    .dataset-title-container {
-        margin-left: 10px;
-    }
 }
 
 @media all and (max-width: 650px) {
