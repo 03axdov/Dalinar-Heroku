@@ -111,12 +111,14 @@
 }
 
 .layer-element-outer {
-
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .layer-element {
     background: var(--toolbar);
-    max-height: 95%;
     min-width: 150px;
     padding: 10px;
     box-sizing: border-box;
