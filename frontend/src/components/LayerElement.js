@@ -2,7 +2,7 @@ import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 
-function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, notification, hasLine, prevLayer, setWarnings, provided, updateWarnings}) {
+function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, notification, prevLayer, setWarnings, provided, updateWarnings}) {
 
     const [type, setType] = useState(null)  // Workaround to stop warning when reordering layers.
 
@@ -124,7 +124,11 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     }
 
     function getErrorMessage() {
-        if (!prevLayer) {return}    // Currently no issues that can arise in this case
+        setWarnings(false)
+        if (!prevLayer) {
+            setErrorMessage("")
+            return
+        }    // Currently no issues that can arise in this case
 
         let errorMessage = ""
         let type = layer.layer_type
@@ -138,7 +142,6 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
         }
 
         if (type == "conv2d") {
-            console.log(prevType)
             if (prevType && prevType != "conv2d") {
                 errorMessage += "A Conv2D layer must follow another Conv2d layer."
                 setWarnings(true)
@@ -155,145 +158,155 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
         setErrorMessage(errorMessage)
     }
 
-    return (<div className="layer-element-outer" 
-        {...provided.draggableProps}
-        style={{...provided.draggableProps.style}}
-        ref={provided.innerRef}
-        >
-
-            {type && layer && <div className={"layer-element " + (hoveredLayer == layer.id ? "layer-element-hovered" : "")} ref={elementRef}>
-
-                {errorMessage && <p className="layer-element-warning">
-                    <img className="layer-element-warning-icon" src={BACKEND_URL + "/static/images/failure.png"} />
-                    <span className="layer-element-warning-text">{errorMessage}</span>
-                </p>}
-
-                {type == "dense" && <form className="layer-element-inner">
-                    <h1 className="layer-element-title">
-                        <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/dense.svg"} />
-                        Dense
-                        <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
-                        <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                            deleteLayer(layer.id)
-                        }}/>
-                    </h1>
-                    <div className="layer-element-stat">
-                        <span className="layer-element-stat-color layer-element-stat-purple"></span>
-                        <label className="layer-element-label" htmlFor="denseNodes">Nodes</label>
-                        <input type="number" className="layer-element-input" id="denseNodes" value={nodes} onChange={(e) => {
-                            setNodes(Math.max(0, Math.min(e.target.value, 512)))
-                        }}></input>
-                    </div>
-
-                    <div className="layer-element-stat layer-element-activation">
-                    <span className="layer-element-stat-color layer-element-stat-gray"></span>
-                        <label className="layer-element-label" htmlFor="activation">Activation function</label>
-                        <select className="layer-element-input layer-element-activation-input" id="activation" value={activation} onChange={(e) => {
-                                setActivation(e.target.value)
-                            }}>
-                                <option value="">-</option>
-                                <option value="relu">ReLU</option>
-                                <option value="softmax">Softmax</option>
-                            </select>
-                    </div>
-                </form>}
-
-                {type == "conv2d" && <form className="layer-element-inner">
-                    <h1 className="layer-element-title">
-                        <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
-                        Conv2D
-                        <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
-                        <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                            deleteLayer(layer.id)
-                        }}/>
-                    </h1>
-
-                    <div className="layer-element-stat">
+    
+    if (type) {
+        return (<div className="layer-element-outer" 
+            {...provided.draggableProps}
+            style={{...provided.draggableProps.style}}
+            ref={provided.innerRef}
+            >
+    
+                {type && layer && <div className={"layer-element " + (hoveredLayer == layer.id ? "layer-element-hovered" : "")} ref={elementRef}>
+    
+                    {errorMessage && <p className="layer-element-warning">
+                        <img className="layer-element-warning-icon" src={BACKEND_URL + "/static/images/failure.png"} />
+                        <span className="layer-element-warning-text">{errorMessage}</span>
+                    </p>}
+    
+                    {type == "dense" && <form className="layer-element-inner">
+                        <h1 className="layer-element-title">
+                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/dense.svg"} />
+                            Dense
+                            <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
+                            <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                                deleteLayer(layer.id)
+                            }}/>
+                        </h1>
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-purple"></span>
+                            <label className="layer-element-label" htmlFor="denseNodes">Nodes</label>
+                            <input type="number" className="layer-element-input" id="denseNodes" value={nodes} onChange={(e) => {
+                                setNodes(Math.max(0, Math.min(e.target.value, 512)))
+                            }}></input>
+                        </div>
+    
+                        <div className="layer-element-stat layer-element-activation">
+                        <span className="layer-element-stat-color layer-element-stat-gray"></span>
+                            <label className="layer-element-label" htmlFor="activation">Activation function</label>
+                            <select className="layer-element-input layer-element-activation-input" id="activation" value={activation} onChange={(e) => {
+                                    setActivation(e.target.value)
+                                }}>
+                                    <option value="">-</option>
+                                    <option value="relu">ReLU</option>
+                                    <option value="softmax">Softmax</option>
+                                </select>
+                        </div>
+                    </form>}
+    
+                    {type == "conv2d" && <form className="layer-element-inner">
+                        <h1 className="layer-element-title">
+                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
+                            Conv2D
+                            <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
+                            <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                                deleteLayer(layer.id)
+                            }}/>
+                        </h1>
+    
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
+                            <label className="layer-element-label" htmlFor="filters">Filters</label>
+                            <input type="number" className="layer-element-input" id="filters" value={filters} onChange={(e) => {
+                                setFilters(Math.max(0, Math.min(e.target.value, 100)))
+                            }}></input>
+                        </div>
+    
+                        <div className="layer-element-stat">
                         <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
-                        <label className="layer-element-label" htmlFor="filters">Filters</label>
-                        <input type="number" className="layer-element-input" id="filters" value={filters} onChange={(e) => {
-                            setFilters(Math.max(0, Math.min(e.target.value, 100)))
-                        }}></input>
-                    </div>
+                            <label className="layer-element-label" htmlFor="kernelSize">Kernel size</label>
+                            <input type="number" className="layer-element-input" id="kernelSize" value={kernelSize} onChange={(e) => {
+                                setKernelSize(Math.max(0, Math.min(100, e.target.value)))
+                            }}></input>
+                        </div>
+    
+                        <div className="layer-element-stat layer-element-activation">
+                        <span className="layer-element-stat-color layer-element-stat-gray"></span>
+                            <label className="layer-element-label" htmlFor="activation">Activation function</label>
+                            <select className="layer-element-input layer-element-activation-input" id="activation" value={activation} onChange={(e) => {
+                                    setActivation(e.target.value)
+                                }}>
+                                    <option value="">-</option>
+                                    <option value="relu">ReLU</option>
+                                    <option value="softmax">Softmax</option>
+                                </select>
+                        </div>
+                    </form>}
+    
+                    {type == "flatten" && <form className="layer-element-inner">
+                        <h1 className="layer-element-title">
+                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/area.svg"} />
+                            Flatten
+                            <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
+                            <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                                deleteLayer(layer.id)
+                            }}/>
+                        </h1>
+    
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-pink"></span>
+                            <label className="layer-element-label" htmlFor="flattenX">Input width</label>
+                            <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
+                                setInputX(e.target.value)
+                            }}></input>
+                        </div>
+    
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-pink"></span>
+                            <label className="layer-element-label" htmlFor="flattenY">Input height</label>
+                            <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
+                                setInputY(e.target.value)
+                            }}></input>
+                        </div>
+                    </form>}
+    
+                    {type == "dropout" && <form className="layer-element-inner">
+                        <h1 className="layer-element-title">
+                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/dropout.svg"} />
+                            Dropout
+                            <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
+                            <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                                deleteLayer(layer.id)
+                            }}/>
+                        </h1>
+    
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-blue"></span>
+                            <label className="layer-element-label" htmlFor="probability">Probability</label>
+                            <input type="number" step="0.05" className="layer-element-input" id="probability" value={probability} onChange={(e) => {
+                                setProbability(Math.max(0, Math.min(1, e.target.value)))
+                            }}></input>
+                        </div>
+    
+                    </form>}
+    
+                    <button type="button" 
+                        className={"layer-element-save " + (!updated ? "layer-element-save-disabled" : "")}
+                        title={(updated ? "Save changes" : "No changes")}
+                        onClick={updateLayer}>
+                        Save changes
+                    </button>
+                </div>}
+    
+                {/*hasLine && type && <div className="layer-element-connection"></div>*/}   {/* Hide for now */}
+        </div>)
 
-                    <div className="layer-element-stat">
-                    <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
-                        <label className="layer-element-label" htmlFor="kernelSize">Kernel size</label>
-                        <input type="number" className="layer-element-input" id="kernelSize" value={kernelSize} onChange={(e) => {
-                            setKernelSize(Math.max(0, Math.min(100, e.target.value)))
-                        }}></input>
-                    </div>
-
-                    <div className="layer-element-stat layer-element-activation">
-                    <span className="layer-element-stat-color layer-element-stat-gray"></span>
-                        <label className="layer-element-label" htmlFor="activation">Activation function</label>
-                        <select className="layer-element-input layer-element-activation-input" id="activation" value={activation} onChange={(e) => {
-                                setActivation(e.target.value)
-                            }}>
-                                <option value="">-</option>
-                                <option value="relu">ReLU</option>
-                                <option value="softmax">Softmax</option>
-                            </select>
-                    </div>
-                </form>}
-
-                {type == "flatten" && <form className="layer-element-inner">
-                    <h1 className="layer-element-title">
-                        <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/area.svg"} />
-                        Flatten
-                        <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
-                        <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                            deleteLayer(layer.id)
-                        }}/>
-                    </h1>
-
-                    <div className="layer-element-stat">
-                        <span className="layer-element-stat-color layer-element-stat-pink"></span>
-                        <label className="layer-element-label" htmlFor="flattenX">Input width</label>
-                        <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
-                            setInputX(e.target.value)
-                        }}></input>
-                    </div>
-
-                    <div className="layer-element-stat">
-                        <span className="layer-element-stat-color layer-element-stat-pink"></span>
-                        <label className="layer-element-label" htmlFor="flattenY">Input height</label>
-                        <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
-                            setInputY(e.target.value)
-                        }}></input>
-                    </div>
-                </form>}
-
-                {type == "dropout" && <form className="layer-element-inner">
-                    <h1 className="layer-element-title">
-                        <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/dropout.svg"} />
-                        Dropout
-                        <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
-                        <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                            deleteLayer(layer.id)
-                        }}/>
-                    </h1>
-
-                    <div className="layer-element-stat">
-                        <span className="layer-element-stat-color layer-element-stat-blue"></span>
-                        <label className="layer-element-label" htmlFor="probability">Probability</label>
-                        <input type="number" step="0.05" className="layer-element-input" id="probability" value={probability} onChange={(e) => {
-                            setProbability(Math.max(0, Math.min(1, e.target.value)))
-                        }}></input>
-                    </div>
-
-                </form>}
-
-                <button type="button" 
-                    className={"layer-element-save " + (!updated ? "layer-element-save-disabled" : "")}
-                    title={(updated ? "Save changes" : "No changes")}
-                    onClick={updateLayer}>
-                    Save changes
-                </button>
-            </div>}
-
-            {/*hasLine && type && <div className="layer-element-connection"></div>*/}   {/* Hide for now */}
-    </div>)
+    } else {    // Avoids warnings
+        return (<div {...provided.draggableProps}
+            style={{...provided.draggableProps.style}}
+            ref={provided.innerRef}
+            {...provided.dragHandleProps}></div>)
+    }
+    
 }
 
 
