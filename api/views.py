@@ -13,6 +13,7 @@ from django.urls import resolve
 import json
 from rest_framework.test import APIRequestFactory
 import math
+import tensorflow as tf
 
 from django.core.files.base import ContentFile
 from io import BytesIO
@@ -1075,11 +1076,38 @@ class ReorderModelLayers(APIView):
             return Response({"Unauthorized": "Must be logged in to reorder layers."}, status=status.HTTP_401_UNAUTHORIZED)
         
         
+def layer_to_tf_layer(layer):
+    pass
+        
+        
 class BuildModel(APIView):
     parser_classes = [JSONParser]
 
     def post(self, request, format=None):
-        pass
+        model_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                instance = Model.objects.get(id=model_id)
+                
+                if instance.owner == user.profile:
+                    try:
+                        model = tf.keras.Sequential()
+                        
+                        for layer in instance.layers.all():
+                            pass
+                
+                    except ValueError as e: # In case of invalid layer combination
+                        print("Error: ", e)
+                        return Response({"Bad request": "Invalid layer combination detected."}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"Unauthorized": "You can only build your own models."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Model.DoesNotExist:
+                return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "Must be logged in to build models."}, status=status.HTTP_401_UNAUTHORIZED)
            
         
 # LAYER FUNCTIONALITY

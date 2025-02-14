@@ -202,10 +202,12 @@ class Model(models.Model):
     
     
 @receiver(post_delete, sender=Model)
-def delete_model_images(sender, instance, **kwargs):
+def delete_model_files(sender, instance, **kwargs):
     if instance.image:
         instance.image.delete(save=False)
         instance.imageSmall.delete(save=False)
+    if instance.model_file:
+        instance.model_file.delete(save=False)
     
     
 # LAYERS

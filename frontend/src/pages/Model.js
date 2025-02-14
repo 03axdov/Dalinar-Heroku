@@ -5,6 +5,7 @@ import axios from "axios"
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import CreateLayerPopup from "../components/CreateLayerPopup";
 import LayerElement from "../components/LayerElement";
+import BuildModelPopup from "../components/BuildModelPopup";
 
 
 // The default page. Login not required.
@@ -18,6 +19,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
     const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
+    const [showBuildModelPopup, setShowBuildModelPopup] = useState(false)
 
     const [processingCreateLayer, setProcessingCreateLayer] = useState(false)
 
@@ -302,6 +304,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
+            {showBuildModelPopup && <BuildModelPopup setShowBuildModelPopup={setShowBuildModelPopup} buildModel={buildModel}></BuildModelPopup>}
+
             {showCreateLayerPopup && <CreateLayerPopup BACKEND_URL={BACKEND_URL}
                                                     onSubmit={createLayer} 
                                                     setShowCreateLayerPopup={setShowCreateLayerPopup}
@@ -394,9 +398,9 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             Edit model
                         </button>}
 
-                        {model && <button type="button" title="Build model" className="model-title-button" onClick={buildModel}>
+                        {model && <button type="button" title="Build model" className="model-title-button" onClick={() => setShowBuildModelPopup(true)}>
                             <img className="model-download-icon" src={BACKEND_URL + "/static/images/build.svg"} />
-                            Build model
+                            {model.model_file ? "Rebuild model" : "Build model"}
                         </button>}
 
                         {model && <button type="button" title="Train model" className="model-title-button" onClick={() => {
