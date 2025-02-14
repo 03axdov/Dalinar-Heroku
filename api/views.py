@@ -1124,6 +1124,9 @@ class BuildModel(APIView):
                     try:
                         model = tf.keras.Sequential()
                         
+                        if instance.model_file:
+                            instance.model_file.delete(save=False)
+                        
                         for layer in instance.layers.all():
                             model.add(get_tf_layer(layer))
                             

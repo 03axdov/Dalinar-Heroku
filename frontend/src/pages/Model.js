@@ -17,9 +17,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [loading, setLoading] = useState(true)
     const [processingBuildModel, setProcessingBuildModel] = useState(false)
 
-    const [showDownloadPopup, setShowDownloadPopup] = useState(false)
     const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
     const [showBuildModelPopup, setShowBuildModelPopup] = useState(false)
+
+    const [downloading, setDownloading] = useState(false)
 
     const [processingCreateLayer, setProcessingCreateLayer] = useState(false)
 
@@ -135,6 +136,35 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         })
     }
 
+    function downloadModel(e) {
+        if (!model.model_file) {return}
+        setDownloading(true)
+        downloadModelFile()
+    }
+
+    const downloadModelFile = async () => {
+        try {
+          const response = await fetch(model.model_file);
+          if (!response.ok) {
+            throw new Error("Failed to fetch file");
+          }
+    
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = model.name + ".keras"
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+          setDownloading(false)
+        } catch (error) {
+          notification("Error downloading model: " + error, "failure");
+          setDownloading(false)
+        }
+    };
+    
 
     // LAYER FUNCTIONALITY
 
@@ -428,26 +458,35 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             Edit model
                         </button>}
 
-                        {model && <button type="button" title="Build model" className="model-title-button" onClick={() => setShowBuildModelPopup(true)}>
+                        {model && <button type="button" 
+                        title="Build model" 
+                        className="model-build-button" 
+                        onClick={() => {
+                            setShowBuildModelPopup(true)
+                        }}>
                             <img className="model-download-icon" src={BACKEND_URL + "/static/images/build.svg"} />
                             {model.model_file ? "Rebuild model" : "Build model"}
                         </button>}
 
-                        {model && <button type="button" title="Train model" className="model-title-button" onClick={() => {
+                        {model && <button type="button" 
+                        title={model.model_file ? "Train model" : "You must build the model before training it."}
+                        className={"model-train-button " + (model.model_file ? "" : "model-button-disabled")}
+                        onClick={() => {
+                            if (model.model_file) {
 
+                            }
                         }}>
                             <img className="model-download-icon" src={BACKEND_URL + "/static/images/lightbulb.svg"} />
                             Train model
                         </button>}
 
-                        {model && <button className={"model-download-button model-download-button " + (model.model_file ? "" : "model-download-disabled")} 
+                        {model && <button className={"model-download-button model-download-button " + (model.model_file ? "" : "model-button-disabled")} 
                         title={model.model_file ? "Download model" : "You must build the model before downloading it."}
-                        onClick={() => {
-                            if (model.model_file) {
-                                setShowDownloadPopup(true)
-                            }
-                            
-                        }}><img className="model-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>Download</button>}
+                        onClick={downloadModel}>
+                            {!downloading && <img className="model-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>}
+                            {downloading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                            {(!downloading ? "Download" : "Downloading...")}
+                        </button>}
 
                     </div>
                     
@@ -531,9 +570,22 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                 </Draggable>
                             ))}
                             {provided.placeholder}
+                            {!loading && layers.length == 0 && <div className="no-layers-container">
+                                This model does not have any layers.
+                                <button type="button" 
+                                className="sidebar-button dataset-upload-button"
+                                title="Add layer"
+                                style={{marginTop: "20px"}}
+                                onClick={() => setShowCreateLayerPopup(true)}>
+                                    <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/plus.png"} />
+                                    <span>Add layer</span>
+                                </button>
+                            </div>}
                         </div>)}
                         </Droppable>
                     </DragDropContext>}
+
+                    
                     
                 </div>
             </div>

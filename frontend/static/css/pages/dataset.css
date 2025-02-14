@@ -1194,7 +1194,7 @@ canvas {
     }
 }
 
-@media all and (max-width: 1300px) {
+@media all and (max-width: 1325px) {
     .dataset-title-button, .dataset-download-button {
         font-size: 0;
         padding: 0;

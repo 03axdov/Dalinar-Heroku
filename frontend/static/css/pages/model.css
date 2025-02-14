@@ -83,6 +83,7 @@
     overflow: auto;
     padding: 50px;
     box-sizing: border-box;
+    position: relative;
 }
 
 .model-sidebar-delete {
@@ -310,7 +311,7 @@
 }
 
 
-.model-title-button, .model-download-button {
+.model-title-button, .model-download-button, .model-build-button, .model-train-button {
     height: 35px;
     background: var(--sidebar-button);
     border-radius: 3px;
@@ -320,8 +321,18 @@
     white-space: nowrap;
 }
 
+.model-train-button {
+    margin-right: 10px;
+}
+
 .model-download-button {
     margin-left: auto;
+    width: 175px;
+    min-width: 175px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
     margin-right: 0;
 }
 
@@ -418,17 +429,46 @@
     margin-left: 5px;
 }
 
-.model-download-disabled {
+.model-button-disabled {
     cursor: default;
     opacity: 0.7;
     user-select: none;
 }
 
-.model-download-disabled {
+.model-button-disabled:hover {
     cursor: default;
     background: var(--sidebar-button)!important;
 }
 
 .layer-element-title-text {
     margin-right: 20px;
+}
+
+.no-layers-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    font-size: 1.1rem;
+    align-items: center;
+}
+
+@media all and (max-width: 1120px) {
+    .model-title-button {
+        font-size: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 35px;
+        min-width: 35px;
+    }
+
+    .model-title-edit-icon {
+        margin: 0;
+        height: 20px;
+        width: 20px;
+    }
 }
