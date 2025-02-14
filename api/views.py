@@ -13,12 +13,17 @@ from django.urls import resolve
 import json
 from rest_framework.test import APIRequestFactory
 import math
+
+import tempfile
+import os
 import tensorflow as tf
+from tensorflow.keras import layers
 
 from django.core.files.base import ContentFile
 from io import BytesIO
 from PIL import Image
 from django.core.files.storage import default_storage
+from django.core.files import File
 
 from .serializers import *
 from .models import *
@@ -1076,8 +1081,29 @@ class ReorderModelLayers(APIView):
             return Response({"Unauthorized": "Must be logged in to reorder layers."}, status=status.HTTP_401_UNAUTHORIZED)
         
         
-def layer_to_tf_layer(layer):
-    pass
+def get_tf_layer(layer):    # From a Layer instance
+    layer_type = layer.layer_type
+    activation = layer.activation_function or None
+    
+    if layer_type == "dense":
+        return layers.Dense(layer.nodes_count, activation=activation)
+    elif layer_type == "conv2d":
+        if layer.input_x:   # Dimensions specified
+            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+        else:
+            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation)
+    elif layer_type == "maxpool2d":
+        return layers.MaxPool2D(pool_size=layer.pool_size)
+    elif layer_type == "flatten":
+        if layer.input_x:   # Dimensions specified
+            return layers.Flatten(input_shape=(layer.input_x, layer.input_y))
+        else:
+            return layers.Flatten()
+    elif layer_type == "dropout":
+        return layers.Dropout(rate=layer.rate)
+    else:
+        print("UNKNOWN LAYER OF TYPE: ", layer_type)
+        return None
         
         
 class BuildModel(APIView):
@@ -1085,6 +1111,8 @@ class BuildModel(APIView):
 
     def post(self, request, format=None):
         model_id = request.data["id"]
+        optimizer = request.data["optimizer"]
+        loss_function = request.data["loss"]
         
         user = self.request.user
         
@@ -1097,7 +1125,27 @@ class BuildModel(APIView):
                         model = tf.keras.Sequential()
                         
                         for layer in instance.layers.all():
-                            pass
+                            model.add(get_tf_layer(layer))
+                            
+                        model.compile(optimizer=optimizer, loss=loss_function, metrics=['accuracy'])
+                        
+                        # Create a temporary file
+                        with tempfile.NamedTemporaryFile(delete=False, suffix=".keras") as temp_file:
+                            temp_path = temp_file.name  # Get temp file path
+
+                        # Save the model to the temp file
+                        model.save(temp_path)
+                        
+                        # Open the file and save it to Django's FileField
+                        with open(temp_path, 'rb') as model_file:
+                            instance.model_file.save(instance.name + ".keras", File(model_file))
+
+                        # Delete the temporary file after saving
+                        os.remove(temp_path)
+                        
+                        instance.save()
+                        
+                        return Response(None, status=status.HTTP_200_OK)
                 
                     except ValueError as e: # In case of invalid layer combination
                         print("Error: ", e)
@@ -1128,7 +1176,7 @@ class CreateLayer(APIView):
         
         layer_type = data["type"]
         
-        ALLOWED_TYPES = set(["dense", "conv2d", "flatten", "dropout", "maxpooling2d"])
+        ALLOWED_TYPES = set(["dense", "conv2d", "flatten", "dropout", "maxpool2d"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1138,8 +1186,8 @@ class CreateLayer(APIView):
         elif layer_type == "conv2d":
             parse_dimensions(request.data)         
             serializer = CreateConv2DLayerSerializer(data=data)
-        elif layer_type == "maxpooling2d":
-            serializer = CreateMaxPooling2DLayerSerializer(data=data)
+        elif layer_type == "maxpool2d":
+            serializer = CreateMaxPool2DLayerSerializer(data=data)
         elif layer_type == "flatten":
             parse_dimensions(request.data)
             serializer = CreateFlattenLayerSerializer(data=data)
@@ -1221,14 +1269,14 @@ class EditLayer(APIView):
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]
                         layer.input_z = request.data["input_z"]
-                    elif layer_type == "maxpooling2d":
+                    elif layer_type == "maxpool2d":
                         layer.pool_size = request.data["pool_size"]
                     elif layer_type == "flatten":
                         parse_dimensions(request.data)
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]
                     elif layer_type == "dropout":
-                        layer.probability = request.data["probability"]
+                        layer.rate = request.data["rate"]
                         
                     layer.activation_function = request.data["activation_function"]
                     layer.save()

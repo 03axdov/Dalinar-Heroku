@@ -58,7 +58,7 @@
     color: var(--gray-text);
 }
 
-.create-layer-popup-form {
+.create-layer-popup-form, .build-model-form {
     height: 100%;
     width: 100%;
     display: flex;

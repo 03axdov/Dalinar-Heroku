@@ -15,7 +15,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [model, setModel] = useState(null)
     const [layers, setLayers] = useState([])
     const [loading, setLoading] = useState(true)
-    const [changed, setChanged] = useState(false)   // True if changes have been made since last load or build
+    const [processingBuildModel, setProcessingBuildModel] = useState(false)
 
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
     const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
@@ -46,7 +46,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const typeToColor = {
         "dense": "purple",
         "conv2d": "lightblue",
-        "maxpooling2d": "pink2",
+        "maxpool2d": "pink2",
         "flatten": "pink",
         "dropout": "blue"
     }
@@ -99,10 +99,40 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }
 
 
-    function buildModel(e) {
+    function buildModel(optimizer, loss) {
         if (warnings) {
             notification("Warnings must be addressed before building model.", "failure")
+            return;
         }
+
+        setProcessingBuildModel(true)
+
+        // For updating the order, so it stays the same after refresh
+        const URL = window.location.origin + '/api/build-model/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": model.id,
+            "optimizer": optimizer,
+            "loss": loss
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            notification("Successfully built model.", "success")
+            getModel()
+
+        }).catch((error) => {
+            notification("Error: " + error, "failure")
+            
+        }).finally(() => {
+            setProcessingBuildModel(false)
+            setShowBuildModelPopup(false)
+        })
     }
 
 
@@ -114,12 +144,12 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             return "Dense - " + layer.nodes_count
         } else if (type == "conv2d") {
             return "Conv2D - (" + layer.filters + ", " + layer.kernel_size + ")"
-        } else if (type == "maxpooling2d") {
-            return "MaxPooling2D - " + layer.pool_size
+        } else if (type == "maxpool2d") {
+            return "MaxPool2D - " + layer.pool_size
         } else if (type == "flatten") {
             return "Flatten" + (layer.input_x ? " - (" + layer.input_x + ", " + layer.input_y + ")" : "")
         } else if (type == "dropout") {
-            return "Dropout (" + layer.probability + ")"
+            return "Dropout (" + layer.rate + ")"
         }
     }
 
@@ -221,10 +251,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     // FRONTEND FUNCTIONALITY
 
-    function closePopups(exception) {
-        
-    }
-
     const resizeLeftToolbarHandleMouseDown = (e) => {
         e.preventDefault();
     
@@ -302,9 +328,13 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     };
 
     return (
-        <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
+        <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
-            {showBuildModelPopup && <BuildModelPopup setShowBuildModelPopup={setShowBuildModelPopup} buildModel={buildModel}></BuildModelPopup>}
+            {showBuildModelPopup && <BuildModelPopup 
+                setShowBuildModelPopup={setShowBuildModelPopup} 
+                buildModel={buildModel}
+                processingBuildModel={processingBuildModel}
+                BACKEND_URL={BACKEND_URL}></BuildModelPopup>}
 
             {showCreateLayerPopup && <CreateLayerPopup BACKEND_URL={BACKEND_URL}
                                                     onSubmit={createLayer} 

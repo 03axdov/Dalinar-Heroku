@@ -14,9 +14,9 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
     const [inputY, setInputY] = useState("")    // Used for layers of type ["conv2d", "flatten"]
     const [inputZ, setInputZ] = useState("")    // Used for layers of type ["conv2d"]
 
-    const [poolSize, setPoolSize] = useState(2) // Used for layers of type ["maxpooling2d"]
+    const [poolSize, setPoolSize] = useState(2) // Used for layers of type ["maxpool2d"]
 
-    const [probability, setProbability] = useState(0.2) // Used for layers of type ["dropout"]
+    const [rate, setRate] = useState(0.2) // Used for layers of type ["dropout"]
 
     const [activation, setActivation] = useState("")    // Used for layers of type ["dense", "conv2d"]
 
@@ -74,7 +74,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         }
                     }
 
-                    if (type == "maxpooling2d") {
+                    if (type == "maxpool2d") {
                         data["pool_size"] = poolSize
                     }
 
@@ -96,7 +96,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     }
                     
                     if (type == "dropout") {
-                        data["probability"] = probability
+                        data["rate"] = rate
                     }
                     
 
@@ -113,7 +113,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         }}>
                             <option value="dense">Dense</option>
                             <option value="conv2d">Conv2D</option>
-                            <option value="maxpooling2d">MaxPooling2D</option>
+                            <option value="maxpool2d">MaxPool2D</option>
                             <option value="flatten">Flatten</option>
                             <option value="dropout">Dropout</option>
                         </select>
@@ -186,7 +186,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         
                     </div>}
 
-                    {type == "maxpooling2d" && <div className="create-layer-type-fields">
+                    {type == "maxpool2d" && <div className="create-layer-type-fields">
                         <div className="create-layer-label-inp">
                             <label className="create-dataset-label" htmlFor="pool-size">Pool size</label>
                             <input className="create-dataset-inp" id="pool-size" type="number" required value={poolSize} onChange={(e) => {
@@ -211,9 +211,9 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
                     {type == "dropout" && <div className="create-layer-type-fields">
                         <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-probability">Probability</label>
-                            <input className="create-dataset-inp" id="layer-probability" type="number" value={probability} step="0.05" onChange={(e) => {
-                                setProbability(Math.max(0, Math.min(1, e.target.value)))
+                            <label className="create-dataset-label" htmlFor="layer-rate">Rate</label>
+                            <input className="create-dataset-inp" id="layer-rate" type="number" value={rate} step="0.05" onChange={(e) => {
+                                setRate(Math.max(0, Math.min(1, e.target.value)))
                             }} />
                         </div>
                     </div>}

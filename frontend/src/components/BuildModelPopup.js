@@ -1,6 +1,6 @@
 import React, {useState} from "react"
 
-function BuildModelPopup({setShowBuildModelPopup, buildModel}) {
+function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildModel, BACKEND_URL}) {
 
     const [optimizer, setOptimizer] = useState("adam")
     const [loss, setLoss] = useState("binary_crossentropy")
@@ -16,7 +16,10 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel}) {
                     Note that rebuilding the model will reset it, i.e. updates from training will be erased. A model can be rebuilt as many times as wanted.
                 </p>
 
-                <form className="build-model-form">
+                <form className="build-model-form" onSubmit={(e) => {
+                    e.preventDefault()
+                    buildModel(optimizer, loss)
+                }}>
                     <div className="create-dataset-label-inp">
                         <label className="create-dataset-label" htmlFor="optimizer">Optimizer</label>
                         <select className="create-dataset-inp" id="optimizer" required value={optimizer} onChange={(e) => {
@@ -47,6 +50,14 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel}) {
                         Note that the difference between categorical crossentropy and sparse categorical crossentropy 
                         will only matter if the model is downloaded and loaded externally.
                     </p>
+
+                    <div className="create-layer-popup-buttons">
+                        <button type="button" className="create-layer-popup-cancel" onClick={() => setShowBuildModelPopup(false)}>Cancel</button>
+                        <button type="submit" className="create-layer-popup-submit">
+                            {processingBuildModel && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                            {(!processingBuildModel ? "Build model" : "Processing...")}
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>

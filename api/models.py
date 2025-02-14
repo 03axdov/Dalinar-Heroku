@@ -218,7 +218,7 @@ class AbstractLayer(models.Model):
     LAYER_CHOICES = [
         ("dense", "Dense"),
         ("conv2d", "Conv2D"),
-        ("maxpooling2d", "MaxPooling2D"),
+        ("maxpool2d", "MaxPool2d"),
         ("flatten", "Flatten"),
         ("dropout", "Dropout")
     ]
@@ -259,11 +259,11 @@ class Conv2DLayer(Layer):
         return f"Conv2D ({self.filters}, {self.kernel_size}) - {self.model.name}"
     
     
-class MaxPooling2DLayer(Layer):
+class MaxPool2DLayer(Layer):
     pool_size = models.PositiveIntegerField(null=True)
     
     def __str__(self):
-        return "MaxPooling2d - " + str(self.pool_size)
+        return "MaxPool2DLayer - " + str(self.pool_size)
     
     
 class FlattenLayer(Layer):
@@ -278,9 +278,9 @@ class FlattenLayer(Layer):
     
     
 class DropoutLayer(Layer):
-    probability = models.FloatField(
+    rate = models.FloatField(
         validators=[MinValueValidator(0.0), MaxValueValidator(1.0)]
     )
     
     def __str__(self):
-        return f"Dropout ({self.probability})"
+        return f"Dropout ({self.rate})"

@@ -86,8 +86,8 @@ class LayerSerializer(serializers.BaseSerializer):
             return DenseLayerSerializer(instance).data
         elif isinstance(instance, Conv2DLayer):
             return Conv2DLayerSerializer(instance).data
-        elif isinstance(instance, MaxPooling2DLayer):
-            return MaxPooling2DLayerSerializer(instance).data
+        elif isinstance(instance, MaxPool2DLayer):
+            return MaxPool2DLayerSerializer(instance).data
         elif isinstance(instance, FlattenLayer):
             return FlattenLayerSerializer(instance).data
         elif isinstance(instance, DropoutLayer):
@@ -101,8 +101,8 @@ class CreateLayerSerializer(serializers.BaseSerializer):
             return CreateDenseLayerSerializer(instance).data
         elif isinstance(instance, Conv2DLayer):
             return CreateConv2DLayerSerializer(instance).data
-        elif isinstance(instance, MaxPooling2DLayer):
-            return CreateMaxPooling2DLayer(instance).data
+        elif isinstance(instance, MaxPool2DLayer):
+            return CreateMaxPool2DLayer(instance).data
         elif isinstance(instance, FlattenLayer):
             return CreateFlattenLayerSerializer(instance).data
         elif isinstance(instance, DropoutLayer):
@@ -134,15 +134,15 @@ class CreateConv2DLayerSerializer(serializers.ModelSerializer):
         fields = ["filters", "kernel_size", "input_x", "input_y", "input_z"]
         
         
-class MaxPooling2DLayerSerializer(serializers.ModelSerializer):
+class MaxPool2DLayerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MaxPooling2DLayer
+        model = MaxPool2DLayer
         fields = "__all__"
         
         
-class CreateMaxPooling2DLayerSerializer(serializers.ModelSerializer):
+class CreateMaxPool2DLayerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MaxPooling2DLayer
+        model = MaxPool2DLayer
         fields = ["pool_size"]
         
         
@@ -167,7 +167,7 @@ class DropoutLayerSerializer(serializers.ModelSerializer):
 class CreateDropoutLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = DropoutLayer
-        fields = ["probability"]        
+        fields = ["rate"]        
         
 # MODEL HANDLING
 

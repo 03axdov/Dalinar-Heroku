@@ -13,7 +13,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     const [inputY, setInputY] = useState(layer.input_y || "") // Used by ["conv2d", "flatten"]
     const [inputZ, setInputZ] = useState(layer.input_z || "") // Used by ["conv2d"]
     const [poolSize, setPoolSize] = useState(layer.pool_size)
-    const [probability, setProbability] = useState(layer.probability)   // Used by ["dropout"]
+    const [rate, setRate] = useState(layer.rate)   // Used by ["dropout"]
 
     const [activation, setActivation] = useState(layer.activation_function) // Used by ["dense", "conv2d"]
 
@@ -32,7 +32,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
         setInputY(layer.input_y || "")
         setInputZ(layer.input_z || "")
         setPoolSize(layer.pool_size)
-        setProbability(layer.probability)
+        setRate(layer.rate)
         setActivation(layer.activation_function)
 
         setType(layer.layer_type)
@@ -64,7 +64,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                 setUpdated(true)
             }
         }
-        if (type == "maxpooling2d") {
+        if (type == "maxpool2d") {
             if (poolSize != layer.pool_size) {
                 setUpdated(true)
             }
@@ -82,12 +82,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
             }
         }
         if (type == "dropout") {
-            if (probability != layer.probability) {
+            if (rate != layer.rate) {
                 setUpdated(true)
             }
         }
 
-    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, poolSize, probability])
+    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, poolSize, rate])
 
 
     function checkValidity() {
@@ -123,7 +123,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
             "input_y": inputY,
             "input_z": inputZ,
             "pool_size": poolSize,
-            "probability": probability,
+            "rate": rate,
 
             "activation_function": activation
         }
@@ -151,16 +151,16 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
 
     const VALID_PREV_LAYERS = { // null means that it can be the first layer
         "dense": [null, "dense", "flatten", "dropout"],
-        "conv2d": [null, "conv2d", "maxpooling2d"],
-        "maxpooling2d": ["conv2d", "maxpooling2d"],
+        "conv2d": [null, "conv2d", "maxpool2d"],
+        "maxpool2d": ["conv2d", "maxpool2d"],
         "dropout": ["dense", "dropout", "flatten"],
-        "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpooling2d"]
+        "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d"]
     }
 
     const WARNING_MESSAGES = {
         "dense": "A Dense layer must be the first one, else follow another Dense layer, a Flatten layer, or a Dropout layer.",
-        "conv2d": "A Conv2D layer must be the first one, else follow another Conv2d layer or a MaxPooling2DLayer.",
-        "maxpooling2d": "A MaxPooling2D layer must follow a Conv2d layer or another MaxPooling2D layer.",
+        "conv2d": "A Conv2D layer must be the first one, else follow another Conv2d layer or a MaxPool2DLayer.",
+        "maxpool2d": "A MaxPool2D layer must follow a Conv2d layer or another MaxPool2D layer.",
         "dropout": "A Dropout layer must follow a Dense layer, a Flatten layer, or another Dropout layer.",
         "flatten": "Invalid previous layer."
     }
@@ -287,10 +287,10 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         </div>
                     </form>}
 
-                    {type == "maxpooling2d" && <form className="layer-element-inner">
+                    {type == "maxpool2d" && <form className="layer-element-inner">
                         <h1 className="layer-element-title">
                             <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
-                            <span className="layer-element-title-text">MaxPooling2D</span>
+                            <span className="layer-element-title-text">MaxPool2D</span>
                             <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
                             <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 deleteLayer(layer.id)
@@ -344,9 +344,9 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-blue"></span>
-                            <label className="layer-element-label" htmlFor="probability">Probability</label>
-                            <input type="number" step="0.05" className="layer-element-input" id="probability" value={probability} onChange={(e) => {
-                                setProbability(Math.max(0, Math.min(1, e.target.value)))
+                            <label className="layer-element-label" htmlFor="rate">Rate</label>
+                            <input type="number" step="0.05" className="layer-element-input" id="rate" value={rate} onChange={(e) => {
+                                setRate(Math.max(0, Math.min(1, e.target.value)))
                             }}></input>
                         </div>
     
