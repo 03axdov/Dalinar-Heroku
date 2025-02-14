@@ -205,7 +205,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
             getModel()
 
-            notification("Successfully deleted label.", "success")
+            notification("Successfully deleted layer.", "success")
 
         }).catch((error) => {
             notification("Error: " + error + ".")
@@ -372,7 +372,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         </Droppable>
                     </DragDropContext>
                     
-                    <div className="model-reorder-text">Drag layers to reorder.</div>
                 </div>
                 <div className="dataset-toolbar-resizeable" onMouseDown={resizeLeftToolbarHandleMouseDown}></div>
                 
@@ -488,7 +487,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                         prevLayer={(idx > 0 ? layers[idx - 1] : null)}
                                         setWarnings={setWarnings}
                                         provided={provided}
-                                        updateWarnings={updateWarnings}>
+                                        updateWarnings={updateWarnings}
+                                        idx={idx}>
 
                                     </LayerElement>)}
                                 </Draggable>

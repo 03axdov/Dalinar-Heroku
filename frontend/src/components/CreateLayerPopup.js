@@ -1,4 +1,4 @@
-import React, {useState} from "react"
+import React, {useState, useEffect} from "react"
 
 function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, processingCreateLayer, notification}) {
 
@@ -10,12 +10,18 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
     const [nodesCount, setNodesCount] = useState(8) // Used for layers of type ["dense"]
 
-    const [inputX, setInputX] = useState("")    // Used for layers of type ["flatten"]
-    const [inputY, setInputY] = useState("")    // Used for layers of type ["flatten"]
+    const [inputX, setInputX] = useState("")    // Used for layers of type ["conv2d", "flatten"]
+    const [inputY, setInputY] = useState("")    // Used for layers of type ["conv2d", "flatten"]
+    const [inputZ, setInputZ] = useState("")    // Used for layers of type ["conv2d"]
 
     const [probability, setProbability] = useState(0.2) // Used for layers of type ["dropout"]
 
     const [activation, setActivation] = useState("")    // Used for layers of type ["dense", "conv2d"]
+
+    useEffect(() => {
+        setInputX("")
+        setInputY("")
+    }, [type])
 
     return (
         <div className="popup create-layer-popup" onClick={() => setShowCreateLayerPopup(false)}>
@@ -43,9 +49,33 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     if (type == "conv2d") {
                         data["filters"] = filters
                         data["kernel_size"] = kernelSize
+
+                        if (!(inputX && inputY && inputZ) && (inputX || inputY || inputZ)) {
+                            notification("All dimensions must be specified or all left empty.", "failure")
+                            return;
+                        }
+                        data["input_x"] = inputX
+                        if (inputX && (inputX > 512 || inputX <= 0)) {
+                            notification("Input width must be positive and no more than 512.", "failure")
+                            return;
+                        }
+                        data["input_y"] = inputY
+                        if (inputY && (inputY > 512 || inputY <= 0)) {
+                            notification("Input height must be positive and no more than 512.", "failure")
+                            return;
+                        }
+                        data["input_z"] = inputZ
+                        if (inputZ && (inputZ > 32 || inputZ <= 0)) {
+                            notification("Input depth must be positive and no more than 32.", "failure")
+                            return;
+                        }
                     }
 
                     if (type == "flatten") {
+                        if ((inputX && !inputY) || (!inputX && inputY)) {
+                            notification("Both input dimensions must be specified or both left empty.", "failure")
+                            return;
+                        }
                         data["input_x"] = inputX
                         if (inputX && (inputX > 512 || inputX <= 0)) {
                             notification("Input width must be positive and no more than 512.", "failure")
@@ -119,6 +149,23 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         </div>
 
                         <div className="create-layer-label-inp">
+                            <label className="create-dataset-label">Input dimensions <span className="create-dataset-required">(optional)</span></label>
+                            <div className="create-layer-dimensions">
+                                
+                                <input className="create-dataset-inp create-layer-dimensions-inp" type="number" placeholder="Width" value={inputX} onChange={(e) => {
+                                    setInputX(e.target.value)
+                                }} />
+                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Height" type="number" value={inputY} onChange={(e) => {
+                                    setInputY(e.target.value)
+                                }} />
+                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Depth" type="number" value={inputZ} onChange={(e) => {
+                                    setInputZ(e.target.value)
+                                }} />
+                                
+                            </div>
+                        </div>
+
+                        <div className="create-layer-label-inp">
                             <label className="create-dataset-label" htmlFor="dense-activation-function">Activation function</label>
                             <select className="create-dataset-inp" id="dense-activation-function" value={activation} onChange={(e) => {
                                 setActivation(e.target.value)
@@ -133,17 +180,15 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
                     {type == "flatten" && <div className="create-layer-type-fields">
                         <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-inputX">Input width <span className="create-dataset-required">(optional)</span></label>
-                            <input className="create-dataset-inp" id="layer-inputX" type="number" value={inputX} onChange={(e) => {
-                                setInputX(e.target.value)
-                            }} />
-                        </div>
-
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-inputY">Input height <span className="create-dataset-required">(optional)</span></label>
-                            <input className="create-dataset-inp" id="layer-inputY" type="number" value={inputY} onChange={(e) => {
-                                setInputY(e.target.value)
-                            }} />
+                            <label className="create-dataset-label">Input dimensions <span className="create-dataset-required">(optional)</span></label>
+                            <div className="create-layer-dimensions">
+                                <input className="create-dataset-inp create-layer-dimensions-inp" type="number" placeholder="Width" value={inputX} onChange={(e) => {
+                                    setInputX(e.target.value)
+                                }} />
+                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Height" type="number" value={inputY} onChange={(e) => {
+                                    setInputY(e.target.value)
+                                }} />
+                            </div>
                         </div>
                     </div>}
 

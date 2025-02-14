@@ -1084,6 +1084,13 @@ class BuildModel(APIView):
         
 # LAYER FUNCTIONALITY
 
+
+def parse_dimensions(data): # Empty values given as blank strings, must be set to None
+    if not data["input_x"]: data["input_x"] = None
+    if not data["input_y"]: data["input_y"] = None
+    if not data["input_z"]: data["input_z"] = None
+
+
 class CreateLayer(APIView):
     serializer_class = CreateLayerSerializer
     parser_classes = [JSONParser]
@@ -1103,10 +1110,11 @@ class CreateLayer(APIView):
         if layer_type == "dense":
             serializer = CreateDenseLayerSerializer(data=data)
         elif layer_type == "conv2d":
+            parse_dimensions(request.data)
+                        
             serializer = CreateConv2DLayerSerializer(data=data)
         elif layer_type == "flatten":
-            if not data["input_x"]: data["input_x"] = None
-            if not data["input_y"]: data["input_y"] = None
+            parse_dimensions(request.data)
             
             serializer = CreateFlattenLayerSerializer(data=data)
         elif layer_type == "dropout":
@@ -1171,6 +1179,8 @@ class EditLayer(APIView):
         
         user = self.request.user
         
+        print(request.data)
+        
         if user.is_authenticated:
             try:
                 layer = Layer.objects.get(id=layer_id)
@@ -1181,11 +1191,15 @@ class EditLayer(APIView):
                     if layer_type == "dense":
                         layer.nodes_count = request.data["nodes_count"]
                     elif layer_type == "conv2d":
+                        parse_dimensions(request.data)
+                        
                         layer.filters = request.data["filters"]
                         layer.kernel_size = request.data["kernel_size"]
+                        layer.input_x = request.data["input_x"]
+                        layer.input_y = request.data["input_y"]
+                        layer.input_z = request.data["input_z"]
                     elif layer_type == "flatten":
-                        if not request.data["input_x"]: request.data["input_x"] = None
-                        if not request.data["input_y"]: request.data["input_y"] = None
+                        parse_dimensions(request.data)
             
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]

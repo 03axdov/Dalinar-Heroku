@@ -127,7 +127,7 @@ class Conv2DLayerSerializer(serializers.ModelSerializer):
 class CreateConv2DLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conv2DLayer
-        fields = ["filters", "kernel_size"]
+        fields = ["filters", "kernel_size", "input_x", "input_y", "input_z"]
         
         
 class FlattenLayerSerializer(serializers.ModelSerializer):

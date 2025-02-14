@@ -2,15 +2,16 @@ import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 
-function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, notification, prevLayer, setWarnings, provided, updateWarnings}) {
+function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, notification, prevLayer, setWarnings, provided, updateWarnings, idx}) {
 
     const [type, setType] = useState(null)  // Workaround to stop warning when reordering layers.
 
     const [nodes, setNodes] = useState(layer.nodes_count)   // Used by ["dense"]
     const [filters, setFilters] = useState(layer.filters)   // Used by ["conv2d"]
     const [kernelSize, setKernelSize] = useState(layer.kernel_size) // USed by ["conv2d"]
-    const [inputX, setInputX] = useState(layer.input_x || "") // Used by ["flatten"]
-    const [inputY, setInputY] = useState(layer.input_y || "") // Used by ["flatten"]
+    const [inputX, setInputX] = useState(layer.input_x || "") // Used by ["conv2d", "flatten"]
+    const [inputY, setInputY] = useState(layer.input_y || "") // Used by ["conv2d", "flatten"]
+    const [inputZ, setInputZ] = useState(layer.input_z || "") // Used by ["conv2d"]
     const [probability, setProbability] = useState(layer.probability)   // Used by ["dropout"]
     const [activation, setActivation] = useState(layer.activation_function) // Used by ["dense", "conv2d"]
 
@@ -26,6 +27,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
         setKernelSize(layer.kernel_size)
         setInputX(layer.input_x || "")
         setInputY(layer.input_y || "")
+        setInputZ(layer.input_z || "")
         setProbability(layer.probability)
         setActivation(layer.activation_function)
 
@@ -50,6 +52,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                 setUpdated(true)
             } else if (kernelSize != layer.kernel_size) {
                 setUpdated(true)
+            } else if (inputX != (layer.input_x || "")) {
+                setUpdated(true)
+            } else if (inputY != (layer.input_y || "")) {
+                setUpdated(true)
+            } else if (inputZ != (layer.input_z || "")) {
+                setUpdated(true)
             }
         }
         if (type != "flatten" && type != "dropout") { // Do not have activation functions
@@ -70,13 +78,19 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
             }
         }
 
-    }, [nodes, filters, kernelSize, activation, inputX, inputY, probability])
+    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, probability])
 
 
     function checkValidity() {
         if (type == "flatten") {
             if (inputX && !inputY || !inputX && inputY) {
-                notification("Either neither or both of width and height must be specified", "failure")
+                notification("Both dimensions must be specified or both left empty.", "failure")
+                return false
+            }
+        }
+        if (type == "conv2d") {
+            if (!(inputX && inputY && inputZ) && (inputX || inputY || inputZ)) {
+                notification("All dimensions must be specified or all left empty.", "failure")
                 return false
             }
         }
@@ -98,6 +112,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
             "kernel_size": kernelSize,
             "input_x": inputX,
             "input_y": inputY,
+            "input_z": inputZ,
             "probability": probability,
 
             "activation_function": activation
@@ -222,10 +237,34 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         </div>
     
                         <div className="layer-element-stat">
-                        <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
+                            <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
                             <label className="layer-element-label" htmlFor="kernelSize">Kernel size</label>
                             <input type="number" className="layer-element-input" id="kernelSize" value={kernelSize} onChange={(e) => {
                                 setKernelSize(Math.max(0, Math.min(100, e.target.value)))
+                            }}></input>
+                        </div>
+
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
+                            <label className="layer-element-label" htmlFor="flattenX">Input width</label>
+                            <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
+                                setInputX(e.target.value)
+                            }}></input>
+                        </div>
+    
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
+                            <label className="layer-element-label" htmlFor="flattenY">Input height</label>
+                            <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
+                                setInputY(e.target.value)
+                            }}></input>
+                        </div>
+
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
+                            <label className="layer-element-label" htmlFor="flattenZ">Input depth</label>
+                            <input type="number" className="layer-element-input" id="flattenZ" value={inputZ} onChange={(e) => {
+                                setInputZ(e.target.value)
                             }}></input>
                         </div>
     
@@ -295,9 +334,11 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         onClick={updateLayer}>
                         Save changes
                     </button>
+
+                    <div className="layer-element-index" title={"Layer #" + (idx+1)}>{idx+1}</div>
                 </div>}
     
-                {/*hasLine && type && <div className="layer-element-connection"></div>*/}   {/* Hide for now */}
+                
         </div>)
 
     } else {    // Avoids warnings
