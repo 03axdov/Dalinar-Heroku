@@ -44,6 +44,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const typeToColor = {
         "dense": "purple",
         "conv2d": "lightblue",
+        "maxpooling2d": "pink2",
         "flatten": "pink",
         "dropout": "blue"
     }
@@ -96,11 +97,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }
 
 
-    function updateModel(data) {
-
-    }
-
-
     function buildModel(e) {
         if (warnings) {
             notification("Warnings must be addressed before building model.", "failure")
@@ -116,6 +112,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             return "Dense - " + layer.nodes_count
         } else if (type == "conv2d") {
             return "Conv2D - (" + layer.filters + ", " + layer.kernel_size + ")"
+        } else if (type == "maxpooling2d") {
+            return "MaxPooling2D - " + layer.pool_size
         } else if (type == "flatten") {
             return "Flatten" + (layer.input_x ? " - (" + layer.input_x + ", " + layer.input_y + ")" : "")
         } else if (type == "dropout") {
@@ -408,9 +406,14 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             Train model
                         </button>}
 
-                        {model && <button className="model-download-button model-download-button" onClick={() => {
-                            setShowDownloadPopup(true)
-                        }} title="Download model"><img className="model-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>Download</button>}
+                        {model && <button className={"model-download-button model-download-button " + (model.model_file ? "" : "model-download-disabled")} 
+                        title={model.model_file ? "Download model" : "You must build the model before downloading it."}
+                        onClick={() => {
+                            if (model.model_file) {
+                                setShowDownloadPopup(true)
+                            }
+                            
+                        }}><img className="model-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>Download</button>}
 
                     </div>
                     

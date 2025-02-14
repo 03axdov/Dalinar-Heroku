@@ -216,6 +216,7 @@ class AbstractLayer(models.Model):
     LAYER_CHOICES = [
         ("dense", "Dense"),
         ("conv2d", "Conv2D"),
+        ("maxpooling2d", "MaxPooling2D"),
         ("flatten", "Flatten"),
         ("dropout", "Dropout")
     ]
@@ -248,21 +249,24 @@ class Conv2DLayer(Layer):
     filters = models.PositiveIntegerField(default=1)
     kernel_size = models.PositiveIntegerField(default=3)
     
-    input_x = models.PositiveIntegerField(blank=True, null=True)
-    input_y = models.PositiveIntegerField(blank=True, null=True)
-    input_z = models.PositiveIntegerField(blank=True, null=True)
+    input_x = models.PositiveIntegerField(null=True)
+    input_y = models.PositiveIntegerField(null=True)
+    input_z = models.PositiveIntegerField(null=True)
     
     def __str__(self):
         return f"Conv2D ({self.filters}, {self.kernel_size}) - {self.model.name}"
     
     
 class MaxPooling2DLayer(Layer):
-    pool_size = models
+    pool_size = models.PositiveIntegerField(null=True)
+    
+    def __str__(self):
+        return "MaxPooling2d - " + str(self.pool_size)
     
     
 class FlattenLayer(Layer):
-    input_x = models.PositiveIntegerField(blank=True, null=True)
-    input_y = models.PositiveIntegerField(blank=True, null=True)
+    input_x = models.PositiveIntegerField(null=True)
+    input_y = models.PositiveIntegerField(null=True)
     
     def __str__(self):
         res = "Flatten"

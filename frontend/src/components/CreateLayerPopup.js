@@ -14,13 +14,16 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
     const [inputY, setInputY] = useState("")    // Used for layers of type ["conv2d", "flatten"]
     const [inputZ, setInputZ] = useState("")    // Used for layers of type ["conv2d"]
 
+    const [poolSize, setPoolSize] = useState(2) // Used for layers of type ["maxpooling2d"]
+
     const [probability, setProbability] = useState(0.2) // Used for layers of type ["dropout"]
 
     const [activation, setActivation] = useState("")    // Used for layers of type ["dense", "conv2d"]
 
-    useEffect(() => {
+    useEffect(() => {   // Empty fields shared by many types
         setInputX("")
         setInputY("")
+        setActivation("")
     }, [type])
 
     return (
@@ -71,6 +74,10 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         }
                     }
 
+                    if (type == "maxpooling2d") {
+                        data["pool_size"] = poolSize
+                    }
+
                     if (type == "flatten") {
                         if ((inputX && !inputY) || (!inputX && inputY)) {
                             notification("Both input dimensions must be specified or both left empty.", "failure")
@@ -106,6 +113,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         }}>
                             <option value="dense">Dense</option>
                             <option value="conv2d">Conv2D</option>
+                            <option value="maxpooling2d">MaxPooling2D</option>
                             <option value="flatten">Flatten</option>
                             <option value="dropout">Dropout</option>
                         </select>
@@ -135,15 +143,15 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
                     {type == "conv2d" && <div className="create-layer-type-fields">
                         <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-nodes-count">Number of filters</label>
-                            <input className="create-dataset-inp" id="layer-nodes-count" type="number" required value={filters} onChange={(e) => {
+                            <label className="create-dataset-label" htmlFor="layer-filters">Number of filters</label>
+                            <input className="create-dataset-inp" id="layer-filters" type="number" required value={filters} onChange={(e) => {
                                 setFilters(Math.max(0, Math.min(100, e.target.value)))
                             }} />
                         </div>
 
                         <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-nodes-count">Kernel size</label>
-                            <input className="create-dataset-inp" id="layer-nodes-count" type="number" required value={kernelSize} onChange={(e) => {
+                            <label className="create-dataset-label" htmlFor="layer-kernels">Kernel size</label>
+                            <input className="create-dataset-inp" id="layer-kernels" type="number" required value={kernelSize} onChange={(e) => {
                                 setKernelSize(Math.max(0, Math.min(100, e.target.value)))
                             }} />
                         </div>
@@ -176,6 +184,15 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             </select>
                         </div>
                         
+                    </div>}
+
+                    {type == "maxpooling2d" && <div className="create-layer-type-fields">
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label" htmlFor="pool-size">Pool size</label>
+                            <input className="create-dataset-inp" id="pool-size" type="number" required value={poolSize} onChange={(e) => {
+                                setPoolSize(Math.max(0, Math.min(99, e.target.value)))
+                            }} />
+                        </div>
                     </div>}
 
                     {type == "flatten" && <div className="create-layer-type-fields">

@@ -1100,9 +1100,7 @@ class CreateLayer(APIView):
         
         layer_type = data["type"]
         
-        print(data)
-        
-        ALLOWED_TYPES = set(["dense", "conv2d", "flatten", "dropout"])
+        ALLOWED_TYPES = set(["dense", "conv2d", "flatten", "dropout", "maxpooling2d"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1110,12 +1108,12 @@ class CreateLayer(APIView):
         if layer_type == "dense":
             serializer = CreateDenseLayerSerializer(data=data)
         elif layer_type == "conv2d":
-            parse_dimensions(request.data)
-                        
+            parse_dimensions(request.data)         
             serializer = CreateConv2DLayerSerializer(data=data)
+        elif layer_type == "maxpooling2d":
+            serializer = CreateMaxPooling2DLayerSerializer(data=data)
         elif layer_type == "flatten":
             parse_dimensions(request.data)
-            
             serializer = CreateFlattenLayerSerializer(data=data)
         elif layer_type == "dropout":
             serializer = CreateDropoutLayerSerializer(data=data)
@@ -1179,8 +1177,6 @@ class EditLayer(APIView):
         
         user = self.request.user
         
-        print(request.data)
-        
         if user.is_authenticated:
             try:
                 layer = Layer.objects.get(id=layer_id)
@@ -1192,15 +1188,15 @@ class EditLayer(APIView):
                         layer.nodes_count = request.data["nodes_count"]
                     elif layer_type == "conv2d":
                         parse_dimensions(request.data)
-                        
                         layer.filters = request.data["filters"]
                         layer.kernel_size = request.data["kernel_size"]
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]
                         layer.input_z = request.data["input_z"]
+                    elif layer_type == "maxpooling2d":
+                        layer.pool_size = request.data["pool_size"]
                     elif layer_type == "flatten":
                         parse_dimensions(request.data)
-            
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]
                     elif layer_type == "dropout":

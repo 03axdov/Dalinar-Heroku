@@ -12,10 +12,13 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     const [inputX, setInputX] = useState(layer.input_x || "") // Used by ["conv2d", "flatten"]
     const [inputY, setInputY] = useState(layer.input_y || "") // Used by ["conv2d", "flatten"]
     const [inputZ, setInputZ] = useState(layer.input_z || "") // Used by ["conv2d"]
+    const [poolSize, setPoolSize] = useState(layer.pool_size)
     const [probability, setProbability] = useState(layer.probability)   // Used by ["dropout"]
+
     const [activation, setActivation] = useState(layer.activation_function) // Used by ["dense", "conv2d"]
 
     const [updated, setUpdated] = useState(false)
+    const [revertChanges, setRevertChanges] = useState(false)
 
     const [errorMessage, setErrorMessage] = useState("")
 
@@ -28,12 +31,13 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
         setInputX(layer.input_x || "")
         setInputY(layer.input_y || "")
         setInputZ(layer.input_z || "")
+        setPoolSize(layer.pool_size)
         setProbability(layer.probability)
         setActivation(layer.activation_function)
 
         setType(layer.layer_type)
 
-    }, [layer])
+    }, [layer, revertChanges])
 
     useEffect(() => {
         getErrorMessage()
@@ -60,6 +64,11 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                 setUpdated(true)
             }
         }
+        if (type == "maxpooling2d") {
+            if (poolSize != layer.pool_size) {
+                setUpdated(true)
+            }
+        }
         if (type != "flatten" && type != "dropout") { // Do not have activation functions
             if (activation != layer.activation_function) {  
                 setUpdated(true)
@@ -78,7 +87,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
             }
         }
 
-    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, probability])
+    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, poolSize, probability])
 
 
     function checkValidity() {
@@ -113,6 +122,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
             "input_x": inputX,
             "input_y": inputY,
             "input_z": inputZ,
+            "pool_size": poolSize,
             "probability": probability,
 
             "activation_function": activation
@@ -138,39 +148,35 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
         })
     }
 
+
+    const VALID_PREV_LAYERS = { // null means that it can be the first layer
+        "dense": [null, "dense", "flatten", "dropout"],
+        "conv2d": [null, "conv2d", "maxpooling2d"],
+        "maxpooling2d": ["conv2d", "maxpooling2d"],
+        "dropout": ["dense", "dropout", "flatten"],
+        "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpooling2d"]
+    }
+
+    const WARNING_MESSAGES = {
+        "dense": "A Dense layer must be the first one, else follow another Dense layer, a Flatten layer, or a Dropout layer.",
+        "conv2d": "A Conv2D layer must be the first one, else follow another Conv2d layer or a MaxPooling2DLayer.",
+        "maxpooling2d": "A MaxPooling2D layer must follow a Conv2d layer or another MaxPooling2D layer.",
+        "dropout": "A Dropout layer must follow a Dense layer, a Flatten layer, or another Dropout layer.",
+        "flatten": "Invalid previous layer."
+    }
+
     function getErrorMessage() {
         setWarnings(false)
-        if (!prevLayer) {
-            setErrorMessage("")
-            return
-        }    // Currently no issues that can arise in this case
 
-        let errorMessage = ""
         let type = layer.layer_type
-        let prevType = prevLayer.layer_type
+        let prevType = (prevLayer ? prevLayer.layer_type : null)
+        setErrorMessage("")
 
-        if (type == "dense") {
-            if (prevType == "conv2d") {
-                errorMessage += "A Dense layer cannot follow a Conv2D layer."
-                setWarnings(true)
-            }
+        if (!VALID_PREV_LAYERS[type].includes(prevType)) {
+            setWarnings(true)
+            setErrorMessage(WARNING_MESSAGES[type])
         }
 
-        if (type == "conv2d") {
-            if (prevType && prevType != "conv2d") {
-                errorMessage += "A Conv2D layer must follow another Conv2d layer."
-                setWarnings(true)
-            }
-        }
-
-        if (type == "dropout") {
-            if (prevType == "conv2d") {
-                errorMessage += "A Dropout layer cannot follow a Conv2D layer."
-                setWarnings(true)
-            }
-        }
-
-        setErrorMessage(errorMessage)
     }
 
     
@@ -191,7 +197,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                     {type == "dense" && <form className="layer-element-inner">
                         <h1 className="layer-element-title">
                             <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/dense.svg"} />
-                            Dense
+                            <span className="layer-element-title-text">Dense</span>
                             <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
                             <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 deleteLayer(layer.id)
@@ -221,7 +227,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                     {type == "conv2d" && <form className="layer-element-inner">
                         <h1 className="layer-element-title">
                             <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
-                            Conv2D
+                            <span className="layer-element-title-text">Conv2D</span>
                             <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
                             <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 deleteLayer(layer.id)
@@ -245,7 +251,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         </div>
 
                         <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
+                            <span className="layer-element-stat-color layer-element-stat-gray2"></span>
                             <label className="layer-element-label" htmlFor="flattenX">Input width</label>
                             <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
                                 setInputX(e.target.value)
@@ -253,7 +259,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         </div>
     
                         <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
+                            <span className="layer-element-stat-color layer-element-stat-gray2"></span>
                             <label className="layer-element-label" htmlFor="flattenY">Input height</label>
                             <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
                                 setInputY(e.target.value)
@@ -261,7 +267,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         </div>
 
                         <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
+                            <span className="layer-element-stat-color layer-element-stat-gray2"></span>
                             <label className="layer-element-label" htmlFor="flattenZ">Input depth</label>
                             <input type="number" className="layer-element-input" id="flattenZ" value={inputZ} onChange={(e) => {
                                 setInputZ(e.target.value)
@@ -280,11 +286,29 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                                 </select>
                         </div>
                     </form>}
+
+                    {type == "maxpooling2d" && <form className="layer-element-inner">
+                        <h1 className="layer-element-title">
+                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
+                            <span className="layer-element-title-text">MaxPooling2D</span>
+                            <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
+                            <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                                deleteLayer(layer.id)
+                            }}/>
+                        </h1>
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-pink2"></span>
+                            <label className="layer-element-label" htmlFor="pool-size">Pool size</label>
+                            <input type="number" className="layer-element-input" id="pool-size" value={poolSize} onChange={(e) => {
+                                setPoolSize(Math.max(0, Math.min(e.target.value, 99)))
+                            }}></input>
+                        </div> 
+                    </form>}
     
                     {type == "flatten" && <form className="layer-element-inner">
                         <h1 className="layer-element-title">
                             <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/area.svg"} />
-                            Flatten
+                            <span className="layer-element-title-text">Flatten</span>
                             <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
                             <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 deleteLayer(layer.id)
@@ -311,7 +335,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                     {type == "dropout" && <form className="layer-element-inner">
                         <h1 className="layer-element-title">
                             <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/dropout.svg"} />
-                            Dropout
+                            <span className="layer-element-title-text">Dropout</span>
                             <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
                             <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 deleteLayer(layer.id)
@@ -333,6 +357,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         title={(updated ? "Save changes" : "No changes")}
                         onClick={updateLayer}>
                         Save changes
+                    </button>
+                    <button type="button" 
+                        className="layer-element-revert"
+                        title="Revert changes"
+                        onClick={() => setRevertChanges(!revertChanges)}>
+                        Revert changes
                     </button>
 
                     <div className="layer-element-index" title={"Layer #" + (idx+1)}>{idx+1}</div>
