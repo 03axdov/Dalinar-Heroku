@@ -25,8 +25,8 @@ function Home({currentProfile, notification, BACKEND_URL}) {
     const [search, setSearch] = useState("")
     const [searchModels, setSearchModels] = useState("")
 
-    const [showClassification, setShowClassification] = useState(true)
-    const [showArea, setShowArea] = useState(true)
+    const [showImage, setShowImage] = useState(true)
+    const [showText, setShowText] = useState(true)
     
     const [showDatasetType, setShowDatasetType] = useState(false)
 
@@ -212,17 +212,17 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                             
                             {showDatasetType && <div className="dataset-type-options">
                                 <div className="explore-datasets-type">
-                                    <input className="explore-datasets-checkbox" type="checkbox" id="classification" name="classification" checked={showClassification} onChange={() => {
-                                        setShowClassification(!showClassification)
+                                    <input className="explore-datasets-checkbox" type="checkbox" id="image" checked={showImage} onChange={() => {
+                                        setShowImage(!showImage)
                                     }}/>
-                                    <label htmlFor="classification" className="explore-label">Classification</label>
+                                    <label htmlFor="image" className="explore-label">Image</label>
                                 </div>
                                 
                                 <div className="explore-datasets-type no-margin"> 
-                                    <input className="explore-datasets-checkbox" type="checkbox" id="area" name="area" checked={showArea} onChange={() => {
-                                        setShowArea(!showArea)
+                                    <input className="explore-datasets-checkbox" type="checkbox" id="text" checked={showText} onChange={() => {
+                                        setShowText(!showText)
                                     }}/> 
-                                    <label htmlFor="area" className="explore-label">Area</label>
+                                    <label htmlFor="text" className="explore-label">Text</label>
                                 </div>
                             </div>}
                         </div>
@@ -249,7 +249,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 
                 <div className="my-datasets-container">
                     {datasets.map((dataset) => (
-                        ((dataset.datatype == "classification" ? showClassification : showArea) ? <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL}/> : "")
+                        ((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText) ? <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL}/> : "")
                     ))}
                     {!loading && datasets.length == 0 && search.length == 0 && <p>You don't have any datasets. Click <span className="link" onClick={() => {
                         navigate("/create-dataset")

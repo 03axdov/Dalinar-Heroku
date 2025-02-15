@@ -376,7 +376,12 @@ function PublicDataset({BACKEND_URL}) {
 
         } else if (dataset && dataset.dataset_type.toLowerCase() == "text") {
             
-            fetch(element.file)
+            fetch(element.file, {
+                headers: {
+                    'pragma': 'no-cache',
+                    'cache-control': 'no-cache'
+                }
+            })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -458,7 +463,12 @@ function PublicDataset({BACKEND_URL}) {
                 labelToFolder[label.id] = zip.folder(label.name)
             }
 
-            const response = await fetch(elements[i].file);
+            const response = await fetch(elements[i].file, {
+                headers: {
+                    'pragma': 'no-cache',
+                    'cache-control': 'no-cache'
+                }
+            });
             const blob = await response.blob();
 
             let extension = elements[i].file.split(".").pop()
@@ -497,7 +507,12 @@ function PublicDataset({BACKEND_URL}) {
                 labelToNbr[label.id] = 0
             }
 
-            const response = await fetch(elements[i].file);
+            const response = await fetch(elements[i].file, {
+                headers: {
+                    'pragma': 'no-cache',
+                    'cache-control': 'no-cache'
+                }
+            });
             const blob = await response.blob();
 
             let extension = elements[i].file.split(".").pop()
@@ -526,7 +541,12 @@ function PublicDataset({BACKEND_URL}) {
         const zip = new JSZip();
 
         for (let i=0; i < elements.length; i++) {
-            const response = await fetch(elements[i].file);
+            const response = await fetch(elements[i].file, {
+                headers: {
+                    'pragma': 'no-cache',
+                    'cache-control': 'no-cache'
+                }
+            });
             const blob = await response.blob();
 
             zip.file(elements[i].name, blob);
@@ -873,7 +893,7 @@ function PublicDataset({BACKEND_URL}) {
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}
 
-                    {showDatasetDescription && dataset && dataset.description && <div className="dataset-description-display-container" ref={descriptionContainerRef}>
+                    {showDatasetDescription && dataset && <div className="dataset-description-display-container" ref={descriptionContainerRef}>
                         <div className="dataset-description-image-container" style={{width: "calc(100% - " + descriptionWidth + "%)"}}>
                             <img className="dataset-description-image" src={dataset.image} />
                         </div>
@@ -912,7 +932,11 @@ function PublicDataset({BACKEND_URL}) {
 
                             <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p>
 
-                            {(dataset.description ? <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{dataset.description}</p> : "This dataset does not have a description.")}
+                            {(dataset.description ? <p className="dataset-description-text dataset-description-description dataset-description-text-margin">
+                                {dataset.description}
+                            </p> : <p className="dataset-description-text dataset-description-description dataset-description-text-margin">
+                                This dataset does not have a description.
+                            </p>)}
 
                             {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">
                                 {dataset.keywords.length > 0 && <span className="gray-text dataset-description-keywords-title">Keywords: </span>}

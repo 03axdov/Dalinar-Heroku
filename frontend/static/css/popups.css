@@ -14,7 +14,7 @@
     z-index: 6;
 }
 
-.account-popup-container, .confirm-popup-container, .create-layer-popup-container, .build-model-popup-container {
+.account-popup-container, .confirm-popup-container, .create-layer-popup-container, .build-model-popup-container, .model-download-popup-container {
     width: 450px;
     border-radius: 5px;
     background: var(--toolbar);
@@ -39,6 +39,11 @@
     background: var(--background);
     overflow-y: auto;
     border-radius: 0;
+}
+
+.model-download-popup-container {
+    width: 700px;
+    max-width: 95%;
 }
 
 .create-layer-popup-title {

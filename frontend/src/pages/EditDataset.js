@@ -177,9 +177,9 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type edit-dataset-deactivated">Dataset type <span className="create-dataset-required">(unchangeable)</span></p>
-                    <input type="radio" id="create-dataset-type-image" name="image" value="Image" className="edit-dataset-deactivated" checked={datasetType == "Image"} unselectable={"true"} onChange={() => {}} />
+                    <input type="radio" id="create-dataset-type-image" name="image" value="Image" className="edit-dataset-deactivated" checked={datasetType == "image"} unselectable={"true"} onChange={() => {}} />
                     <label htmlFor="create-dataset-type-image" className="edit-dataset-deactivated create-dataset-type-label">Image</label>
-                    <input type="radio" id="create-dataset-type-text" name="text" value="Text" className="edit-dataset-deactivated" checked={datasetType == "Text"} unselectable={"true"} onChange={() => {}} />
+                    <input type="radio" id="create-dataset-type-text" name="text" value="Text" className="edit-dataset-deactivated" checked={datasetType == "text"} unselectable={"true"} onChange={() => {}} />
                     <label htmlFor="create-dataset-type-text" className="edit-dataset-deactivated create-dataset-type-label">Text</label>
                 </div>
 
@@ -211,7 +211,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                     The image that will represent this dataset. Elements (in Home or Explore) are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.
                 </p>
 
-                {datasetType == "Image" && <div className="create-dataset-label-inp">
+                {datasetType == "image" && <div className="create-dataset-label-inp">
                     <p className="create-dataset-label" style={{margin: 0}}>Image dimensions</p>
                     <span className="create-dataset-image-dimensions-left">(</span>
                     <input type="number" className="create-dataset-inp create-dataset-inp-dimensions" min="0" max="10000" placeholder="Width" value={imageWidth} onChange={(e) => {
@@ -223,19 +223,19 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                     }}/>
                     <span className="create-dataset-image-dimensions-right">)</span>
                 </div>}
-                {datasetType == "Image" && <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images can also be manually resized. Note that current images will remain unchanged.</p>}
+                {datasetType == "image" && <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images can also be manually resized. Note that current images will remain unchanged.</p>}
 
-                <div className="create-dataset-label-inp">
+                {datasetType == "image" && <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type edit-dataset-deactivated">Type of data <span className="create-dataset-required">(unchangeable)</span></p>
                     <input type="radio" id="create-dataset-type-image" name="classification" value="classification" className="edit-dataset-deactivated" checked={type == "classification"} unselectable={"true"} onChange={() => {}} />
                     <label htmlFor="create-dataset-type-image" className="edit-dataset-deactivated create-dataset-type-label">Classification</label>
                     <input type="radio" id="create-dataset-type-text" name="area" value="area" className="edit-dataset-deactivated" checked={type == "area"} unselectable={"true"} onChange={() => {}} />
                     <label htmlFor="create-dataset-type-text" className="edit-dataset-deactivated create-dataset-type-label">Area</label>
-                </div>
+                </div>}
 
                 <div className="create-dataset-label-inp create-dataset-label-inp-description">
                     <label className="create-dataset-label" htmlFor="dataset-description">Description</label>
-                    <textarea className="create-dataset-inp create-dataset-full-width create-dataset-description-inp" id="dataset-description" placeholder="This dataset..." type="text" value={description} onChange={(e) => {
+                    <textarea className="create-dataset-inp create-dataset-full-width create-dataset-description-inp" id="dataset-description" type="text" value={description} onChange={(e) => {
                         setDescription(e.target.value)
                     }} />
                 </div>

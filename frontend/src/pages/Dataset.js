@@ -787,7 +787,12 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         } else if (ALLOWED_FILE_EXTENSIONS.has(extension)) {
             
-            fetch(element.file)
+            fetch(element.file, {
+                headers: {
+                    'pragma': 'no-cache',
+                    'cache-control': 'no-cache'
+                }
+            })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
@@ -1309,32 +1314,50 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }
 
     async function labelFoldersDownload() {
+        if (labels.length == 0) {
+            notification("Cannot download datasets without labels.", "failure")
+            return;
+        }
         
         const zip = new JSZip();
 
         const labelToFolder = {
-
+            
         }
 
 
         for (let i=0; i < elements.length; i++) {
+            console.log("FILE: " + elements[i].file)
 
             let label = idToLabel[elements[i].label]
-            if (!labelToFolder[label.id]) {
+            if (label && !labelToFolder[label.id]) {
                 labelToFolder[label.id] = zip.folder(label.name)
             }
-
-            const response = await fetch(elements[i].file);
-            const blob = await response.blob();
-
-            let extension = elements[i].file.split(".").pop()
-            let filename = elements[i].name
-
-            if (filename.split(".").pop() != extension) {
-                filename += "." + extension
+            if (!label && !labelToFolder["nolabel"]) {
+                labelToFolder["nolabel"] = zip.folder("nolabel")
             }
-
-            labelToFolder[label.id].file(filename, blob);
+            try {
+                const response = await fetch(elements[i].file, {
+                    headers: {
+                        'pragma': 'no-cache',
+                        'cache-control': 'no-cache'
+                    }
+                });
+                const blob = await response.blob();
+    
+                let extension = elements[i].file.split(".").pop()
+                let filename = elements[i].name
+    
+                if (filename.split(".").pop() != extension) {
+                    filename += "." + extension
+                }
+    
+                labelToFolder[(label ? label.id: "nolabel")].file(filename, blob);
+            } catch (e) {
+                notification("Error: " + e, "failure")
+                
+            }
+            
         }
         
 
@@ -1350,32 +1373,53 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }
 
     async function labelFilenamesDownload() {
+        if (labels.length == 0) {
+            notification("Cannot download datasets without labels.", "failure")
+            return;
+        }
+        
         const zip = new JSZip();
 
         const labelToNbr = {
-
+            
         }
 
 
         for (let i=0; i < elements.length; i++) {
+            console.log("FILE: " + elements[i].file)
 
             let label = idToLabel[elements[i].label]
-            if (!labelToNbr[label.id]) {
+            if (label && !labelToNbr[label.id]) {
                 labelToNbr[label.id] = 0
             }
-
-            const response = await fetch(elements[i].file);
-            const blob = await response.blob();
-
-            let extension = elements[i].file.split(".").pop()
-            let filename = label.name + "_" + labelToNbr[label.id]
-
-            if (filename.split(".").pop() != extension) {
-                filename += "." + extension
+            if (!label && !labelToNbr["nolabel"]) {
+                labelToNbr["nolabel"] = 0
             }
 
-            zip.file(filename, blob);
-            labelToNbr[label.id] += 1
+            try {
+                const response = await fetch(elements[i].file, {
+                    headers: {
+                        'pragma': 'no-cache',
+                        'cache-control': 'no-cache'
+                    }
+                });
+
+                const blob = await response.blob();
+
+                let extension = elements[i].file.split(".").pop()
+                let filename = (label ? label.name + "_" + labelToNbr[label.id] : "no_label_" + labelToNbr["no_label"])
+
+                if (filename.split(".").pop() != extension) {
+                    filename += "." + extension
+                }
+
+                zip.file(filename, blob);
+                labelToNbr[(label ? label.id: "no_label")] += 1
+            } catch (e) {
+                console.log(e)
+                notification("Error: " + e, "failure")
+            }
+            
         }
         
 
@@ -1393,7 +1437,12 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         const zip = new JSZip();
 
         for (let i=0; i < elements.length; i++) {
-            const response = await fetch(elements[i].file);
+            const response = await fetch(elements[i].file, {
+                headers: {
+                    'pragma': 'no-cache',
+                    'cache-control': 'no-cache'
+                }
+            });
             const blob = await response.blob();
 
             zip.file(elements[i].name, blob);

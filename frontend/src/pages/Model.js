@@ -6,6 +6,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import CreateLayerPopup from "../components/CreateLayerPopup";
 import LayerElement from "../components/LayerElement";
 import BuildModelPopup from "../components/BuildModelPopup";
+import ModelDownloadPopup from "../components/ModelDownloadPopup";
 
 
 // The default page. Login not required.
@@ -19,6 +20,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
     const [showBuildModelPopup, setShowBuildModelPopup] = useState(false)
+    const [showAfterDownloadPopup, setShowAfterDownloadPopup] = useState(false)
 
     const [downloading, setDownloading] = useState(false)
 
@@ -144,7 +146,12 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     const downloadModelFile = async () => {
         try {
-          const response = await fetch(model.model_file);
+          const response = await fetch(model.model_file, {
+            headers: {
+                'pragma': 'no-cache',
+                'cache-control': 'no-cache'
+            }
+            });
           if (!response.ok) {
             throw new Error("Failed to fetch file");
           }
@@ -159,8 +166,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
           document.body.removeChild(a);
           window.URL.revokeObjectURL(url);
           setDownloading(false)
+          setShowAfterDownloadPopup(true)
         } catch (error) {
           notification("Error downloading model: " + error, "failure");
+          console.log(error)
           setDownloading(false)
         }
     };
@@ -359,6 +368,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
+
+            {showAfterDownloadPopup && <ModelDownloadPopup setShowDownloadPopup={setShowAfterDownloadPopup} BACKEND_URL={BACKEND_URL}></ModelDownloadPopup>}
 
             {showBuildModelPopup && <BuildModelPopup 
                 setShowBuildModelPopup={setShowBuildModelPopup} 
