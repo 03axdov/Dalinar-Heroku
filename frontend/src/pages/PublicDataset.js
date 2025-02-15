@@ -472,8 +472,8 @@ function PublicDataset({BACKEND_URL}) {
             if (label && !labelToFolder[label.id]) {
                 labelToFolder[label.id] = zip.folder(label.name)
             }
-            if (!label && !labelToFolder["nolabel"]) {
-                labelToFolder["nolabel"] = zip.folder("nolabel")
+            if (!label && !labelToFolder["No_Label"]) {
+                labelToFolder["No_Label"] = zip.folder("No_Label")
             }
             try {
                 const response = await fetch(elements[i].file, {
@@ -491,7 +491,7 @@ function PublicDataset({BACKEND_URL}) {
                     filename += "." + extension
                 }
     
-                labelToFolder[(label ? label.id: "nolabel")].file(filename, blob);
+                labelToFolder[(label ? label.id: "No_Label")].file(filename, blob);
             } catch (e) {
                 notification("Error: " + e, "failure")
                 
@@ -542,8 +542,8 @@ function PublicDataset({BACKEND_URL}) {
             if (label && !labelToNbr[label.id]) {
                 labelToNbr[label.id] = 0
             }
-            if (!label && !labelToNbr["nolabel"]) {
-                labelToNbr["nolabel"] = 0
+            if (!label && !labelToNbr["No_Label"]) {
+                labelToNbr["No_Label"] = 0
             }
 
             try {

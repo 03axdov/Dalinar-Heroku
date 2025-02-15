@@ -20,8 +20,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [dataset, setDataset] = useState(null)
     const [elements, setElements] = useState([])    // Label points to label id
     const [labels, setLabels] = useState([])
-    
-    const [currentText, setCurrentText] = useState("") // Used to display text files
+
+    const [idToText, setIdToText] = useState({})
 
     const [elementsIndex, setElementsIndex] = useState(0)
 
@@ -65,6 +65,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [downloadType, setDownloadType] = useState("folders")
     const [isDownloading, setIsDownloading] = useState(false)
     const [downloadingPercentage, setDownloadingPercentage] = useState(false)
+
+    const [updatePage, setUpdatePage] = useState(false) // change when page needs updating
 
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
@@ -658,6 +660,42 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
             setALLOWED_FILE_EXTENSIONS(res.data.dataset_type.toLowerCase() == "image" ? new Set(["png", "jpg", "jpeg", "webp", "avif"]) : new Set(["txt", "doc", "docx"]))
 
+            if (res.data.dataset_type.toLowerCase() == "text") {
+
+                let AJAX_OUTSTANDING = res.data.elements.length
+                let temp = {}
+                for (let i=0; i < res.data.elements.length; i++) {
+                    let element = res.data.elements[i]
+                    fetch(element.file, {
+                        headers: {
+                            'pragma': 'no-cache',
+                            'cache-control': 'no-cache'
+                        }
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.text()
+                    })
+                    .then(text => {
+                        temp[element.id] = text
+                        console.log(text)
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with the fetch operation:', error);
+                    }).finally(() => {
+                        AJAX_OUTSTANDING -= 1
+                        if (AJAX_OUTSTANDING == 0) {
+                            console.log("B")
+                            setIdToText(temp)
+                            setUpdatePage(!updatePage)
+                        }
+                    })
+                }
+
+            }
+            console.log("A")
             setElements(res.data.elements)
 
             setLabels(res.data.labels)
@@ -665,7 +703,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             // Update keybinds
             parseLabels(res.data.labels)
 
-            // preloadImages(res.data.elements) // Now handled by .hidden-preload
         }).catch((err) => {
             navigate("/")
             notification("An error occured when loading dataset with id " + id + ".", "failure")
@@ -676,7 +713,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             setLoading(false)
         })
     }
-
 
     // ELEMENT FUNCTIONALITY
 
@@ -789,27 +825,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             
 
         } else if (ALLOWED_FILE_EXTENSIONS.has(extension) && dataset.dataset_type.toLowerCase() == "text") {
-            
-            fetch(element.file, {
-                headers: {
-                    'pragma': 'no-cache',
-                    'cache-control': 'no-cache'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.text()
-            })
-            .then(text => {
-                setCurrentText(text)
-            })
-            .catch(error => {
-                console.error('There was a problem with the fetch operation:', error);
-            });
-
-            return <p className="dataset-element-view-text">{currentText}</p> // Process the text content
+            return <p className="dataset-element-view-text" style={{display: (idToText[element.id] ? "block" : "none")}}>{idToText[element.id]}</p> // Process the text content
             
         } else {
             return <div className="extension-not-found">File of type .{extension} could not be rendered.</div>
@@ -1338,8 +1354,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             if (label && !labelToFolder[label.id]) {
                 labelToFolder[label.id] = zip.folder(label.name)
             }
-            if (!label && !labelToFolder["nolabel"]) {
-                labelToFolder["nolabel"] = zip.folder("nolabel")
+            if (!label && !labelToFolder["No_Label"]) {
+                labelToFolder["No_Label"] = zip.folder("No_Label")
             }
             try {
                 const response = await fetch(elements[i].file, {
@@ -1357,7 +1373,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     filename += "." + extension
                 }
     
-                labelToFolder[(label ? label.id: "nolabel")].file(filename, blob);
+                labelToFolder[(label ? label.id: "No_Label")].file(filename, blob);
             } catch (e) {
                 notification("Error: " + e, "failure")
                 
@@ -1410,8 +1426,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             if (label && !labelToNbr[label.id]) {
                 labelToNbr[label.id] = 0
             }
-            if (!label && !labelToNbr["nolabel"]) {
-                labelToNbr["nolabel"] = 0
+            if (!label && !labelToNbr["No_Label"]) {
+                labelToNbr["No_Label"] = 0
             }
 
             try {
