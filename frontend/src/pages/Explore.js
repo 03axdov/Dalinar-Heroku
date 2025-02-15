@@ -232,7 +232,7 @@ function Explore({checkLoggedIn, BACKEND_URL}) {
                             <option value="elements">Elements</option>
                             <option value="labels">Labels</option>
                             <option value="alphabetical">Alphabetical</option>
-                            <option value="date">Date</option>
+                            <option value="date">Created</option>
                         </select>
                         
                         <div className="explore-datasets-search-container">

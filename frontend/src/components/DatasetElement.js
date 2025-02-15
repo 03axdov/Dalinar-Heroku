@@ -28,7 +28,7 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false}) {
             <div className="dataset-element-header">
                     
                 {dataset.dataset_type.toLowerCase() == "image" && <img title="Image" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/image.png"}/>}
-                {dataset.dataset_type.toLowerCase() == "text" && <img title="Text" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/text.png"}/>}
+                {dataset.dataset_type.toLowerCase() == "text" && <img title="Text" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/text.svg"}/>}
                 
                 <p className="dataset-element-name" title={dataset.name}>
                     {dataset.name}

@@ -67,9 +67,8 @@ function PublicDataset({BACKEND_URL}) {
     useEffect(() => {
         let currentElement = elements[elementsIndex]
         if (!currentElement) {return}
-        let extension = currentElement.file.split(".").pop()
 
-        if (IMAGE_FILE_EXTENSIONS.has(extension)) {
+        if (dataset.dataset_type.toLowerCase() == "image") {
             if (currentElement.imageWidth) {setCurrentImageWidth(currentElement.imageWidth)}
             else {setCurrentImageWidth("")}
             
@@ -226,10 +225,6 @@ function PublicDataset({BACKEND_URL}) {
         </div>
     }
 
-
-    // END OF AREA FUNCTIONALITY
-
-
     useEffect(() => {
         getDataset()
     }, [])
@@ -333,13 +328,10 @@ function PublicDataset({BACKEND_URL}) {
         setPosition({ x, y });
     };
 
-    const IMAGE_FILE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "avif"])
-    const TEXT_FILE_EXTENSIONS = new Set(["txt", "doc", "docx"])
-
     function getPreviewElement(element) {
         const extension = element.file.split(".").pop()
         
-        if (IMAGE_FILE_EXTENSIONS.has(extension)) {
+        if (dataset && dataset.dataset_type.toLowerCase() == "image") {
             if (dataset.datatype == "classification") {
                 return <div className="dataset-element-view-image-container"
                     ref={elementContainerRef} 
@@ -382,7 +374,7 @@ function PublicDataset({BACKEND_URL}) {
                 </div>
             }
 
-        } else if (TEXT_FILE_EXTENSIONS.has(extension)) {
+        } else if (dataset && dataset.dataset_type.toLowerCase() == "text") {
             
             fetch(element.file)
             .then(response => {
@@ -797,8 +789,8 @@ function PublicDataset({BACKEND_URL}) {
                                                 setShowElementPreview(false);
                                             }}>
 
-                                                {IMAGE_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
-                                                {TEXT_FILE_EXTENSIONS.has(element.file.split(".").pop()) && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.png"}/>}
+                                                {dataset && dataset.dataset_type.toLowerCase() == "image" && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
+                                                {dataset && dataset.dataset_type.toLowerCase() == "text" && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.svg"}/>}
 
                                                 <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
                                                 
@@ -824,10 +816,10 @@ function PublicDataset({BACKEND_URL}) {
                     
                     {/* Shows an element's label */}
                     {dataset && dataset.datatype == "classification" && showElementPreview && hoveredElement != null && elements[hoveredElement].label &&
-                        <div className="dataset-sidebar-element-label" style={{top: (elementLabelTop + (IMAGE_FILE_EXTENSIONS.has(elements[hoveredElement].file.split(".").pop()) ? 5 : 0))}}>{idToLabel[elements[hoveredElement].label].name}</div>
+                        <div className="dataset-sidebar-element-label" style={{top: (elementLabelTop + (dataset.dataset_type.toLowerCase() == "image" ? 5 : 0))}}>{idToLabel[elements[hoveredElement].label].name}</div>
                     }
 
-                    {dataset && showElementPreview && hoveredElement != null && IMAGE_FILE_EXTENSIONS.has(elements[hoveredElement].file.split(".").pop()) &&
+                    {dataset && showElementPreview && hoveredElement != null && dataset.dataset_type.toLowerCase() == "image" &&
                         <img className="dataset-sidebar-element-preview" style={{top: elementLabelTop}} src={elements[hoveredElement].file}/>
                     }
 
@@ -841,8 +833,8 @@ function PublicDataset({BACKEND_URL}) {
                 <div className="dataset-main-toolbar-outer" style={{height: toolbarMainHeight + "px"}}>
                     <div className="dataset-main-toolbar" style={{display: (toolbarMainHeight > 25 ? "flex" : "none")}}>
                         {dataset && <div className="dataset-title-container unselectable" onClick={() => {setShowDatasetDescription(!showDatasetDescription)}}>
-                            {dataset.datatype == "classification" && <img title="Type: Classification" className="dataset-title-icon" src={BACKEND_URL + "/static/images/classification.png"}/>}
-                            {dataset.datatype == "area" && <img title="Type: Area" className="dataset-title-icon" src={BACKEND_URL + "/static/images/area.svg"}/>}
+                            {dataset.dataset_type.toLowerCase() == "image" && <img title="Type: Image" className="dataset-title-icon" src={BACKEND_URL + "/static/images/image.png"}/>}
+                            {dataset.dataset_type.toLowerCase() == "text" && <img title="Type: Text" className="dataset-title-icon" src={BACKEND_URL + "/static/images/text.svg"}/>}
                             
                             <p className="dataset-title" title={(!showDatasetDescription ? "Show description" : "Hide description")}>{dataset && dataset.name}</p>
 
@@ -851,7 +843,7 @@ function PublicDataset({BACKEND_URL}) {
 
                         {dataset && <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={BACKEND_URL + "/static/images/download.svg"} title="Download dataset"/>Download</button>}
                     
-                        {elements && elements[elementsIndex] && IMAGE_FILE_EXTENSIONS.has(elements[elementsIndex].file.split(".").pop()) && <div className="resize-form" onSubmit={(e) => {
+                        {elements && elements[elementsIndex] && dataset && dataset.dataset_type.toLowerCase() == "image" && <div className="resize-form" onSubmit={(e) => {
                             e.preventDefault()
                             resizeElementImage()
                         }}>
@@ -900,7 +892,7 @@ function PublicDataset({BACKEND_URL}) {
                                 </div>}
 
                                 {elements && <div className="dataset-description-stats-element">
-                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/text.png"}/>
+                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/classification.png"}/>
                                     {elements.length + (elements.length == 1 ? " element" : " elements")}
                                 </div>}
 
@@ -910,13 +902,13 @@ function PublicDataset({BACKEND_URL}) {
                                 </div>}
                             </div>
 
-                            {dataset.imageWidth && <p className="dataset-description-text"><span className="dataset-description-start">Default Image Dimensions: </span>({dataset.imageWidth}, {dataset.imageHeight})</p>}
+                            {dataset.dataset_type.toLowerCase() == "image" && dataset.imageWidth && <p className="dataset-description-text"><span className="dataset-description-start">Default Image Dimensions: </span>({dataset.imageWidth}, {dataset.imageHeight})</p>}
 
-                            <p className="dataset-description-text dataset-description-text-flex" style={{textTransform: "capitalize"}}>
-                                <span className="dataset-description-start">Datatype: </span>
+                            {dataset.dataset_type.toLowerCase() == "image" && <p className="dataset-description-text dataset-description-text-flex" style={{textTransform: "capitalize"}}>
+                                <span className="dataset-description-start">Type of data: </span>
                                 <img className="dataset-description-icon" src={BACKEND_URL + "/static/images/" + (dataset.datatype == "area" ? "area.svg" : "classification.png")}/>
                                 {dataset.datatype}
-                            </p>
+                            </p>}
 
                             <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p>
 

@@ -82,13 +82,15 @@ function CreateDataset({notification, BACKEND_URL}) {
         formData.append("imageWidth", imageWidth)
         formData.append("imageHeight", imageHeight)
 
-        Object.entries(uploadedDatasets).forEach(([key, fileList]) => {
-            formData.append("labels", key)
-            fileList.forEach((file) => {
-                formData.append(key, file)
+        if (type != "area") {
+            Object.entries(uploadedDatasets).forEach(([key, fileList]) => {
+                formData.append("labels", key)
+                fileList.forEach((file) => {
+                    formData.append(key, file)
+                })
             })
-        })
-
+        }
+        
         const URL = window.location.origin + '/api/create-dataset/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
 
@@ -123,12 +125,18 @@ function CreateDataset({notification, BACKEND_URL}) {
     }
 
     function uploadFoldersAsLabels(e) {
+        const ALLOWED_FILE_EXTENSIONS = (datasetType == "image" ? new Set(["png", "jpg", "jpeg", "webp", "avif"]) : new Set(["txt", "doc", "docx"]))
+
         try {
             let files = e.target.files
             
             let tempObj = {...uploadedDatasets}    // Label name as key and value as an array of elements
             for (let i=0; i < files.length; i++) {
                 let file = files[i]
+
+                let extension = file.name.split(".").pop().toLowerCase()
+                if (!ALLOWED_FILE_EXTENSIONS.has(extension)) {continue}
+                
                 if (i == 0) {
                     let temp = [...uploadedFoldersAsLabels]
                     temp.push(file.webkitRelativePath.split("/")[0])
@@ -153,6 +161,9 @@ function CreateDataset({notification, BACKEND_URL}) {
     }
 
     function uploadFilenamesAsLabels(e) {
+
+        const ALLOWED_FILE_EXTENSIONS = (datasetType == "image" ? new Set(["png", "jpg", "jpeg", "webp", "avif"]) : new Set(["txt", "doc", "docx"]))
+
         try {
             let files = e.target.files
             
@@ -160,6 +171,10 @@ function CreateDataset({notification, BACKEND_URL}) {
 
             for (let i=0; i < files.length; i++) {
                 let file = files[i]
+                
+                let extension = file.name.split(".").pop().toLowerCase()
+                if (!ALLOWED_FILE_EXTENSIONS.has(extension)) {continue}
+
                 if (i == 0) {
                     let temp = [...uploadedFilenamesAsLabels]
                     temp.push(file.webkitRelativePath.split("/")[0])
@@ -199,14 +214,18 @@ function CreateDataset({notification, BACKEND_URL}) {
                     <p className="create-dataset-label create-dataset-type">Dataset type</p>
                     <input type="radio" id="create-dataset-type-image" name="imagetype" value="image" checked={datasetType == "image"} onChange={(e) => {
                         setDatasetType(e.target.value)
+                        setUploadedFoldersAsLabels([])
                     }} />
                     <label htmlFor="create-dataset-type-image" className="create-dataset-type-label">Image</label>
                     <input type="radio" id="create-dataset-type-text" name="texttype" value="text" checked={datasetType == "text"}  onChange={(e) => {
                         setDatasetType(e.target.value)
+                        setUploadedFilenamesAsLabels([])
                         setType("classification")
                     }} />
                     <label htmlFor="create-dataset-type-text" className="create-dataset-type-label">Text</label>
                 </div>
+                <p className="create-dataset-description">Note that switching dataset type will remove all uploaded datasets.</p>
+                
 
                 <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="dataset-name">Dataset name <span className="create-dataset-required">(required)</span></label>
