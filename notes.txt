@@ -2,6 +2,7 @@ TO-DO:
 - Adjust URLs in Home and Explore to show if on models or datasets
 - Loading animation when downloading dataset
 - Python security measures for dataset_types
+- Don't fetch already fetched text
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

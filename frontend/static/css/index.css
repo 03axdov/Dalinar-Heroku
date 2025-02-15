@@ -312,6 +312,58 @@ input {
     opacity: 0;
 }
 
+.progress-bar-outer {
+    position: fixed;
+    z-index: 7;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    background: rgb(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.progress-bar-container {
+    height: 50px;
+    width: 550px;
+    max-width: 60%;
+    border-radius: 5px;
+    background: var(--toolbar);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 10px 20px;
+    z-index: 2;
+}
+
+.progress-bar-text {
+    margin: 0;
+    margin-right: 20px;
+}
+
+.progress-bar {
+    height: 22px;
+    width: 100%;
+    border-radius: 3px;
+    background: var(--background);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    overflow: hidden;
+}
+
+.progress-bar-completed {
+    height: 100%;
+    background: rgb(0,212,255);
+    background: linear-gradient(90deg, rgba(0,212,255,1) 0%, rgba(0,116,255,1) 100%);
+    transition: 0.2s;
+    z-index: 2;
+}
+
 @media all and (max-width: 975px) {
     button {
         font-size: 1rem;

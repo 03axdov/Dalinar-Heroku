@@ -8,6 +8,7 @@ import { saveAs } from "file-saver";
 import DownloadCode from "../components/DownloadCode";
 
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import ProgressBar from "../components/ProgressBar";
 
 
 const TOOLBAR_HEIGHT = 60
@@ -62,6 +63,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [isDownloaded, setIsDownloaded] = useState(false)
     const [downloadFramework, setDownloadFramework] = useState("tensorflow")
     const [downloadType, setDownloadType] = useState("folders")
+    const [isDownloading, setIsDownloading] = useState(false)
+    const [downloadingPercentage, setDownloadingPercentage] = useState(false)
 
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
@@ -711,7 +714,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     function getPreviewElement(element) {
         const extension = element.file.split(".").pop().split("?")[0]
         
-        if (ALLOWED_FILE_EXTENSIONS.has(extension)) {
+        if (ALLOWED_FILE_EXTENSIONS.has(extension) && dataset.dataset_type.toLowerCase() == "image") {
             if (dataset.datatype == "classification") {
                 return <div className="dataset-element-view-image-container" 
                     ref={elementContainerRef} 
@@ -785,7 +788,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             }
             
 
-        } else if (ALLOWED_FILE_EXTENSIONS.has(extension)) {
+        } else if (ALLOWED_FILE_EXTENSIONS.has(extension) && dataset.dataset_type.toLowerCase() == "text") {
             
             fetch(element.file, {
                 headers: {
@@ -1302,7 +1305,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         axios.post(URL, data, config)
         .then((data) => {
-            console.log("Incremented download count.")
+
         }).catch((error) => {
             if (error.status == 401) {
                 console.log("Did not increment download counter as user is not signed in.")
@@ -1325,9 +1328,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             
         }
 
+        setDownloadingPercentage(0)
+        setIsDownloading(true)
 
+        let NUM_ELEMENTS = elements.length
         for (let i=0; i < elements.length; i++) {
-            console.log("FILE: " + elements[i].file)
 
             let label = idToLabel[elements[i].label]
             if (label && !labelToFolder[label.id]) {
@@ -1357,18 +1362,29 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 notification("Error: " + e, "failure")
                 
             }
+
+            setDownloadingPercentage(Math.round(100 * (i / NUM_ELEMENTS)))
             
         }
-        
+
+        setDownloadingPercentage(100)
 
         // Generate the ZIP file and trigger download
         const zipBlob = await zip.generateAsync({ type: "blob" });
-        saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
-        downloadAPICall()
+        setTimeout(() => {
+            saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
-        setDownloadType("folders")
-        setIsDownloaded(true)
+            downloadAPICall()
+        
+            setUploadLoading(false)
+            getDataset()
+
+            setDownloadType("folders")
+            setIsDownloading(false)
+            setIsDownloaded(true)
+        }, 200)
+        
         
     }
 
@@ -1384,9 +1400,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             
         }
 
+        setDownloadingPercentage(0)
+        setIsDownloading(true)
+        let NUM_ELEMENTS = elements.length
 
         for (let i=0; i < elements.length; i++) {
-            console.log("FILE: " + elements[i].file)
 
             let label = idToLabel[elements[i].label]
             if (label && !labelToNbr[label.id]) {
@@ -1420,22 +1438,29 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 notification("Error: " + e, "failure")
             }
             
+            setDownloadingPercentage(Math.round(100 * (i / NUM_ELEMENTS)))
         }
-        
+        setDownloadingPercentage(100)
 
         // Generate the ZIP file and trigger download
         const zipBlob = await zip.generateAsync({ type: "blob" });
-        saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
+        
+        setTimeout(() => {
+            saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
-        downloadAPICall()
+            downloadAPICall()
 
-        setDownloadType("files")
-        setIsDownloaded(true)
+            setDownloadType("files")
+            setIsDownloaded(true)
+        }, 200)
     }
 
     async function areaDatasetDownload() {
         const zip = new JSZip();
 
+        setDownloadingPercentage(0)
+        setIsDownloading(true)
+        let NUM_ELEMENTS = elements.length
         for (let i=0; i < elements.length; i++) {
             const response = await fetch(elements[i].file, {
                 headers: {
@@ -1446,19 +1471,26 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             const blob = await response.blob();
 
             zip.file(elements[i].name, blob);
-        }
 
+            setDownloadingPercentage(Math.round(100 * (i / NUM_ELEMENTS)))
+        }
+        
         const jsonContent = createJSON();
         const blob = new Blob([jsonContent], { type: 'application/json' });
         zip.file(dataset.name + ".json", blob)
+
+        setDownloadingPercentage(100)
         
         // Generate the ZIP file and trigger download
         const zipBlob = await zip.generateAsync({ type: "blob" });
-        saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
-        downloadAPICall()
+        setTimeout(() => {
+            saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
-        setIsDownloaded(true)
+            downloadAPICall()
+
+            setIsDownloaded(true)
+        }, 200)
     }
 
 
@@ -1663,7 +1695,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             {/* Download popup - Classification */}
             {showDownloadPopup && !isDownloaded && dataset && dataset.datatype == "classification" && <DownloadPopup 
             setShowDownloadPopup={setShowDownloadPopup} 
-            isArea={dataset && dataset.datatype == "area"}
+            isArea={false}
             isDownloaded={isDownloaded}
             setIsDownloaded={setIsDownloaded}>
                     <div title="Download .zip file" className="download-element" onClick={labelFoldersDownload}>
@@ -1685,6 +1717,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
 
                     </div>
+                    {isDownloading && <ProgressBar message={"Downloading..."} progress={downloadingPercentage}></ProgressBar>}
             </DownloadPopup>}
 
             {/* After download popup - Classification */}
@@ -1956,7 +1989,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             setShowDownloadPopup(true)
                         }} title="Download dataset"><img className="dataset-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>Download</button>}
 
-                        {elements && elements[elementsIndex] && dataset && dataset.dataset_type && <form className="resize-form" onSubmit={(e) => {
+                        {elements && elements[elementsIndex] && dataset && dataset.dataset_type.toLowerCase() == "image" && <form className="resize-form" onSubmit={(e) => {
                             e.preventDefault()
                             resizeElementImage()
                         }}>
@@ -1992,21 +2025,16 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
                         Upload folder
                     </button>}
-                    {uploadLoading && <div className="dataset-upload-bar-container">
-                        <p className="dataset-upload-bar-text">Uploading...</p>
-                        <div className="dataset-upload-bar">
-                            <div className="dataset-upload-bar-completed" style={{width: (uploadPercentage + "%")}}></div>
-                        </div>
-                    </div>}
+                    {uploadLoading && <ProgressBar message={"Uploading..."} progress={uploadPercentage}></ProgressBar>}
                     {elements.length != 0 && !showDatasetDescription && <div className="dataset-element-view-container">
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}
 
                     {/* For preloading images */}
-                    <div className="hidden-preload">
+                    {dataset && dataset.dataset_type.toLowerCase() == "image" && <div className="hidden-preload">
                         {elements.map((e, idx) => {getPreviewElement(e)})}
-                    </div>
-
+                    </div>}
+                    
                     {showDatasetDescription && dataset &&<div className="dataset-description-display-container" ref={descriptionContainerRef}>
 
                         <div className="dataset-description-image-container" style={{width: "calc(100% - " + descriptionWidth + "%)"}}>
