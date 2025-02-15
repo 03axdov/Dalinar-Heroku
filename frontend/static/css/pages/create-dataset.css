@@ -199,7 +199,13 @@
     margin-right: 40px;
 }
 
-#create-dataset-type-text, #create-dataset-visibility-public {
+.dataset-type-disabled {
+    cursor: default;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+#create-dataset-type-text, #create-dataset-type-area, #create-dataset-visibility-public {
     margin-left: 20px;
 }
 

@@ -133,7 +133,7 @@
 }
 
 .dataset-element-icon {
-    height: 24px;
+    width: 24px;
 }
 
 .dataset-element-icon-empty {
@@ -150,7 +150,7 @@
     background: var(--element-icon-hover);
 }
 
-.dataset-element-date, .dataset-element-count, .dataset-element-labels, .dataset-element-shape, .dataset-element-private {
+.dataset-element-date, .dataset-element-count, .dataset-element-labels, .dataset-element-shape, .dataset-element-private, .dataset-element-datatype {
     position: absolute;
     font-size: 0.9rem;
     padding: 2px 5px;
@@ -185,6 +185,13 @@
     top: 50px;
     font-size: 0.8rem;
     bottom: auto;
+}
+
+.dataset-element-datatype {
+    left: 15px;
+    top: 50px;
+    bottom: auto;
+    text-transform: capitalize;
 }
 
 .dataset-element-keywords-container {
@@ -232,7 +239,7 @@
         min-height: 145px;
     }
 
-    .dataset-element-count, .dataset-element-labels, .dataset-element-date, .dataset-element-private, .dataset-element-shape {
+    .dataset-element-count, .dataset-element-labels, .dataset-element-date, .dataset-element-private, .dataset-element-shape, .dataset-element-datatype {
         font-size: 0.8rem;
     }
 
@@ -276,7 +283,7 @@
         max-height: 195px;
     }
 
-    .dataset-element-count, .dataset-element-labels, .dataset-element-date, .dataset-element-private, .dataset-element-shape {
+    .dataset-element-count, .dataset-element-labels, .dataset-element-date, .dataset-element-private, .dataset-element-shape, .dataset-element-datatype {
         font-size: 0.9rem;
     }
 

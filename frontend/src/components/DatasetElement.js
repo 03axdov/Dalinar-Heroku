@@ -27,8 +27,8 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false}) {
         <div className="dataset-element" onClick={onClick} onMouseEnter={() => setShowDescription(true)} onMouseLeave={() => {setShowDescription(false)}} >
             <div className="dataset-element-header">
                     
-                {dataset.datatype == "classification" && <img title="Classification" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/classification.png"}/>}
-                {dataset.datatype == "area" && <img title="Area" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/area.svg"}/>}
+                {dataset.dataset_type.toLowerCase() == "image" && <img title="Image" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/image.png"}/>}
+                {dataset.dataset_type.toLowerCase() == "text" && <img title="Text" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/text.png"}/>}
                 
                 <p className="dataset-element-name" title={dataset.name}>
                     {dataset.name}
@@ -61,6 +61,9 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false}) {
             {dataset.labels && <p className="dataset-element-labels">{dataset.labels.length + " label" + (dataset.labels.length != 1 ? "s" : "")}</p>}
             {dataset && dataset.imageWidth && dataset.imageHeight && <p className="dataset-element-shape">
                 {dataset.imageWidth}x{dataset.imageHeight}
+            </p>}
+            {dataset && dataset.dataset_type.toLowerCase() == "image" && dataset.datatype && <p className="dataset-element-datatype">
+                {dataset.datatype}
             </p>}
 
 

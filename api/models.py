@@ -65,10 +65,16 @@ class Dataset(models.Model):
         ("classification", "Classification"),
         ("area", "Area")
     ]
-    datatype = models.CharField(max_length=20, choices=DATATYPE_CHOICES, default="image")
+    datatype = models.CharField(max_length=20, choices=DATATYPE_CHOICES, default="Classification", blank=True, null=True)   # Used for image datasets
+    
+    DATASET_TYPE_CHOICES = [
+        ("image", "Image"),
+        ("text", "Text")
+    ]
+    dataset_type = models.CharField(max_length=20, choices=DATASET_TYPE_CHOICES, default="Image")
     
     def __str__(self):
-        return self.name + " - " + self.owner.name
+        return self.name + " - " + self.owner.name + " (" + self.dataset_type + ")"
 
 
 @receiver(post_delete, sender=Dataset)

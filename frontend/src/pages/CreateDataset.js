@@ -9,7 +9,8 @@ function CreateDataset({notification, BACKEND_URL}) {
 
     const [loading, setLoading] = useState(false)
 
-    const [type, setType] = useState("classification")
+    const [datasetType, setDatasetType] = useState("image")
+    const [type, setType] = useState("classification")  // used for image datasets, either "classification" or "area"
     const [name, setName] = useState("")
     const [description, setDescription] = useState("")
     const [image, setImage] = useState(null)
@@ -70,6 +71,7 @@ function CreateDataset({notification, BACKEND_URL}) {
 
         formData.append('name', name)
         formData.append('datatype', type)
+        formData.append('dataset_type', datasetType)
         formData.append('description', (description ? description : ""))
         formData.append('image', image)
         formData.append("visibility", visibility)
@@ -194,22 +196,23 @@ function CreateDataset({notification, BACKEND_URL}) {
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
 
                 <div className="create-dataset-label-inp">
+                    <p className="create-dataset-label create-dataset-type">Dataset type</p>
+                    <input type="radio" id="create-dataset-type-image" name="imagetype" value="image" checked={datasetType == "image"} onChange={(e) => {
+                        setDatasetType(e.target.value)
+                    }} />
+                    <label htmlFor="create-dataset-type-image" className="create-dataset-type-label">Image</label>
+                    <input type="radio" id="create-dataset-type-text" name="texttype" value="text" checked={datasetType == "text"}  onChange={(e) => {
+                        setDatasetType(e.target.value)
+                        setType("classification")
+                    }} />
+                    <label htmlFor="create-dataset-type-text" className="create-dataset-type-label">Text</label>
+                </div>
+
+                <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="dataset-name">Dataset name <span className="create-dataset-required">(required)</span></label>
                     <input className="create-dataset-inp" id="dataset-name" type="text" required value={name} onChange={(e) => {
                         setName(e.target.value)
                     }} />
-                </div>
-
-                <div className="create-dataset-label-inp">
-                    <p className="create-dataset-label create-dataset-type">Dataset type</p>
-                    <input type="radio" id="create-dataset-type-image" name="classification" value="classification" checked={type == "classification"} onChange={(e) => {
-                        setType(e.target.value)
-                    }} />
-                    <label htmlFor="create-dataset-type-image" className="create-dataset-type-label">Classification</label>
-                    <input type="radio" id="create-dataset-type-text" name="area" value="area" checked={type == "area"}  onChange={(e) => {
-                        setType(e.target.value)
-                    }} />
-                    <label htmlFor="create-dataset-type-text" className="create-dataset-type-label">Area <span className="create-dataset-required">(images only)</span></label>
                 </div>
 
                 <div className="create-dataset-label-inp">
@@ -233,7 +236,7 @@ function CreateDataset({notification, BACKEND_URL}) {
                     The image that will represent this dataset. Elements (in Home or Explore) are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.
                 </p>
 
-                <div className="create-dataset-label-inp">
+                {datasetType == "image" && <div className="create-dataset-label-inp">
                     <p className="create-dataset-label" style={{margin: 0}}>Image dimensions</p>
                     <span className="create-dataset-image-dimensions-left">(</span>
                     <input type="number" className="create-dataset-inp create-dataset-inp-dimensions" min="0" max="10000" placeholder="Width" value={imageWidth} onChange={(e) => {
@@ -244,10 +247,25 @@ function CreateDataset({notification, BACKEND_URL}) {
                         setImageHeight(e.target.value)
                     }}/>
                     <span className="create-dataset-image-dimensions-right">)</span>
-                </div>
-                <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images can also be manually resized.
+                </div>}
+                {datasetType == "image" && <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images can also be manually resized.
                     Note that images with dimensions larger than 1024px will be resized so their largest dimension is at most 1024px regardless.
-                </p>
+                </p>}
+
+                <div className="create-dataset-label-inp">
+                    <p className="create-dataset-label create-dataset-type">Type of data</p>
+                    <input type="radio" id="create-dataset-type-classification" name="classification" value="classification" checked={type == "classification"} onChange={(e) => {
+                        setType(e.target.value)
+                    }} />
+                    <label htmlFor="create-dataset-type-classification" className="create-dataset-type-label">Classification</label>
+                    <input type="radio" id="create-dataset-type-area" className={(datasetType == "text" ? "dataset-type-disabled": "")} name="area" value="area" checked={type == "area"}  onChange={(e) => {
+                        if (datasetType == "image") {
+                            setType(e.target.value)
+                        }
+                        
+                    }} />
+                    <label htmlFor="create-dataset-type-area" className={"create-dataset-type-label " + (datasetType == "text" ? "dataset-type-disabled": "")}>Area <span className="create-dataset-required">(images only)</span></label>
+                </div>
 
                 <div className="create-dataset-label-inp create-dataset-label-inp-description">
                     <label className="create-dataset-label" htmlFor="dataset-description">Description</label>
