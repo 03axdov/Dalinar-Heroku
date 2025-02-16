@@ -511,8 +511,7 @@ function PublicDataset({BACKEND_URL}) {
             saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
             downloadAPICall()
-        
-            setUploadLoading(false)
+
             getDataset()
 
             setDownloadType("folders")

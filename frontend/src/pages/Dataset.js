@@ -1408,7 +1408,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
             downloadAPICall()
         
-            setUploadLoading(false)
             getDataset()
 
             setDownloadType("folders")

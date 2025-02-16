@@ -5,7 +5,7 @@ function DatasetElementLoading({BACKEND_URL, isPublic=false}) {
 
     return (
         <div className="dataset-element">
-            <div className="dataset-element-header">
+            <div className="dataset-element-header" style={{height: "26px"}}>
                 
                 <p className="dataset-element-name"></p>
 

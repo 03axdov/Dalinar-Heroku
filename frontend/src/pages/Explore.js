@@ -253,7 +253,7 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
                         ((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText) ? <DatasetElement dataset={dataset} key={dataset.id} isPublic={true} BACKEND_URL={BACKEND_URL}/> : "")
                     ))}
 
-                    {loading && datasets.length == 0 && [...Array(4)].map((e, i) => (
+                    {!loading && datasets.length != 0 && [...Array(4)].map((e, i) => (
                         <DatasetElementLoading key={i} isPublic={true} BACKEND_URL={BACKEND_URL}/>
                     ))}
                     {!loading && datasets.length == 0 && search.length > 0 && <p className="gray-text">No such datasets found.</p>}
