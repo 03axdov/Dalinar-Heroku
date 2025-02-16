@@ -23,6 +23,10 @@ function Guide({BACKEND_URL}) {
                 onClick={() => setCurrentInstructions("area")}>
                     Area Labeling
                 </div>
+                <div className={"guide-toolbar-element " + (currentInstructions == "model" ? "guide-toolbar-element-selected": "")}
+                onClick={() => setCurrentInstructions("model")}>
+                    Model Creation
+                </div>
                 <div className={"guide-toolbar-element " + (currentInstructions == "download" ? "guide-toolbar-element-selected": "")}
                 onClick={() => setCurrentInstructions("download")}>
                     Loading Datasets
@@ -141,6 +145,39 @@ function Guide({BACKEND_URL}) {
                             When applying a label, its color will briefly be shown in this circle. The image can also be resized here.
                         </div>
                         
+                    </div>
+                </div>
+            </div>}
+
+            {/* MODEL CREATION */}
+            {currentInstructions == "model" && <div className="guide-main">
+                <div className="instructions-header">
+                    <h1 className="instructions-title">Model Creation</h1>
+                    <p className="instructions-text">
+                        Machine-learning models can be created in Django by gradually adding different types of layers. Once the model is completed, it can be built and then downloaded.
+                        See the image below for more information.
+                    </p>
+                </div>
+
+                <div className="instructions-container">
+                    <div className="instructions-area-container" onMouseEnter={() => setAreaImageIsDark(true)} onMouseLeave={() => setAreaImageIsDark(false)}>
+                        <img className={"instructions-area-image " + (areaImageIsDark ? "instructions-area-image-disabled" : "")} src={BACKEND_URL + "/static/images/examplePageModel.jpg"} />
+
+                        <div className="instructions-area-comment" style={{top: "10%", left: "13%"}}>
+                            Layers are listed in the sidebar, as well as in the main view to the right. They can be reordered by dragging them.
+                        </div>
+
+                        <div className="instructions-area-comment" style={{top: "20%", right: "9%"}}>
+                            Warnings will appear above layers in case of invalid layer combinations, such as a Conv2D after a Dense layer.
+                        </div>
+
+                        <div className="instructions-area-comment" style={{top: "6%", left: "36%"}}>
+                            Once the model is finished, it can be built (compiled) here.
+                        </div>
+
+                        <div className="instructions-area-comment" style={{bottom: "13%", right: "17%"}}>
+                            Already created layers can be updated by changing their fields and saving changes.
+                        </div>
                     </div>
                 </div>
             </div>}
