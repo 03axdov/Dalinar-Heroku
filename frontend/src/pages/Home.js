@@ -255,7 +255,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                         navigate("/create-dataset")
                     }}>here</span> to create one.</p>}
                     {!loading && datasets.length == 0 && search.length > 0 && <p className="gray-text">No such datasets found.</p>}
-                    {loading && datasets.length == 0 && currentProfile.datasetsCount != null && currentProfile.datasetsCount.length > 0 && [...Array(currentProfile.datasetsCount)].map((e, i) => (
+                    {loading && datasets.length == 0 && currentProfile.datasetsCount > 0 && [...Array(currentProfile.datasetsCount)].map((e, i) => (
                         <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
                     ))}
                 </div>
