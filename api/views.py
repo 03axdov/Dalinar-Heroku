@@ -1165,9 +1165,9 @@ class BuildModel(APIView):
 
 
 def parse_dimensions(data): # Empty values given as blank strings, must be set to None
-    if not data["input_x"]: data["input_x"] = None
-    if not data["input_y"]: data["input_y"] = None
-    if not data["input_z"]: data["input_z"] = None
+    if "input_x" in data.keys() and not data["input_x"]: data["input_x"] = None
+    if "input_y" in data.keys() and not data["input_y"]: data["input_y"] = None
+    if "input_z" in data.keys() and not data["input_z"]: data["input_z"] = None
 
 
 class CreateLayer(APIView):
@@ -1243,6 +1243,7 @@ class DeleteLayer(APIView):
                 else:
                     return Response({"Unauthorized": "You can only delete your own layers."}, status=status.HTTP_401_UNAUTHORIZED)
             except Layer.DoesNotExist:
+                print("AASSDASD")
                 return Response({"Not found": "Could not find layer with the id " + str(layer_id + ".")}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to delete layers.'}, status=status.HTTP_401_UNAUTHORIZED)

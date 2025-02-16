@@ -609,6 +609,10 @@
     width: 100%;
     margin-top: 10px;
     background: var(--gray);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
 }
 
 .create-label-submit:hover, .edit-element-submit:hover {

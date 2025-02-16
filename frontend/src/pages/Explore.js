@@ -5,7 +5,7 @@ import DatasetElementLoading from "../components/DatasetElementLoading"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import axios from 'axios'
 
-function Explore({checkLoggedIn, BACKEND_URL}) {
+function Explore({checkLoggedIn, BACKEND_URL, notification}) {
     const navigate = useNavigate()
     const [searchParams] = useSearchParams();
     const startParam = searchParams.get("start"); // Get the 'start' param

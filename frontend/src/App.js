@@ -111,7 +111,7 @@ export default function App() {
             <div id="app">
                 <Routes>
                     <Route path="/" element={<Landing BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/explore" element={<Explore checkLoggedIn={checkLoggedIn} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/explore" element={<Explore checkLoggedIn={checkLoggedIn} BACKEND_URL={BACKEND_URL} notification={notification}/>}/>
                     <Route path="/guide" element={<Guide BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/home" element={<Home currentProfile={currentProfile} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/create-dataset" element={<CreateDataset notification={notification} BACKEND_URL={BACKEND_URL}/>}/>

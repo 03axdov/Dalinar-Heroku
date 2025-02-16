@@ -31,6 +31,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [loading, setLoading] = useState(true)
     const [uploadLoading, setUploadLoading] = useState(false)
     const [uploadPercentage, setUploadPercentage] = useState(0) // Used for the loading bar
+    const [loadingLabelCreate, setLoadingLabelCreate] = useState(false)
+    const [loadingLabelEdit, setLoadingLabelEdit] = useState(false)
 
     const [elementLabelTop, setElementLabelTop] = useState(0)
     const [editExpandedTop, setEditExpandedTop] = useState(0)
@@ -1127,6 +1129,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         const URL = window.location.origin + '/api/create-label/'
         const config = {headers: {'Content-Type': 'application/json'}}
+        
+        if (loadingLabelCreate) {return}
+        setLoadingLabelCreate(true)
+
 
         axios.post(URL, formData, config)
         .then((data) => {
@@ -1140,7 +1146,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
+        }).finally(() => {
+            setLoadingLabelCreate(false)
         })
+
+        
 
     }
 
@@ -1242,6 +1252,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         const URL = window.location.origin + '/api/edit-label/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
+        if (loadingLabelEdit) {return}
+        setLoadingLabelEdit(true)
+
         axios.post(URL, data, config)
         .then((data) => {
             notification("Successfully updated label.", "success")
@@ -1254,6 +1267,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
 
+        }).finally(() => {
+            setLoadingLabelEdit(false)
         })
     }
 
@@ -1733,7 +1748,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
 
                     </div>
-                    {isDownloading && <ProgressBar message={"Downloading..."} progress={downloadingPercentage}></ProgressBar>}
+                    {isDownloading && <ProgressBar BACKEND_URL={BACKEND_URL} message={"Downloading..."} progress={downloadingPercentage}></ProgressBar>}
             </DownloadPopup>}
 
             {/* After download popup - Classification */}
@@ -2041,7 +2056,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
                         Upload folder
                     </button>}
-                    {uploadLoading && <ProgressBar message={"Uploading..."} progress={uploadPercentage}></ProgressBar>}
+                    {uploadLoading && <ProgressBar BACKEND_URL={BACKEND_URL} message={"Uploading..."} progress={uploadPercentage}></ProgressBar>}
                     {elements.length != 0 && !showDatasetDescription && <div className="dataset-element-view-container">
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}
@@ -2250,7 +2265,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 />
                             </div>
 
-                            <button type="submit" className="create-label-submit">Create</button>
+                            <button type="submit" className="create-label-submit">
+                                {loadingLabelCreate && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                                {(!loadingLabelCreate ? "Create label" : "Processing...")}
+                            </button>
                             
                         </form>
                     </div>
@@ -2288,7 +2306,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 />
                             </div>
 
-                            <button type="submit" className="create-label-submit">Save</button>
+                            <button type="submit" className="create-label-submit">
+                                {loadingLabelEdit && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                                {(!loadingLabelEdit ? "Save changes" : "Processing...")}
+                            </button>
                             <button type="button" className="create-label-submit edit-label-delete" onClick={deleteLabel}>Delete</button>
                             
                         </form>

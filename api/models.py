@@ -218,7 +218,7 @@ def delete_model_files(sender, instance, **kwargs):
     
 # LAYERS
 class AbstractLayer(models.Model):
-    model = models.ForeignKey(Model, on_delete=models.CASCADE, related_name="layers")
+    model = models.ForeignKey(Model, on_delete=models.CASCADE, related_name="layers", null=True)
     index = models.PositiveIntegerField(default=0)
     
     LAYER_CHOICES = [

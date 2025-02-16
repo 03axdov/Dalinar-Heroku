@@ -6,6 +6,7 @@ import axios from "axios"
 
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
+import ProgressBar from "../components/ProgressBar";
 
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
@@ -785,7 +786,7 @@ function PublicDataset({BACKEND_URL}) {
                         <img className="download-element-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} />
 
                     </div>
-                    {isDownloading && <ProgressBar message={"Downloading..."} progress={downloadingPercentage}></ProgressBar>}
+                    {isDownloading && <ProgressBar BACKEND_URL={BACKEND_URL} message={"Downloading..."} progress={downloadingPercentage}></ProgressBar>}
             </DownloadPopup>}
 
             {/* After download popup - Classification */}

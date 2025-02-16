@@ -1,7 +1,8 @@
 TO-DO:
 - Adjust URLs in Home and Explore to show if on models or datasets
 - Python security measures for dataset_types
-- Don't fetch already fetched text
+- Loading animation for deleting / creating labels
+- Issue with Flatten?
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

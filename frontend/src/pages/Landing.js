@@ -26,7 +26,7 @@ function Landing({BACKEND_URL}) {
             <div className="landing-header">
                 <div className="landing-header-col landing-header-left">
                     <h1 className="landing-title"><img className="landing-logo" src={BACKEND_URL + "/static/images/logoWhite.svg"}/>Dalinar</h1>
-                    <p className="landing-description"><span className="landing-pitch">Machine made easy.</span> 
+                    <p className="landing-description"><span className="landing-pitch">Machine learning made easy.</span> 
                     Dalinar allows users to <span className="landing-description-highlighted">create and discover</span> 
                     both <span className="landing-description-highlighted no-margin">datasets</span> and <span className="landing-description-highlighted no-margin">machine-learning models</span>, while being easy to use and providing clear instructions 
                     how datasets can be loaded into code.
