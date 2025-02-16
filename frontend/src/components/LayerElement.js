@@ -2,7 +2,7 @@ import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 
-function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, notification, prevLayer, setWarnings, provided, updateWarnings, idx}) {
+function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, notification, prevLayer, setWarnings, provided, updateWarnings, idx, isPublic=false}) {
 
     const [type, setType] = useState(null)  // Workaround to stop warning when reordering layers.
 
@@ -198,29 +198,31 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         <h1 className="layer-element-title">
                             <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/dense.svg"} />
                             <span className="layer-element-title-text">Dense</span>
-                            <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
-                            <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
+                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 deleteLayer(layer.id)
-                            }}/>
+                            }}/>}
                         </h1>
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-purple"></span>
                             <label className="layer-element-label" htmlFor="denseNodes">Nodes</label>
-                            <input type="number" className="layer-element-input" id="denseNodes" value={nodes} onChange={(e) => {
+                            {!isPublic && <input type="number" className="layer-element-input" id="denseNodes" value={nodes} onChange={(e) => {
                                 setNodes(Math.max(0, Math.min(e.target.value, 512)))
-                            }}></input>
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{nodes}</div>}
                         </div>
     
                         <div className="layer-element-stat layer-element-activation">
                         <span className="layer-element-stat-color layer-element-stat-gray"></span>
                             <label className="layer-element-label" htmlFor="activation">Activation function</label>
-                            <select className="layer-element-input layer-element-activation-input" id="activation" value={activation} onChange={(e) => {
+                            {!isPublic && <select className="layer-element-input layer-element-activation-input" id="activation" value={activation} onChange={(e) => {
                                     setActivation(e.target.value)
                                 }}>
                                     <option value="">-</option>
                                     <option value="relu">ReLU</option>
                                     <option value="softmax">Softmax</option>
-                                </select>
+                            </select>}
+                            {isPublic && <div className="layer-element-input layer-element-activation-input">{activation || "-"}</div>}
                         </div>
                     </form>}
     
@@ -228,62 +230,68 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         <h1 className="layer-element-title">
                             <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
                             <span className="layer-element-title-text">Conv2D</span>
-                            <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
-                            <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
+                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 deleteLayer(layer.id)
-                            }}/>
+                            }}/>}
                         </h1>
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
                             <label className="layer-element-label" htmlFor="filters">Filters</label>
-                            <input type="number" className="layer-element-input" id="filters" value={filters} onChange={(e) => {
+                            {!isPublic && <input type="number" className="layer-element-input" id="filters" value={filters} onChange={(e) => {
                                 setFilters(Math.max(0, Math.min(e.target.value, 100)))
-                            }}></input>
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{filters}</div>}
                         </div>
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
                             <label className="layer-element-label" htmlFor="kernelSize">Kernel size</label>
-                            <input type="number" className="layer-element-input" id="kernelSize" value={kernelSize} onChange={(e) => {
+                            {!isPublic && <input type="number" className="layer-element-input" id="kernelSize" value={kernelSize} onChange={(e) => {
                                 setKernelSize(Math.max(0, Math.min(100, e.target.value)))
-                            }}></input>
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{kernelSize}</div>}
                         </div>
 
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-gray2"></span>
                             <label className="layer-element-label" htmlFor="flattenX">Input width</label>
-                            <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
+                            {!isPublic && <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
                                 setInputX(e.target.value)
-                            }}></input>
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{inputX}</div>}
                         </div>
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-gray2"></span>
                             <label className="layer-element-label" htmlFor="flattenY">Input height</label>
-                            <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
+                            {!isPublic && <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
                                 setInputY(e.target.value)
-                            }}></input>
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{inputY}</div>}
                         </div>
 
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-gray2"></span>
                             <label className="layer-element-label" htmlFor="flattenZ">Input depth</label>
-                            <input type="number" className="layer-element-input" id="flattenZ" value={inputZ} onChange={(e) => {
+                            {!isPublic && <input type="number" className="layer-element-input" id="flattenZ" value={inputZ} onChange={(e) => {
                                 setInputZ(e.target.value)
-                            }}></input>
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{inputZ}</div>}
                         </div>
     
                         <div className="layer-element-stat layer-element-activation">
                         <span className="layer-element-stat-color layer-element-stat-gray"></span>
                             <label className="layer-element-label" htmlFor="activation">Activation function</label>
-                            <select className="layer-element-input layer-element-activation-input" id="activation" value={activation} onChange={(e) => {
+                            {!isPublic && <select className="layer-element-input layer-element-activation-input" id="activation" value={activation} onChange={(e) => {
                                     setActivation(e.target.value)
                                 }}>
                                     <option value="">-</option>
                                     <option value="relu">ReLU</option>
                                     <option value="softmax">Softmax</option>
-                                </select>
+                            </select>}
+                            {isPublic && <div className="layer-element-input layer-element-activation-input">{activation || "-"}</div>}
                         </div>
                     </form>}
 
@@ -291,17 +299,18 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         <h1 className="layer-element-title">
                             <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
                             <span className="layer-element-title-text">MaxPool2D</span>
-                            <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
-                            <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
+                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 deleteLayer(layer.id)
-                            }}/>
+                            }}/>}
                         </h1>
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-pink2"></span>
                             <label className="layer-element-label" htmlFor="pool-size">Pool size</label>
-                            <input type="number" className="layer-element-input" id="pool-size" value={poolSize} onChange={(e) => {
+                            {!isPublic && <input type="number" className="layer-element-input" id="pool-size" value={poolSize} onChange={(e) => {
                                 setPoolSize(Math.max(0, Math.min(e.target.value, 99)))
-                            }}></input>
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{poolSize}</div>}
                         </div> 
                     </form>}
     
@@ -309,26 +318,28 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         <h1 className="layer-element-title">
                             <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/area.svg"} />
                             <span className="layer-element-title-text">Flatten</span>
-                            <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
-                            <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
+                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 deleteLayer(layer.id)
-                            }}/>
+                            }}/>}
                         </h1>
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-pink"></span>
                             <label className="layer-element-label" htmlFor="flattenX">Input width</label>
-                            <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
+                            {!isPublic && <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
                                 setInputX(e.target.value)
-                            }}></input>
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{inputX}</div>}
                         </div>
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-pink"></span>
                             <label className="layer-element-label" htmlFor="flattenY">Input height</label>
-                            <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
+                            {!isPublic && <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
                                 setInputY(e.target.value)
-                            }}></input>
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{inputY}</div>}
                         </div>
                     </form>}
     
@@ -336,34 +347,35 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         <h1 className="layer-element-title">
                             <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/dropout.svg"} />
                             <span className="layer-element-title-text">Dropout</span>
-                            <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />
-                            <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
+                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 deleteLayer(layer.id)
-                            }}/>
+                            }}/>}
                         </h1>
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-blue"></span>
                             <label className="layer-element-label" htmlFor="rate">Rate</label>
-                            <input type="number" step="0.05" className="layer-element-input" id="rate" value={rate} onChange={(e) => {
+                            {!isPublic && <input type="number" step="0.05" className="layer-element-input" id="rate" value={rate} onChange={(e) => {
                                 setRate(Math.max(0, Math.min(1, e.target.value)))
-                            }}></input>
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{rate}</div>}
                         </div>
     
                     </form>}
     
-                    <button type="button" 
+                    {!isPublic && <button type="button" 
                         className={"layer-element-save " + (!updated ? "layer-element-save-disabled" : "")}
                         title={(updated ? "Save changes" : "No changes")}
                         onClick={updateLayer}>
                         Save changes
-                    </button>
-                    <button type="button" 
+                    </button>}
+                    {!isPublic && <button type="button" 
                         className="layer-element-revert"
                         title="Revert changes"
                         onClick={() => setRevertChanges(!revertChanges)}>
                         Revert changes
-                    </button>
+                    </button>}
 
                     <div className="layer-element-index" title={"Layer #" + (idx+1)}>{idx+1}</div>
                 </div>}

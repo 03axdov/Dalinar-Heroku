@@ -16,6 +16,7 @@ import PublicDataset from "./pages/PublicDataset"
 import Notification from "./components/Notification"
 import CreateModel from "./pages/CreateModel"
 import Model from "./pages/Model"
+import PublicModel from "./pages/PublicModel"
 import EditModel from "./pages/EditModel"
 
 
@@ -119,6 +120,7 @@ export default function App() {
                     <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/datasets/public/:id" element={<PublicDataset BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/models/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/models/public/:id" element={<PublicModel currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/edit-model/:id" element={<EditModel activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                 </Routes>
             </div>

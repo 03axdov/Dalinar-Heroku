@@ -13,5 +13,6 @@ urlpatterns = [
     path("edit-model/<int:id>", index),
     path("datasets/<int:id>", index),
     path("datasets/public/<int:id>", index_no_login),
-    path("models/<int:id>", index)
+    path("models/<int:id>", index),
+    path("models/public/<int:id>", index)
 ]
