@@ -26,7 +26,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
 
     const [processingCreateLayer, setProcessingCreateLayer] = useState(false)
 
-    const [showModelDescription, setShowModelDescription] = useState(false)
+    const [showModelDescription, setShowModelDescription] = useState(true)
     const pageRef = useRef(null)
     const [descriptionWidth, setDescriptionWidth] = useState(45)    // As percentage
 

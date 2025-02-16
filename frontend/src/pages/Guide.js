@@ -129,7 +129,7 @@ function Guide({BACKEND_URL}) {
                         <img className={"instructions-area-image " + (classificationImageIsDark ? "instructions-area-image-disabled" : "")} 
                         src={BACKEND_URL + "/static/images/exampleClassification.jpg"} />
                         
-                        <div className="instructions-area-comment" style={{top: "38%", right: "1%"}}>
+                        <div className="instructions-area-comment" style={{top: "49%", right: "1%"}}>
                             Added labels are listed here, along with their keybind. Clicking the label or its keybind applies the label.
                         </div>
 

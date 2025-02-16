@@ -10,7 +10,7 @@ function ModelDownloadPopup({setShowDownloadPopup, BACKEND_URL}) {
                 e.stopPropagation()
             }}>
                 <h1 className="download-successful-title">Download Successful <img className="download-successful-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/></h1>
-                <p className="download-successful-instructions">See below for an example of how the model can be loaded using tensorflow. Note that relative paths must be updated.
+                <p className="download-successful-instructions">An example of how the model can be loaded using TensorFlow will be added in later patches.
                 </p>
                 
             </div>

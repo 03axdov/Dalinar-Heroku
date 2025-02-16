@@ -808,7 +808,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             getPoints(area, idx)
                         ))}
 
-                        {imageMouseDown && <div 
+                        {imageMouseDown && labelSelected && <div 
                         className="dataset-rectangle-preview"
                         style={{
                             width: "calc(" + rectanglePreviewDimensions[0] + "% + " + Math.round(10 / (1 + (zoom - 1)* 3)) + "px)",
