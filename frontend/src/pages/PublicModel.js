@@ -38,6 +38,31 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
 
     const [cursor, setCursor] = useState("")
 
+    // For scrolling by grabbing
+    const [mouseOnLayer, setMouseOnLayer] = useState(false)
+    const scrollRef = useRef(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [startX, setStartX] = useState(0);
+    const [scrollLeft, setScrollLeft] = useState(0);
+
+    const handleMouseDown = (e) => {
+        if (mouseOnLayer) {return}
+        setIsDragging(true);
+        setStartX(e.pageX - scrollRef.current.offsetLeft);
+        setScrollLeft(scrollRef.current.scrollLeft);
+        };
+    
+        const handleMouseMove = (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - scrollRef.current.offsetLeft;
+        const walk = (x - startX) * 1; // Adjust speed by changing multiplier
+        scrollRef.current.scrollLeft = scrollLeft - walk;
+        };
+    
+    const handleMouseUp = () => setIsDragging(false);
+    const handleMouseLeave = () => setIsDragging(false);
+
     const descriptionContainerRef = useRef(null)
 
     const navigate = useNavigate()
@@ -352,7 +377,12 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
 
                     </div>}
 
-                    {!showModelDescription && <div className="model-layers-container">
+                    {!showModelDescription && <div className="model-layers-container"
+                    ref={scrollRef}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseLeave}>
                             {layers.map((layer, idx) => (<LayerElement key={idx} BACKEND_URL={BACKEND_URL} 
                                         layer={layer} 
                                         hoveredLayer={hoveredLayer} 
@@ -366,6 +396,8 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                                         }}   // Just give this object here as not draggable
                                         updateWarnings={updateWarnings}
                                         idx={idx}
+                                        onMouseEnter={() => setMouseOnLayer(true)}
+                                        onMouseLeave={() => setMouseOnLayer(false)}
                                         isPublic={true}>
                                 </LayerElement>)
 

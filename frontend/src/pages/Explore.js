@@ -7,7 +7,7 @@ import axios from 'axios'
 
 function Explore({checkLoggedIn, BACKEND_URL, notification}) {
     const navigate = useNavigate()
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const startParam = searchParams.get("start"); // Get the 'start' param
 
     const [datasets, setDatasets] = useState([])
@@ -200,11 +200,17 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
             
             <div className="sidebar-types-container">
                 <div className={"sidebar-types-element " + (typeShown == "datasets" ? "sidebar-types-element-selected" : "")}
-                onClick={() => setTypeShown("datasets")}>
+                onClick={() => {
+                    setSearchParams({start: "datasets"})
+                    setTypeShown("datasets")
+                }}>
                     <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/database.svg"} />Datasets
                 </div>
                 <div className={"sidebar-types-element " + (typeShown == "models" ? "sidebar-types-element-selected" : "")}
-                onClick={() => setTypeShown("models")}>
+                onClick={() => {
+                    setSearchParams({start: "models"})
+                    setTypeShown("models")
+                }}> 
                     <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/model.svg"} />Models
                 </div>
             </div>

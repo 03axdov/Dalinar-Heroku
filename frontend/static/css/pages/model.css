@@ -84,6 +84,8 @@
     padding: 50px;
     box-sizing: border-box;
     position: relative;
+    cursor: grab;
+    user-select: none;
 }
 
 .model-sidebar-delete {
@@ -113,6 +115,7 @@
 
 .layer-element-outer {
     height: 100%;
+    pointer-events: none;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -126,6 +129,8 @@
     margin-right: 50px;
     border-radius: 3px;
     position: relative;
+    pointer-events: all;
+    cursor: default;
 }
 
 .layer-element-hovered {
@@ -368,6 +373,10 @@
     border: none;
     outline: 0;
     border-radius: 3px;
+}
+
+div.layer-element-input {
+    height: 30px;
 }
 
 .layer-element-save, .layer-element-revert {

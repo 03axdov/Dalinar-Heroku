@@ -41,6 +41,31 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     const [cursor, setCursor] = useState("")
 
+    // For scrolling by grabbing
+    const [mouseOnLayer, setMouseOnLayer] = useState(false)
+    const scrollRef = useRef(null);
+    const [isDragging, setIsDragging] = useState(false);
+    const [startX, setStartX] = useState(0);
+    const [scrollLeft, setScrollLeft] = useState(0);
+
+    const handleMouseDown = (e) => {
+        if (mouseOnLayer) {return}
+        setIsDragging(true);
+        setStartX(e.pageX - scrollRef.current.offsetLeft);
+        setScrollLeft(scrollRef.current.scrollLeft);
+      };
+    
+      const handleMouseMove = (e) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const x = e.pageX - scrollRef.current.offsetLeft;
+        const walk = (x - startX) * 1; // Adjust speed by changing multiplier
+        scrollRef.current.scrollLeft = scrollLeft - walk;
+      };
+    
+    const handleMouseUp = () => setIsDragging(false);
+    const handleMouseLeave = () => setIsDragging(false);
+
     const descriptionContainerRef = useRef(null)
 
     const navigate = useNavigate()
@@ -563,7 +588,15 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         <Droppable droppableId="models-droppable" direction="horizontal">
                         {(provided) => (<div className="model-layers-container"
                         {...provided.droppableProps}
-                        ref={provided.innerRef}>
+                        ref={(el) => {
+                            scrollRef.current = el
+                            provided.innerRef(el)
+                        }}
+                        onMouseDown={handleMouseDown}
+                        onMouseMove={handleMouseMove}
+                        onMouseUp={handleMouseUp}
+                        onMouseLeave={handleMouseLeave}
+                        >
                             {layers.map((layer, idx) => (<Draggable key={layer.id} draggableId={"" + layer.id} index={idx} >
                                     {(provided) => (<LayerElement BACKEND_URL={BACKEND_URL} 
                                         layer={layer} 
@@ -575,7 +608,9 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                         setWarnings={setWarnings}
                                         provided={provided}
                                         updateWarnings={updateWarnings}
-                                        idx={idx}>
+                                        idx={idx}
+                                        onMouseEnter={() => setMouseOnLayer(true)}
+                                        onMouseLeave={() => setMouseOnLayer(false)}>
 
                                     </LayerElement>)}
                                 </Draggable>

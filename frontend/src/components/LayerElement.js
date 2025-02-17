@@ -2,7 +2,11 @@ import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 
-function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, notification, prevLayer, setWarnings, provided, updateWarnings, idx, isPublic=false}) {
+function LayerElement({layer, hoveredLayer, deleteLayer, 
+                        BACKEND_URL, getModel, notification, 
+                        prevLayer, setWarnings, provided, 
+                        updateWarnings, idx, onMouseEnter, 
+                        onMouseLeave, isPublic=false}) {
 
     const [type, setType] = useState(null)  // Workaround to stop warning when reordering layers.
 
@@ -185,7 +189,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
             {...provided.draggableProps}
             style={{...provided.draggableProps.style}}
             ref={provided.innerRef}
-            >
+            onMouseEnter={onMouseEnter}
+            onMouseLeave={onMouseLeave}>
     
                 {type && layer && <div className={"layer-element " + (hoveredLayer == layer.id ? "layer-element-hovered" : "")} ref={elementRef}>
     
@@ -205,8 +210,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         </h1>
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-purple"></span>
-                            <label className="layer-element-label" htmlFor="denseNodes">Nodes</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id="denseNodes" value={nodes} onChange={(e) => {
+                            <label className="layer-element-label" htmlFor={"denseNodes" + layer.id}>Nodes</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"denseNodes" + layer.id} value={nodes} onChange={(e) => {
                                 setNodes(Math.max(0, Math.min(e.target.value, 512)))
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{nodes}</div>}
@@ -214,8 +219,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     
                         <div className="layer-element-stat layer-element-activation">
                         <span className="layer-element-stat-color layer-element-stat-gray"></span>
-                            <label className="layer-element-label" htmlFor="activation">Activation function</label>
-                            {!isPublic && <select className="layer-element-input layer-element-activation-input" id="activation" value={activation} onChange={(e) => {
+                            <label className="layer-element-label" htmlFor={"activation" + layer.id}>Activation function</label>
+                            {!isPublic && <select className="layer-element-input layer-element-activation-input" id={"activation" + layer.id} value={activation} onChange={(e) => {
                                     setActivation(e.target.value)
                                 }}>
                                     <option value="">-</option>
@@ -238,8 +243,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
-                            <label className="layer-element-label" htmlFor="filters">Filters</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id="filters" value={filters} onChange={(e) => {
+                            <label className="layer-element-label" htmlFor={"filters" + layer.id}>Filters</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"filters" + layer.id} value={filters} onChange={(e) => {
                                 setFilters(Math.max(0, Math.min(e.target.value, 100)))
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{filters}</div>}
@@ -247,8 +252,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
-                            <label className="layer-element-label" htmlFor="kernelSize">Kernel size</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id="kernelSize" value={kernelSize} onChange={(e) => {
+                            <label className="layer-element-label" htmlFor={"kernelSize" + layer.id}>Kernel size</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"kernelSize" + layer.id} value={kernelSize} onChange={(e) => {
                                 setKernelSize(Math.max(0, Math.min(100, e.target.value)))
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{kernelSize}</div>}
@@ -256,8 +261,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
 
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-gray2"></span>
-                            <label className="layer-element-label" htmlFor="flattenX">Input width</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
+                            <label className="layer-element-label" htmlFor={"flattenX" + layer.id}>Input width</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenX" + layer.id} value={inputX} onChange={(e) => {
                                 setInputX(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{inputX}</div>}
@@ -265,8 +270,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-gray2"></span>
-                            <label className="layer-element-label" htmlFor="flattenY">Input height</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
+                            <label className="layer-element-label" htmlFor={"flattenY" + layer.id}>Input height</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenY" + layer.id} value={inputY} onChange={(e) => {
                                 setInputY(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{inputY}</div>}
@@ -274,8 +279,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
 
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-gray2"></span>
-                            <label className="layer-element-label" htmlFor="flattenZ">Input depth</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id="flattenZ" value={inputZ} onChange={(e) => {
+                            <label className="layer-element-label" htmlFor={"flattenZ" + layer.id}>Input depth</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenZ" + layer.id} value={inputZ} onChange={(e) => {
                                 setInputZ(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{inputZ}</div>}
@@ -283,8 +288,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     
                         <div className="layer-element-stat layer-element-activation">
                         <span className="layer-element-stat-color layer-element-stat-gray"></span>
-                            <label className="layer-element-label" htmlFor="activation">Activation function</label>
-                            {!isPublic && <select className="layer-element-input layer-element-activation-input" id="activation" value={activation} onChange={(e) => {
+                            <label className="layer-element-label" htmlFor={"activation" + layer.id}>Activation function</label>
+                            {!isPublic && <select className="layer-element-input layer-element-activation-input" id={"activation" + layer.id} value={activation} onChange={(e) => {
                                     setActivation(e.target.value)
                                 }}>
                                     <option value="">-</option>
@@ -306,8 +311,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
                         </h1>
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-pink2"></span>
-                            <label className="layer-element-label" htmlFor="pool-size">Pool size</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id="pool-size" value={poolSize} onChange={(e) => {
+                            <label className="layer-element-label" htmlFor={"pool-size" + layer.id}>Pool size</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"pool-size" + layer.id} value={poolSize} onChange={(e) => {
                                 setPoolSize(Math.max(0, Math.min(e.target.value, 99)))
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{poolSize}</div>}
@@ -326,8 +331,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-pink"></span>
-                            <label className="layer-element-label" htmlFor="flattenX">Input width</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id="flattenX" value={inputX} onChange={(e) => {
+                            <label className="layer-element-label" htmlFor={"flattenX" + layer.id}>Input width</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenX" + layer.id} value={inputX} onChange={(e) => {
                                 setInputX(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{inputX}</div>}
@@ -335,8 +340,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-pink"></span>
-                            <label className="layer-element-label" htmlFor="flattenY">Input height</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id="flattenY" value={inputY} onChange={(e) => {
+                            <label className="layer-element-label" htmlFor={"flattenY" + layer.id}>Input height</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenY" + layer.id} value={inputY} onChange={(e) => {
                                 setInputY(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{inputY}</div>}
@@ -355,8 +360,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer, BACKEND_URL, getModel, 
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-blue"></span>
-                            <label className="layer-element-label" htmlFor="rate">Rate</label>
-                            {!isPublic && <input type="number" step="0.05" className="layer-element-input" id="rate" value={rate} onChange={(e) => {
+                            <label className="layer-element-label" htmlFor={"rate" + layer.id}>Rate</label>
+                            {!isPublic && <input type="number" step="0.05" className="layer-element-input" id={"rate" + layer.id} value={rate} onChange={(e) => {
                                 setRate(Math.max(0, Math.min(1, e.target.value)))
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{rate}</div>}

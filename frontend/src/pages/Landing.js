@@ -5,6 +5,10 @@ import { useNavigate } from "react-router-dom";
 function Landing({BACKEND_URL}) {
     const navigate = useNavigate()
 
+    const [imageMainLoaded, setImageMainLoaded] = useState(false)
+    const [imageDatasetsLoaded, setImageDatasetsLoaded] = useState(false)
+    const [imageModelsLoaded, setImageModelsLoaded] = useState(false)
+
     const [transformMain, setTransformMain] = useState("");
     const [transformDatasets, setTransformDatasets] = useState("");
     const [transformModels, setTransformModels] = useState("");
@@ -77,7 +81,7 @@ function Landing({BACKEND_URL}) {
                 <div className="landing-header-col landing-header-right">
                     <div className="landing-header-image-container"
                     style={{
-                        display: "inline-block",
+                        display: (!imageMainLoaded ? "none" : "inline-block"),
                         perspective: "1000px",
                     }}
                     >
@@ -93,6 +97,7 @@ function Landing({BACKEND_URL}) {
                         }}
                         onMouseMove={(e) => {handleMouseMove(e, 1)}}
                         onMouseLeave={() => handleMouseLeave(1)}
+                        onLoad={() => setImageMainLoaded(true)}
                     />
                     </div>
                 </div>
@@ -102,7 +107,7 @@ function Landing({BACKEND_URL}) {
                 <div className="landing-header-col landing-header-right" style={{border: "1px solid var(--border)", borderLeft: "none"}}>
                     <div className="landing-header-image-container"
                     style={{
-                        display: "inline-block",
+                        display: (!imageDatasetsLoaded ? "none" : "inline-block"),
                         perspective: "1000px",
                     }}
                     >
@@ -118,6 +123,7 @@ function Landing({BACKEND_URL}) {
                         }}
                         onMouseMove={(e) => handleMouseMove(e, 2)}
                         onMouseLeave={() => handleMouseLeave(2)}
+                        onLoad={() => setImageDatasetsLoaded(true)}
                     />
                     </div>
                 </div>
@@ -171,7 +177,7 @@ function Landing({BACKEND_URL}) {
                             <img className="landing-header-button-icon" src={BACKEND_URL + "/static/images/rocket.png"} />
                             Get started
                         </button>
-                        <button type="button" className="landing-header-button landing-header-explore" onClick={() => navigate("/explore")}>
+                        <button type="button" className="landing-header-button landing-header-explore" onClick={() => navigate("/explore?start=models")}>
                             <img className="landing-header-button-icon" src={BACKEND_URL + "/static/images/explore.png"} />
                             Explore models
                         </button>
@@ -179,10 +185,10 @@ function Landing({BACKEND_URL}) {
 
                 </div>
 
-                <div className="landing-header-col landing-header-right" style={{border: "1px solid var(--border)", borderRight: "none"}}>
+                <div className="landing-header-col landing-header-right" style={{border: "1px solid var(--border)", borderRight: "none", borderBottom: "none"}}>
                     <div className="landing-header-image-container"
                     style={{
-                        display: "inline-block",
+                        display: (!imageModelsLoaded ? "none" : "inline-block"),
                         perspective: "1000px",
                     }}
                     >
@@ -198,6 +204,7 @@ function Landing({BACKEND_URL}) {
                         }}
                         onMouseMove={(e) => handleMouseMove(e, 3)}
                         onMouseLeave={() => handleMouseLeave(3)}
+                        onLoad={() => setImageModelsLoaded(true)}
                     />
                     </div>
                 </div>
