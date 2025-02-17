@@ -1000,6 +1000,8 @@ class DeleteModel(APIView):
                 model = Model.objects.get(id=model_id)
                 
                 if model.owner == user.profile:
+                    for layer in model.layers.all():    # Workaround due to bug with Django Polymorphic
+                        layer.delete()
                     model.delete()
                     
                     return Response(None, status=status.HTTP_200_OK)

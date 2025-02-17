@@ -98,6 +98,7 @@ function EditModel({activateConfirmPopup, notification, BACKEND_URL}) {
             if (expandedParam) {
                 navigate("/models/" + id)
             } else {
+                console.log("HERE")
                 navigate("/home?start=models")
             }
             notification("Successfully updated model " + name + ".", "success")
@@ -125,7 +126,7 @@ function EditModel({activateConfirmPopup, notification, BACKEND_URL}) {
         setProcessingDelete(true)
         axios.post(URL, data, config)
         .then((data) => {
-            navigate("/home")
+            navigate("/home?start=models")
             notification("Successfully deleted model " + name + ".", "success")
 
         }).catch((error) => {

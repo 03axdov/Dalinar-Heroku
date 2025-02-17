@@ -1,6 +1,6 @@
 import React, {useEffect, useState, useRef} from "react"
 import { useParams, useNavigate } from "react-router-dom";
-import DownloadPopup from "../components/DownloadPopup"
+import DownloadPopup from "../popups/DownloadPopup"
 import axios from "axios"
 
 import JSZip from "jszip";
@@ -28,11 +28,15 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [showElementPreview, setShowElementPreview] = useState(false)
     const [showElementPreviewTimeout, setShowElementPreviewTimeout] = useState(null);
 
+    // For loading animations
     const [loading, setLoading] = useState(true)
     const [uploadLoading, setUploadLoading] = useState(false)
     const [uploadPercentage, setUploadPercentage] = useState(0) // Used for the loading bar
     const [loadingLabelCreate, setLoadingLabelCreate] = useState(false)
     const [loadingLabelEdit, setLoadingLabelEdit] = useState(false)
+    const [loadingLabelDelete, setLoadingLabelDelete] = useState(false)
+    const [loadingElementEdit, setLoadingElementEdit] = useState(false)
+    const [loadingElementDelete, setLoadingElementDelete] = useState(false)
 
     const [elementLabelTop, setElementLabelTop] = useState(0)
     const [editExpandedTop, setEditExpandedTop] = useState(0)
@@ -682,14 +686,12 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     })
                     .then(text => {
                         temp[element.id] = text
-                        console.log(text)
                     })
                     .catch(error => {
                         console.error('There was a problem with the fetch operation:', error);
                     }).finally(() => {
                         AJAX_OUTSTANDING -= 1
                         if (AJAX_OUTSTANDING == 0) {
-                            console.log("B")
                             setIdToText(temp)
                             setUpdatePage(!updatePage)
                         }
@@ -697,7 +699,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 }
 
             }
-            console.log("A")
             setElements(res.data.elements)
 
             setLabels(res.data.labels)
@@ -929,6 +930,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
                     setTimeout(() => {
                         setUploadLoading(false)
+                        setUploadPercentage(0)
                         getDataset()
                         if (errorMessages) {
                             notification(errorMessages, "failure")
@@ -958,7 +960,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             "id": editingElement
         }
 
+        if (loadingElementEdit) {return}
+
         setLoading(true)
+        setLoadingElementEdit(true)
 
         axios.post(URL, data, config)
         .then((res) => {
@@ -974,6 +979,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             console.log(err)
         }).finally(() => {
             setLoading(false)
+            setLoadingElementEdit(false)
         })
     }
 
@@ -991,7 +997,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         const URL = window.location.origin + '/api/delete-element/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
+        if (loadingElementDelete) {return}
         setLoading(true)
+        setLoadingElementDelete(true)
+
         axios.post(URL, data, config)
         .then((data) => {
             console.log("Success: ", data)
@@ -1010,6 +1019,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         }).finally(() => {
             setLoading(false)
+            setLoadingElementDelete(false)
         })
     }
 
@@ -1285,7 +1295,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         const URL = window.location.origin + '/api/delete-label/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
+        if (loadingLabelDelete) {return}
+        setLoadingLabelDelete(true)
         setLoading(true)
+
         axios.post(URL, data, config)
         .then((data) => {
 
@@ -1310,6 +1323,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         }).finally(() => {
             setLoading(false)
+            setLoadingLabelDelete(false)
         })
     }
 
@@ -1393,7 +1407,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 notification("Error: " + e, "failure")
                 
             }
-
+            console.log(i)
             setDownloadingPercentage(Math.round(100 * (i / NUM_ELEMENTS)))
             
         }
@@ -1986,8 +2000,14 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 }}></input>
                             </div>
 
-                            <button type="submit" className="edit-element-submit">Apply</button>
-                            <button type="button" className="edit-element-submit edit-element-delete" onClick={deleteElement}>Delete</button>
+                            <button type="submit" className="edit-element-submit">
+                                {loadingElementEdit && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                                {(!loadingElementEdit ? "Save changes" : "Processing...")}
+                            </button>
+                            <button type="button" className="edit-element-submit edit-element-delete" onClick={deleteElement}>
+                                {loadingElementDelete && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                                {(!loadingElementDelete ? "Delete" : "Processing...")}
+                            </button>
                         </form>       
                     </div>}
 
@@ -2238,13 +2258,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 <input id="label-create-name-inp" className="dataset-create-label-inp" type="text"
                                     placeholder="Name" value={createLabelName} onChange={(e) => {
                                     setCreateLabelName(e.target.value)
-                                }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
+                                }} onFocus={inputOnFocus} onBlur={inputOnBlur} required/>
                             </div>
                             
                             <div className="dataset-create-label-row">
                                 <label className="dataset-create-label-label" htmlFor="label-create-color-inp">Color</label>
                                 <div className="create-label-color-container" style={{background: createLabelColor}}>
-                                    <input id="label-create-color-inp" className="dataset-create-label-color" type="color" value={createLabelColor} onChange={(e) => {
+                                    <input id="label-create-color-inp" className="dataset-create-label-color" type="color" required value={createLabelColor} onChange={(e) => {
                                         setCreateLabelColor(e.target.value)
                                     }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
                                 </div>
@@ -2309,7 +2329,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 {loadingLabelEdit && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
                                 {(!loadingLabelEdit ? "Save changes" : "Processing...")}
                             </button>
-                            <button type="button" className="create-label-submit edit-label-delete" onClick={deleteLabel}>Delete</button>
+                            <button type="button" className="create-label-submit edit-label-delete" onClick={deleteLabel}>
+                                {loadingLabelDelete && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                                {(!loadingLabelDelete ? "Delete" : "Processing...")}
+                            </button>
                             
                         </form>
                         </div>}

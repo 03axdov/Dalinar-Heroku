@@ -230,7 +230,7 @@
 }
 
 .dataset-description-stats-icon {
-    height: 20px;
+    width: 20px;
     margin-right: 10px;
 }
 
@@ -321,7 +321,7 @@
 
 .dataset-description-image {
     width: 100%;
-    max-height: 600px;
+    max-height: 95%;
     object-fit: cover;
 }
 
@@ -788,6 +788,7 @@
     width: auto;
     max-width: 450px;
     z-index: 2;
+    box-shadow: 0 0 10px rgb(0,0,0);
 }
 
 .hidden-preload {
@@ -1145,7 +1146,7 @@ canvas {
     }
 
     .dataset-description-stats-icon {
-        height: 17px;
+        width: 17px;
         margin-right: 5px;
     }
 }

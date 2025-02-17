@@ -3,10 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios"
 
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import CreateLayerPopup from "../components/CreateLayerPopup";
+import CreateLayerPopup from "../popups/CreateLayerPopup";
 import LayerElement from "../components/LayerElement";
-import BuildModelPopup from "../components/BuildModelPopup";
-import ModelDownloadPopup from "../components/ModelDownloadPopup";
+import BuildModelPopup from "../popups/BuildModelPopup";
+import ModelDownloadPopup from "../popups/ModelDownloadPopup";
 
 
 // The default page. Login not required.

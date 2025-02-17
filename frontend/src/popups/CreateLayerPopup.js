@@ -111,11 +111,17 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         <select className="create-dataset-inp" id="layer-type" required value={type} onChange={(e) => {
                             setType(e.target.value)
                         }}>
-                            <option value="dense">Dense</option>
-                            <option value="conv2d">Conv2D</option>
-                            <option value="maxpool2d">MaxPool2D</option>
-                            <option value="flatten">Flatten</option>
-                            <option value="dropout">Dropout</option>
+                            <optgroup label="Miscellaneous">
+                                <option value="dense">Dense</option>
+                                <option value="flatten">Flatten</option>
+                                <option value="dropout">Dropout</option>
+                            </optgroup>
+                            <optgroup label="Computer Vision">
+                                <option value="conv2d">Conv2D</option>
+                                <option value="maxpool2d">MaxPool2D</option>
+                            </optgroup>
+                            
+                            
                         </select>
                     </div>
 

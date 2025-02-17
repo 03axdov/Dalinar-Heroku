@@ -218,7 +218,7 @@ def delete_model_files(sender, instance, **kwargs):
     
 # LAYERS
 class AbstractLayer(models.Model):
-    model = models.ForeignKey(Model, on_delete=models.CASCADE, related_name="layers")
+    model = models.ForeignKey(Model, on_delete=models.CASCADE, related_name="layers", null=True, blank=True)
     index = models.PositiveIntegerField(default=0)
     
     LAYER_CHOICES = [
@@ -250,7 +250,9 @@ class DenseLayer(Layer):
     nodes_count = models.PositiveIntegerField(default=1)
     
     def __str__(self):
-        return f"Dense ({self.nodes_count}) - {self.model.name}"
+        res = f"Dense ({self.nodes_count})"
+        if self.model: res += " - " + self.model.name
+        return res
     
     
 class Conv2DLayer(Layer):
@@ -262,14 +264,18 @@ class Conv2DLayer(Layer):
     input_z = models.PositiveIntegerField(null=True)
     
     def __str__(self):
-        return f"Conv2D ({self.filters}, {self.kernel_size}) - {self.model.name}"
+        res = f"Conv2D ({self.filters}, {self.kernel_size})"
+        if self.model: res += " - " + self.model.name
+        return res
     
     
 class MaxPool2DLayer(Layer):
     pool_size = models.PositiveIntegerField(null=True)
     
     def __str__(self):
-        return "MaxPool2DLayer - " + str(self.pool_size)
+        res = "MaxPool2DLayer - " + str(self.pool_size)
+        if self.model: res += " - " + self.model.name
+        return res
     
     
 class FlattenLayer(Layer):
@@ -280,7 +286,10 @@ class FlattenLayer(Layer):
         res = "Flatten"
         if self.input_x:
             res += f" ({self.input_x}, {self.input_y})"
-        return res + " - " + self.model.name
+        if self.model:
+            res += " - " + self.model.name
+            
+        return res
     
     
 class DropoutLayer(Layer):
@@ -289,4 +298,6 @@ class DropoutLayer(Layer):
     )
     
     def __str__(self):
-        return f"Dropout ({self.rate})"
+        res = f"Dropout ({self.rate})"
+        if self.model: res += " - " + self.model.name
+        return res
