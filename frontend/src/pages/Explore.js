@@ -60,7 +60,7 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
         setLoadingModels(true)
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/my-models/' + (search ? "?search=" + search : ""),
+            url: window.location.origin + '/api/my-models/' + (searchModels ? "?search=" + searchModels : ""),
         })
         .then((res) => {
             if (res.data) {
@@ -168,6 +168,25 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
           clearTimeout(handler);
         };
       }, [search]);
+
+    const firstModelSearch = useRef(true)
+        // Search input timing
+        useEffect(() => {
+            if (firstModelSearch.current) {
+                firstModelSearch.current = false; // Set to false after first render
+                return;
+            }
+            // Set a timeout to update debounced value after 500ms
+            setLoading(true)
+            const handler = setTimeout(() => {
+                getModels()
+            }, 350);
+        
+            // Cleanup the timeout if inputValue changes before delay
+            return () => {
+                clearTimeout(handler);
+            };
+    }, [searchModels]);
 
 
     return <div className="explore-container">
@@ -289,8 +308,8 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
                     {models.map((model) => (
                        <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                     ))}
-                    {!loadingModels && models.length == 0 && search.length > 0 && <p className="gray-text">No such models found.</p>}
-                    {loadingModels && models.length == 0 && currentProfile.modelsCount != null && currentProfile.modelsCount.length > 0 && [...Array(currentProfile.modelsCount)].map((e, i) => (
+                    {!loadingModels && models.length == 0 && searchModels.length > 0 && <p className="gray-text">No such models found.</p>}
+                    {loadingModels && models.length == 0 && [...Array(4)].map((e, i) => (
                         <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                     ))}
                 </div>

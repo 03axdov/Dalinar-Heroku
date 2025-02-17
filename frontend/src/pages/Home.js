@@ -8,7 +8,7 @@ import axios from 'axios'
 // This is the personal view. /home
 function Home({currentProfile, notification, BACKEND_URL}) {
     const navigate = useNavigate()
-    const [searchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const startParam = searchParams.get("start"); // Get the 'start' param
 
     const [datasets, setDatasets] = useState([])
@@ -61,7 +61,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
         setLoadingModels(true)
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/my-models/' + (search ? "?search=" + search : ""),
+            url: window.location.origin + '/api/my-models/' + (searchModels ? "?search=" + searchModels : ""),
         })
         .then((res) => {
             if (res.data) {
@@ -170,6 +170,25 @@ function Home({currentProfile, notification, BACKEND_URL}) {
         };
     }, [search]);
 
+    const firstModelSearch = useRef(true)
+    // Search input timing
+    useEffect(() => {
+        if (firstModelSearch.current) {
+            firstModelSearch.current = false; // Set to false after first render
+            return;
+        }
+        // Set a timeout to update debounced value after 500ms
+        setLoading(true)
+        const handler = setTimeout(() => {
+            getModels()
+        }, 350);
+    
+        // Cleanup the timeout if inputValue changes before delay
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [searchModels]);
+
 
     return <div className="home-container" onClick={(e) => {
         setShowDatasetType(false)
@@ -185,11 +204,17 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
             <div className="sidebar-types-container">
                 <div className={"sidebar-types-element " + (typeShown == "datasets" ? "sidebar-types-element-selected" : "")}
-                onClick={() => setTypeShown("datasets")}>
+                onClick={() => {
+                    setSearchParams({"start": "datasets"})
+                    setTypeShown("datasets")
+                }}>
                     <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/database.svg"} />Datasets
                 </div>
                 <div className={"sidebar-types-element " + (typeShown == "models" ? "sidebar-types-element-selected" : "")}
-                onClick={() => setTypeShown("models")}>
+                onClick={() => {
+                    setSearchParams({"start": "models"})
+                    setTypeShown("models")
+                }}>
                     <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/model.svg"} />Models
                 </div>
             </div>
@@ -290,10 +315,10 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                     {models.map((model) => (
                        <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL}/>
                     ))}
-                    {!loadingModels && models.length == 0 && search.length == 0 && <p>You don't have any models. Click <span className="link" onClick={() => {
+                    {!loadingModels && models.length == 0 && searchModels.length == 0 && <p>You don't have any models. Click <span className="link" onClick={() => {
                         navigate("/create-model")
                     }}>here</span> to create one.</p>}
-                    {!loadingModels && models.length == 0 && search.length > 0 && <p className="gray-text">No such models found.</p>}
+                    {!loadingModels && models.length == 0 && searchModels.length > 0 && <p className="gray-text">No such models found.</p>}
                     {loadingModels && models.length == 0 && currentProfile.modelsCount != null && currentProfile.modelsCount.length > 0 && [...Array(currentProfile.modelsCount)].map((e, i) => (
                         <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
                     ))}

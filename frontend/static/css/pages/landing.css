@@ -1,10 +1,19 @@
-.landing-header {
+.landing-container {
+    overflow-y: scroll;
+    scroll-behavior: smooth;
+    height: calc(100vh - var(--toolbar-height));
+}
+
+.landing-header, .landing-datasets, .landing-models {
+    scroll-snap-align: start;
     height: calc(100vh - var(--toolbar-height));
     width: 100%;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+    overflow: hidden;
+    border-bottom: 50px solid var(--background);
 }
 
 .landing-header-col {
@@ -17,8 +26,6 @@
 .landing-header-left {
     padding: 50px 40px;
     width: 600px;
-    box-sizing: border-box;
-    border-right: 1px solid var(--border);
 }
 
 .landing-header-right {
@@ -28,6 +35,9 @@
     justify-content: center;
     overflow: hidden;
     padding: 0;
+    box-sizing: border-box;
+    border-left: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
 }
 
 .landing-title {
@@ -44,6 +54,7 @@
 
 .landing-header-image-container {
     width: 90%;
+
 }
 
 .landing-header-image {
