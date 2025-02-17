@@ -1181,7 +1181,7 @@ class CreateLayer(APIView):
         
         layer_type = data["type"]
         
-        ALLOWED_TYPES = set(["dense", "conv2d", "flatten", "dropout", "maxpool2d"])
+        ALLOWED_TYPES = set(["dense", "conv2d", "flatten", "dropout", "maxpool2d", "rescale"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1198,6 +1198,9 @@ class CreateLayer(APIView):
             serializer = CreateFlattenLayerSerializer(data=data)
         elif layer_type == "dropout":
             serializer = CreateDropoutLayerSerializer(data=data)
+        elif layer_type == "rescale":
+            parse_dimensions(request.data)
+            serializer = CreateRescalingLayerSerializer(data=data)
         
         if serializer and serializer.is_valid():
             
@@ -1245,7 +1248,6 @@ class DeleteLayer(APIView):
                 else:
                     return Response({"Unauthorized": "You can only delete your own layers."}, status=status.HTTP_401_UNAUTHORIZED)
             except Layer.DoesNotExist:
-                print("AASSDASD")
                 return Response({"Not found": "Could not find layer with the id " + str(layer_id + ".")}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to delete layers.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -1283,6 +1285,13 @@ class EditLayer(APIView):
                         layer.input_y = request.data["input_y"]
                     elif layer_type == "dropout":
                         layer.rate = request.data["rate"]
+                    elif layer_type == "rescale":
+                        parse_dimensions(request.data)
+                        layer.scale = request.data["scale"]
+                        layer.offset = request.data["offset"]
+                        layer.input_x = request.data["input_x"]
+                        layer.input_y = request.data["input_y"]
+                        layer.input_z = request.data["input_z"]
                         
                     layer.activation_function = request.data["activation_function"]
                     layer.save()

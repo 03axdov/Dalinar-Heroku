@@ -10,13 +10,16 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
     const [nodesCount, setNodesCount] = useState(8) // Used for layers of type ["dense"]
 
-    const [inputX, setInputX] = useState("")    // Used for layers of type ["conv2d", "flatten"]
-    const [inputY, setInputY] = useState("")    // Used for layers of type ["conv2d", "flatten"]
+    const [inputX, setInputX] = useState("")    // Used for layers of type ["conv2d", "flatten", "rescale"]
+    const [inputY, setInputY] = useState("")    // Used for layers of type ["conv2d", "flatten", "rescale"]
     const [inputZ, setInputZ] = useState("")    // Used for layers of type ["conv2d"]
 
     const [poolSize, setPoolSize] = useState(2) // Used for layers of type ["maxpool2d"]
 
     const [rate, setRate] = useState(0.2) // Used for layers of type ["dropout"]
+
+    const [scale, setScale] = useState("1/255.0") // Used for layers of type ["rescale"]
+    const [offset, setOffset] = useState(0) // Used for layers of type ["rescale"]
 
     const [activation, setActivation] = useState("")    // Used for layers of type ["dense", "conv2d"]
 
@@ -98,9 +101,23 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     if (type == "dropout") {
                         data["rate"] = rate
                     }
-                    
 
-                    if (type == "flatten" || type == "dropout") {    // These layers cannot have activation functions
+                    if (type == "rescale") {
+                        if (scale === null || offset === null) {
+                            notification("Please enter both scale and offset", "failure")
+                            return;
+                        }
+                        try {
+                            const result = eval(scale); 
+                        } catch {
+                            notification("Scale must be a valid number.")
+                            return;
+                        }
+                        data["scale"] = scale
+                        data["offset"] = offset
+                    }
+
+                    if (type == "flatten" || type == "dropout" || type == "rescale") {    // These layers cannot have activation functions
                         data["activation_function"] = ""
                     }
 
@@ -115,6 +132,9 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                 <option value="dense">Dense</option>
                                 <option value="flatten">Flatten</option>
                                 <option value="dropout">Dropout</option>
+                            </optgroup>
+                            <optgroup label="Preprocessing">
+                                <option value="rescale">Rescale</option>
                             </optgroup>
                             <optgroup label="Computer Vision">
                                 <option value="conv2d">Conv2D</option>
@@ -220,6 +240,22 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             <label className="create-dataset-label" htmlFor="layer-rate">Rate</label>
                             <input className="create-dataset-inp" id="layer-rate" type="number" value={rate} step="0.05" onChange={(e) => {
                                 setRate(Math.max(0, Math.min(1, e.target.value)))
+                            }} />
+                        </div>
+                    </div>}
+
+                    {type == "rescale" && <div className="create-layer-type-fields">
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label" htmlFor="layer-scale">Scale</label>
+                            <input className="create-dataset-inp" id="layer-scale" type="text" value={scale} onChange={(e) => {
+                                setScale(e.target.value)
+                            }} />
+                        </div>
+
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label" htmlFor="layer-offset">Offset</label>
+                            <input className="create-dataset-inp" id="layer-offset" type="number" value={offset} step="0.01" onChange={(e) => {
+                                setOffset(e.target.value)
                             }} />
                         </div>
                     </div>}

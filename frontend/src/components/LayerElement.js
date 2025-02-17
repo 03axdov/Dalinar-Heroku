@@ -13,11 +13,13 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     const [nodes, setNodes] = useState(layer.nodes_count)   // Used by ["dense"]
     const [filters, setFilters] = useState(layer.filters)   // Used by ["conv2d"]
     const [kernelSize, setKernelSize] = useState(layer.kernel_size) // USed by ["conv2d"]
-    const [inputX, setInputX] = useState(layer.input_x || "") // Used by ["conv2d", "flatten"]
-    const [inputY, setInputY] = useState(layer.input_y || "") // Used by ["conv2d", "flatten"]
+    const [inputX, setInputX] = useState(layer.input_x || "") // Used by ["conv2d", "flatten", "rescale"]
+    const [inputY, setInputY] = useState(layer.input_y || "") // Used by ["conv2d", "flatten", "rescale"]
     const [inputZ, setInputZ] = useState(layer.input_z || "") // Used by ["conv2d"]
     const [poolSize, setPoolSize] = useState(layer.pool_size)
     const [rate, setRate] = useState(layer.rate)   // Used by ["dropout"]
+    const [scale, setScale] = useState(layer.scale) // Used by ["rescale"]
+    const [offset, setOffset] = useState(layer.offset)  // Used by ["rescale"]
 
     const [activation, setActivation] = useState(layer.activation_function) // Used by ["dense", "conv2d"]
 
@@ -37,6 +39,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         setInputZ(layer.input_z || "")
         setPoolSize(layer.pool_size)
         setRate(layer.rate)
+        setScale(layer.scale)
+        setOffset(layer.offset)
         setActivation(layer.activation_function)
 
         setType(layer.layer_type)
@@ -90,8 +94,15 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 setUpdated(true)
             }
         }
+        if (type == "rescale") {
+            if (scale != layer.scale) {
+                setUpdated(true)
+            } else if (offset != layer.offset) {
+                setUpdated(true)
+            }
+        }
 
-    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, poolSize, rate])
+    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, poolSize, rate, scale, offset])
 
 
     function checkValidity() {
@@ -128,6 +139,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             "input_z": inputZ,
             "pool_size": poolSize,
             "rate": rate,
+            "scale": scale,
+            "offset": offset,
 
             "activation_function": activation
         }
@@ -155,18 +168,20 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
     const VALID_PREV_LAYERS = { // null means that it can be the first layer
         "dense": [null, "dense", "flatten", "dropout"],
-        "conv2d": [null, "conv2d", "maxpool2d"],
+        "conv2d": [null, "conv2d", "maxpool2d", "rescale"],
         "maxpool2d": ["conv2d", "maxpool2d"],
         "dropout": ["dense", "dropout", "flatten"],
-        "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d"]
+        "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d"],
+        "rescale": [null]
     }
 
     const WARNING_MESSAGES = {
-        "dense": "A Dense layer must be the first one, else follow another Dense layer, a Flatten layer, or a Dropout layer.",
+        "dense": "A Dense layer must be the first one, else follow another Dense layer, a Flatten layer, a Rescale layer, or a Dropout layer.",
         "conv2d": "A Conv2D layer must be the first one, else follow another Conv2d layer or a MaxPool2DLayer.",
         "maxpool2d": "A MaxPool2D layer must follow a Conv2d layer or another MaxPool2D layer.",
         "dropout": "A Dropout layer must follow a Dense layer, a Flatten layer, or another Dropout layer.",
-        "flatten": "Invalid previous layer."
+        "flatten": "Invalid previous layer.",
+        "rescale": "Invalid previous layer."
     }
 
     function getErrorMessage() {
@@ -365,6 +380,36 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                                 setRate(Math.max(0, Math.min(1, e.target.value)))
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{rate}</div>}
+                        </div>
+    
+                    </form>}
+
+                    {type == "rescale" && <form className="layer-element-inner">
+                        <h1 className="layer-element-title">
+                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
+                            <span className="layer-element-title-text">Rescale</span>
+                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
+                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                                deleteLayer(layer.id)
+                            }}/>}
+                        </h1>
+    
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-blue"></span>
+                            <label className="layer-element-label" htmlFor={"scale" + layer.id}>Scale</label>
+                            {!isPublic && <input type="number" step="0.01" className="layer-element-input" id={"scale" + layer.id} value={scale} onChange={(e) => {
+                                setScale(e.target.value)
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{scale}</div>}
+                        </div>
+
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-blue"></span>
+                            <label className="layer-element-label" htmlFor={"offset" + layer.id}>Offset</label>
+                            {!isPublic && <input type="number" step="0.01" className="layer-element-input" id={"offset" + layer.id} value={offset} onChange={(e) => {
+                                setOffset(e.target.value)
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{offset}</div>}
                         </div>
     
                     </form>}

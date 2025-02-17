@@ -92,6 +92,8 @@ class LayerSerializer(serializers.BaseSerializer):
             return FlattenLayerSerializer(instance).data
         elif isinstance(instance, DropoutLayer):
             return DropoutLayerSerializer(instance).data
+        elif isinstance(instance, RescalingLayer):
+            return RescalingLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     
@@ -107,6 +109,8 @@ class CreateLayerSerializer(serializers.BaseSerializer):
             return CreateFlattenLayerSerializer(instance).data
         elif isinstance(instance, DropoutLayer):
             return CreateDropoutLayerSerializer(instance).data
+        elif isinstance(instance, RescalingLayer):
+            return CreateRescalingLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
 
@@ -168,6 +172,19 @@ class CreateDropoutLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = DropoutLayer
         fields = ["rate"]        
+        
+        
+class RescalingLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RescalingLayer
+        fields = "__all__"
+        
+
+class CreateRescalingLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RescalingLayer
+        fields = ["scale", "offset", "input_x", "input_y", "input_z"]       
+
         
 # MODEL HANDLING
 

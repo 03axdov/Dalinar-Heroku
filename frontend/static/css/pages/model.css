@@ -88,6 +88,10 @@
     user-select: none;
 }
 
+.model-layers-container:active {
+    cursor: grabbing;
+}
+
 .model-sidebar-delete {
     margin-right: 0;
     margin-left: auto;

@@ -283,6 +283,8 @@ function PublicDataset({BACKEND_URL}) {
         .then((res) => {
             setDataset(res.data)
 
+            setALLOWED_FILE_EXTENSIONS(res.data.dataset_type.toLowerCase() == "image" ? new Set(["png", "jpg", "jpeg", "webp", "avif"]) : new Set(["txt", "doc", "docx"]))
+
             setElements(res.data.elements)
             setLabels(res.data.labels)
 
@@ -301,6 +303,8 @@ function PublicDataset({BACKEND_URL}) {
 
 
     // ELEMENT FUNCTIONALITY
+
+    const [ALLOWED_FILE_EXTENSIONS, setALLOWED_FILE_EXTENSIONS] = useState(new Set())
 
     // Element Scroll Functionality
     const minZoom = 1
@@ -401,7 +405,7 @@ function PublicDataset({BACKEND_URL}) {
             return <p className="dataset-element-view-text">{currentText}</p> // Process the text content
             
         } else {
-            return <div className="extension-not-found">File of type .{extension} could not be rendered.</div>
+            return <div className="extension-not-found">File of type .{extension} could not be rendered for dataset of type {dataset.dataset_type}.</div>
         }
     }
 

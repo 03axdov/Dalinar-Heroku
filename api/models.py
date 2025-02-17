@@ -301,3 +301,17 @@ class DropoutLayer(Layer):
         res = f"Dropout ({self.rate})"
         if self.model: res += " - " + self.model.name
         return res
+    
+    
+class RescalingLayer(Layer):
+    scale = models.FloatField()
+    offset = models.FloatField()
+    
+    input_x = models.PositiveIntegerField(null=True)
+    input_y = models.PositiveIntegerField(null=True)
+    input_z = models.PositiveIntegerField(null=True)
+    
+    def __str__(self):
+        res = f"Rescaling ({self.scale}, {self.offset})"
+        if self.model: res += " - " + self.model.name
+        return res

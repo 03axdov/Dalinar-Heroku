@@ -76,7 +76,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         "conv2d": "lightblue",
         "maxpool2d": "pink2",
         "flatten": "pink",
-        "dropout": "blue"
+        "dropout": "blue",
+        "rescale": "blue"
     }
 
     useEffect(() => {
@@ -214,6 +215,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             return "Flatten" + (layer.input_x ? " - (" + layer.input_x + ", " + layer.input_y + ")" : "")
         } else if (type == "dropout") {
             return "Dropout (" + layer.rate + ")"
+        } else if (type == "rescale") {
+            return "Rescale (" + layer.scale + ", " + layer.offset + ")"
         }
     }
 
