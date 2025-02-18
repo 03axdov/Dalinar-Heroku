@@ -12,6 +12,8 @@ function Guide({BACKEND_URL}) {
     const [areaImageIsDark, setAreaImageIsDark] = useState(false)
     const [classificationImageIsDark, setClassificationImageIsDark] = useState(false)
 
+    const [imageIsLoaded, setImageIsLoaded] = useState(false)
+
     return (
         <div className="guide-container">
             <div className="guide-toolbar">
@@ -93,8 +95,13 @@ function Guide({BACKEND_URL}) {
                 </div>
 
                 <div className="instructions-container">
-                    <div className="instructions-area-container" onMouseEnter={() => setAreaImageIsDark(true)} onMouseLeave={() => setAreaImageIsDark(false)}>
-                        <img className={"instructions-area-image " + (areaImageIsDark ? "instructions-area-image-disabled" : "")} src={BACKEND_URL + "/static/images/examplePage.jpg"} />
+                    <div className="instructions-area-container" 
+                    onMouseEnter={() => setAreaImageIsDark(true)} 
+                    onMouseLeave={() => setAreaImageIsDark(false)}
+                    style={{display: (imageIsLoaded ? "flex" : "none")}}>
+                        <img className={"instructions-area-image " + (areaImageIsDark ? "instructions-area-image-disabled" : "")}
+                        src={BACKEND_URL + "/static/images/examplePage.jpg"} 
+                        onLoad={() => setImageIsLoaded(true)}/>
                         
                         <div className="instructions-area-comment" style={{top: "14%", right: "14%"}}>
                             Clicking on a label or applying its keybind selects it.
@@ -129,9 +136,13 @@ function Guide({BACKEND_URL}) {
                 </div>
 
                 <div className="instructions-container">
-                    <div className="instructions-area-container" onMouseEnter={() => setClassificationImageIsDark(true)} onMouseLeave={() => setClassificationImageIsDark(false)}>
+                    <div className="instructions-area-container" 
+                    onMouseEnter={() => setClassificationImageIsDark(true)} 
+                    onMouseLeave={() => setClassificationImageIsDark(false)}
+                    style={{display: (imageIsLoaded ? "flex" : "none")}}>
                         <img className={"instructions-area-image " + (classificationImageIsDark ? "instructions-area-image-disabled" : "")} 
-                        src={BACKEND_URL + "/static/images/exampleClassification.jpg"} />
+                        src={BACKEND_URL + "/static/images/exampleClassification.jpg"} 
+                        onLoad={() => setImageIsLoaded(true)}/>
                         
                         <div className="instructions-area-comment" style={{top: "49%", right: "1%"}}>
                             Added labels are listed here, along with their keybind. Clicking the label or its keybind applies the label.
@@ -160,8 +171,13 @@ function Guide({BACKEND_URL}) {
                 </div>
 
                 <div className="instructions-container">
-                    <div className="instructions-area-container" onMouseEnter={() => setAreaImageIsDark(true)} onMouseLeave={() => setAreaImageIsDark(false)}>
-                        <img className={"instructions-area-image " + (areaImageIsDark ? "instructions-area-image-disabled" : "")} src={BACKEND_URL + "/static/images/examplePageModel.jpg"} />
+                    <div className="instructions-area-container" 
+                    onMouseEnter={() => setAreaImageIsDark(true)} 
+                    onMouseLeave={() => setAreaImageIsDark(false)}
+                    style={{display: (imageIsLoaded ? "flex" : "none")}}>
+                        <img className={"instructions-area-image " + (areaImageIsDark ? "instructions-area-image-disabled" : "")} 
+                        src={BACKEND_URL + "/static/images/examplePageModel.jpg"} 
+                        onLoad={() => setImageIsLoaded(true)}/>
 
                         <div className="instructions-area-comment" style={{top: "10%", left: "13%"}}>
                             Layers are listed in the sidebar, as well as in the main view to the right. They can be reordered by dragging them.

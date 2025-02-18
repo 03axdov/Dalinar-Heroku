@@ -10,16 +10,16 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
     const [nodesCount, setNodesCount] = useState(8) // Used for layers of type ["dense"]
 
-    const [inputX, setInputX] = useState("")    // Used for layers of type ["conv2d", "flatten", "rescale"]
-    const [inputY, setInputY] = useState("")    // Used for layers of type ["conv2d", "flatten", "rescale"]
+    const [inputX, setInputX] = useState("")    // Used for layers of type ["conv2d", "flatten", "rescaling"]
+    const [inputY, setInputY] = useState("")    // Used for layers of type ["conv2d", "flatten", "rescaling"]
     const [inputZ, setInputZ] = useState("")    // Used for layers of type ["conv2d"]
 
     const [poolSize, setPoolSize] = useState(2) // Used for layers of type ["maxpool2d"]
 
     const [rate, setRate] = useState(0.2) // Used for layers of type ["dropout"]
 
-    const [scale, setScale] = useState("1/255.0") // Used for layers of type ["rescale"]
-    const [offset, setOffset] = useState(0) // Used for layers of type ["rescale"]
+    const [scale, setScale] = useState("1/255.0") // Used for layers of type ["rescaling"]
+    const [offset, setOffset] = useState(0) // Used for layers of type ["rescaling"]
 
     const [activation, setActivation] = useState("")    // Used for layers of type ["dense", "conv2d"]
 
@@ -28,6 +28,32 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
         setInputY("")
         setActivation("")
     }, [type])
+
+    function checkInputDimensions(data, include_z) {  // Adds dimensions, returns true if valid else false
+        if (!(inputX && inputY && (include_z ? inputZ : true)) && (inputX || inputY || (include_z ? inputZ : false))) {
+            notification("All dimensions must be specified or all left empty.", "failure")
+            return false;
+        }
+        data["input_x"] = inputX
+        if (inputX && inputX <= 0) {
+            notification("Input width must be positive.", "failure")
+            return false;
+        }
+        data["input_y"] = inputY
+        if (inputY && inputY <= 0) {
+            notification("Input height must be positive.", "failure")
+            return false;
+        }
+        if (include_z) {
+            data["input_z"] = inputZ
+            if (inputZ && inputZ <= 0) {
+                notification("Input depth must be positive and no more than 32.", "failure")
+                return false;
+            }
+        }
+        
+        return true;
+    }
 
     return (
         <div className="popup create-layer-popup" onClick={() => setShowCreateLayerPopup(false)}>
@@ -60,19 +86,8 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             notification("All dimensions must be specified or all left empty.", "failure")
                             return;
                         }
-                        data["input_x"] = inputX
-                        if (inputX && (inputX > 512 || inputX <= 0)) {
-                            notification("Input width must be positive and no more than 512.", "failure")
-                            return;
-                        }
-                        data["input_y"] = inputY
-                        if (inputY && (inputY > 512 || inputY <= 0)) {
-                            notification("Input height must be positive and no more than 512.", "failure")
-                            return;
-                        }
-                        data["input_z"] = inputZ
-                        if (inputZ && (inputZ > 32 || inputZ <= 0)) {
-                            notification("Input depth must be positive and no more than 32.", "failure")
+
+                        if (!checkInputDimensions(data, true)) {
                             return;
                         }
                     }
@@ -82,18 +97,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     }
 
                     if (type == "flatten") {
-                        if ((inputX && !inputY) || (!inputX && inputY)) {
-                            notification("Both input dimensions must be specified or both left empty.", "failure")
-                            return;
-                        }
-                        data["input_x"] = inputX
-                        if (inputX && (inputX > 512 || inputX <= 0)) {
-                            notification("Input width must be positive and no more than 512.", "failure")
-                            return;
-                        }
-                        data["input_y"] = inputY
-                        if (inputY && (inputY > 512 || inputY <= 0)) {
-                            notification("Input height must be positive and no more than 512.", "failure")
+                        if (!checkInputDimensions(data, false)) {
                             return;
                         }
                     }
@@ -102,22 +106,27 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         data["rate"] = rate
                     }
 
-                    if (type == "rescale") {
+                    if (type == "rescaling") {
                         if (scale === null || offset === null) {
                             notification("Please enter both scale and offset", "failure")
+                            return;
+                        }
+                        
+                        if (!checkInputDimensions(data, true)) {
                             return;
                         }
                         try {
                             const result = eval(scale); 
                         } catch {
-                            notification("Scale must be a valid number.")
+                            notification("Scale must be a valid number.", "failure")
                             return;
                         }
                         data["scale"] = scale
                         data["offset"] = offset
+
                     }
 
-                    if (type == "flatten" || type == "dropout" || type == "rescale") {    // These layers cannot have activation functions
+                    if (type == "flatten" || type == "dropout" || type == "rescaling") {    // These layers cannot have activation functions
                         data["activation_function"] = ""
                     }
 
@@ -134,7 +143,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                 <option value="dropout">Dropout</option>
                             </optgroup>
                             <optgroup label="Preprocessing">
-                                <option value="rescale">Rescale</option>
+                                <option value="rescaling">Rescaling</option>
                             </optgroup>
                             <optgroup label="Computer Vision">
                                 <option value="conv2d">Conv2D</option>
@@ -244,7 +253,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         </div>
                     </div>}
 
-                    {type == "rescale" && <div className="create-layer-type-fields">
+                    {type == "rescaling" && <div className="create-layer-type-fields">
                         <div className="create-layer-label-inp">
                             <label className="create-dataset-label" htmlFor="layer-scale">Scale</label>
                             <input className="create-dataset-inp" id="layer-scale" type="text" value={scale} onChange={(e) => {
@@ -257,6 +266,23 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             <input className="create-dataset-inp" id="layer-offset" type="number" value={offset} step="0.01" onChange={(e) => {
                                 setOffset(e.target.value)
                             }} />
+                        </div>
+
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label">Input dimensions <span className="create-dataset-required">(optional)</span></label>
+                            <div className="create-layer-dimensions">
+                                
+                                <input className="create-dataset-inp create-layer-dimensions-inp" type="number" placeholder="Width" value={inputX} onChange={(e) => {
+                                    setInputX(e.target.value)
+                                }} />
+                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Height" type="number" value={inputY} onChange={(e) => {
+                                    setInputY(e.target.value)
+                                }} />
+                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Depth" type="number" value={inputZ} onChange={(e) => {
+                                    setInputZ(e.target.value)
+                                }} />
+                                
+                            </div>
                         </div>
                     </div>}
 

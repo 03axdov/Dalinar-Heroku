@@ -13,13 +13,13 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     const [nodes, setNodes] = useState(layer.nodes_count)   // Used by ["dense"]
     const [filters, setFilters] = useState(layer.filters)   // Used by ["conv2d"]
     const [kernelSize, setKernelSize] = useState(layer.kernel_size) // USed by ["conv2d"]
-    const [inputX, setInputX] = useState(layer.input_x || "") // Used by ["conv2d", "flatten", "rescale"]
-    const [inputY, setInputY] = useState(layer.input_y || "") // Used by ["conv2d", "flatten", "rescale"]
+    const [inputX, setInputX] = useState(layer.input_x || "") // Used by ["conv2d", "flatten", "rescaling"]
+    const [inputY, setInputY] = useState(layer.input_y || "") // Used by ["conv2d", "flatten", "rescaling"]
     const [inputZ, setInputZ] = useState(layer.input_z || "") // Used by ["conv2d"]
     const [poolSize, setPoolSize] = useState(layer.pool_size)
     const [rate, setRate] = useState(layer.rate)   // Used by ["dropout"]
-    const [scale, setScale] = useState(layer.scale) // Used by ["rescale"]
-    const [offset, setOffset] = useState(layer.offset)  // Used by ["rescale"]
+    const [scale, setScale] = useState(layer.scale) // Used by ["rescaling"]
+    const [offset, setOffset] = useState(layer.offset)  // Used by ["rescaling"]
 
     const [activation, setActivation] = useState(layer.activation_function) // Used by ["dense", "conv2d"]
 
@@ -51,6 +51,18 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         getErrorMessage()
     }, [updateWarnings])
 
+    function dimensions_updated(include_z) {
+        if (inputX != (layer.input_x || "")) {
+            return true
+        } else if (inputY != (layer.input_y || "")) {
+            return true
+        } else if (include_z && inputZ != (layer.input_z || "")) {
+            return true
+        } else {
+            return false
+        }
+    }
+
     useEffect(() => {
         setUpdated(false)
 
@@ -64,11 +76,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 setUpdated(true)
             } else if (kernelSize != layer.kernel_size) {
                 setUpdated(true)
-            } else if (inputX != (layer.input_x || "")) {
-                setUpdated(true)
-            } else if (inputY != (layer.input_y || "")) {
-                setUpdated(true)
-            } else if (inputZ != (layer.input_z || "")) {
+            } else if (dimensions_updated(true)) {
                 setUpdated(true)
             }
         }
@@ -83,9 +91,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             }
         }
         if (type == "flatten") {
-            if (inputX != (layer.input_x || "")) {
-                setUpdated(true)
-            } else if (inputY != (layer.input_y || "")) {
+            if (dimensions_updated(false)) {
                 setUpdated(true)
             }
         }
@@ -94,10 +100,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 setUpdated(true)
             }
         }
-        if (type == "rescale") {
+        if (type == "rescaling") {
             if (scale != layer.scale) {
                 setUpdated(true)
             } else if (offset != layer.offset) {
+                setUpdated(true)
+            } else if (dimensions_updated(true)) {
                 setUpdated(true)
             }
         }
@@ -105,17 +113,48 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, poolSize, rate, scale, offset])
 
 
-    function checkValidity() {
-        if (type == "flatten") {
-            if (inputX && !inputY || !inputX && inputY) {
-                notification("Both dimensions must be specified or both left empty.", "failure")
-                return false
+    function checkInputDimensions(include_z) {  // Adds dimensions, returns true if valid else false
+        if (!(inputX && inputY && (include_z ? inputZ : true)) && (inputX || inputY || (include_z ? inputZ : false))) {
+            notification("All dimensions must be specified or all left empty.", "failure")
+            return false;
+        }
+
+        if (inputX && inputX <= 0) {
+            notification("Input width must be positive.", "failure")
+            return false;
+        }
+
+        if (inputY && inputY <= 0) {
+            notification("Input height must be positive.", "failure")
+            return false;
+        }
+        if (include_z) {
+            if (inputZ && inputZ <= 0) {
+                notification("Input depth must be positive and no more than 32.", "failure")
+                return false;
             }
         }
+        
+        return true;
+    }
+
+    function checkValidity() {
+        if (type == "flatten") {
+            return checkInputDimensions(false)
+        }
         if (type == "conv2d") {
-            if (!(inputX && inputY && inputZ) && (inputX || inputY || inputZ)) {
-                notification("All dimensions must be specified or all left empty.", "failure")
+            return checkInputDimensions(true)
+        }
+        if (type == "rescaling") {
+            let dimensionsValid = checkInputDimensions(true)
+            if (!dimensionsValid) {
                 return false
+            }
+            try {
+                const result = eval(scale); 
+            } catch {
+                notification("Scale must be a valid number.", "failure")
+                return false;
             }
         }
 
@@ -168,11 +207,11 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
     const VALID_PREV_LAYERS = { // null means that it can be the first layer
         "dense": [null, "dense", "flatten", "dropout"],
-        "conv2d": [null, "conv2d", "maxpool2d", "rescale"],
+        "conv2d": [null, "conv2d", "maxpool2d", "rescaling"],
         "maxpool2d": ["conv2d", "maxpool2d"],
         "dropout": ["dense", "dropout", "flatten"],
         "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d"],
-        "rescale": [null]
+        "rescaling": [null]
     }
 
     const WARNING_MESSAGES = {
@@ -181,7 +220,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         "maxpool2d": "A MaxPool2D layer must follow a Conv2d layer or another MaxPool2D layer.",
         "dropout": "A Dropout layer must follow a Dense layer, a Flatten layer, or another Dropout layer.",
         "flatten": "Invalid previous layer.",
-        "rescale": "Invalid previous layer."
+        "rescaling": "Must be the first layer."
     }
 
     function getErrorMessage() {
@@ -384,7 +423,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     
                     </form>}
 
-                    {type == "rescale" && <form className="layer-element-inner">
+                    {type == "rescaling" && <form className="layer-element-inner">
                         <h1 className="layer-element-title">
                             <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/area.svg"} />
                             <span className="layer-element-title-text">Rescale</span>
@@ -397,7 +436,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-darkblue"></span>
                             <label className="layer-element-label" htmlFor={"scale" + layer.id}>Scale</label>
-                            {!isPublic && <input type="number" step="0.01" className="layer-element-input" id={"scale" + layer.id} value={scale} onChange={(e) => {
+                            {!isPublic && <input type="text" className="layer-element-input" id={"scale" + layer.id} value={scale} onChange={(e) => {
                                 setScale(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{scale}</div>}
@@ -410,6 +449,33 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                                 setOffset(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{offset}</div>}
+                        </div>
+
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-gray2"></span>
+                            <label className="layer-element-label" htmlFor={"flattenX" + layer.id}>Input width</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenX" + layer.id} value={inputX} onChange={(e) => {
+                                setInputX(e.target.value)
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{inputX}</div>}
+                        </div>
+    
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-gray2"></span>
+                            <label className="layer-element-label" htmlFor={"flattenY" + layer.id}>Input height</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenY" + layer.id} value={inputY} onChange={(e) => {
+                                setInputY(e.target.value)
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{inputY}</div>}
+                        </div>
+
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-gray2"></span>
+                            <label className="layer-element-label" htmlFor={"flattenZ" + layer.id}>Input depth</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenZ" + layer.id} value={inputZ} onChange={(e) => {
+                                setInputZ(e.target.value)
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{inputZ}</div>}
                         </div>
     
                     </form>}

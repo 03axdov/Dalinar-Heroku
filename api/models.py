@@ -304,7 +304,7 @@ class DropoutLayer(Layer):
     
     
 class RescalingLayer(Layer):
-    scale = models.FloatField()
+    scale = models.CharField(max_length=100)
     offset = models.FloatField()
     
     input_x = models.PositiveIntegerField(null=True)
@@ -315,3 +315,18 @@ class RescalingLayer(Layer):
         res = f"Rescaling ({self.scale}, {self.offset})"
         if self.model: res += " - " + self.model.name
         return res
+    
+    def clean(self):
+        """Ensure that the scale can be evaluated to a valid number."""
+        try:
+            # Evaluate safely (avoid eval() to prevent arbitrary code execution)
+            compiled_expr = compile(self.scale, "<string>", "eval")
+            result = eval(compiled_expr, {"__builtins__": {}}, {})
+            if not isinstance(result, (int, float)):
+                raise ValueError("Scale must evaluate to a number.")
+        except Exception as e:
+            raise ValueError(f"Invalid scale expression: {self.scale}. Error: {str(e)}")
+
+    def get_scale_value(self):
+        """Evaluate the scale string to return the computed float value."""
+        return eval(self.scale, {"__builtins__": {}}, {})

@@ -46,7 +46,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
     const [scrollLeft, setScrollLeft] = useState(0);
 
     const handleMouseDown = (e) => {
-        if (mouseOnLayer) {return}
+        if (mouseOnLayer || e.button === 1) {return}
         setIsDragging(true);
         setStartX(e.pageX - scrollRef.current.offsetLeft);
         setScrollLeft(scrollRef.current.scrollLeft);
@@ -73,7 +73,8 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
         "conv2d": "lightblue",
         "maxpool2d": "pink2",
         "flatten": "pink",
-        "dropout": "blue"
+        "dropout": "blue",
+        "rescaling": "darkblue" 
     }
 
     useEffect(() => {
@@ -174,6 +175,8 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
             return "Flatten" + (layer.input_x ? " - (" + layer.input_x + ", " + layer.input_y + ")" : "")
         } else if (type == "dropout") {
             return "Dropout (" + layer.rate + ")"
+        } else if (type == "rescaling") {
+            return "Rescale (" + layer.scale + ", " + layer.offset + ")"
         }
     }
 

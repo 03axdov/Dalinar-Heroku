@@ -49,19 +49,19 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [scrollLeft, setScrollLeft] = useState(0);
 
     const handleMouseDown = (e) => {
-        if (mouseOnLayer) {return}
+        if (mouseOnLayer || e.button===1) {return}
         setIsDragging(true);
         setStartX(e.pageX - scrollRef.current.offsetLeft);
         setScrollLeft(scrollRef.current.scrollLeft);
-      };
+    };
     
-      const handleMouseMove = (e) => {
+    const handleMouseMove = (e) => {
         if (!isDragging) return;
         e.preventDefault();
         const x = e.pageX - scrollRef.current.offsetLeft;
         const walk = (x - startX) * 1; // Adjust speed by changing multiplier
         scrollRef.current.scrollLeft = scrollLeft - walk;
-      };
+    };
     
     const handleMouseUp = () => setIsDragging(false);
     const handleMouseLeave = () => setIsDragging(false);
@@ -77,7 +77,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         "maxpool2d": "pink2",
         "flatten": "pink",
         "dropout": "blue",
-        "rescale": "darkblue"
+        "rescaling": "darkblue"
     }
 
     useEffect(() => {
@@ -139,6 +139,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         // For updating the order, so it stays the same after refresh
         const URL = window.location.origin + '/api/build-model/'
         const config = {headers: {'Content-Type': 'application/json'}}
+
+        console.log(layers)
 
         let data = {
             "id": model.id,
@@ -215,7 +217,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             return "Flatten" + (layer.input_x ? " - (" + layer.input_x + ", " + layer.input_y + ")" : "")
         } else if (type == "dropout") {
             return "Dropout (" + layer.rate + ")"
-        } else if (type == "rescale") {
+        } else if (type == "rescaling") {
             return "Rescale (" + layer.scale + ", " + layer.offset + ")"
         }
     }

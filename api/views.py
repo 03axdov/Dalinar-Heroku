@@ -1103,9 +1103,14 @@ def get_tf_layer(layer):    # From a Layer instance
             return layers.Flatten()
     elif layer_type == "dropout":
         return layers.Dropout(rate=layer.rate)
+    elif layer_type == "rescaling":
+        if layer.input_x:   # Dimensions specified
+            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset, input_shape=(layer.input_x, layer.input_y))
+        else:
+            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset)
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
-        return None
+        raise Exception("Invalid layer: " + layer_type)
         
         
 class BuildModel(APIView):
@@ -1181,7 +1186,7 @@ class CreateLayer(APIView):
         
         layer_type = data["type"]
         
-        ALLOWED_TYPES = set(["dense", "conv2d", "flatten", "dropout", "maxpool2d", "rescale"])
+        ALLOWED_TYPES = set(["dense", "conv2d", "flatten", "dropout", "maxpool2d", "rescaling"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1198,7 +1203,7 @@ class CreateLayer(APIView):
             serializer = CreateFlattenLayerSerializer(data=data)
         elif layer_type == "dropout":
             serializer = CreateDropoutLayerSerializer(data=data)
-        elif layer_type == "rescale":
+        elif layer_type == "rescaling":
             parse_dimensions(request.data)
             serializer = CreateRescalingLayerSerializer(data=data)
         
@@ -1285,7 +1290,7 @@ class EditLayer(APIView):
                         layer.input_y = request.data["input_y"]
                     elif layer_type == "dropout":
                         layer.rate = request.data["rate"]
-                    elif layer_type == "rescale":
+                    elif layer_type == "rescaling":
                         parse_dimensions(request.data)
                         layer.scale = request.data["scale"]
                         layer.offset = request.data["offset"]

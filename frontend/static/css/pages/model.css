@@ -88,6 +88,10 @@
     user-select: none;
 }
 
+.model-layers-container::-webkit-scrollbar {
+    height: 10px;
+}
+
 .model-layers-container:active {
     cursor: grabbing;
 }
@@ -368,7 +372,7 @@
 }
 
 .layer-element-label {
-    margin-right: 20px;
+    margin-right: 30px;
     white-space: nowrap;
 }
 
