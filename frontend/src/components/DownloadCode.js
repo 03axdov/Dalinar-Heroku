@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 
 // The def ault page. Login not required.
-function DownloadCode({name, datatype, framework, downloadType, BACKEND_URL}) {
+function DownloadCode({name, datatype, framework, downloadType, BACKEND_URL, modelValues}) {
 
     const [copied, setCopied] = useState(false)
 
@@ -154,6 +154,13 @@ transform = transforms.Compose([
 
 # Create dataset
 dataset = CustomImageDataset(file_paths, label_to_index, transform=transform)`
+
+    const MODEL_TEXT = `import tensorflow as tf
+
+model = tf.keras.models.load_model('Model_#1.keras')
+
+# Get an overview of the model
+model.summary()`
 
 
     if (datatype.toLowerCase() == "classification" && downloadType == "folders") {
@@ -483,6 +490,27 @@ dataset = CustomImageDataset(file_paths, label_to_index, transform=transform)`
                 </div>
             )
         }
+    } else if (datatype == "model") {
+        return (
+            <div className="download-successful-code">
+                <button className="download-successful-code-copy" onClick={() => copyCode(MODEL_TEXT)}>
+                    {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} />}
+                    {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} />}
+                    {copied ? "Copied" : "Copy"}
+                </button>
+
+                <div className="download-successful-code-inner">
+                    <span className="code-line">1</span><span className="code-pink">import</span> tensorflow <span className="code-pink"> as</span> tf<br />
+                    <span className="code-line">2</span><br />
+                    <span className="code-line">3</span>model = tf.keras.models.load_model<span className="code-yellow">(</span>
+                        <span className="code-orange">'{modelValues.filename}{modelValues.format}'</span>
+                        <span className="code-yellow">)</span><br></br>
+                    <span className="code-line">4</span><br></br>
+                    <span className="code-line">5</span><span className="code-green"># Get an overview of the model</span><br></br>
+                    <span className="code-line">6</span>model.summary<span className="code-yellow">()</span>
+                </div>
+            </div>   
+        )
     }
     
 }

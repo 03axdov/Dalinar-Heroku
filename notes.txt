@@ -1,7 +1,6 @@
 TO-DO:
-- Adjust URLs in Home and Explore to show if on models or datasets
 - Python security measures for dataset_types
-- Loading elements look strange
+- Possibly issue with download code for text datasets
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

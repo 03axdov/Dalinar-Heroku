@@ -167,13 +167,16 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         })
     }
 
-    function downloadModel(e) {
-        if (!model.model_file) {return}
+    function downloadModel(e, format, filename) {
+        if (!model.model_file) {
+            notification("Model has not been built.", "failure")
+            return
+        }
         setDownloading(true)
-        downloadModelFile()
+        downloadModelFile(format, filename)
     }
 
-    const downloadModelFile = async () => {
+    const downloadModelFile = async (format, filename) => {
         try {
           const response = await fetch(model.model_file, {
             headers: {
@@ -189,7 +192,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
-          a.download = model.name + ".keras"
+          a.download = filename + format
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
@@ -404,6 +407,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
             {showDownloadPopup && <ModelDownloadPopup setShowDownloadPopup={setShowDownloadPopup} 
                 model={model}
+                downloadModel={downloadModel}
+                isDownloading={downloading}
                 isDownloaded={isDownloaded} 
                 setIsDownloaded={setIsDownloaded} 
                 BACKEND_URL={BACKEND_URL}>
