@@ -202,6 +202,8 @@ class Model(models.Model):
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default="private")
     
     model_file = models.FileField(upload_to="models/", null=True)
+    optimizer = models.CharField(max_length=100, blank=True, null=True)
+    loss_function = models.CharField(max_length=100, blank=True, null=True)
     
     def __str__(self):
         return self.name + " - " + self.owner.name

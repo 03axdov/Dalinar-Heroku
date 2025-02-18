@@ -20,9 +20,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
     const [showBuildModelPopup, setShowBuildModelPopup] = useState(false)
-    const [showAfterDownloadPopup, setShowAfterDownloadPopup] = useState(false)
+    const [showDownloadPopup, setShowDownloadPopup] = useState(false)
 
     const [downloading, setDownloading] = useState(false)
+    const [isDownloaded, setIsDownloaded] = useState(false)
 
     const [processingCreateLayer, setProcessingCreateLayer] = useState(false)
 
@@ -193,8 +194,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
           a.click();
           document.body.removeChild(a);
           window.URL.revokeObjectURL(url);
+          
           setDownloading(false)
-          setShowAfterDownloadPopup(true)
+          setIsDownloaded(true)
+          setShowDownloadPopup(true)
         } catch (error) {
           notification("Error downloading model: " + error, "failure");
           console.log(error)
@@ -399,7 +402,12 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
-            {showAfterDownloadPopup && <ModelDownloadPopup setShowDownloadPopup={setShowAfterDownloadPopup} BACKEND_URL={BACKEND_URL}></ModelDownloadPopup>}
+            {showDownloadPopup && <ModelDownloadPopup setShowDownloadPopup={setShowDownloadPopup} 
+                model={model}
+                isDownloaded={isDownloaded} 
+                setIsDownloaded={setIsDownloaded} 
+                BACKEND_URL={BACKEND_URL}>
+            </ModelDownloadPopup>}
 
             {showBuildModelPopup && <BuildModelPopup 
                 setShowBuildModelPopup={setShowBuildModelPopup} 
@@ -523,10 +531,9 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
                         {model && <button className={"model-download-button model-download-button " + (model.model_file ? "" : "model-button-disabled")} 
                         title={model.model_file ? "Download model" : "You must build the model before downloading it."}
-                        onClick={downloadModel}>
-                            {!downloading && <img className="model-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>}
-                            {downloading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
-                            {(!downloading ? "Download" : "Downloading...")}
+                        onClick={() => setShowDownloadPopup(true)}>
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>
+                            Download
                         </button>}
 
                     </div>

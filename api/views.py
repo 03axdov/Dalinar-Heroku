@@ -1153,6 +1153,9 @@ class BuildModel(APIView):
                         # Delete the temporary file after saving
                         os.remove(temp_path)
                         
+                        instance.optimizer = optimizer
+                        instance.loss_function = loss_function
+                        
                         instance.save()
                         
                         return Response(None, status=status.HTTP_200_OK)

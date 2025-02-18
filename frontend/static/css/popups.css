@@ -29,7 +29,7 @@
     width: 400px;
 }
 
-.create-layer-popup-container, .build-model-popup-container {
+.create-layer-popup-container, .build-model-popup-container, .model-download-popup-container {
     height: 650px;
     max-height: 90%;
     width: 600px;
@@ -63,7 +63,7 @@
     color: var(--gray-text);
 }
 
-.create-layer-popup-form, .build-model-form {
+.create-layer-popup-form, .build-model-form, .model-download-form {
     height: 100%;
     width: 100%;
     display: flex;
@@ -337,7 +337,7 @@
     color: #9CDCFE;
 }
 
-.download-popup, .create-layer-popup, .build-model-popup {
+.download-popup, .create-layer-popup, .build-model-popup, .model-download-popup {
     padding-bottom: var(--toolbar-height);
     height: calc(100% - var(--toolbar-height));
     box-sizing: border-box;
@@ -376,6 +376,55 @@
 
 .confirm-popup-cancel:hover {
     background: var(--sidebar-button-hover);
+}
+
+.model-download-build-container {
+    width: 100%;
+    margin-top: 20px;
+    border-radius: 3px;
+    box-sizing: border-box;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    background: var(--background-light);
+}
+
+.model-download-build-title {
+    font-size: 1.5rem;
+    margin: 0;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.model-download-build-row {
+    display: flex;
+    margin-top: 20px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.model-download-build-label {
+    font-size: 1.1rem;
+    white-space: nowrap;
+    margin: 0;
+}
+
+.model-download-build-value {
+    width: 100%;
+    padding: 5px 10px;
+    margin: 0;
+    margin-left: 20px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: 'Open Sans', sans-serif;
+    box-sizing: border-box;
+    outline: none;
+    background: var(--background);
+    opacity: 0.8;
+    cursor: default;
+    user-select: none;
+    color: white;
 }
 
 @media all and (max-width: 1000px) {
