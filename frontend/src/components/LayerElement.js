@@ -386,7 +386,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
                     {type == "rescale" && <form className="layer-element-inner">
                         <h1 className="layer-element-title">
-                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
+                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/area.svg"} />
                             <span className="layer-element-title-text">Rescale</span>
                             {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
                             {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
@@ -395,7 +395,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         </h1>
     
                         <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-blue"></span>
+                            <span className="layer-element-stat-color layer-element-stat-darkblue"></span>
                             <label className="layer-element-label" htmlFor={"scale" + layer.id}>Scale</label>
                             {!isPublic && <input type="number" step="0.01" className="layer-element-input" id={"scale" + layer.id} value={scale} onChange={(e) => {
                                 setScale(e.target.value)
@@ -404,7 +404,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         </div>
 
                         <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-blue"></span>
+                            <span className="layer-element-stat-color layer-element-stat-darkblue"></span>
                             <label className="layer-element-label" htmlFor={"offset" + layer.id}>Offset</label>
                             {!isPublic && <input type="number" step="0.01" className="layer-element-input" id={"offset" + layer.id} value={offset} onChange={(e) => {
                                 setOffset(e.target.value)

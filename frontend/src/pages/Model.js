@@ -77,7 +77,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         "maxpool2d": "pink2",
         "flatten": "pink",
         "dropout": "blue",
-        "rescale": "blue"
+        "rescale": "darkblue"
     }
 
     useEffect(() => {
