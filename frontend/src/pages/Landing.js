@@ -18,8 +18,8 @@ function Landing({BACKEND_URL}) {
         const x = e.clientX - left; // Mouse position within the element
         const y = e.clientY - top;
 
-        const rotateX = ((y / height) - 0.5) * -3; // Rotate up/down
-        const rotateY = ((x / width) - 0.5) * 3;  // Rotate left/right
+        const rotateX = ((y / height) - 0.5) * -5; // Rotate up/down
+        const rotateY = ((x / width) - 0.5) * 5;  // Rotate left/right
 
         if (i == 1) {
             setTransformMain(`perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`);

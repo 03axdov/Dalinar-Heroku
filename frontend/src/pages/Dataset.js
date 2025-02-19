@@ -1361,6 +1361,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         })
     }
 
+    function afterDownload() {
+        downloadAPICall()
+        setIsDownloading(false)
+        setDownloadingPercentage(0)
+        setIsDownloaded(true)
+    }
+
     async function labelFoldersDownload() {
         if (labels.length == 0) {
             notification("Cannot download datasets without labels.", "failure")
@@ -1408,7 +1415,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 
             }
             console.log(i)
-            setDownloadingPercentage(Math.round(100 * (i / NUM_ELEMENTS)))
+            setDownloadingPercentage(Math.round(100 * ((i+1) / NUM_ELEMENTS)))
             
         }
 
@@ -1420,13 +1427,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         setTimeout(() => {
             saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
-            downloadAPICall()
-        
-            getDataset()
-
             setDownloadType("folders")
-            setIsDownloading(false)
-            setIsDownloaded(true)
+
+            afterDownload()
         }, 200)
         
         
@@ -1482,7 +1485,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 notification("Error: " + e, "failure")
             }
             
-            setDownloadingPercentage(Math.round(100 * (i / NUM_ELEMENTS)))
+            setDownloadingPercentage(Math.round(100 * ((i+1) / NUM_ELEMENTS)))
         }
         setDownloadingPercentage(100)
 
@@ -1492,10 +1495,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         setTimeout(() => {
             saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
-            downloadAPICall()
-
             setDownloadType("files")
-            setIsDownloaded(true)
+            
+            afterDownload()
         }, 200)
     }
 
@@ -1516,7 +1518,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
             zip.file(elements[i].name, blob);
 
-            setDownloadingPercentage(Math.round(100 * (i / NUM_ELEMENTS)))
+            setDownloadingPercentage(Math.round(100 * ((i+1) / NUM_ELEMENTS)))
         }
         
         const jsonContent = createJSON();
@@ -1531,10 +1533,53 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         setTimeout(() => {
             saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
-            downloadAPICall()
+            setDownloadType("area")
 
-            setIsDownloaded(true)
+            afterDownload()
         }, 200)
+    }
+
+    async function textCsvDownload() {
+        let csvRows = []
+        const headers = ["Labels", "Text"]
+
+        csvRows.push(headers.join(","))
+
+        setDownloadingPercentage(0)
+        setIsDownloading(true)
+
+        for (let i=0; i < elements.length; i++) {
+            let labelName = (elements[i].label ? idToLabel[elements[i].label].name : "no_label")
+            let parsedText = '"' + idToText[elements[i].id].replaceAll('"', '""') + '"'
+            csvRows.push(labelName + "," + parsedText)
+
+            setDownloadingPercentage(Math.round(100 * ((i+1) / elements.length)))
+        }
+
+        let data = csvRows.join("\n")
+
+        const blob = new Blob([data], { type: 'text/csv' });
+    
+        // Create a URL for the Blob
+        const url = URL.createObjectURL(blob);
+        
+        // Create an anchor tag for downloading
+        const a = document.createElement('a');
+        
+        // Set the URL and download attribute of the anchor tag
+        a.href = url;
+        a.download = dataset.name + '.csv';
+        
+        // Trigger the download by clicking the anchor tag
+        a.click();
+
+        setTimeout(() => {
+            setDownloadType("csv")
+
+            afterDownload()
+        }, 200)
+
+        
     }
 
 
@@ -1741,9 +1786,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             setShowDownloadPopup={setShowDownloadPopup} 
             isArea={false}
             isDownloaded={isDownloaded}
-            setIsDownloaded={setIsDownloaded}>
+            setIsDownloaded={setIsDownloaded}
+            isText={dataset.dataset_type.toLowerCase() == "text"}>
                     <div title="Download .zip file" className="download-element" onClick={labelFoldersDownload}>
-                        <p className="download-element-title">Folders for labels <span className="download-recommended">(recommended)</span></p>
+                        <p className="download-element-title">Folders for labels {dataset.dataset_type.toLowerCase() == "image" && <span className="download-recommended">(recommended)</span>}</p>
                         <p className="download-element-description">
                             Every label will have its own folder containing the elements with that label.
                         </p>
@@ -1761,6 +1807,16 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
 
                     </div>
+                    {dataset.dataset_type.toLowerCase() == "text" && <div title="Download .csv file" className="download-element" onClick={textCsvDownload}>
+                        <p className="download-element-title">.csv file <span className="download-recommended">(recommended)</span></p>
+                        <p className="download-element-description">
+                            Will download the dataset as a .csv file, with labels in the first column and text in the second.
+                        </p>
+
+                        <img className="download-element-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} />
+
+
+                    </div>}
                     {isDownloading && <ProgressBar BACKEND_URL={BACKEND_URL} message={"Downloading..."} progress={downloadingPercentage}></ProgressBar>}
             </DownloadPopup>}
 
@@ -1771,9 +1827,12 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             isDownloaded={isDownloaded}
             setIsDownloaded={setIsDownloaded}>
                 <h1 className="download-successful-title">Download Successful <img className="download-successful-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/></h1>
-                <p className="download-successful-instructions">See below for an example of how the dataset can be loaded in Python. Note that the downloaded .zip file must be unpacked
+                {downloadType == "folders" || downloadType =="files" && <p className="download-successful-instructions">See below for an example of how the dataset can be loaded in Python. Note that the downloaded .zip file must be unpacked
                     and that relative paths must be updated. Also note that the instructions provided are for image datasets.
-                </p>
+                </p>}
+                {downloadType == "csv" && <p className="download-successful-instructions">
+                    A code example of how to load the .csv file in Python is found below. Note that pandas must be installed. Libraries such as 'csv' will work just as well.
+                </p>}
                 
                 <div className="download-frameworks-container download-frameworks-instructions">
                     <div onClick={() => setDownloadFramework("tensorflow")} 

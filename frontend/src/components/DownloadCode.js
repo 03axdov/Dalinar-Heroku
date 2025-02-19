@@ -162,6 +162,9 @@ model = tf.keras.models.load_model('` +(modelValues ? modelValues.filename : "")
 # Get an overview of the model
 model.summary()`
 
+    const CSV_TEXT = `import pandas as pd
+
+df = pd.read_csv('[YOUR_DATASET_NAME].csv')`
 
     if (datatype.toLowerCase() == "classification" && downloadType == "folders") {
         if (framework.toLowerCase() == "tensorflow") {
@@ -511,6 +514,33 @@ model.summary()`
                 </div>
             </div>   
         )
+    } else if (downloadType == "csv") {
+        return (<div className="download-successful-code">
+            <button className="download-successful-code-copy" onClick={() => copyCode(CSV_TEXT)}>
+                {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} />}
+                {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} />}
+                {copied ? "Copied" : "Copy"}
+            </button>
+
+            <div className="download-successful-code-inner">
+                <span className="code-line">1</span><span className="code-pink">import </span> pandas <span className="code-pink"> as </span> pd<br></br>
+                <span className="code-line">2</span><br></br>
+                <span className="code-line">3</span>df = pd.read_csv<span className="code-yellow">(</span>
+                    <span className="code-orange">'[YOUR_DATASET_NAME].csv'</span><span className="code-yellow">)</span>
+            </div>
+        </div>)
+    } else if (downloadType == "area") {
+        return (<div className="download-successful-code">
+            <div className="download-successful-code-inner">
+                <span className="code-line">1</span><span className="code-green"># Not yet added</span>
+            </div>
+        </div>)
+    } else {
+        return (<div className="download-successful-code">
+            <div className="download-successful-code-inner">
+                <span className="code-line">1</span><span className="code-green"># Not yet added</span>
+            </div>
+        </div>)
     }
     
 }

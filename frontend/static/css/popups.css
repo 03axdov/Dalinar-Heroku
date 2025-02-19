@@ -149,6 +149,14 @@
     border: 1px solid var(--border-light);
 }
 
+.download-popup-container-text {
+    width: 1000px;
+}
+
+.download-popup-container-text .download-element {
+    width: 31%;
+}
+
 .download-popup-container-area {
     width: 450px;
     height: 500px;
@@ -437,4 +445,7 @@
         width: 750px;
     }
     
+    .download-popup-container-text {
+        width: 95%;
+    }
 }

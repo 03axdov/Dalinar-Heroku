@@ -585,7 +585,9 @@ function PublicDataset({BACKEND_URL, notification}) {
             saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
             downloadAPICall()
+            setDownloadingPercentage(0)
 
+            setIsDownloading(false)
             setDownloadType("files")
             setIsDownloaded(true)
         }, 200)
@@ -624,6 +626,7 @@ function PublicDataset({BACKEND_URL, notification}) {
             saveAs(zipBlob, dataset.name.replaceAll(" ", "_") + ".zip");
 
             downloadAPICall()
+            setDownloadingPercentage(0)
 
             setIsDownloaded(true)
         }, 200)
