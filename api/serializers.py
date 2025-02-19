@@ -94,6 +94,8 @@ class LayerSerializer(serializers.BaseSerializer):
             return DropoutLayerSerializer(instance).data
         elif isinstance(instance, RescalingLayer):
             return RescalingLayerSerializer(instance).data
+        elif isinstance(instance, RandomFlipLayer):
+            return RandomFlipLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     
@@ -111,6 +113,8 @@ class CreateLayerSerializer(serializers.BaseSerializer):
             return CreateDropoutLayerSerializer(instance).data
         elif isinstance(instance, RescalingLayer):
             return CreateRescalingLayerSerializer(instance).data
+        elif isinstance(instance, RandomFlipLayer):
+            return CreateRandomFlipLayer(instance).data
         return None  # Handles unexpected cases
     
 
@@ -184,6 +188,19 @@ class CreateRescalingLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = RescalingLayer
         fields = ["scale", "offset", "input_x", "input_y", "input_z"]       
+
+
+class RandomFlipLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RandomFlipLayer
+        fields = "__all__"
+        
+
+class CreateRandomFlipLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RandomFlipLayer
+        fields = ["mode"]       
+
 
         
 # MODEL HANDLING

@@ -246,6 +246,10 @@
     background: rgb(0, 102, 255);
 }
 
+.layer-element-stat-cyan, .model-sidebar-color-cyan {
+    background: rgb(0, 255, 149);
+}
+
 .layer-element-stat-gray {
     background: rgb(100, 100, 100);
 }
@@ -433,6 +437,11 @@ div.layer-element-input {
 
 .layer-element-activation-input {
     width: 100px;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+}
+
+.layer-element-mode-input {
+    width: 170px;
     font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
 }
 

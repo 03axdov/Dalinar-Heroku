@@ -78,7 +78,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         "maxpool2d": "pink2",
         "flatten": "pink",
         "dropout": "blue",
-        "rescaling": "darkblue"
+        "rescaling": "darkblue",
+        "randomflip": "cyan"
     }
 
     useEffect(() => {
@@ -225,6 +226,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             return "Dropout (" + layer.rate + ")"
         } else if (type == "rescaling") {
             return "Rescale (" + layer.scale + ", " + layer.offset + ")"
+        } else if (type == "randomflip") {
+            return "RandomFlip (" + layer.mode + ")"
         }
     }
 

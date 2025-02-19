@@ -1151,6 +1151,8 @@ def get_tf_layer(layer):    # From a Layer instance
             return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset, input_shape=(layer.input_x, layer.input_y))
         else:
             return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset)
+    elif layer_type == "randomflip":
+        return layers.RandomFlip(mode=layer.mode)
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         raise Exception("Invalid layer: " + layer_type)
@@ -1225,7 +1227,7 @@ class CreateLayer(APIView):
         
         layer_type = data["type"]
         
-        ALLOWED_TYPES = set(["dense", "conv2d", "flatten", "dropout", "maxpool2d", "rescaling"])
+        ALLOWED_TYPES = set(["dense", "conv2d", "flatten", "dropout", "maxpool2d", "rescaling", "randomflip"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1245,6 +1247,8 @@ class CreateLayer(APIView):
         elif layer_type == "rescaling":
             parse_dimensions(request.data)
             serializer = CreateRescalingLayerSerializer(data=data)
+        elif layer_type == "randomflip":
+            serializer = CreateRandomFlipLayerSerializer(data=data)
         
         if serializer and serializer.is_valid():
             
@@ -1336,6 +1340,8 @@ class EditLayer(APIView):
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]
                         layer.input_z = request.data["input_z"]
+                    elif layer_type == "randomflip":
+                        layer.mode = request.data["mode"]
                         
                     layer.activation_function = request.data["activation_function"]
                     layer.save()

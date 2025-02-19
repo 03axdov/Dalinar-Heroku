@@ -332,3 +332,17 @@ class RescalingLayer(Layer):
     def get_scale_value(self):
         """Evaluate the scale string to return the computed float value."""
         return eval(self.scale, {"__builtins__": {}}, {})
+    
+    
+class RandomFlipLayer(Layer):
+    MODE_CHOICES = [
+        ("horizontal_and_vertical", "horizontal_and_vertical"),
+        ("horizontal", "horizontal"),
+        ("vertical", "vertical"),
+    ]
+    mode = models.CharField(max_length=100, choices=MODE_CHOICES, default="horizontal_and_vertical")
+    
+    def __str__(self):
+        res = f"RandomFlip ({self.mode})"
+        if self.model: res += " - " + self.model.name
+        return res

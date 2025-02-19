@@ -7,19 +7,15 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
     const [filters, setFilters] = useState(1)   // Used for layers of type ["conv2d"]
     const [kernelSize, setKernelSize] = useState(3) // Used for layers of type ["conv2d"]
-
     const [nodesCount, setNodesCount] = useState(8) // Used for layers of type ["dense"]
-
     const [inputX, setInputX] = useState("")    // Used for layers of type ["conv2d", "flatten", "rescaling"]
     const [inputY, setInputY] = useState("")    // Used for layers of type ["conv2d", "flatten", "rescaling"]
     const [inputZ, setInputZ] = useState("")    // Used for layers of type ["conv2d"]
-
     const [poolSize, setPoolSize] = useState(2) // Used for layers of type ["maxpool2d"]
-
     const [rate, setRate] = useState(0.2) // Used for layers of type ["dropout"]
-
     const [scale, setScale] = useState("1/255.0") // Used for layers of type ["rescaling"]
     const [offset, setOffset] = useState(0) // Used for layers of type ["rescaling"]
+    const [mode, setMode] = useState("horizontal_and_vertical") // Used for layers of type ["randomflip"]
 
     const [activation, setActivation] = useState("")    // Used for layers of type ["dense", "conv2d"]
 
@@ -77,8 +73,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     if (type == "dense") {
                         data["nodes_count"] = nodesCount
                     }
-                    
-                    if (type == "conv2d") {
+                    else if (type == "conv2d") {
                         data["filters"] = filters
                         data["kernel_size"] = kernelSize
 
@@ -91,22 +86,18 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             return;
                         }
                     }
-
-                    if (type == "maxpool2d") {
+                    else if (type == "maxpool2d") {
                         data["pool_size"] = poolSize
                     }
-
-                    if (type == "flatten") {
+                    else if (type == "flatten") {
                         if (!checkInputDimensions(data, false)) {
                             return;
                         }
                     }
-                    
-                    if (type == "dropout") {
+                    else if (type == "dropout") {
                         data["rate"] = rate
                     }
-
-                    if (type == "rescaling") {
+                    else if (type == "rescaling") {
                         if (scale === null || offset === null) {
                             notification("Please enter both scale and offset", "failure")
                             return;
@@ -125,8 +116,12 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         data["offset"] = offset
 
                     }
+                    else if (type == "randomflip") {
+                        data["mode"] = mode
+                    }
 
-                    if (type == "flatten" || type == "dropout" || type == "rescaling") {    // These layers cannot have activation functions
+                    const NO_ACTIVATION = new Set(["flatten", "dropout", "rescaling", "randomflip", "maxpool2d"])
+                    if (NO_ACTIVATION.has(type)) {    // These layers cannot have activation functions
                         data["activation_function"] = ""
                     }
 
@@ -142,8 +137,9 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                 <option value="flatten">Flatten</option>
                                 <option value="dropout">Dropout</option>
                             </optgroup>
-                            <optgroup label="Preprocessing">
+                            <optgroup label="Image Preprocessing">
                                 <option value="rescaling">Rescaling</option>
+                                <option value="randomflip">RandomFlip</option>
                             </optgroup>
                             <optgroup label="Computer Vision">
                                 <option value="conv2d">Conv2D</option>
@@ -284,6 +280,20 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                 
                             </div>
                         </div>
+                    </div>}
+
+                    {type == "randomflip" && <div className="create-layer-type-fields">
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label" htmlFor="randomflip-mode">Mode</label>
+                            <select className="create-dataset-inp" id="randomflip-mode" value={mode} onChange={(e) => {
+                                setMode(e.target.value)
+                            }}>
+                                <option value="horizontal_and_vertical">horizontal_and_vertical</option>
+                                <option value="horizontal">horizontal</option>
+                                <option value="vertical">vertical</option>
+                            </select>
+                        </div>
+
                     </div>}
 
                     <div className="create-layer-popup-buttons">

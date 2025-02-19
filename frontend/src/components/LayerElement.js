@@ -20,6 +20,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     const [rate, setRate] = useState(layer.rate)   // Used by ["dropout"]
     const [scale, setScale] = useState(layer.scale) // Used by ["rescaling"]
     const [offset, setOffset] = useState(layer.offset)  // Used by ["rescaling"]
+    const [mode, setMode] = useState(layer.mode)    // Used by ["randomflip"]
 
     const [activation, setActivation] = useState(layer.activation_function) // Used by ["dense", "conv2d"]
 
@@ -41,6 +42,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         setRate(layer.rate)
         setScale(layer.scale)
         setOffset(layer.offset)
+        setMode(layer.mode)
+
         setActivation(layer.activation_function)
 
         setType(layer.layer_type)
@@ -71,7 +74,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 setUpdated(true)
             }
         } 
-        if (type == "conv2d") {
+        else if (type == "conv2d") {
             if (filters != layer.filters) {
                 setUpdated(true)
             } else if (kernelSize != layer.kernel_size) {
@@ -80,27 +83,22 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 setUpdated(true)
             }
         }
-        if (type == "maxpool2d") {
+        else if (type == "maxpool2d") {
             if (poolSize != layer.pool_size) {
                 setUpdated(true)
             }
         }
-        if (type != "flatten" && type != "dropout") { // Do not have activation functions
-            if (activation != layer.activation_function) {  
-                setUpdated(true)
-            }
-        }
-        if (type == "flatten") {
+        else if (type == "flatten") {
             if (dimensions_updated(false)) {
                 setUpdated(true)
             }
         }
-        if (type == "dropout") {
+        else if (type == "dropout") {
             if (rate != layer.rate) {
                 setUpdated(true)
             }
         }
-        if (type == "rescaling") {
+        else if (type == "rescaling") {
             if (scale != layer.scale) {
                 setUpdated(true)
             } else if (offset != layer.offset) {
@@ -109,8 +107,20 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 setUpdated(true)
             }
         }
+        else if (type == "randomflip") {
+            if (mode != layer.mode) {
+                setUpdated(true)
+            }
+        }
 
-    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, poolSize, rate, scale, offset])
+        const NO_ACTIVATION = new Set(["flatten", "dropout", "randomflip", "maxpool2d"])
+        if (NO_ACTIVATION.has(type)) { // Do not have activation functions
+            if (activation != layer.activation_function) {  
+                setUpdated(true)
+            }
+        }
+
+    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, poolSize, rate, scale, offset, mode])   // All layer states
 
 
     function checkInputDimensions(include_z) {  // Adds dimensions, returns true if valid else false
@@ -180,6 +190,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             "rate": rate,
             "scale": scale,
             "offset": offset,
+            "mode": mode,
 
             "activation_function": activation
         }
@@ -208,19 +219,21 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     const VALID_PREV_LAYERS = { // null means that it can be the first layer
         "dense": [null, "dense", "flatten", "dropout"],
         "conv2d": [null, "conv2d", "maxpool2d", "rescaling"],
-        "maxpool2d": ["conv2d", "maxpool2d"],
+        "maxpool2d": ["conv2d", "maxpool2d", "rescaling"],
         "dropout": ["dense", "dropout", "flatten"],
-        "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d"],
-        "rescaling": [null]
+        "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling"],
+        "rescaling": [null, "randomflip"],
+        "randomflip": [null, "rescaling"]
     }
 
     const WARNING_MESSAGES = {
         "dense": "A Dense layer must be the first one, else follow another Dense layer, a Flatten layer, a Rescale layer, or a Dropout layer.",
         "conv2d": "A Conv2D layer must be the first one, else follow another Conv2d layer or a MaxPool2DLayer.",
-        "maxpool2d": "A MaxPool2D layer must follow a Conv2d layer or another MaxPool2D layer.",
+        "maxpool2d": "A MaxPool2D layer must follow a Conv2d layer, a Rescaling layer, or another MaxPool2D layer.",
         "dropout": "A Dropout layer must follow a Dense layer, a Flatten layer, or another Dropout layer.",
         "flatten": "Invalid previous layer.",
-        "rescaling": "Must be the first layer."
+        "rescaling": "Must be the first layer or follow another preprocessing layer.",
+        "randomflip": "Must be the first layer or follow another preprocessing layer.",
     }
 
     function getErrorMessage() {
@@ -479,6 +492,29 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         </div>
     
                     </form>}
+
+                    {type == "randomflip" && <form className="layer-element-inner">
+                        <h1 className="layer-element-title">
+                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
+                            <span className="layer-element-title-text">RandomFlip</span>
+                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
+                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                                deleteLayer(layer.id)
+                            }}/>}
+                        </h1>
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-cyan"></span>
+                            <label className="layer-element-label" htmlFor={"mode" + layer.id}>Mode</label>
+                            {!isPublic && <select className="layer-element-input layer-element-mode-input" id={"mode" + layer.id} value={mode} onChange={(e) => {
+                                    setMode(e.target.value)
+                                }}>
+                                    <option value="horizontal_and_vertical">horizontal_and_vertical</option>
+                                    <option value="horizontal">horizontal</option>
+                                    <option value="vertical">vertical</option>
+                            </select>}
+                            {isPublic && <div className="layer-element-input layer-element-activation-input">{mode}</div>}
+                        </div> 
+                    </form>}
     
                     {!isPublic && <button type="button" 
                         className={"layer-element-save " + (!updated ? "layer-element-save-disabled" : "")}
@@ -495,6 +531,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
                     <div className="layer-element-index" title={"Layer #" + (idx+1)}>{idx+1}</div>
                 </div>}
+
+                
     
                 
         </div>)
