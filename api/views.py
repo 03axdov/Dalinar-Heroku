@@ -82,6 +82,21 @@ def createSmallImage(instance, target_width=230, target_height=190):
     instance.imageSmall.save(new_name, ContentFile(buffer.read()), save=False)
     instance.save()
     
+    
+def parse_dimensions(data): # Empty values given as blank strings, must be set to None
+    if "input_x" in data.keys() and not data["input_x"]: data["input_x"] = None
+    if "input_y" in data.keys() and not data["input_y"]: data["input_y"] = None
+    if "input_z" in data.keys() and not data["input_z"]: data["input_z"] = None
+
+
+import random
+
+def random_light_color():   # Slightly biased towards lighter shades
+    r = random.randint(150, 255)  # Higher values mean lighter colors
+    g = random.randint(150, 255)
+    b = random.randint(150, 255)
+    return "#{:02x}{:02x}{:02x}".format(r, g, b)
+    
 
 # PROFILE HANDLING
 
@@ -220,12 +235,13 @@ class CreateDataset(APIView):
                     edit_element_label = EditElementLabel.as_view()
                     
                     factory = APIRequestFactory()
+
                     for label in labels:
                         elements = data_dict[label]
                         
                         label_request = factory.post('/create-label/', data=json.dumps({"name": label,
                                                                                             "dataset": dataset_instance.id, 
-                                                                                            "color": "#ffffff",
+                                                                                            "color": random_light_color(),
                                                                                             "keybind": ""}), content_type='application/json')
                         label_request.user = request.user
                         
@@ -265,6 +281,8 @@ class CreateDataset(APIView):
                                     {'Bad Request': 'Error labelling element'},
                                     status=label_element_response.status_code
                                 )
+                                
+                    return Response(serializer.data, status=status.HTTP_200_OK)
                 else:            
                     return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -1197,13 +1215,6 @@ class BuildModel(APIView):
            
         
 # LAYER FUNCTIONALITY
-
-
-def parse_dimensions(data): # Empty values given as blank strings, must be set to None
-    if "input_x" in data.keys() and not data["input_x"]: data["input_x"] = None
-    if "input_y" in data.keys() and not data["input_y"]: data["input_y"] = None
-    if "input_z" in data.keys() and not data["input_z"]: data["input_z"] = None
-
 
 class CreateLayer(APIView):
     serializer_class = CreateLayerSerializer

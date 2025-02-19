@@ -875,7 +875,7 @@
 }
 
 .download-element {
-    background: var(--toolbar-dark);
+    background: var(--toolbar-light);
     height: 90%;
     width: 47%;
     display: flex;

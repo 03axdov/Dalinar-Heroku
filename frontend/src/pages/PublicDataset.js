@@ -14,7 +14,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 const TOOLBAR_HEIGHT = 60
 
 // The default page. Login not required.
-function PublicDataset({BACKEND_URL}) {
+function PublicDataset({BACKEND_URL, notification}) {
     const navigate = useNavigate()
 
     const { id } = useParams();

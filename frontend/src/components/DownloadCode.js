@@ -157,7 +157,7 @@ dataset = CustomImageDataset(file_paths, label_to_index, transform=transform)`
 
     const MODEL_TEXT = `import tensorflow as tf
 
-model = tf.keras.models.load_model('` + modelValues.filename + modelValues.format + `')
+model = tf.keras.models.load_model('` +(modelValues ? modelValues.filename : "") + (modelValues ? modelValues.format : "") + `')
 
 # Get an overview of the model
 model.summary()`

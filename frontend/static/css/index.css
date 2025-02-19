@@ -296,7 +296,6 @@ input {
     display: flex;
     flex-direction: row;
     align-items: center;
-    pointer-events: none;
     transition: 0s;
 }
 
@@ -306,9 +305,13 @@ input {
     margin-right: 20px;
 }
 
-.notification-hidden {
+.notification-faded {
     transition: 0.2s;
     opacity: 0;
+}
+
+.notification-hidden {
+    display: none;
 }
 
 .progress-bar-outer {

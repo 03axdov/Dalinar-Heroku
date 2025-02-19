@@ -45,6 +45,7 @@ export default function App() {
     const [notificationMessage, setNotificationMessage] = useState("")
     const [notificationType, setNotificationType] = useState("")    // "", "success", or "failure"
     const notificationTimeoutRef = useRef(null);
+    const notificationHover = useRef(false)
 
 
     useEffect(() => {
@@ -93,16 +94,19 @@ export default function App() {
         setNotificationMessage(message)
         setNotificationType(type)
 
-        notificationTimeoutRef.current = setTimeout(() => {
-            setShowNotification(false)
-            notificationTimeoutRef.current = null;
+        notificationTimeoutRef.current = setInterval(() => {
+            if (!notificationHover.current) {
+                setShowNotification(false)
+                clearInterval(notificationTimeoutRef.current)
+                notificationTimeoutRef.current = null;
+            }
         }, delay)
     }
 
 
     return (
         <div id="main">
-            <Notification show={showNotification} message={notificationMessage} type={notificationType} BACKEND_URL={BACKEND_URL}/>
+            <Notification show={showNotification} message={notificationMessage} type={notificationType} notificationHover={notificationHover} BACKEND_URL={BACKEND_URL}/>
 
             {showAccountPopup && <AccountPopup setShowAccountPopup={setShowAccountPopup} message={"Please sign in to access this functionality."}/>}
             <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile} checkLoggedIn={checkLoggedIn} BACKEND_URL={BACKEND_URL}></Toolbar>
@@ -118,7 +122,7 @@ export default function App() {
                     <Route path="/create-model" element={<CreateModel notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/datasets/public/:id" element={<PublicDataset BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/datasets/public/:id" element={<PublicDataset BACKEND_URL={BACKEND_URL} notification={notification}/>}/>
                     <Route path="/models/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/models/public/:id" element={<PublicModel currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/edit-model/:id" element={<EditModel activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>

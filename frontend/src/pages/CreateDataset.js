@@ -1,6 +1,7 @@
 import React, {useState, useRef, useEffect} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
+import ProgressBar from "../components/ProgressBar"
 
 
 function CreateDataset({notification, BACKEND_URL}) {
@@ -8,6 +9,9 @@ function CreateDataset({notification, BACKEND_URL}) {
     const navigate = useNavigate()
 
     const [loading, setLoading] = useState(false)
+    const [uploadingDatasetFolders, setUploadingDatasetFolders] = useState(false)
+    const [uploadingDatasetFilenames, setUploadingDatasetFilenames] = useState(false)
+    const [uploadingPercentage, setUploadingPercentage] = useState(false)
 
     const [datasetType, setDatasetType] = useState("image")
     const [type, setType] = useState("classification")  // used for image datasets, either "classification" or "area"
@@ -124,8 +128,11 @@ function CreateDataset({notification, BACKEND_URL}) {
         }
     }
 
-    function uploadFoldersAsLabels(e) {
+    async function uploadFoldersAsLabels(e) {
         const ALLOWED_FILE_EXTENSIONS = (datasetType == "image" ? new Set(["png", "jpg", "jpeg", "webp", "avif"]) : new Set(["txt", "doc", "docx"]))
+        setUploadingDatasetFolders(true)
+
+        let notUploaded = []
 
         try {
             let files = e.target.files
@@ -133,9 +140,13 @@ function CreateDataset({notification, BACKEND_URL}) {
             let tempObj = {...uploadedDatasets}    // Label name as key and value as an array of elements
             for (let i=0; i < files.length; i++) {
                 let file = files[i]
+                setUploadingPercentage(100 * (i+1) / files.length)
 
                 let extension = file.name.split(".").pop().toLowerCase()
-                if (!ALLOWED_FILE_EXTENSIONS.has(extension)) {continue}
+                if (!ALLOWED_FILE_EXTENSIONS.has(extension)) {
+                    notUploaded.push(file.name)
+                    continue
+                }
                 
                 if (i == 0) {
                     let temp = [...uploadedFoldersAsLabels]
@@ -156,14 +167,27 @@ function CreateDataset({notification, BACKEND_URL}) {
 
         } catch (e) {
             notification("An error occured. This may be due to incorrect formatting of uploaded dataset.", "failure")
+        } finally {
+            setTimeout(() => {
+                setUploadingDatasetFolders(false)
+                setUploadingPercentage(0)
+                if (notUploaded.length > 0) {
+                    notification("Did not upload " + notUploaded.join(", ") + " as these files' types are not supported for " + datasetType + " datasets.", "failure")
+                }
+                e.target.value = "" // So same folder can be uploaded twice
+            }, 200)
         }
 
     }
 
-    function uploadFilenamesAsLabels(e) {
+    async function uploadFilenamesAsLabels(e) {
 
         const ALLOWED_FILE_EXTENSIONS = (datasetType == "image" ? new Set(["png", "jpg", "jpeg", "webp", "avif"]) : new Set(["txt", "doc", "docx"]))
 
+        let notUploaded = []
+
+        setUploadingPercentage(0)
+        setUploadingDatasetFilenames(true)
         try {
             let files = e.target.files
             
@@ -171,11 +195,15 @@ function CreateDataset({notification, BACKEND_URL}) {
 
             for (let i=0; i < files.length; i++) {
                 let file = files[i]
+                setUploadingPercentage(100 * (i+1.0) / files.length)
                 
                 let extension = file.name.split(".").pop().toLowerCase()
-                if (!ALLOWED_FILE_EXTENSIONS.has(extension)) {continue}
+                if (!ALLOWED_FILE_EXTENSIONS.has(extension)) {
+                    notUploaded.push(file.name)
+                    continue
+                }
 
-                if (i == 0) {
+                if (i == 0) {   // For datasets to be shown
                     let temp = [...uploadedFilenamesAsLabels]
                     temp.push(file.webkitRelativePath.split("/")[0])
                     setUploadedFilenamesAsLabels(temp)
@@ -188,12 +216,22 @@ function CreateDataset({notification, BACKEND_URL}) {
 
                 if (tempObj[label] == null) {tempObj[label] = []}
                 tempObj[label].push(file)
+                
             }
 
             setUploadedDatasets(tempObj)
 
         } catch (e) {
             notification("An error occured. This may be due to incorrect formatting of uploaded dataset.", "failure")
+        } finally {
+            setTimeout(() => {
+                setUploadingDatasetFilenames(false)
+                setUploadingPercentage(0)
+                if (notUploaded.length > 0) {
+                    notification("Did not upload " + notUploaded.join(", ") + " as these files' types are not supported for " + datasetType + " datasets.", "failure")
+                }
+                e.target.value = "" // So same folder can be uploaded twice
+            }, 200)
         }
     }
 
@@ -206,6 +244,12 @@ function CreateDataset({notification, BACKEND_URL}) {
 
     return (
         <div className="create-dataset-container">
+
+            {(uploadingDatasetFilenames || uploadingDatasetFolders) && <ProgressBar 
+                progress={uploadingPercentage}
+                message="Uploading..."
+                BACKEND_URL={BACKEND_URL}></ProgressBar>}
+
             <div className="create-dataset-form">
                 <h1 className="create-dataset-title">Create a dataset</h1>
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
@@ -371,7 +415,7 @@ function CreateDataset({notification, BACKEND_URL}) {
                 
                     <div className="upload-dataset-types-container">
                         {/* Uploading datasets goes through these */}
-                        <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFolderInputRef} onChange={(e) => uploadFoldersAsLabels(e)}/>
+                        <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFolderInputRef} onChange={(e) => {uploadFoldersAsLabels(e)}}/>
                         <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFilenamesInputRef} onChange={(e) => uploadFilenamesAsLabels(e)}/>
 
                         <div className="upload-dataset-type-col">
