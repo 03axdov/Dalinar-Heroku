@@ -960,6 +960,31 @@ class GetModel(APIView):
         else:
             return Response({'Unauthorized': 'Must be logged in to get models.'}, status=status.HTTP_401_UNAUTHORIZED)
     
+    
+class GetModelPublic(APIView):
+    serializer_class = ModelSerializer
+    lookup_url_kwarg = 'id' 
+    
+    def get(self, request, *args, **kwargs):
+
+        model_id = kwargs[self.lookup_url_kwarg]
+            
+        if model_id != None:
+            try:
+                model = Model.objects.get(Q(id=model_id) & Q(Q(visibility = "public")))
+                
+                modelSerialized = self.serializer_class(model)
+                data = modelSerialized.data
+                data["ownername"] = model.owner.name
+                
+                return Response(data, status=status.HTTP_200_OK)
+                
+            except Model.DoesNotExist:
+                return Response({'Not found': 'No public model was found with the id ' + str(model_id) + '.'}, status=status.HTTP_404_NOT_FOUND)        
+        
+        else:
+            return Response({'Bad Request': 'Id parameter not found in call to GetModelPublic.'}, status=status.HTTP_400_BAD_REQUEST)
+    
 
 class CreateModel(APIView):
     serializer_class = CreateModelSerializer

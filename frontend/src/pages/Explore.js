@@ -60,7 +60,7 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
         setLoadingModels(true)
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/my-models/' + (searchModels ? "?search=" + searchModels : ""),
+            url: window.location.origin + '/api/models/' + (searchModels ? "?search=" + searchModels : ""),
         })
         .then((res) => {
             if (res.data) {

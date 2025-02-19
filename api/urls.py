@@ -40,6 +40,7 @@ urlpatterns = [
     path("models/", ModelListPublic.as_view(), name="models"),
     path("my-models/", ModelListProfile.as_view(), name="my-models"),
     path("models/<int:id>", GetModel.as_view(), name="get-model"),
+    path("models/public/<int:id>", GetModelPublic.as_view(), name="get-model-public"),
     path("create-model/", CreateModel.as_view(), name="create-model"),
     path("delete-model/", DeleteModel.as_view(), name="delete-model"),
     path("edit-model/", EditModel.as_view(), name="edit-model"),

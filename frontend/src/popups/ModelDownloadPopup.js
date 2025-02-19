@@ -4,7 +4,7 @@ import DownloadCode from "../components/DownloadCode"
 function ModelDownloadPopup({model, setShowDownloadPopup, downloadModel, isDownloading, isDownloaded, setIsDownloaded, BACKEND_URL}) {
 
     const [format, setFormat] = useState(".keras")
-    const [filename, setFilename] = useState(model.name)
+    const [filename, setFilename] = useState(model.name.replaceAll(" ", "_"))
 
     return (
         <div className="popup model-download-popup" onClick={() => {
@@ -49,6 +49,7 @@ function ModelDownloadPopup({model, setShowDownloadPopup, downloadModel, isDownl
                             setFormat(e.target.value)
                         }}>
                             <option value=".keras">.keras</option>
+                            <option value=".h5">.h5</option>
                         </select>
                     </div>
 
@@ -70,10 +71,10 @@ function ModelDownloadPopup({model, setShowDownloadPopup, downloadModel, isDownl
                         <button type="button" className="create-layer-popup-cancel" onClick={() => {
                             setShowDownloadPopup(false)
                         }}>Cancel</button>
-                        <button type="submit" className="create-layer-popup-submit">
+                        <button type="submit" className="create-layer-popup-submit model-download-popup-submit">
                             {!isDownloading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/download.svg"}/>}
                             {isDownloading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
-                            {(!isDownloading ? "Create layer" : "Processing...")}
+                            {(!isDownloading ? "Download" : "Downloading...")}
                         </button>
                     </div>
                 </form>

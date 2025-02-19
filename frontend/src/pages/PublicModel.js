@@ -17,9 +17,10 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
 
     const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
     const [showBuildModelPopup, setShowBuildModelPopup] = useState(false)
-    const [showAfterDownloadPopup, setShowAfterDownloadPopup] = useState(false)
+    const [showDownloadPopup, setShowDownloadPopup] = useState(false)
 
     const [downloading, setDownloading] = useState(false)
+    const [isDownloaded, setIsDownloaded] = useState(false)
 
     const [processingCreateLayer, setProcessingCreateLayer] = useState(false)
 
@@ -89,23 +90,12 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
         setUpdateWarnings(!updateWarnings)
     }, [layers])
 
-    useEffect(() => {
-        if (currentProfile && model && !loading) {
-            if (currentProfile.user && model.owner) {
-                if (currentProfile.user != model.owner) {
-                    navigate("/models/public/" + id)
-                }
-            }
-            
-        }
-    }, [currentProfile, model])
-
     function getModel() {
 
         setLoading(true)
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/models/' + id,
+            url: window.location.origin + '/api/models/public/' + id,
         })
         .then((res) => {
             setModel(res.data)
@@ -124,13 +114,16 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
         })
     }
 
-    function downloadModel(e) {
-        if (!model.model_file) {return}
+    function downloadModel(e, format, filename) {
+        if (!model.model_file) {
+            notification("Model has not been built.", "failure")
+            return
+        }
         setDownloading(true)
-        downloadModelFile()
+        downloadModelFile(format, filename)
     }
 
-    const downloadModelFile = async () => {
+    const downloadModelFile = async (format, filename) => {
         try {
           const response = await fetch(model.model_file, {
             headers: {
@@ -146,13 +139,15 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
-          a.download = model.name + ".keras"
+          a.download = filename + format
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
           window.URL.revokeObjectURL(url);
+          
           setDownloading(false)
-          setShowAfterDownloadPopup(true)
+          setIsDownloaded(true)
+          setShowDownloadPopup(true)
         } catch (error) {
           notification("Error downloading model: " + error, "failure");
           console.log(error)
@@ -261,7 +256,14 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
-            {showAfterDownloadPopup && <ModelDownloadPopup setShowDownloadPopup={setShowAfterDownloadPopup} BACKEND_URL={BACKEND_URL}></ModelDownloadPopup>}
+{showDownloadPopup && <ModelDownloadPopup setShowDownloadPopup={setShowDownloadPopup} 
+                model={model}
+                downloadModel={downloadModel}
+                isDownloading={downloading}
+                isDownloaded={isDownloaded} 
+                setIsDownloaded={setIsDownloaded} 
+                BACKEND_URL={BACKEND_URL}>
+            </ModelDownloadPopup>}
 
             <div className="dataset-toolbar-left" style={{width: toolbarLeftWidth + "px"}}>
                 <div className="model-toolbar-left-inner">
@@ -313,11 +315,10 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                         </div>}
 
                         {model && <button className={"model-download-button model-download-button " + (model.model_file ? "" : "model-button-disabled")} 
-                        title={model.model_file ? "Download model" : "This model has not been built."}
-                        onClick={downloadModel}>
-                            {!downloading && <img className="model-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>}
-                            {downloading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
-                            {(!downloading ? "Download" : "Downloading...")}
+                        title={model.model_file ? "Download model" : "You must build the model before downloading it."}
+                        onClick={() => setShowDownloadPopup(true)}>
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>
+                            Download
                         </button>}
 
                     </div>

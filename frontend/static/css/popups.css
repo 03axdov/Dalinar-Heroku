@@ -427,6 +427,10 @@
     color: white;
 }
 
+.model-download-popup-submit {
+    min-width: 170px;
+}
+
 @media all and (max-width: 1000px) {
     .download-popup-container {
         padding: 10px 30px;
