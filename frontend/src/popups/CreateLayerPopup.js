@@ -76,7 +76,10 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             notification("Input size must be positive or unspecified.", "failure")
                             return;
                         }
-                        data["input_x"] = inputX
+                        if (inputX) {
+                            data["input_x"] = inputX
+                        }
+                        
                     }
                     else if (type == "conv2d") {
                         data["filters"] = filters
