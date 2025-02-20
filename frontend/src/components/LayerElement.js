@@ -315,14 +315,14 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             {isPublic && <div className="layer-element-input">{nodes}</div>}
                         </div>
 
-                        <div className="layer-element-stat">
+                        {(!isPublic || inputX) && <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-purple"></span>
                             <label className="layer-element-label" htmlFor={"denseSize" + layer.id}>Input size</label>
                             {!isPublic && <input type="number" className="layer-element-input" id={"denseSize" + layer.id} value={inputX} onChange={(e) => {
                                 setInputX(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{inputX}</div>}
-                        </div>
+                        </div>}
     
                         <div className="layer-element-stat layer-element-activation">
                         <span className="layer-element-stat-color layer-element-stat-gray"></span>
@@ -366,32 +366,32 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             {isPublic && <div className="layer-element-input">{kernelSize}</div>}
                         </div>
 
-                        <div className="layer-element-stat">
+                        {(!isPublic || inputX) && <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-gray2"></span>
                             <label className="layer-element-label" htmlFor={"flattenX" + layer.id}>Input width</label>
                             {!isPublic && <input type="number" className="layer-element-input" id={"flattenX" + layer.id} value={inputX} onChange={(e) => {
                                 setInputX(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{inputX}</div>}
-                        </div>
+                        </div>}
     
-                        <div className="layer-element-stat">
+                        {(!isPublic || inputY) && <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-gray2"></span>
                             <label className="layer-element-label" htmlFor={"flattenY" + layer.id}>Input height</label>
                             {!isPublic && <input type="number" className="layer-element-input" id={"flattenY" + layer.id} value={inputY} onChange={(e) => {
                                 setInputY(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{inputY}</div>}
-                        </div>
+                        </div>}
 
-                        <div className="layer-element-stat">
+                        {(!isPublic || inputZ) && <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-gray2"></span>
                             <label className="layer-element-label" htmlFor={"flattenZ" + layer.id}>Input depth</label>
                             {!isPublic && <input type="number" className="layer-element-input" id={"flattenZ" + layer.id} value={inputZ} onChange={(e) => {
                                 setInputZ(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{inputZ}</div>}
-                        </div>
+                        </div>}
     
                         <div className="layer-element-stat layer-element-activation">
                         <span className="layer-element-stat-color layer-element-stat-gray"></span>
@@ -442,7 +442,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             {!isPublic && <input type="number" className="layer-element-input" id={"flattenX" + layer.id} value={inputX} onChange={(e) => {
                                 setInputX(e.target.value)
                             }}></input>}
-                            {isPublic && <div className="layer-element-input">{inputX}</div>}
+                            {isPublic && <div className="layer-element-input">{inputX || "-"}</div>}
                         </div>
     
                         <div className="layer-element-stat">
@@ -451,7 +451,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             {!isPublic && <input type="number" className="layer-element-input" id={"flattenY" + layer.id} value={inputY} onChange={(e) => {
                                 setInputY(e.target.value)
                             }}></input>}
-                            {isPublic && <div className="layer-element-input">{inputY}</div>}
+                            {isPublic && <div className="layer-element-input">{inputY || "-"}</div>}
                         </div>
                     </form>}
     
@@ -504,32 +504,32 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             {isPublic && <div className="layer-element-input">{offset}</div>}
                         </div>
 
-                        <div className="layer-element-stat">
+                        {(!isPublic || inputX) && <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-gray2"></span>
                             <label className="layer-element-label" htmlFor={"flattenX" + layer.id}>Input width</label>
                             {!isPublic && <input type="number" className="layer-element-input" id={"flattenX" + layer.id} value={inputX} onChange={(e) => {
                                 setInputX(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{inputX}</div>}
-                        </div>
+                        </div>}
     
-                        <div className="layer-element-stat">
+                        {(!isPublic || inputY) && <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-gray2"></span>
                             <label className="layer-element-label" htmlFor={"flattenY" + layer.id}>Input height</label>
                             {!isPublic && <input type="number" className="layer-element-input" id={"flattenY" + layer.id} value={inputY} onChange={(e) => {
                                 setInputY(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{inputY}</div>}
-                        </div>
+                        </div>}
 
-                        <div className="layer-element-stat">
+                        {(!isPublic || inputZ) && <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-gray2"></span>
                             <label className="layer-element-label" htmlFor={"flattenZ" + layer.id}>Input depth</label>
                             {!isPublic && <input type="number" className="layer-element-input" id={"flattenZ" + layer.id} value={inputZ} onChange={(e) => {
                                 setInputZ(e.target.value)
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{inputZ}</div>}
-                        </div>
+                        </div>}
     
                     </form>}
 
