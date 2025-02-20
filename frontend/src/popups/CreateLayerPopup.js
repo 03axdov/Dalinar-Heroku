@@ -175,7 +175,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
                         <div className="create-layer-label-inp">
                             <label className="create-dataset-label" htmlFor="dense-size">Input size <span className="create-dataset-required">(optional)</span></label>
-                            <input className="create-dataset-inp" id="dense-size" type="number" required value={inputX} onChange={(e) => {
+                            <input className="create-dataset-inp" id="dense-size" type="number" value={inputX} onChange={(e) => {
                                 setInputX(e.target.value)
                             }} />
                         </div>
