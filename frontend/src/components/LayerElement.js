@@ -13,8 +13,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     const [nodes, setNodes] = useState(layer.nodes_count)   // Used by ["dense"]
     const [filters, setFilters] = useState(layer.filters)   // Used by ["conv2d"]
     const [kernelSize, setKernelSize] = useState(layer.kernel_size) // USed by ["conv2d"]
-    const [inputX, setInputX] = useState(layer.input_x || "") // Used by ["conv2d", "flatten", "rescaling"]
-    const [inputY, setInputY] = useState(layer.input_y || "") // Used by ["conv2d", "flatten", "rescaling"]
+    const [inputX, setInputX] = useState(layer.input_x || "") // Used by ["dense", "conv2d", "flatten", "rescaling", "resizing"]
+    const [inputY, setInputY] = useState(layer.input_y || "") // Used by ["conv2d", "flatten", "rescaling", "resizing"]
     const [inputZ, setInputZ] = useState(layer.input_z || "") // Used by ["conv2d"]
     const [poolSize, setPoolSize] = useState(layer.pool_size)
     const [rate, setRate] = useState(layer.rate)   // Used by ["dropout"]
@@ -73,6 +73,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
         if (type == "dense") {
             if (nodes != layer.nodes_count) {
+                setUpdated(true)
+            } else if (inputX != layer.input_x) {
                 setUpdated(true)
             }
         } 
@@ -156,6 +158,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     }
 
     function checkValidity() {
+        if (type == "dense") {
+            if (inputX && inputX <= 0) {
+                notification("Input size must be positive or unspecified.", "failure")
+                return false;
+            }
+        }
         if (type == "flatten") {
             return checkInputDimensions(false)
         }
@@ -305,6 +313,15 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                                 setNodes(Math.max(0, Math.min(e.target.value, 512)))
                             }}></input>}
                             {isPublic && <div className="layer-element-input">{nodes}</div>}
+                        </div>
+
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-purple"></span>
+                            <label className="layer-element-label" htmlFor={"denseSize" + layer.id}>Input size</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"denseSize" + layer.id} value={inputX} onChange={(e) => {
+                                setInputX(e.target.value)
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{inputX}</div>}
                         </div>
     
                         <div className="layer-element-stat layer-element-activation">

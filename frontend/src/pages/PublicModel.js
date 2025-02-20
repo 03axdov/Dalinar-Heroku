@@ -163,7 +163,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
     function getLayerName(layer) {
         let type = layer.layer_type
         if (type == "dense") {
-            return "Dense - " + layer.nodes_count
+            return "Dense - " + layer.nodes_count + (layer.input_x ? " (" + layer.input_x + ")" : "")
         } else if (type == "conv2d") {
             return "Conv2D - (" + layer.filters + ", " + layer.kernel_size + ")"
         } else if (type == "maxpool2d") {

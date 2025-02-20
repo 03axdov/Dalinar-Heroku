@@ -1320,12 +1320,15 @@ class EditLayer(APIView):
                 layer = Layer.objects.get(id=layer_id)
                 
                 if layer.model.owner == user.profile:
-                    
                     layer_type = request.data["type"]
+                    
+                    if layer_type != "resizing":    # No parse dimensions as these are required for this layer
+                        parse_dimensions(request.data)
+                    
                     if layer_type == "dense":
                         layer.nodes_count = request.data["nodes_count"]
+                        layer.input_x = request.data["input_x"]
                     elif layer_type == "conv2d":
-                        parse_dimensions(request.data)
                         layer.filters = request.data["filters"]
                         layer.kernel_size = request.data["kernel_size"]
                         layer.input_x = request.data["input_x"]
@@ -1334,13 +1337,11 @@ class EditLayer(APIView):
                     elif layer_type == "maxpool2d":
                         layer.pool_size = request.data["pool_size"]
                     elif layer_type == "flatten":
-                        parse_dimensions(request.data)
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]
                     elif layer_type == "dropout":
                         layer.rate = request.data["rate"]
                     elif layer_type == "rescaling":
-                        parse_dimensions(request.data)
                         layer.scale = request.data["scale"]
                         layer.offset = request.data["offset"]
                         layer.input_x = request.data["input_x"]
@@ -1349,7 +1350,6 @@ class EditLayer(APIView):
                     elif layer_type == "randomflip":
                         layer.mode = request.data["mode"]
                     elif layer_type == "resizing":
-                        # No parse dimensions as these are required for this layer
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]
                         

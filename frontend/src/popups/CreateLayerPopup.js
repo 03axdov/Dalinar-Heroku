@@ -43,7 +43,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
         if (include_z) {
             data["input_z"] = inputZ
             if (inputZ && inputZ <= 0) {
-                notification("Input depth must be positive and no more than 32.", "failure")
+                notification("Input depth must be positive.", "failure")
                 return false;
             }
         }
@@ -72,6 +72,11 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
  
                     if (type == "dense") {
                         data["nodes_count"] = nodesCount
+                        if (inputX && inputX <= 0) {
+                            notification("Input size must be positive or unspecified.", "failure")
+                            return;
+                        }
+                        data["input_x"] = inputX
                     }
                     else if (type == "conv2d") {
                         data["filters"] = filters
@@ -169,8 +174,15 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         </div>
 
                         <div className="create-layer-label-inp">
+                            <label className="create-dataset-label" htmlFor="dense-size">Input size <span className="create-dataset-required">(optional)</span></label>
+                            <input className="create-dataset-inp" id="dense-size" type="number" required value={inputX} onChange={(e) => {
+                                setInputX(e.target.value)
+                            }} />
+                        </div>
+
+                        <div className="create-layer-label-inp">
                             <label className="create-dataset-label" htmlFor="dense-activation-function">Activation function</label>
-                            <select className="create-dataset-inp" id="dense-activation-function" required value={activation} onChange={(e) => {
+                            <select className="create-dataset-inp" id="dense-activation-function" value={activation} onChange={(e) => {
                                 setActivation(e.target.value)
                             }}>
                                 <option value="">-</option>
