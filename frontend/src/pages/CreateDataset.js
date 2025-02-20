@@ -11,6 +11,7 @@ function CreateDataset({notification, BACKEND_URL}) {
     const [loading, setLoading] = useState(false)
     const [uploadingDatasetFolders, setUploadingDatasetFolders] = useState(false)
     const [uploadingDatasetFilenames, setUploadingDatasetFilenames] = useState(false)
+    const [uploadingDatasetCsv, setUploadingDatasetCsv] = useState(false)
     const [uploadingPercentage, setUploadingPercentage] = useState(false)
 
     const [datasetType, setDatasetType] = useState("image")
@@ -36,6 +37,7 @@ function CreateDataset({notification, BACKEND_URL}) {
 
     const hiddenFolderInputRef = useRef(null)
     const hiddenFilenamesInputRef = useRef(null)
+    const hiddenCsvInputRef = useRef(null)
 
     const INVALID_LABELS = new Set(["name", "datatype", "description", "image", "visibility", "labels"]) // Would impact formData below, temporary fix
 
@@ -128,6 +130,12 @@ function CreateDataset({notification, BACKEND_URL}) {
         }
     }
 
+    function csvInputClick() {
+        if (hiddenCsvInputRef.current) {
+            hiddenCsvInputRef.current.click();
+        }
+    }
+
     async function uploadFoldersAsLabels(e) {
         const ALLOWED_FILE_EXTENSIONS = (datasetType == "image" ? new Set(["png", "jpg", "jpeg", "webp", "avif"]) : new Set(["txt", "doc", "docx"]))
         setUploadingDatasetFolders(true)
@@ -173,6 +181,8 @@ function CreateDataset({notification, BACKEND_URL}) {
                 setUploadingPercentage(0)
                 if (notUploaded.length > 0) {
                     notification("Did not upload " + notUploaded.join(", ") + " as these files' types are not supported for " + datasetType + " datasets.", "failure")
+                } else {
+                    notification("Successfully uploaded dataset.", "success")
                 }
                 e.target.value = "" // So same folder can be uploaded twice
             }, 200)
@@ -229,12 +239,60 @@ function CreateDataset({notification, BACKEND_URL}) {
                 setUploadingPercentage(0)
                 if (notUploaded.length > 0) {
                     notification("Did not upload " + notUploaded.join(", ") + " as these files' types are not supported for " + datasetType + " datasets.", "failure")
+                } else {
+                    notification("Successfully uploaded dataset.", "success")
                 }
                 e.target.value = "" // So same folder can be uploaded twice
             }, 200)
         }
     }
 
+    async function uploadCsv(e) {
+        const file = e.target.files[0]
+        if (!file) {return}
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            processCSV(text, e);
+        };
+        reader.readAsText(file);
+    }
+
+    function processCSV(csvText, e) {
+        const rows = csvText.split("\n").map(row => row.split(",")); // Splitting rows and columns
+
+        let tempObj = {...uploadedDatasets}    // Label name as key and value as an array of elements
+    
+        setUploadingPercentage(0)
+        setUploadingDatasetCsv(true)
+        for (let i = 1; i < rows.length; i++) {
+            let label = rows[i][0]
+            let text = rows[i][1].replaceAll('""', '"')
+            let file = new File([text], `text_${i}.txt`, { type: "text/plain" });
+            console.log(`${label}:`, text); // Iterate over rows
+
+            if (INVALID_LABELS.has(label)) {
+                notification("Invalid label: " + label + ". Labels cannot be one of " + INVALID_LABELS, "failure")
+                continue
+            }
+
+            if (tempObj[label] == null) {tempObj[label] = []}
+            tempObj[label].push(file)
+            setUploadingPercentage(100 * (i+1.0) / rows.length)
+        }
+        setUploadedDatasets(tempObj)
+
+        setTimeout(() => {
+            setUploadingDatasetCsv(false)
+            setUploadingPercentage(0)
+
+            notification("Successfully uploaded dataset.", "success")
+            
+
+            e.target.value = "" // So same folder can be uploaded twice
+        }, 200)
+    }
 
     function imageOnClick() {
         if (imageInputRef.current) {
@@ -242,10 +300,20 @@ function CreateDataset({notification, BACKEND_URL}) {
         }
     }
 
+    function isEmpty(obj) {
+        for (const prop in obj) {
+          if (Object.hasOwn(obj, prop)) {
+            return false;
+          }
+        }
+      
+        return true;
+    }
+
     return (
         <div className="create-dataset-container">
 
-            {(uploadingDatasetFilenames || uploadingDatasetFolders) && <ProgressBar 
+            {(uploadingDatasetFilenames || uploadingDatasetFolders || uploadingDatasetCsv) && <ProgressBar 
                 progress={uploadingPercentage}
                 message="Uploading..."
                 BACKEND_URL={BACKEND_URL}></ProgressBar>}
@@ -417,6 +485,7 @@ function CreateDataset({notification, BACKEND_URL}) {
                         {/* Uploading datasets goes through these */}
                         <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFolderInputRef} onChange={(e) => {uploadFoldersAsLabels(e)}}/>
                         <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFilenamesInputRef} onChange={(e) => uploadFilenamesAsLabels(e)}/>
+                        <input id="csv-upload-inp" type="file" className="hidden" accept=".csv" ref={hiddenCsvInputRef} onChange={(e) => uploadCsv(e)}/>
 
                         <div className="upload-dataset-type-col">
                             <p className="upload-dataset-type-title">Folders as labels</p>
@@ -425,7 +494,7 @@ function CreateDataset({notification, BACKEND_URL}) {
                             </p>
 
                             <div className="upload-dataset-type-image-container">
-                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/foldersAsLabels.jpg"} />
+                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/foldersAsLabels.jpg"} onClick={folderInputClick} />
                             </div>
                             
                             <button type="button" className="upload-dataset-button" onClick={folderInputClick}>
@@ -449,7 +518,7 @@ function CreateDataset({notification, BACKEND_URL}) {
                             </p>
 
                             <div className="upload-dataset-type-image-container">
-                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} />
+                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} onClick={filenamesInputClick}/>
                             </div>
 
                             <button type="button" className="upload-dataset-button" onClick={filenamesInputClick}>
@@ -463,7 +532,48 @@ function CreateDataset({notification, BACKEND_URL}) {
                                 ))}
                             </div>
                         </div>
+
                     </div>
+
+                    {datasetType == "text" && <div className="upload-dataset-type-col">
+                            <p className="upload-dataset-type-title">.csv file</p>
+                            <p className="upload-dataset-type-description">
+                                Will create labels for values in the first column, with the elements being text in the second column. Note that the first row will be ignored.
+                                Also note that double citations '""' will be replaced by '"' due to the way Dalinar saves .csv datasets.
+                            </p>
+
+                            <div className="upload-dataset-type-image-container">
+                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/csv.jpg"} onClick={csvInputClick} />
+                            </div>
+                            
+                            <button type="button" className="upload-dataset-button" onClick={csvInputClick}>
+                                <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
+                                Upload dataset
+                            </button>
+
+                            <div className="uploaded-dataset-element-container">
+                                {uploadedFoldersAsLabels.map((e, i) => (
+                                    <p title={e} key={i} className="uploaded-dataset-element">{e}</p>
+                                ))}
+                            </div>
+                    </div>}
+
+                    {!isEmpty(uploadedDatasets) && <div className="uploaded-datasets-labels-container">
+                        <div className="uploaded-datasets-label-element no-margin">
+                            <div className="uploaded-datasets-label uploaded-datasets-label-element-title">Label</div>
+                            <div className="uploaded-datasets-elements uploaded-datasets-label-element-title">Elements</div>
+                        </div>
+                        {Object.keys(uploadedDatasets).map((label, idx) => (
+                            <div key={idx} className="uploaded-datasets-label-element">
+                                <div className="uploaded-datasets-label" title={label}>{label}</div>
+                                <div className="uploaded-datasets-elements">
+                                    {uploadedDatasets[label].map((element, idx) => (
+                                        <div key={idx} className="uploaded-datasets-element">{element.name}</div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>}
                 </div>}
 
                 <div className="create-dataset-buttons">

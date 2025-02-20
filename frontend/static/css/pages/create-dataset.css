@@ -292,10 +292,62 @@
     justify-content: center;
     align-items: center;
     margin-top: 10px;
+    cursor: pointer;
 }
 
 .upload-dataset-type-image {
     width: 100%;
+}
+
+.uploaded-datasets-labels-container {
+    width: 100%;
+    padding: 20px;
+    padding-bottom: 30px;
+    box-sizing: border-box;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    margin-top: 20px;
+}
+
+.uploaded-datasets-label-element {
+    display: flex;
+    flex-direction: row;
+    margin-top: 20px;
+    align-items: start;
+}
+
+.uploaded-datasets-label {
+    font-size: 1.1rem;
+    width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-right: 10px;
+}
+
+.uploaded-datasets-elements {
+    width: calc(100% - 160px);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+}
+
+.uploaded-datasets-element {
+    font-size: 1rem;
+    padding: 3px 7px;
+    border-radius: 3px;
+    background: var(--background-lighter);
+    margin-right: 5px;
+}
+
+.uploaded-datasets-label-element-title {
+    font-size: 1.5rem;
+    color: white;
+    margin-bottom: 5px;
 }
 
 .upload-dataset-label-inp {
