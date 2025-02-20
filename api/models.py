@@ -250,6 +250,7 @@ class Layer(PolymorphicModel, AbstractLayer):
         
 class DenseLayer(Layer):
     nodes_count = models.PositiveIntegerField(default=1)
+    input_x = models.PositiveIntegerField(null=True)
     
     def __str__(self):
         res = f"Dense ({self.nodes_count})"
@@ -344,5 +345,15 @@ class RandomFlipLayer(Layer):
     
     def __str__(self):
         res = f"RandomFlip ({self.mode})"
+        if self.model: res += " - " + self.model.name
+        return res
+    
+    
+class ResizingLayer(Layer):
+    input_x = models.PositiveIntegerField()
+    input_y = models.PositiveIntegerField()
+    
+    def __str__(self):
+        res = f"Resizing ({input_x}, {input_y})"
         if self.model: res += " - " + self.model.name
         return res

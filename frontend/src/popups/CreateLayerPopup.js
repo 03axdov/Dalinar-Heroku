@@ -93,6 +93,8 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         if (!checkInputDimensions(data, false)) {
                             return;
                         }
+                        data["input_x"] = inputX
+                        data["input_y"] = inputY
                     }
                     else if (type == "dropout") {
                         data["rate"] = rate
@@ -102,7 +104,6 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             notification("Please enter both scale and offset", "failure")
                             return;
                         }
-                        
                         if (!checkInputDimensions(data, true)) {
                             return;
                         }
@@ -118,9 +119,15 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     }
                     else if (type == "randomflip") {
                         data["mode"] = mode
+                    } else if (type == "resizing") {
+                        if (!checkInputDimensions(data, false)) {
+                            return;
+                        }
+                        data["input_x"] = inputX
+                        data["input_y"] = inputY
                     }
 
-                    const NO_ACTIVATION = new Set(["flatten", "dropout", "rescaling", "randomflip", "maxpool2d"])
+                    const NO_ACTIVATION = new Set(["flatten", "dropout", "rescaling", "randomflip", "maxpool2d", "resizing"])
                     if (NO_ACTIVATION.has(type)) {    // These layers cannot have activation functions
                         data["activation_function"] = ""
                     }
@@ -138,6 +145,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                 <option value="dropout">Dropout</option>
                             </optgroup>
                             <optgroup label="Image Preprocessing">
+                                <option value="resizing">Resizing</option>
                                 <option value="rescaling">Rescaling</option>
                                 <option value="randomflip">RandomFlip</option>
                             </optgroup>
@@ -294,6 +302,20 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             </select>
                         </div>
 
+                    </div>}
+
+                    {type == "resizing" && <div className="create-layer-type-fields">
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label">Input dimensions <span className="create-dataset-required">(optional)</span></label>
+                            <div className="create-layer-dimensions">
+                                <input className="create-dataset-inp create-layer-dimensions-inp" required type="number" placeholder="Width" value={inputX} onChange={(e) => {
+                                    setInputX(e.target.value)
+                                }} />
+                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" required placeholder="Height" type="number" value={inputY} onChange={(e) => {
+                                    setInputY(e.target.value)
+                                }} />
+                            </div>
+                        </div>
                     </div>}
 
                     <div className="create-layer-popup-buttons">

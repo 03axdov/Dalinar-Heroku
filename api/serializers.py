@@ -96,6 +96,8 @@ class LayerSerializer(serializers.BaseSerializer):
             return RescalingLayerSerializer(instance).data
         elif isinstance(instance, RandomFlipLayer):
             return RandomFlipLayerSerializer(instance).data
+        elif isinstance(instance, ResizingLayer):
+            return ResizingLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     
@@ -115,27 +117,25 @@ class CreateLayerSerializer(serializers.BaseSerializer):
             return CreateRescalingLayerSerializer(instance).data
         elif isinstance(instance, RandomFlipLayer):
             return CreateRandomFlipLayer(instance).data
+        elif isinstance(instance, ResizingLayer):
+            return CreateResizingLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
 
 class DenseLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = DenseLayer
-        fields = "__all__"
-        
-        
+        fields = "__all__"   
 class CreateDenseLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = DenseLayer
-        fields = ["nodes_count"]
+        fields = ["nodes_count", "input_x"]
         
         
 class Conv2DLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conv2DLayer
-        fields = "__all__"
-        
-        
+        fields = "__all__"     
 class CreateConv2DLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conv2DLayer
@@ -145,9 +145,7 @@ class CreateConv2DLayerSerializer(serializers.ModelSerializer):
 class MaxPool2DLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = MaxPool2DLayer
-        fields = "__all__"
-        
-        
+        fields = "__all__"     
 class CreateMaxPool2DLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = MaxPool2DLayer
@@ -158,8 +156,6 @@ class FlattenLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlattenLayer
         fields = "__all__"
-        
-
 class CreateFlattenLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlattenLayer
@@ -170,8 +166,6 @@ class DropoutLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = DropoutLayer
         fields = "__all__"
-        
-
 class CreateDropoutLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = DropoutLayer
@@ -181,9 +175,7 @@ class CreateDropoutLayerSerializer(serializers.ModelSerializer):
 class RescalingLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = RescalingLayer
-        fields = "__all__"
-        
-
+        fields = "__all__" 
 class CreateRescalingLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = RescalingLayer
@@ -194,13 +186,20 @@ class RandomFlipLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = RandomFlipLayer
         fields = "__all__"
-        
-
 class CreateRandomFlipLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = RandomFlipLayer
         fields = ["mode"]       
 
+
+class ResizingLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResizingLayer
+        fields = "__all__"
+class CreateResizingLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ResizingLayer
+        fields = ["input_x", "input_y"]      
 
         
 # MODEL HANDLING

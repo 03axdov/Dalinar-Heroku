@@ -79,7 +79,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         "flatten": "pink",
         "dropout": "blue",
         "rescaling": "darkblue",
-        "randomflip": "cyan"
+        "randomflip": "cyan",
+        "resizing": "green"
     }
 
     useEffect(() => {
@@ -234,6 +235,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             return "Rescale (" + layer.scale + ", " + layer.offset + ")"
         } else if (type == "randomflip") {
             return "RandomFlip (" + layer.mode + ")"
+        } else if (type == "resizing") {
+            return "Resizing (" + layer.input_x + ", " + layer.input_y + ")"
         }
     }
 

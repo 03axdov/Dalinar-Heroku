@@ -247,7 +247,11 @@
 }
 
 .layer-element-stat-cyan, .model-sidebar-color-cyan {
-    background: rgb(0, 255, 149);
+    background: rgb(0, 255, 179);
+}
+
+.layer-element-stat-green, .model-sidebar-color-green {
+    background: rgb(21, 255, 0);
 }
 
 .layer-element-stat-gray {

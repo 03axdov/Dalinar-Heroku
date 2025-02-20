@@ -114,8 +114,13 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 setUpdated(true)
             }
         }
+        else if (type == "resizing") {
+            if (dimensions_updated(false)) {
+                setUpdated(true)
+            }
+        }
 
-        const NO_ACTIVATION = new Set(["flatten", "dropout", "randomflip", "maxpool2d"])
+        const NO_ACTIVATION = new Set(["flatten", "dropout", "randomflip", "maxpool2d", "resizing"])
         if (NO_ACTIVATION.has(type)) { // Do not have activation functions
             if (activation != layer.activation_function) {  
                 setUpdated(true)
@@ -168,6 +173,9 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 notification("Scale must be a valid number.", "failure")
                 return false;
             }
+        }
+        if (type == "resizing") {
+            return checkInputDimensions(false)
         }
 
         return true;
@@ -231,12 +239,13 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
     const VALID_PREV_LAYERS = { // null means that it can be the first layer
         "dense": [null, "dense", "flatten", "dropout"],
-        "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip"],
-        "maxpool2d": ["conv2d", "maxpool2d", "rescaling"],
+        "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "resizing"],
+        "maxpool2d": ["conv2d", "maxpool2d", "rescaling", "resizing"],
         "dropout": ["dense", "dropout", "flatten"],
-        "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling"],
-        "rescaling": [null, "randomflip"],
-        "randomflip": [null, "rescaling"]
+        "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling", "resizing"],
+        "rescaling": [null, "randomflip", "resizing"],
+        "randomflip": [null, "rescaling", "resizing"],
+        "resizing": [null]
     }
 
     const WARNING_MESSAGES = {
@@ -247,6 +256,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         "flatten": "Invalid previous layer.",
         "rescaling": "Must be the first layer or follow another preprocessing layer.",
         "randomflip": "Must be the first layer or follow another preprocessing layer.",
+        "resizing": "Must be the first layer."
     }
 
     function getErrorMessage() {
@@ -527,6 +537,35 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             </select>}
                             {isPublic && <div title={mode} className="layer-element-input layer-element-mode-input">{mode}</div>}
                         </div> 
+                    </form>}
+
+                    {type == "resizing" && <form className="layer-element-inner">
+                        <h1 className="layer-element-title">
+                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
+                            <span className="layer-element-title-text">Resizing</span>
+                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
+                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                                deleteLayer(layer.id)
+                            }}/>}
+                        </h1>
+    
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-green"></span>
+                            <label className="layer-element-label" htmlFor={"resizingX" + layer.id}>Input width</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"resizingX" + layer.id} value={inputX} onChange={(e) => {
+                                setInputX(e.target.value)
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{inputX}</div>}
+                        </div>
+    
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-green"></span>
+                            <label className="layer-element-label" htmlFor={"resizingY" + layer.id}>Input height</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"resizingY" + layer.id} value={inputY} onChange={(e) => {
+                                setInputY(e.target.value)
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{inputY}</div>}
+                        </div>
                     </form>}
     
                     {!isPublic && <button type="button" 

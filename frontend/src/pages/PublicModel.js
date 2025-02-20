@@ -76,7 +76,8 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
         "flatten": "pink",
         "dropout": "blue",
         "rescaling": "darkblue",
-        "randomflip": "cyan"
+        "randomflip": "cyan",
+        "resizing": "green"
     }
 
     useEffect(() => {
@@ -175,6 +176,8 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
             return "Rescale (" + layer.scale + ", " + layer.offset + ")"
         } else if (type == "randomflip") {
             return "RandomFlip (" + layer.mode + ")"
+        } else if (type == "resizing") {
+            return "Resizing (" + layer.input_x + ", " + layer.input_y + ")"
         }
     }
 
