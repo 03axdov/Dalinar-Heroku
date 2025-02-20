@@ -1,6 +1,7 @@
 TO-DO:
 - Python security measures for dataset_types
 - Possibly issue with download code for text datasets
+- Show labels and number of elements for uploaded datasets.
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

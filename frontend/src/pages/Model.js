@@ -622,7 +622,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                         layer={layer} 
                                         hoveredLayer={hoveredLayer} 
                                         deleteLayer={deleteLayer}
-                                        getModel={getModel}
+                                        layers={layers}
+                                        setLayers={setLayers}
                                         notification={notification}
                                         prevLayer={(idx > 0 ? layers[idx - 1] : null)}
                                         setWarnings={setWarnings}

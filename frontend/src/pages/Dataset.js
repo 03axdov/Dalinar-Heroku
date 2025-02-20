@@ -1813,7 +1813,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             Will download the dataset as a .csv file, with labels in the first column and text in the second.
                         </p>
 
-                        <img className="download-element-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} />
+                        <img className="download-element-image" src={BACKEND_URL + "/static/images/csv.jpg"} />
 
 
                     </div>}

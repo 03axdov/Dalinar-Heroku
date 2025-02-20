@@ -445,6 +445,12 @@ div.layer-element-input {
     font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
 }
 
+div.layer-element-mode-input {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
 .create-layer-dimensions {
     display: flex;
     flex-direction: row;

@@ -1346,7 +1346,7 @@ class EditLayer(APIView):
                     layer.activation_function = request.data["activation_function"]
                     layer.save()
                 
-                    return Response(None, status=status.HTTP_200_OK)
+                    return Response(LayerSerializer(layer).data, status=status.HTTP_200_OK)
                 
                 else:
                     return Response({'Unauthorized': 'You can only edit layers belonging to your own models.'}, status=status.HTTP_401_UNAUTHORIZED)

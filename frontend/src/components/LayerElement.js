@@ -3,7 +3,7 @@ import {useNavigate} from "react-router-dom"
 import axios from "axios"
 
 function LayerElement({layer, hoveredLayer, deleteLayer, 
-                        BACKEND_URL, getModel, notification, 
+                        BACKEND_URL, setLayers, layers, notification, 
                         prevLayer, setWarnings, provided, 
                         updateWarnings, idx, onMouseEnter, 
                         onMouseLeave, isPublic=false}) {
@@ -26,6 +26,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
     const [updated, setUpdated] = useState(false)
     const [revertChanges, setRevertChanges] = useState(false)
+
+    const [savingChanges, setSavingChanges] = useState(false)
 
     const [errorMessage, setErrorMessage] = useState("")
 
@@ -202,19 +204,30 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         const URL = window.location.origin + '/api/edit-layer/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
+        if (savingChanges) {return}
+        setSavingChanges(true)
 
         axios.post(URL, data, config)
-        .then((data) => {
-            notification("Successfully updated layer.", "success")
+        .then((res) => {
             
-            getModel()
+            
+            let temp = [...layers]
+            for (let i=0; i < temp.length; i++) {
+                if (temp[i].id == layer.id) {
+                    temp[i] = res.data
+                }
+            }
+            setLayers(temp)
+
+            notification("Successfully updated layer.", "success")
             setUpdated(false)
 
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
+        }).finally(() => {
+            setSavingChanges(false)
         })
     }
-
 
     const VALID_PREV_LAYERS = { // null means that it can be the first layer
         "dense": [null, "dense", "flatten", "dropout"],
@@ -512,7 +525,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                                     <option value="horizontal">horizontal</option>
                                     <option value="vertical">vertical</option>
                             </select>}
-                            {isPublic && <div className="layer-element-input layer-element-activation-input">{mode}</div>}
+                            {isPublic && <div title={mode} className="layer-element-input layer-element-mode-input">{mode}</div>}
                         </div> 
                     </form>}
     
@@ -520,7 +533,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         className={"layer-element-save " + (!updated ? "layer-element-save-disabled" : "")}
                         title={(updated ? "Save changes" : "No changes")}
                         onClick={updateLayer}>
-                        Save changes
+                        {savingChanges && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                        {(!savingChanges ? "Save changes" : "Updating...")}
                     </button>}
                     {!isPublic && <button type="button" 
                         className="layer-element-revert"

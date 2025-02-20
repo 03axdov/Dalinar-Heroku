@@ -394,7 +394,8 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                                         layer={layer} 
                                         hoveredLayer={hoveredLayer} 
                                         deleteLayer={() => {}}
-                                        getModel={getModel}
+                                        layers={layers}
+                                        setLayers={setLayers}
                                         notification={notification}
                                         prevLayer={(idx > 0 ? layers[idx - 1] : null)}
                                         setWarnings={setWarnings}
