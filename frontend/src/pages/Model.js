@@ -160,7 +160,13 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             getModel()
 
         }).catch((error) => {
-            notification("Error: " + error, "failure")
+            console.log(error)
+            if (error.status == 400) {
+                notification(error.response.data["Bad request"], "failure")
+            } else {
+                notification("Error: " + error, "failure")
+            }
+
             
         }).finally(() => {
             setProcessingBuildModel(false)

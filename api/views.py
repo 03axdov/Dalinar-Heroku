@@ -1148,7 +1148,7 @@ def get_tf_layer(layer):    # From a Layer instance
         return layers.Dropout(rate=layer.rate)
     elif layer_type == "rescaling":
         if layer.input_x:   # Dimensions specified
-            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset, input_shape=(layer.input_x, layer.input_y))
+            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset, input_shape=(layer.input_x, layer.input_y, layer.input_z))
         else:
             return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset)
     elif layer_type == "randomflip":
@@ -1207,7 +1207,7 @@ class BuildModel(APIView):
                 
                     except ValueError as e: # In case of invalid layer combination
                         print("Error: ", e)
-                        return Response({"Bad request": "Invalid layer combination detected."}, status=status.HTTP_400_BAD_REQUEST)
+                        return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     return Response({"Unauthorized": "You can only build your own models."}, status=status.HTTP_401_UNAUTHORIZED)
             except Model.DoesNotExist:

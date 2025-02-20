@@ -159,6 +159,9 @@ dataset = CustomImageDataset(file_paths, label_to_index, transform=transform)`
 
 model = tf.keras.models.load_model('` +(modelValues ? modelValues.filename : "") + (modelValues ? modelValues.format : "") + `')
 
+# In case no input dimensions were specified
+# model.build(YOUR_INPUT_SHAPE)
+
 # Get an overview of the model
 model.summary()`
 
@@ -508,9 +511,11 @@ df = pd.read_csv('[YOUR_DATASET_NAME].csv')`
                     <span className="code-line">3</span>model = tf.keras.models.load_model<span className="code-yellow">(</span>
                         <span className="code-orange">'{modelValues.filename}{modelValues.format}'</span>
                         <span className="code-yellow">)</span><br></br>
-                    <span className="code-line">4</span><br></br>
-                    <span className="code-line">5</span><span className="code-green"># Get an overview of the model</span><br></br>
-                    <span className="code-line">6</span>model.summary<span className="code-yellow">()</span>
+                    <span className="code-line">4</span><span className="code-green"># In case no input dimensions were specified</span><br></br>
+                    <span className="code-line">5</span><span className="code-green"># model.build(YOUR_INPUT_SHAPE)</span><br></br>
+                    <span className="code-line">6</span><br></br>
+                    <span className="code-line">7</span><span className="code-green"># Get an overview of the model</span><br></br>
+                    <span className="code-line">8</span>model.summary<span className="code-yellow">()</span>
                 </div>
             </div>   
         )

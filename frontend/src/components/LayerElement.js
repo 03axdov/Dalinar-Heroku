@@ -231,7 +231,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
     const VALID_PREV_LAYERS = { // null means that it can be the first layer
         "dense": [null, "dense", "flatten", "dropout"],
-        "conv2d": [null, "conv2d", "maxpool2d", "rescaling"],
+        "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip"],
         "maxpool2d": ["conv2d", "maxpool2d", "rescaling"],
         "dropout": ["dense", "dropout", "flatten"],
         "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling"],
@@ -240,10 +240,10 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     }
 
     const WARNING_MESSAGES = {
-        "dense": "A Dense layer must be the first one, else follow another Dense layer, a Flatten layer, a Rescale layer, or a Dropout layer.",
-        "conv2d": "A Conv2D layer must be the first one, else follow another Conv2d layer or a MaxPool2DLayer.",
-        "maxpool2d": "A MaxPool2D layer must follow a Conv2d layer, a Rescaling layer, or another MaxPool2D layer.",
-        "dropout": "A Dropout layer must follow a Dense layer, a Flatten layer, or another Dropout layer.",
+        "dense": "A Dense layer must be the first one, else follow one of the following layers: [" + VALID_PREV_LAYERS["dense"].slice(1).join(", ") + "].",
+        "conv2d": "A Conv2D layer must be the first one, else follow one of the following layers: [" + VALID_PREV_LAYERS["conv2d"].slice(1).join(", ") + "].",
+        "maxpool2d": "A MaxPool2D layer must follow one of the following layers: [" + VALID_PREV_LAYERS["maxpool2d"].slice(1).join(", ") + "].",
+        "dropout": "A Dropout layer must follow one of the following layers: [" + VALID_PREV_LAYERS["dropout"].slice(1).join(", ") + "].",
         "flatten": "Invalid previous layer.",
         "rescaling": "Must be the first layer or follow another preprocessing layer.",
         "randomflip": "Must be the first layer or follow another preprocessing layer.",

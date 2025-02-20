@@ -85,7 +85,7 @@ export default function App() {
         }
     }
 
-    function notification(message, type, delay=3000) {
+    function notification(message, type, delay=5000) {
         if (notificationTimeoutRef.current) {
             clearTimeout(notificationTimeoutRef.current);
         }
