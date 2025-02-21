@@ -7,6 +7,7 @@ import CreateLayerPopup from "../popups/CreateLayerPopup";
 import LayerElement from "../components/LayerElement";
 import BuildModelPopup from "../popups/BuildModelPopup";
 import ModelDownloadPopup from "../popups/ModelDownloadPopup";
+import TrainModelPopup from "../popups/TrainModelPopup"
 
 
 // The default page. Login not required.
@@ -21,6 +22,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
     const [showBuildModelPopup, setShowBuildModelPopup] = useState(false)
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
+    const [showTrainModelPopup, setShowTrainModelPopup] = useState(false)
 
     const [downloading, setDownloading] = useState(false)
     const [isDownloaded, setIsDownloaded] = useState(false)
@@ -417,6 +419,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
+            {showTrainModelPopup && <TrainModelPopup setShowTrainModelPopup={setShowTrainModelPopup} BACKEND_URL={BACKEND_URL}>
+                
+            </TrainModelPopup>}
+
             {showDownloadPopup && <ModelDownloadPopup setShowDownloadPopup={setShowDownloadPopup} 
                 model={model}
                 downloadModel={downloadModel}
@@ -535,11 +541,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         </button>}
 
                         {model && <button type="button" 
-                        title={false ? "Train model" : "Work in progress."}
-                        className={"model-train-button " + (false ? "" : "model-button-disabled")}
+                        title={model.model_file ? "Train model" : "Work in progress."}
+                        className={"model-train-button " + (model.model_file ? "" : "model-button-disabled")}
                         onClick={() => {
                             if (model.model_file) {
-
+                              setShowTrainModelPopup(true)  
                             }
                         }}>
                             <img className="model-download-icon" src={BACKEND_URL + "/static/images/lightbulb.svg"} />

@@ -255,7 +255,7 @@
         padding: 50px 40px;
         width: 100%;
         box-sizing: border-box;
-        border-right: 1px solid var(--border);
+        border: none;
     }
     
     .landing-header-right {
@@ -265,5 +265,9 @@
         justify-content: center;
         overflow: hidden;
         padding: 0;
+    }
+    
+    .landing-header, .landing-datasets, .landing-models {
+        height: auto;
     }
 }

@@ -372,6 +372,19 @@ input {
     z-index: 2;
 }
 
+.small-screen {
+    height: 100%;
+    width: 100%;
+    z-index: 2;
+    background: var(--background);
+    padding: 20px;
+    box-sizing: border-box;
+    display: none;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
 @media all and (max-width: 975px) {
     button {
         font-size: 1rem;
@@ -380,5 +393,15 @@ input {
     .sidebar-button {
         padding: 5px 7px;
         border-radius: 3px;
+    }
+}
+
+@media all and (max-width: 700px) {
+    .small-screen {
+        display: flex;
+    }
+
+    #toolbar {
+        display: none;
     }
 }
