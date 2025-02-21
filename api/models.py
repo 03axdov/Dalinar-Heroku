@@ -238,6 +238,10 @@ class AbstractLayer(models.Model):
     ]
     activation_function = models.CharField(max_length=100, choices=ACTIVATION_CHOICES, default="", blank=True)
     
+    input_x = models.PositiveIntegerField(null=True)
+    input_y = models.PositiveIntegerField(null=True)
+    input_z = models.PositiveIntegerField(null=True)
+    
     class Meta:
         abstract = True  # Marks this model as abstract  
         
@@ -250,7 +254,6 @@ class Layer(PolymorphicModel, AbstractLayer):
         
 class DenseLayer(Layer):
     nodes_count = models.PositiveIntegerField(default=1)
-    input_x = models.PositiveIntegerField(null=True)
     
     def __str__(self):
         res = f"Dense ({self.nodes_count})"
@@ -261,10 +264,6 @@ class DenseLayer(Layer):
 class Conv2DLayer(Layer):
     filters = models.PositiveIntegerField(default=1)
     kernel_size = models.PositiveIntegerField(default=3)
-    
-    input_x = models.PositiveIntegerField(null=True)
-    input_y = models.PositiveIntegerField(null=True)
-    input_z = models.PositiveIntegerField(null=True)
     
     def __str__(self):
         res = f"Conv2D ({self.filters}, {self.kernel_size})"
@@ -282,9 +281,6 @@ class MaxPool2DLayer(Layer):
     
     
 class FlattenLayer(Layer):
-    input_x = models.PositiveIntegerField(null=True)
-    input_y = models.PositiveIntegerField(null=True)
-    
     def __str__(self):
         res = "Flatten"
         if self.input_x:
@@ -309,10 +305,6 @@ class DropoutLayer(Layer):
 class RescalingLayer(Layer):
     scale = models.CharField(max_length=100)
     offset = models.FloatField()
-    
-    input_x = models.PositiveIntegerField(null=True)
-    input_y = models.PositiveIntegerField(null=True)
-    input_z = models.PositiveIntegerField(null=True)
     
     def __str__(self):
         res = f"Rescaling ({self.scale}, {self.offset})"
@@ -350,10 +342,10 @@ class RandomFlipLayer(Layer):
     
     
 class ResizingLayer(Layer):
-    input_x = models.PositiveIntegerField()
-    input_y = models.PositiveIntegerField()
+    output_x = models.PositiveIntegerField()
+    output_y = models.PositiveIntegerField()
     
     def __str__(self):
-        res = f"Resizing ({input_x}, {input_y})"
+        res = f"Resizing ({self.output_x}, {self.output_y})"
         if self.model: res += " - " + self.model.name
         return res

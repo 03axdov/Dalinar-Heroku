@@ -15,12 +15,14 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     const [kernelSize, setKernelSize] = useState(layer.kernel_size) // USed by ["conv2d"]
     const [inputX, setInputX] = useState(layer.input_x || "") // Used by ["dense", "conv2d", "flatten", "rescaling", "resizing"]
     const [inputY, setInputY] = useState(layer.input_y || "") // Used by ["conv2d", "flatten", "rescaling", "resizing"]
-    const [inputZ, setInputZ] = useState(layer.input_z || "") // Used by ["conv2d"]
+    const [inputZ, setInputZ] = useState(layer.input_z || "") // Used by ["conv2d", "resizing"]
     const [poolSize, setPoolSize] = useState(layer.pool_size)
     const [rate, setRate] = useState(layer.rate)   // Used by ["dropout"]
     const [scale, setScale] = useState(layer.scale) // Used by ["rescaling"]
     const [offset, setOffset] = useState(layer.offset)  // Used by ["rescaling"]
     const [mode, setMode] = useState(layer.mode)    // Used by ["randomflip"]
+    const [outputX, setOutputX] = useState(layer.output_x)  // Used by ["resizing"]
+    const [outputY, setOutputY] = useState(layer.output_y)  // Used by ["resizing"]
 
     const [activation, setActivation] = useState(layer.activation_function) // Used by ["dense", "conv2d"]
 
@@ -45,6 +47,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         setScale(layer.scale)
         setOffset(layer.offset)
         setMode(layer.mode)
+        setOutputX(layer.output_x)
+        setOutputY(layer.output_y)
 
         setActivation(layer.activation_function)
 
@@ -119,6 +123,10 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         else if (type == "resizing") {
             if (dimensions_updated(false)) {
                 setUpdated(true)
+            } else if (outputX != layer.output_x) {
+                setUpdated(true)
+            } else if (outputY != layer.output_y) {
+                setUpdated(true)
             }
         }
 
@@ -129,7 +137,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             }
         }
 
-    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, poolSize, rate, scale, offset, mode])   // All layer states
+    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, poolSize, rate, scale, offset, mode, outputX, outputY])   // All layer states
 
 
     function checkInputDimensions(include_z) {  // Adds dimensions, returns true if valid else false
@@ -149,7 +157,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         }
         if (include_z) {
             if (inputZ && inputZ <= 0) {
-                notification("Input depth must be positive and no more than 32.", "failure")
+                notification("Input depth must be positive.", "failure")
                 return false;
             }
         }
@@ -183,7 +191,13 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             }
         }
         if (type == "resizing") {
-            return checkInputDimensions(false)
+            if (!checkInputDimensions(true)) {
+                return false
+            }
+            if (outputX <= 0 || outputY <= 0) {
+                notification("Output dimensions must be positive.", "failure")
+                return
+            }
         }
 
         return true;
@@ -209,6 +223,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             "scale": scale,
             "offset": offset,
             "mode": mode,
+            "output_x": outputX,
+            "output_y": outputY,
 
             "activation_function": activation
         }
@@ -279,6 +295,69 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             setErrorMessage(WARNING_MESSAGES[type])
         }
 
+        if (!prevLayer && (!layer.input_x && !layer.input_y && !layer.input_z)) {
+            setErrorMessage("Input dimensions must be specified on the first layer.")
+        }
+
+    }
+
+    function dimensionsX(isFlatten=false) {
+        if (!isPublic || inputX) {
+            return (<div className="layer-element-stat">
+                <span className={"layer-element-stat-color layer-element-stat-" + (!isFlatten ? "gray2" : "pink")}></span>
+                <label className="layer-element-label" htmlFor={"dimensionX" + layer.id}>Input width</label>
+                {!isPublic && <input type="number" className="layer-element-input" id={"dimensionX" + layer.id} value={inputX} onChange={(e) => {
+                    setInputX(e.target.value)
+                }}></input>}
+                {isPublic && <div className="layer-element-input">{inputX}</div>}
+            </div>)
+        } else {
+            if (isFlatten) {
+                return (<div className="layer-element-stat">
+                    <span className="layer-element-stat-color layer-element-stat-pink"></span>
+                    <label className="layer-element-label">Input width</label>
+                    <div className="layer-element-input">-</div>
+                </div>)
+            }
+            return null
+        }
+    }
+
+    function dimensionsY(isFlatten=false) {
+        if (!isPublic || inputY) {
+            return (<div className="layer-element-stat">
+                <span className={"layer-element-stat-color layer-element-stat-" + (!isFlatten ? "gray2" : "pink")}></span>
+                <label className="layer-element-label" htmlFor={"dimensionY" + layer.id}>Input height</label>
+                {!isPublic && <input type="number" className="layer-element-input" id={"dimensionY" + layer.id} value={inputY} onChange={(e) => {
+                    setInputY(e.target.value)
+                }}></input>}
+                {isPublic && <div className="layer-element-input">{inputY}</div>}
+            </div>)
+        } else {
+            if (isFlatten) {
+                return (<div className="layer-element-stat">
+                    <span className="layer-element-stat-color layer-element-stat-pink"></span>
+                    <label className="layer-element-label">Input height</label>
+                    <div className="layer-element-input">-</div>
+                </div>)
+            }
+            return null
+        }
+    }
+
+    function dimensionsZ() {
+        if (!isPublic || inputZ) {
+            return (<div className="layer-element-stat">
+                <span className="layer-element-stat-color layer-element-stat-gray2"></span>
+                <label className="layer-element-label" htmlFor={"dimensionZ" + layer.id}>Input depth</label>
+                {!isPublic && <input type="number" className="layer-element-input" id={"dimensionZ" + layer.id} value={inputZ} onChange={(e) => {
+                    setInputZ(e.target.value)
+                }}></input>}
+                {isPublic && <div className="layer-element-input">{inputZ}</div>}
+            </div>)
+        } else {
+            return null
+        }
     }
 
     
@@ -366,32 +445,11 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             {isPublic && <div className="layer-element-input">{kernelSize}</div>}
                         </div>
 
-                        {(!isPublic || inputX) && <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-gray2"></span>
-                            <label className="layer-element-label" htmlFor={"flattenX" + layer.id}>Input width</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenX" + layer.id} value={inputX} onChange={(e) => {
-                                setInputX(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{inputX}</div>}
-                        </div>}
+                        {dimensionsX()}
     
-                        {(!isPublic || inputY) && <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-gray2"></span>
-                            <label className="layer-element-label" htmlFor={"flattenY" + layer.id}>Input height</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenY" + layer.id} value={inputY} onChange={(e) => {
-                                setInputY(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{inputY}</div>}
-                        </div>}
+                        {dimensionsY()}
 
-                        {(!isPublic || inputZ) && <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-gray2"></span>
-                            <label className="layer-element-label" htmlFor={"flattenZ" + layer.id}>Input depth</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenZ" + layer.id} value={inputZ} onChange={(e) => {
-                                setInputZ(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{inputZ}</div>}
-                        </div>}
+                        {dimensionsZ()}
     
                         <div className="layer-element-stat layer-element-activation">
                         <span className="layer-element-stat-color layer-element-stat-gray"></span>
@@ -436,23 +494,10 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             }}/>}
                         </h1>
     
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-pink"></span>
-                            <label className="layer-element-label" htmlFor={"flattenX" + layer.id}>Input width</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenX" + layer.id} value={inputX} onChange={(e) => {
-                                setInputX(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{inputX || "-"}</div>}
-                        </div>
+                        {dimensionsX(true)}
     
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-pink"></span>
-                            <label className="layer-element-label" htmlFor={"flattenY" + layer.id}>Input height</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenY" + layer.id} value={inputY} onChange={(e) => {
-                                setInputY(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{inputY || "-"}</div>}
-                        </div>
+                        {dimensionsY(true)}
+
                     </form>}
     
                     {type == "dropout" && <form className="layer-element-inner">
@@ -504,32 +549,11 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             {isPublic && <div className="layer-element-input">{offset}</div>}
                         </div>
 
-                        {(!isPublic || inputX) && <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-gray2"></span>
-                            <label className="layer-element-label" htmlFor={"flattenX" + layer.id}>Input width</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenX" + layer.id} value={inputX} onChange={(e) => {
-                                setInputX(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{inputX}</div>}
-                        </div>}
+                        {dimensionsX()}
     
-                        {(!isPublic || inputY) && <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-gray2"></span>
-                            <label className="layer-element-label" htmlFor={"flattenY" + layer.id}>Input height</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenY" + layer.id} value={inputY} onChange={(e) => {
-                                setInputY(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{inputY}</div>}
-                        </div>}
+                        {dimensionsY()}
 
-                        {(!isPublic || inputZ) && <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-gray2"></span>
-                            <label className="layer-element-label" htmlFor={"flattenZ" + layer.id}>Input depth</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"flattenZ" + layer.id} value={inputZ} onChange={(e) => {
-                                setInputZ(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{inputZ}</div>}
-                        </div>}
+                        {dimensionsZ()}
     
                     </form>}
 
@@ -554,6 +578,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             </select>}
                             {isPublic && <div title={mode} className="layer-element-input layer-element-mode-input">{mode}</div>}
                         </div> 
+
+                        {dimensionsX()}
+    
+                        {dimensionsY()}
+
+                        {dimensionsZ()}
                     </form>}
 
                     {type == "resizing" && <form className="layer-element-inner">
@@ -565,24 +595,30 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                                 deleteLayer(layer.id)
                             }}/>}
                         </h1>
-    
+
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-green"></span>
-                            <label className="layer-element-label" htmlFor={"resizingX" + layer.id}>Input width</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"resizingX" + layer.id} value={inputX} onChange={(e) => {
-                                setInputX(e.target.value)
+                            <label className="layer-element-label" htmlFor={"resizingOutX" + layer.id}>Output width</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"resizingOutX" + layer.id} value={outputX} onChange={(e) => {
+                                setOutputX(e.target.value)
                             }}></input>}
-                            {isPublic && <div className="layer-element-input">{inputX}</div>}
+                            {isPublic && <div className="layer-element-input">{outputX}</div>}
                         </div>
     
                         <div className="layer-element-stat">
                             <span className="layer-element-stat-color layer-element-stat-green"></span>
-                            <label className="layer-element-label" htmlFor={"resizingY" + layer.id}>Input height</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"resizingY" + layer.id} value={inputY} onChange={(e) => {
-                                setInputY(e.target.value)
+                            <label className="layer-element-label" htmlFor={"resizingOutY" + layer.id}>Output height</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"resizingOutY" + layer.id} value={outputY} onChange={(e) => {
+                                setOutputY(e.target.value)
                             }}></input>}
-                            {isPublic && <div className="layer-element-input">{inputY}</div>}
+                            {isPublic && <div className="layer-element-input">{outputY}</div>}
                         </div>
+
+                        {dimensionsX()}
+    
+                        {dimensionsY()}
+
+                        {dimensionsZ()}
                     </form>}
     
                     {!isPublic && <button type="button" 

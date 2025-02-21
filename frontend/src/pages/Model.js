@@ -148,7 +148,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         let data = {
             "id": model.id,
             "optimizer": optimizer,
-            "loss": loss
+            "loss": loss,
         }
 
         axios.defaults.withCredentials = true;

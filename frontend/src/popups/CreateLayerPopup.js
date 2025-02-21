@@ -10,12 +10,14 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
     const [nodesCount, setNodesCount] = useState(8) // Used for layers of type ["dense"]
     const [inputX, setInputX] = useState("")    // Used for layers of type ["conv2d", "flatten", "rescaling"]
     const [inputY, setInputY] = useState("")    // Used for layers of type ["conv2d", "flatten", "rescaling"]
-    const [inputZ, setInputZ] = useState("")    // Used for layers of type ["conv2d"]
+    const [inputZ, setInputZ] = useState("")    // Used for layers of type ["conv2d", "rescaling"]
     const [poolSize, setPoolSize] = useState(2) // Used for layers of type ["maxpool2d"]
     const [rate, setRate] = useState(0.2) // Used for layers of type ["dropout"]
     const [scale, setScale] = useState("1/255.0") // Used for layers of type ["rescaling"]
     const [offset, setOffset] = useState(0) // Used for layers of type ["rescaling"]
     const [mode, setMode] = useState("horizontal_and_vertical") // Used for layers of type ["randomflip"]
+    const [outputX, setOutputX] = useState(256)
+    const [outputY, setOutputY] = useState(256)
 
     const [activation, setActivation] = useState("")    // Used for layers of type ["dense", "conv2d"]
 
@@ -126,13 +128,28 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
                     }
                     else if (type == "randomflip") {
+                        if (!checkInputDimensions(data, true)) {
+                            return;
+                        }
                         data["mode"] = mode
+                        data["input_x"] = inputX
+                        data["input_y"] = inputY
+                        data["input_z"] = inputZ
+
                     } else if (type == "resizing") {
-                        if (!checkInputDimensions(data, false)) {
+                        if (!checkInputDimensions(data, true)) {
                             return;
                         }
                         data["input_x"] = inputX
                         data["input_y"] = inputY
+                        data["input_z"] = inputZ
+
+                        if (outputX <= 0 || outputY <= 0) {
+                            notification("Output dimensions must be positive.", "failure")
+                            return
+                        }
+                        data["output_x"] = outputX
+                        data["output_y"] = outputY
                     }
 
                     const NO_ACTIVATION = new Set(["flatten", "dropout", "rescaling", "randomflip", "maxpool2d", "resizing"])
@@ -317,9 +334,37 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             </select>
                         </div>
 
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label">Input dimensions <span className="create-dataset-required">(optional)</span></label>
+                            <div className="create-layer-dimensions">
+                                
+                                <input className="create-dataset-inp create-layer-dimensions-inp" type="number" placeholder="Width" value={inputX} onChange={(e) => {
+                                    setInputX(e.target.value)
+                                }} />
+                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Height" type="number" value={inputY} onChange={(e) => {
+                                    setInputY(e.target.value)
+                                }} />
+                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Depth" type="number" value={inputZ} onChange={(e) => {
+                                    setInputZ(e.target.value)
+                                }} />
+                                
+                            </div>
+                        </div>
+
                     </div>}
 
                     {type == "resizing" && <div className="create-layer-type-fields">
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label">Output dimensions</label>
+                            <div className="create-layer-dimensions">
+                                <input className="create-dataset-inp create-layer-dimensions-inp" required type="number" placeholder="Width" value={outputX} onChange={(e) => {
+                                    setOutputX(e.target.value)
+                                }} />
+                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" required placeholder="Height" type="number" value={outputY} onChange={(e) => {
+                                    setOutputY(e.target.value)
+                                }} />
+                            </div>
+                        </div>
                         <div className="create-layer-label-inp">
                             <label className="create-dataset-label">Input dimensions</label>
                             <div className="create-layer-dimensions">
@@ -328,6 +373,9 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                 }} />
                                 <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" required placeholder="Height" type="number" value={inputY} onChange={(e) => {
                                     setInputY(e.target.value)
+                                }} />
+                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" required placeholder="Depth" type="number" value={inputZ} onChange={(e) => {
+                                    setInputZ(e.target.value)
                                 }} />
                             </div>
                         </div>

@@ -55,7 +55,7 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
                         <button type="button" className="create-layer-popup-cancel" onClick={() => setShowBuildModelPopup(false)}>Cancel</button>
                         <button type="submit" className="create-layer-popup-submit">
                             {processingBuildModel && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
-                            {(!processingBuildModel ? "Build model" : "Processing...")}
+                            {(!processingBuildModel ? "Build model" : "Building...")}
                         </button>
                     </div>
                 </form>

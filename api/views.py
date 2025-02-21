@@ -85,8 +85,14 @@ def createSmallImage(instance, target_width=230, target_height=190):
     
 def parse_dimensions(data): # Empty values given as blank strings, must be set to None
     if "input_x" in data.keys() and not data["input_x"]: data["input_x"] = None
+    elif "input_x" in data.keys():
+        data["input_x"] = int(data["input_x"])
     if "input_y" in data.keys() and not data["input_y"]: data["input_y"] = None
+    elif "input_y" in data.keys():
+        data["input_y"] = int(data["input_y"])
     if "input_z" in data.keys() and not data["input_z"]: data["input_z"] = None
+    elif "input_z" in data.keys():
+        data["input_z"] = int(data["input_z"])
 
 
 import random
@@ -1131,30 +1137,39 @@ def get_tf_layer(layer):    # From a Layer instance
     activation = layer.activation_function or None
     
     if layer_type == "dense":
-        return layers.Dense(layer.nodes_count, activation=activation)
+        if layer.input_x:
+            return layers.Dense(layer.nodes_count, activation=activation, input_shape=(layer.input_x,))
+        else:
+            return layers.Dense(layer.nodes_count, activation=activation)
     elif layer_type == "conv2d":
-        if layer.input_x:   # Dimensions specified
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
             return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation, input_shape=(layer.input_x, layer.input_y, layer.input_z))
         else:
             return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation)
     elif layer_type == "maxpool2d":
         return layers.MaxPool2D(pool_size=layer.pool_size)
     elif layer_type == "flatten":
-        if layer.input_x:   # Dimensions specified
+        if layer.input_x or layer.input_y:   # Dimensions specified
             return layers.Flatten(input_shape=(layer.input_x, layer.input_y))
         else:
             return layers.Flatten()
     elif layer_type == "dropout":
         return layers.Dropout(rate=layer.rate)
     elif layer_type == "rescaling":
-        if layer.input_x:   # Dimensions specified
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
             return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset, input_shape=(layer.input_x, layer.input_y, layer.input_z))
         else:
             return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset)
     elif layer_type == "randomflip":
-        return layers.RandomFlip(mode=layer.mode)
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
+            return layers.RandomFlip(mode=layer.mode, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+        else:
+            return layers.RandomFlip(mode=layer.mode)
     elif layer_type == "resizing":
-        return layers.Resizing(layer.input_y, layer.input_x)
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
+            return layers.Resizing(layer.output_y, layer.output_x, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+        else:
+            return layers.Resizing(layer.output_y, layer.output_x)
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         raise Exception("Invalid layer: " + layer_type)
@@ -1183,7 +1198,7 @@ class BuildModel(APIView):
                         
                         for layer in instance.layers.all():
                             model.add(get_tf_layer(layer))
-                            
+
                         model.compile(optimizer=optimizer, loss=loss_function, metrics=['accuracy'])
                         
                         # Create a temporary file
@@ -1191,8 +1206,11 @@ class BuildModel(APIView):
                             temp_path = temp_file.name  # Get temp file path
 
                         # Save the model to the temp file
+                        print("E")
+                        print(temp_path)
                         model.save(temp_path)
                         
+                        print("F")
                         # Open the file and save it to Django's FileField
                         with open(temp_path, 'rb') as model_file:
                             instance.model_file.save(instance.name + ".keras", File(model_file))
@@ -1236,20 +1254,18 @@ class CreateLayer(APIView):
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
         serializer = None
+        parse_dimensions(request.data)
         if layer_type == "dense":
             serializer = CreateDenseLayerSerializer(data=data)
         elif layer_type == "conv2d":
-            parse_dimensions(request.data)         
             serializer = CreateConv2DLayerSerializer(data=data)
         elif layer_type == "maxpool2d":
             serializer = CreateMaxPool2DLayerSerializer(data=data)
         elif layer_type == "flatten":
-            parse_dimensions(request.data)
             serializer = CreateFlattenLayerSerializer(data=data)
         elif layer_type == "dropout":
             serializer = CreateDropoutLayerSerializer(data=data)
         elif layer_type == "rescaling":
-            parse_dimensions(request.data)
             serializer = CreateRescalingLayerSerializer(data=data)
         elif layer_type == "randomflip":
             serializer = CreateRandomFlipLayerSerializer(data=data)
@@ -1321,9 +1337,8 @@ class EditLayer(APIView):
                 
                 if layer.model.owner == user.profile:
                     layer_type = request.data["type"]
-                    
-                    if layer_type != "resizing":    # No parse dimensions as these are required for this layer
-                        parse_dimensions(request.data)
+
+                    parse_dimensions(request.data)
                     
                     if layer_type == "dense":
                         layer.nodes_count = request.data["nodes_count"]
@@ -1352,6 +1367,10 @@ class EditLayer(APIView):
                     elif layer_type == "resizing":
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]
+                        layer.input_z = request.data["input_z"]
+                        
+                        layer.output_x = request.data["output_x"]
+                        layer.output_y = request.data["output_y"]
                         
                     layer.activation_function = request.data["activation_function"]
                     layer.save()

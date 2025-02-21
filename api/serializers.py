@@ -189,7 +189,7 @@ class RandomFlipLayerSerializer(serializers.ModelSerializer):
 class CreateRandomFlipLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = RandomFlipLayer
-        fields = ["mode"]       
+        fields = ["mode", "input_x", "input_y", "input_z"]       
 
 
 class ResizingLayerSerializer(serializers.ModelSerializer):
@@ -199,7 +199,7 @@ class ResizingLayerSerializer(serializers.ModelSerializer):
 class CreateResizingLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResizingLayer
-        fields = ["input_x", "input_y"]      
+        fields = ["input_x", "input_y", "input_z", "output_x", "output_y"]      
 
         
 # MODEL HANDLING
