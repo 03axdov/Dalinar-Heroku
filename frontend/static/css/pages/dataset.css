@@ -1070,9 +1070,11 @@ canvas {
 .resize-apply {
     background: var(--sidebar-button);
     height: 35px;
+    width: 75px;
     display: flex;
     align-items: center;
     justify-content: center;
+    display: flex;
     margin-left: 10px;
 }
 

@@ -383,7 +383,7 @@ function CreateDataset({notification, BACKEND_URL}) {
                     }}/>
                     <span className="create-dataset-image-dimensions-right">)</span>
                 </div>}
-                {datasetType == "image" && <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images can also be manually resized.
+                {datasetType == "image" && <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images cannot be manually resized in this case.
                     Note that images with dimensions larger than 1024px will be resized so their largest dimension is at most 1024px regardless.
                 </p>}
 

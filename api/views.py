@@ -334,6 +334,11 @@ class EditDataset(APIView):
                     else: dataset.imageWidth = None
                     if imageHeight:
                         dataset.imageHeight = int(imageHeight)
+                        
+                    if imageWidth and imageHeight:
+                        for element in dataset.elements.all():
+                            resize_element_image(element, int(imageHeight), int(imageWidth))
+                        
                     else: dataset.imageHeight = None
                         
                     dataset.save()

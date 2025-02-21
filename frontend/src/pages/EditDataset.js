@@ -223,7 +223,10 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                     }}/>
                     <span className="create-dataset-image-dimensions-right">)</span>
                 </div>}
-                {datasetType == "image" && <p className="create-dataset-description">If specified, images uploaded to this dataset will be resized. Images can also be manually resized. Note that current images will remain unchanged.</p>}
+                {datasetType == "image" && <p className="create-dataset-description">
+                    If specified, images uploaded to this dataset will be resized. 
+                    Images can also be manually resized. Note that current images will be resized.
+                    </p>}
 
                 {datasetType == "image" && <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type edit-dataset-deactivated">Type of data <span className="create-dataset-required">(unchangeable)</span></p>

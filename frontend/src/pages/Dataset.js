@@ -37,6 +37,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [loadingLabelDelete, setLoadingLabelDelete] = useState(false)
     const [loadingElementEdit, setLoadingElementEdit] = useState(false)
     const [loadingElementDelete, setLoadingElementDelete] = useState(false)
+    const [loadingResizeImage, setLoadingResizeImage] = useState(false)
 
     const [elementLabelTop, setElementLabelTop] = useState(0)
     const [editExpandedTop, setEditExpandedTop] = useState(0)
@@ -1038,7 +1039,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         const URL = window.location.origin + '/api/resize-element-image/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
+        if (loading || loadingResizeImage) {return}
+
         setLoading(true)
+        setLoadingResizeImage(true)
         axios.post(URL, data, config)
         .then((res) => {
 
@@ -1052,6 +1056,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         }).finally(() => {
             setLoading(false)
+            setLoadingResizeImage(false)
         })
     }
 
@@ -2100,20 +2105,31 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
                         {elements && elements[elementsIndex] && dataset && dataset.dataset_type.toLowerCase() == "image" && <form className="resize-form" onSubmit={(e) => {
                             e.preventDefault()
-                            resizeElementImage()
+                            if (!dataset.imageHeight && !dataset.imageWidth) {
+                                resizeElementImage()
+                            }
                         }}>
                             
                             <label htmlFor="resize-width" className="resize-label">Width</label>
-                            <input type="number" id="resize-width" className="resize-inp" value={currentImageWidth} min="0" max="1024" onChange={(e) => {
+                            {(!dataset.imageWidth && !dataset.imageHeight) && <input type="number" id="resize-width" className="resize-inp" value={currentImageWidth} min="0" max="1024" onChange={(e) => {
                                 setCurrentImageWidth(Math.min(1024, Math.max(0, e.target.value)))
-                            }}/>
+                            }}/>}
+                            {(dataset.imageWidth && dataset.imageHeight && <div className="resize-inp">
+                                {dataset.imageWidth}
+                            </div>)}
 
                             <label htmlFor="resize-height" className="resize-label resize-label-margin">Height</label>
-                            <input type="number" id="resize-height" className="resize-inp" value={currentImageHeight} min="0" max="1024" onChange={(e) => {
+                            {(!dataset.imageWidth && !dataset.imageHeight) && <input type="number" id="resize-height" className="resize-inp" value={currentImageHeight} min="0" max="1024" onChange={(e) => {
                                 setCurrentImageHeight(Math.min(1024, Math.max(0, e.target.value)))
-                            }}/>
+                            }}/>}
+                            {(dataset.imageWidth && dataset.imageHeight && <div className="resize-inp">
+                                {dataset.imageHeight}
+                            </div>)}
 
-                            <button type="submit" className="resize-apply">Apply</button>
+                            {(!dataset.imageHeight && !dataset.imageWidth) && <button type="submit" className="resize-apply">
+                                {loadingResizeImage && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                                {(!loadingResizeImage ? "Apply" : "")}
+                            </button>}
                         </form>}
                         
                         {dataset && dataset.datatype == "classification" && <div title="Will show color of pressed label" 
