@@ -267,6 +267,10 @@ function CreateDataset({notification, BACKEND_URL}) {
         setUploadingPercentage(0)
         setUploadingDatasetCsv(true)
         for (let i = 1; i < rows.length; i++) {
+            if (!rows[i][0] || !rows[i][1]) {
+                setUploadingPercentage(100 * (i+1.0) / rows.length)
+                continue
+            }
             let label = rows[i][0]
             let text = rows[i][1].replaceAll('""', '"')
             let file = new File([text], `text_${i}.txt`, { type: "text/plain" });
@@ -397,6 +401,9 @@ function CreateDataset({notification, BACKEND_URL}) {
                     }} />
                     <label htmlFor="create-dataset-type-area" className={"create-dataset-type-label " + (datasetType == "text" ? "dataset-type-disabled": "")}>Area <span className="create-dataset-required">(images only)</span></label>
                 </div>
+                <p className="create-dataset-description">
+                    {type == "classification" ? "Each element will be assigned one label." : "Each element can have multiple areas, each of which is assigned one label and consists of an arbitrary number of points."}
+                </p>
 
                 <div className="create-dataset-label-inp create-dataset-label-inp-description">
                     <label className="create-dataset-label" htmlFor="dataset-description">Description</label>
@@ -568,7 +575,14 @@ function CreateDataset({notification, BACKEND_URL}) {
                                 <div className="uploaded-datasets-label" title={label}>{label}</div>
                                 <div className="uploaded-datasets-elements">
                                     {uploadedDatasets[label].map((element, idx) => (
-                                        <div key={idx} className="uploaded-datasets-element">{element.name}</div>
+                                        <div key={idx} className="uploaded-datasets-element">
+                                            {element.name}
+                                            <img className="uploaded-datasets-element-cross" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                                                let tempDatasets = {...uploadedDatasets}
+                                                tempDatasets[label] = tempDatasets[label].filter((el) => {return el.webkitRelativePath != element.webkitRelativePath})
+                                                setUploadedDatasets(tempDatasets)
+                                            }}/>
+                                        </div>
                                     ))}
                                 </div>
                             </div>

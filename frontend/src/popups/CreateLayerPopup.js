@@ -321,7 +321,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
                     {type == "resizing" && <div className="create-layer-type-fields">
                         <div className="create-layer-label-inp">
-                            <label className="create-dataset-label">Input dimensions <span className="create-dataset-required">(optional)</span></label>
+                            <label className="create-dataset-label">Input dimensions</label>
                             <div className="create-layer-dimensions">
                                 <input className="create-dataset-inp create-layer-dimensions-inp" required type="number" placeholder="Width" value={inputX} onChange={(e) => {
                                     setInputX(e.target.value)

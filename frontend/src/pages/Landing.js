@@ -41,6 +41,17 @@ function Landing({BACKEND_URL}) {
         }
     };
 
+    const SUPPORTED_LAYERS = [  // "Layer name, layer color"
+        ["Dense", "purple"],
+        ["Conv2D", "lightblue"],
+        ["MaxPool2D", "pink2"],
+        ["Flatten", "pink"],
+        ["Dropout", "blue"],
+        ["Rescaling", "darkblue"],
+        ["RandomFlip", "cyan"],
+        ["Resizing", "green"]
+    ]
+
     return (
         <div className="landing-container">
             <div className="landing-header">
@@ -167,20 +178,18 @@ function Landing({BACKEND_URL}) {
                         <br></br>
                         Dalinar makes it easy to <span className="landing-description-highlighted">visualize models</span> as well as find issues through inbuilt warnings and tips. Several different layer types, activation functions,
                         optimizers, and loss functions are available.
+                        <br></br><br></br>
+                        
                     </p>
                     
-
-                    <div className="landing-header-buttons">
-                        <button type="button" className="landing-header-button landing-header-signup" onClick={() => {
-                            window.location.href = window.location.origin + "/accounts/signup/"
-                        }}>
-                            <img className="landing-header-button-icon" src={BACKEND_URL + "/static/images/rocket.png"} />
-                            Get started
-                        </button>
-                        <button type="button" className="landing-header-button landing-header-explore" onClick={() => navigate("/explore?start=models")}>
-                            <img className="landing-header-button-icon" src={BACKEND_URL + "/static/images/explore.png"} />
-                            Explore models
-                        </button>
+                    <p className="landing-model-layers-title">Supported Layers</p>
+                    <div className="landing-model-layers">
+                        {SUPPORTED_LAYERS.map((element, idx) => (
+                            <div key={idx} className="landing-model-layer">
+                                <span className={"layer-element-stat-color layer-element-stat-" + element[1]}></span>
+                                {element[0]}
+                            </div>
+                        ))}
                     </div>
 
                 </div>

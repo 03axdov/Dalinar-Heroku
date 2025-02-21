@@ -7,3 +7,4 @@
 7. Update CreateLayerPopup
 8. Update LayerElement
 9. Update Model and PublicModel (only typeToColor and getLayerName)
+10. Update CURRENT_LAYERS in Landing.js
