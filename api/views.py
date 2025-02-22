@@ -115,7 +115,60 @@ def random_light_color():   # Slightly biased towards lighter shades
     g = random.randint(150, 255)
     b = random.randint(150, 255)
     return "#{:02x}{:02x}{:02x}".format(r, g, b)
+
+
+def load_and_preprocess_file(file_path, filetype):   # Used by create_tensorflow_dataset
     
+    # Extract bucket and file path from the S3 URL
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    file_key = "media/" + file_path
+    
+    s3_client = get_s3_client()
+    
+    # Get the file from S3
+    file_obj = s3_client.get_object(Bucket=bucket_name, Key=file_key)
+    file_bytes = file_obj['Body'].read()
+    
+    if filetype == "image":
+        # Read the image file
+        image = tf.io.read_file(file_bytes)
+        image = tf.image.decode_jpeg(image, channels=3)  # or tf.image.decode_png if it's a PNG
+        image = tf.image.resize(image, (224, 224))  # Resize image to a fixed size (example 224x224)
+        image = image / 255.0  # Normalize the image to [0, 1] range
+        return image
+    elif filetype == "text":
+        text = tf.io.read_file(file_bytes)
+        text = tf.strings.join(['Start', text, 'End'])  # Add start/end tokens for text modeling
+        return text
+
+
+def preprocess_data(file_path, label, dataset_type):  # Used by create_tensorflow_dataset
+    return load_and_preprocess_file(file_path, dataset_type), label
+
+
+
+def create_tensorflow_dataset(dataset_model): # Takes a dataset model, returns corresponding TensorFlow dataset
+    if not dataset_model: return None
+    elements = dataset_model.elements.all()
+    file_paths = [element.file.url for element in elements]
+    labels = []
+    for element in elements:
+        if element.label:
+            labels.append(element.label.name)
+        else:
+            labels.append("no-label")
+    
+    print(file_paths)
+    print(labels)
+    
+    dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels))
+    dataset = dataset.map(lambda file_path, label: preprocess_data(file_path, label, dataset_model.dataset_type))
+    
+    dataset = dataset.shuffle(buffer_size=len(file_paths))  # Shuffle the dataset
+    dataset = dataset.batch(32)  # Batch size of 32, for example
+    dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)  # Prefetch for better performance
+    
+    return dataset
 
 # PROFILE HANDLING
 
@@ -1307,7 +1360,7 @@ class TrainModel(APIView):
         if user.is_authenticated:
             try:
                 model_instance = Model.objects.get(id=model_id)
-                dataset = Dataset.objects.get(id=dataset_id)
+                dataset_instance = Dataset.objects.get(id=dataset_id)
                 
                 if model_instance.owner == user.profile:
                     if model_instance.model_file:
@@ -1326,10 +1379,13 @@ class TrainModel(APIView):
 
                             # Load the TensorFlow model from the temporary file
                             model = tf.keras.models.load_model('temp_model.' + extension)
+                            
+                            dataset = create_tensorflow_dataset(dataset_instance)
                     
                             return Response(None, status=status.HTTP_200_OK)
                         
                         except Exception as e: # In case of invalid layer combination
+                            raise Exception(e) # Should be removed once this is done
                             return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
                     else:
                         return Response({"Bad request": "Model has not been built."}, status=status.HTTP_400_BAD_REQUEST)

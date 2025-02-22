@@ -294,7 +294,7 @@ input {
     left: 50%;
     transform: translate(-50%, 0);
     top: calc(var(--toolbar-height) + 30px);
-    max-width: 400px;
+    max-width: 50%;
     text-align: left;
     display: flex;
     flex-direction: row;

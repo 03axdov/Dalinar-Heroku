@@ -8,7 +8,9 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
 
     const [datasets, setDatasets] = useState([])
     const [savedDatasets, setSavedDatasets] = useState([])
+
     const [isTraining, setIsTraining] = useState(false)
+    const [trainingProgress, setTrainingProgress] = useState(0)
 
     const [loading, setLoading] = useState(false)
 
@@ -71,6 +73,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
 
         if (isTraining) {return}
         setIsTraining(true)
+        setTrainingProgress(0)
 
         axios.post(URL, data, config)
         .then((data) => {
@@ -86,7 +89,13 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
 
             
         }).finally(() => {
-            setIsTraining(false)
+            setTrainingProgress(100)
+
+            setTimeout(() => {
+                setIsTraining(false)
+                setTrainingProgress(0)
+            }, 200)
+
         })
     }
 
@@ -223,7 +232,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
     return (
         <div className="popup train-model-popup" onClick={() => setShowTrainModelPopup(false)}>
 
-            {isTraining && <ProgressBar progress={0} message="Training..." BACKEND_URL={BACKEND_URL}></ProgressBar>}
+            {isTraining && <ProgressBar progress={trainingProgress} message="Training..." BACKEND_URL={BACKEND_URL}></ProgressBar>}
 
             <div className="train-model-popup-container" onClick={(e) => {
                 e.stopPropagation()
