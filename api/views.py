@@ -117,11 +117,10 @@ def random_light_color():   # Slightly biased towards lighter shades
     return "#{:02x}{:02x}{:02x}".format(r, g, b)
 
 
-def load_and_preprocess_file(file_path, filetype):   # Used by create_tensorflow_dataset
-    
+def load_and_preprocess_file(file_path, filetype):
     # Extract bucket and file path from the S3 URL
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    file_key = "media/" + file_path
+    file_key = "media/" + file_path  # Assuming file path is relative to the 'media' directory
     
     s3_client = get_s3_client()
     
@@ -130,28 +129,29 @@ def load_and_preprocess_file(file_path, filetype):   # Used by create_tensorflow
     file_bytes = file_obj['Body'].read()
     
     if filetype == "image":
-        # Read the image file
-        image = tf.io.read_file(file_bytes)
-        image = tf.image.decode_jpeg(image, channels=3)  # or tf.image.decode_png if it's a PNG
-        image = tf.image.resize(image, (224, 224))  # Resize image to a fixed size (example 224x224)
-        image = image / 255.0  # Normalize the image to [0, 1] range
+        # Decode the image from bytes
+        image = tf.image.decode_jpeg(file_bytes, channels=3)  # Or tf.image.decode_png for PNG images
+        image = tf.image.resize(image, (224, 224))  # Resize image to a fixed size (e.g., 224x224)
+        image = image / 255.0  # Normalize image to [0, 1]
         return image
     elif filetype == "text":
-        text = tf.io.read_file(file_bytes)
-        text = tf.strings.join(['Start', text, 'End'])  # Add start/end tokens for text modeling
+        text = tf.strings.join(['Start', tf.strings.decode_utf8(file_bytes), 'End'])  # Add start/end tokens
         return text
 
-
-def preprocess_data(file_path, label, dataset_type):  # Used by create_tensorflow_dataset
+def preprocess_data(file_path, label, dataset_type):
+    # Decode file_path properly as a string
+    print(file_path)
+    file_path = tf.get_static_value(file_path)
     return load_and_preprocess_file(file_path, dataset_type), label
 
+def create_tensorflow_dataset(dataset_model):
+    if not dataset_model:
+        return None
 
-
-def create_tensorflow_dataset(dataset_model): # Takes a dataset model, returns corresponding TensorFlow dataset
-    if not dataset_model: return None
     elements = dataset_model.elements.all()
     file_paths = [element.file.url for element in elements]
     labels = []
+    
     for element in elements:
         if element.label:
             labels.append(element.label.name)
@@ -161,11 +161,15 @@ def create_tensorflow_dataset(dataset_model): # Takes a dataset model, returns c
     print(file_paths)
     print(labels)
     
+    # Create TensorFlow dataset from file paths and labels
     dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels))
+    
+    # Apply the preprocess_data function to each element
     dataset = dataset.map(lambda file_path, label: preprocess_data(file_path, label, dataset_model.dataset_type))
     
+    # Shuffle, batch, and prefetch for better performance
     dataset = dataset.shuffle(buffer_size=len(file_paths))  # Shuffle the dataset
-    dataset = dataset.batch(32)  # Batch size of 32, for example
+    dataset = dataset.batch(32)  # Batch size of 32
     dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)  # Prefetch for better performance
     
     return dataset
