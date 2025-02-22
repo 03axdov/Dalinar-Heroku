@@ -262,6 +262,9 @@ input {
 .no-margin {
     margin: 0!important;
 }
+.no-margin-right {
+    margin-right: 0!important;
+}
 
 .no-box-shadow {
     box-shadow: none!important;

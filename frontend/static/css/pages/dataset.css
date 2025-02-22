@@ -367,14 +367,19 @@
     cursor: pointer;
 }
 
-.dataset-title-button, .dataset-download-button {
+.dataset-title-button, .dataset-download-button, .dataset-save-button {
     height: 35px;
     background: var(--sidebar-button);
     border-radius: 3px;
     margin-left: 10px;
     display: flex;
     align-items: center;
+    justify-content: center;
     white-space: nowrap;
+}
+
+.dataset-save-button {
+    min-width: 125px;
 }
 
 .dataset-download-button {
@@ -1207,7 +1212,7 @@ canvas {
 }
 
 @media all and (max-width: 1325px) {
-    .dataset-title-button, .dataset-download-button {
+    .dataset-title-button, .dataset-download-button, .dataset-save-button {
         font-size: 0;
         padding: 0;
         display: flex;

@@ -374,6 +374,50 @@ class DownloadDataset(APIView):
             return Response({"Unauthorized": "Did not increase download count as user is not signed in."}, status=status.HTTP_401_UNAUTHORIZED)
         
         
+class SaveDataset(APIView):
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        dataset_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+                
+                dataset.saved_by.add(user.profile)
+                
+                return Response(None, status=status.HTTP_200_OK)
+            
+            except Dataset.DoesNotExist:
+                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "You must be signed in to save datasets."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class UnsaveDataset(APIView):
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        dataset_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+                
+                dataset.saved_by.remove(user.profile)
+                
+                return Response(None, status=status.HTTP_200_OK)
+            
+            except Dataset.DoesNotExist:
+                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "You must be signed in to unsave datasets."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
 class DeleteDataset(APIView):
     serializer_class = DatasetSerializer
     

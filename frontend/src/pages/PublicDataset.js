@@ -14,7 +14,7 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 const TOOLBAR_HEIGHT = 60
 
 // The default page. Login not required.
-function PublicDataset({BACKEND_URL, notification}) {
+function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Current profile for whether or not to display the save button
     const navigate = useNavigate()
 
     const { id } = useParams();
@@ -32,6 +32,7 @@ function PublicDataset({BACKEND_URL, notification}) {
     const [elementLabelTop, setElementLabelTop] = useState(0)
 
     const [loading, setLoading] = useState(true)
+    const [saving, setSaving] = useState(false)
 
     const [idToLabel, setIdToLabel] = useState({})
 
@@ -45,7 +46,7 @@ function PublicDataset({BACKEND_URL, notification}) {
     const [downloadFramework, setDownloadFramework] = useState("tensorflow")
     const [downloadType, setDownloadType] = useState("folders")
     const [isDownloading, setIsDownloading] = useState(false)
-        const [downloadingPercentage, setDownloadingPercentage] = useState(0)
+    const [downloadingPercentage, setDownloadingPercentage] = useState(0)
 
     const [updateArea, setUpdateArea] = useState(false)
 
@@ -301,6 +302,67 @@ function PublicDataset({BACKEND_URL, notification}) {
         })
     }
 
+    function saveDataset() {
+        if (!currentProfile) {return}
+
+        const URL = window.location.origin + '/api/save-dataset/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": dataset.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        if (saving) {return}
+        setSaving(true)
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            let tempDataset = {...dataset}
+            tempDataset.saved_by.push(currentProfile.user)
+            setDataset(tempDataset)
+        }).catch((error) => {
+
+            notification("Error: " + error, "failure")
+            
+        }).finally(() => {
+            setSaving(false)
+        })
+    }
+
+    function unsaveDataset() {
+        if (!currentProfile) {return}
+
+        const URL = window.location.origin + '/api/unsave-dataset/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": dataset.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        if (saving) {return}
+        setSaving(true)
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            let tempDataset = {...dataset}
+            tempDataset.saved_by = tempDataset.saved_by.filter((user) => user != currentProfile.user)
+            setDataset(tempDataset)
+        }).catch((error) => {
+
+            notification("Error: " + error, "failure")
+            
+        }).finally(() => {
+            setSaving(false)
+        })
+    }
 
     // ELEMENT FUNCTIONALITY
 
@@ -764,7 +826,6 @@ function PublicDataset({BACKEND_URL, notification}) {
         document.addEventListener("mouseup", handleMouseUp);
     };
 
-
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
@@ -930,8 +991,27 @@ function PublicDataset({BACKEND_URL, notification}) {
                             <img className="dataset-title-expand-icon" src={BACKEND_URL + "/static/images/" + (!showDatasetDescription ? "plus.png" : "minus.png")} />
                         </div>}
 
-                        {dataset && <button className="dataset-download-button" onClick={() => setShowDownloadPopup(true)}><img className="dataset-download-icon" src={BACKEND_URL + "/static/images/download.svg"} title="Download dataset"/>Download</button>}
+                        {dataset && <button className={"dataset-download-button " + (currentProfile ? "no-margin-right" : "")}
+                        title="Download dataset" onClick={() => setShowDownloadPopup(true)}>
+                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>
+                            Download
+                        </button>}
                     
+                        {dataset && currentProfile && currentProfile.user && !dataset.saved_by.includes(currentProfile.user) && <button className="dataset-save-button" 
+                        title="Save dataset" 
+                        onClick={() => saveDataset()}>
+                            {!saving && <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/star.svg"}/>}
+                            {saving && <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                            {(saving ? "" : "Save")}
+                        </button>}
+
+                        {dataset && currentProfile && currentProfile.user && dataset.saved_by.includes(currentProfile.user) && <button className="dataset-save-button"
+                        title="Save dataset" 
+                        onClick={() => unsaveDataset()}>
+                            {!saving && <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/>}
+                            {saving && <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                            {(saving ? "" : "Saved")}
+                        </button>}
                         {elements && elements[elementsIndex] && dataset && dataset.dataset_type.toLowerCase() == "image" && <div className="resize-form" onSubmit={(e) => {
                             e.preventDefault()
                             resizeElementImage()

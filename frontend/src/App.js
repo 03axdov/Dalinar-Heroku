@@ -70,8 +70,6 @@ export default function App() {
         })
     }
 
-    console.log(currentProfile)
-
     function activateConfirmPopup(message, onConfirm) {
         setConfirmPopupMessage(message)
         setConfirmPopupOnConfirm(() => onConfirm)
@@ -104,7 +102,6 @@ export default function App() {
         }, delay)
     }
 
-
     return (
         <div id="main">
             <div className="small-screen">
@@ -127,7 +124,7 @@ export default function App() {
                     <Route path="/create-model" element={<CreateModel notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/datasets/public/:id" element={<PublicDataset BACKEND_URL={BACKEND_URL} notification={notification}/>}/>
+                    <Route path="/datasets/public/:id" element={<PublicDataset currentProfile={currentProfile} BACKEND_URL={BACKEND_URL} notification={notification}/>}/>
                     <Route path="/models/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/models/public/:id" element={<PublicModel currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/edit-model/:id" element={<EditModel activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
