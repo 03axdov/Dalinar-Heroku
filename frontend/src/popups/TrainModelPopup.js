@@ -2,11 +2,13 @@ import React, {useState, useEffect, useRef} from "react"
 import axios from 'axios'
 import DatasetElement from "../components/DatasetElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
+import ProgressBar from "../components/ProgressBar"
 
-function TrainModelPopup({setShowTrainModelPopup, currentProfile, BACKEND_URL}) {
+function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACKEND_URL, notification}) {
 
     const [datasets, setDatasets] = useState([])
     const [savedDatasets, setSavedDatasets] = useState([])
+    const [isTraining, setIsTraining] = useState(false)
 
     const [loading, setLoading] = useState(false)
 
@@ -51,6 +53,40 @@ function TrainModelPopup({setShowTrainModelPopup, currentProfile, BACKEND_URL}) 
             console.log(err)
         }).finally(() => {
             setLoading(false)
+        })
+    }
+
+    function trainModel(dataset_id) {
+        const URL = window.location.origin + '/api/train-model/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "model": model_id,
+            "dataset": dataset_id,
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        if (isTraining) {return}
+        setIsTraining(true)
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            notification("Successfully trained model.", "success")
+
+        }).catch((error) => {
+            console.log(error)
+            if (error.status == 400) {
+                notification(error.response.data["Bad request"], "failure")
+            } else {
+                notification("Error: " + error, "failure")
+            }
+
+            
+        }).finally(() => {
+            setIsTraining(false)
         })
     }
 
@@ -186,7 +222,10 @@ function TrainModelPopup({setShowTrainModelPopup, currentProfile, BACKEND_URL}) 
 
     return (
         <div className="popup train-model-popup" onClick={() => setShowTrainModelPopup(false)}>
-             <div className="train-model-popup-container" onClick={(e) => {
+
+            {isTraining && <ProgressBar progress={0} message="Training..." BACKEND_URL={BACKEND_URL}></ProgressBar>}
+
+            <div className="train-model-popup-container" onClick={(e) => {
                 e.stopPropagation()
             }}>
                 <div className="explore-datasets-title-container">
@@ -270,8 +309,8 @@ function TrainModelPopup({setShowTrainModelPopup, currentProfile, BACKEND_URL}) 
 
                 {datasetTypeShown == "my" && <div className="my-datasets-container">
                     {datasets.map((dataset) => (
-                        ((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText) ? <div key={dataset.id} onClick={() => {
-                            console.log(dataset)
+                        ((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText) ? <div title="Train on this dataset" key={dataset.id} onClick={() => {
+                            trainModel(dataset.id)
                         }}>
                             <DatasetElement isPublic={true} dataset={dataset} isTraining={true} BACKEND_URL={BACKEND_URL}/>
                         </div> : "")
@@ -284,8 +323,8 @@ function TrainModelPopup({setShowTrainModelPopup, currentProfile, BACKEND_URL}) 
 
                 {savedDatasets && datasetTypeShown == "saved" && <div className="my-datasets-container">
                     {savedDatasets.map((dataset) => (
-                        (((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText)) ? <div key={dataset.id} onClick={() => {
-                            console.log(dataset)
+                        (((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText)) ? <div title="Train on this dataset" key={dataset.id} onClick={() => {
+                            trainModel(dataset.id)
                         }}>
                             <DatasetElement dataset={dataset} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true}/>
                         </div> : "")

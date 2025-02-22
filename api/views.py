@@ -19,6 +19,9 @@ import os
 import tensorflow as tf
 from tensorflow.keras import layers
 
+import boto3
+from django.conf import settings
+
 from django.core.files.base import ContentFile
 from io import BytesIO
 from PIL import Image
@@ -35,6 +38,16 @@ ALLOWED_IMAGE_FILE_EXTENSIONS = set(["png", "jpg", "jpeg", "webp", "avif"])
 
 
 # HELPER FUNCTIONS
+
+def get_s3_client():
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+        region_name=settings.AWS_S3_REGION_NAME
+    )
+    return s3_client
+
 
 def createSmallImage(instance, target_width=230, target_height=190):
     img = Image.open(instance.image)
@@ -1255,11 +1268,8 @@ class BuildModel(APIView):
                             temp_path = temp_file.name  # Get temp file path
 
                         # Save the model to the temp file
-                        print("E")
-                        print(temp_path)
                         model.save(temp_path)
                         
-                        print("F")
                         # Open the file and save it to Django's FileField
                         with open(temp_path, 'rb') as model_file:
                             instance.model_file.save(instance.name + ".keras", File(model_file))
@@ -1283,6 +1293,54 @@ class BuildModel(APIView):
                 return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Unauthorized": "Must be logged in to build models."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class TrainModel(APIView):
+    parser_classes = [JSONParser]
+
+    def post(self, request, format=None):
+        model_id = request.data["model"]
+        dataset_id = request.data["dataset"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                model_instance = Model.objects.get(id=model_id)
+                dataset = Dataset.objects.get(id=dataset_id)
+                
+                if model_instance.owner == user.profile:
+                    if model_instance.model_file:
+                        try:
+                            # Define the S3 bucket and file path
+                            bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                            model_file_path = "media/" + model_instance.model_file.name
+                            
+                            s3_client = get_s3_client()
+                            
+                            extension = model_file_path.split(".")[-1]
+
+                            # Download the model file from S3 to a local temporary file
+                            with open('temp_model.' + extension, 'wb') as f:
+                                s3_client.download_fileobj(bucket_name, model_file_path, f)
+
+                            # Load the TensorFlow model from the temporary file
+                            model = tf.keras.models.load_model('temp_model.' + extension)
+                    
+                            return Response(None, status=status.HTTP_200_OK)
+                        
+                        except Exception as e: # In case of invalid layer combination
+                            return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        return Response({"Bad request": "Model has not been built."}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"Unauthorized": "You can only train your own models."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Model.DoesNotExist:
+                return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+            except Dataset.DoesNotExist:
+                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "Must be logged in to train models."}, status=status.HTTP_401_UNAUTHORIZED)
            
         
 # LAYER FUNCTIONALITY

@@ -141,7 +141,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
         setProcessingBuildModel(true)
 
-        // For updating the order, so it stays the same after refresh
         const URL = window.location.origin + '/api/build-model/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
@@ -419,8 +418,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
-            {showTrainModelPopup && <TrainModelPopup setShowTrainModelPopup={setShowTrainModelPopup} currentProfile={currentProfile} BACKEND_URL={BACKEND_URL}>
-                
+            {showTrainModelPopup && <TrainModelPopup setShowTrainModelPopup={setShowTrainModelPopup} 
+            currentProfile={currentProfile} 
+            BACKEND_URL={BACKEND_URL}
+            model_id={model.id}
+            notification={notification}>
             </TrainModelPopup>}
 
             {showDownloadPopup && <ModelDownloadPopup setShowDownloadPopup={setShowDownloadPopup} 
