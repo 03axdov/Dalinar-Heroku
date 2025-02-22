@@ -248,9 +248,9 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 temp = temp.filter((dataset) => {
                     return dataset.name.toLowerCase().startsWith(searchSaved.toLowerCase())
                 })
-                setSavedDatasets(temp)
+                setSavedDatasets(sort_saved_datasets(temp))
             } else {
-                setSavedDatasets(currentProfile.saved_datasets)
+                setSavedDatasets(sort_saved_datasets(currentProfile.saved_datasets))
             }
             setLoading(false)
         }, 350);

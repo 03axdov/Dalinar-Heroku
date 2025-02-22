@@ -1,16 +1,37 @@
-import React, {useState} from "react"
+import React, {useState, useEffect, useRef} from "react"
+import axios from 'axios'
+import DatasetElement from "../components/DatasetElement"
+import DatasetElementLoading from "../components/DatasetElementLoading"
 
-function TrainModelPopup({setShowTrainModelPopup, BACKEND_URL}) {
+function TrainModelPopup({setShowTrainModelPopup, currentProfile, BACKEND_URL}) {
 
     const [datasets, setDatasets] = useState([])
-    const [publicDatasets, setPublicDatasets] = useState([])
+    const [savedDatasets, setSavedDatasets] = useState([])
 
     const [loading, setLoading] = useState(false)
+
     const [sortDatasets, setSortDatasets] = useState("downloads")
+    const [search, setSearch] = useState("")
+
+    const [sortSavedDatasets, setSortSavedDatasets] = useState("downloads")
+    const [searchSaved, setSearchSaved] = useState("")
+
+    const [showImage, setShowImage] = useState(true)
+    const [showText, setShowText] = useState(true)
+
+    const [showDatasetType, setShowDatasetType] = useState(false)
+    
+    const [datasetTypeShown, setDatasetTypeShown] = useState("my")  // "my" or "saved"
 
     useEffect(() => {
         getDatasets()
     }, [])
+
+    useEffect(() => {
+        if (currentProfile && currentProfile.saved_datasets) {
+            setSavedDatasets(sort_saved_datasets(currentProfile.saved_datasets))
+        }
+    }, [currentProfile])
 
     function getDatasets() {
         setLoading(true)
@@ -68,6 +89,45 @@ function TrainModelPopup({setShowTrainModelPopup, BACKEND_URL}) {
         return tempDatasets
 
     }
+
+    function sort_saved_datasets(ds) {
+        let tempDatasets = [...ds]
+        
+        tempDatasets.sort((d1, d2) => {
+            if (sortSavedDatasets == "downloads") {
+                if (d1.downloaders.length != d2.downloaders.length) {
+                    return d2.downloaders.length - d1.downloaders.length
+                } else {
+                    return d1.name.localeCompare(d2.name)
+                }
+            } else if (sortSavedDatasets == "alphabetical") {
+                return d1.name.localeCompare(d2.name)
+            } else if (sortSavedDatasets == "date") {
+                return new Date(d2.created_at) - new Date(d1.created_at)
+            } else if (sortSavedDatasets == "elements") {
+                if (d1.elements.length != d2.elements.length) {
+                    return d2.elements.length - d1.elements.length
+                } else {
+                    return d1.name.localeCompare(d2.name)
+                }
+            } else if (sortSavedDatasets == "labels") {
+                if (d1.labels.length != d2.labels.length) {
+                    return d2.labels.length - d1.labels.length
+                } else {
+                    return d1.name.localeCompare(d2.name)
+                }
+                
+            }
+        })
+
+        return tempDatasets
+    }
+
+    useEffect(() => {
+        if (!loading && savedDatasets.length > 0) {
+            setSavedDatasets(sort_saved_datasets(savedDatasets))
+        }
+    }, [sortSavedDatasets])
     
     useEffect(() => {
         if (!loading) {
@@ -95,17 +155,147 @@ function TrainModelPopup({setShowTrainModelPopup, BACKEND_URL}) {
         };
     }, [search]);
 
+    const firstSavedSearch = useRef(true)
+    // Search input timing
+    useEffect(() => {
+        if (firstSavedSearch.current) {
+            firstSavedSearch.current = false; // Set to false after first render
+            return;
+        }
+        // Set a timeout to update debounced value after 500ms
+        setLoading(true)
+        const handler = setTimeout(() => {
+            if (searchSaved.length > 0) {
+                let temp = [...savedDatasets]
+                temp = temp.filter((dataset) => {
+                    return dataset.name.toLowerCase().startsWith(searchSaved.toLowerCase())
+                })
+                setSavedDatasets(sort_saved_datasets(temp))
+            } else {
+                setSavedDatasets(sort_saved_datasets(currentProfile.saved_datasets))
+            }
+            setLoading(false)
+        }, 350);
+    
+        // Cleanup the timeout if inputValue changes before delay
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [searchSaved]);
+
 
     return (
         <div className="popup train-model-popup" onClick={() => setShowTrainModelPopup(false)}>
              <div className="train-model-popup-container" onClick={(e) => {
                 e.stopPropagation()
             }}>
-                <h1 className="create-layer-popup-title">Train model</h1>
+                <div className="explore-datasets-title-container">
+                    <h1 className="create-layer-popup-title">Train model</h1>
+
+                    <div className="title-forms">
+                        <div className="dataset-type-options-container" onClick={(e) => {
+                            e.stopPropagation()
+                        }}>
+                            <button className="dataset-type-options-button" onClick={(e) => {
+                                
+                                setShowDatasetType(!showDatasetType)
+                            }}>
+                                Types<img className="dataset-type-options-icon" src={BACKEND_URL + "/static/images/down.svg"}/>
+                            </button>
+                            
+                            {showDatasetType && <div className="dataset-type-options">
+                                <div className="explore-datasets-type">
+                                    <input className="explore-datasets-checkbox" type="checkbox" id="image" checked={showImage} onChange={() => {
+                                        setShowImage(!showImage)
+                                    }}/>
+                                    <label htmlFor="image" className="explore-label">Image</label>
+                                </div>
+                                
+                                <div className="explore-datasets-type no-margin"> 
+                                    <input className="explore-datasets-checkbox" type="checkbox" id="text" checked={showText} onChange={() => {
+                                        setShowText(!showText)
+                                    }}/> 
+                                    <label htmlFor="text" className="explore-label">Text</label>
+                                </div>
+                            </div>}
+                        </div>
+
+                        {datasetTypeShown == "my" && <select title="Sort by" className="explore-datasets-sort" value={sortDatasets} onChange={(e) => {
+                                setSortDatasets(e.target.value)
+                            }}>
+                            <option value="downloads">Downloads</option>
+                            <option value="elements">Elements</option>
+                            <option value="labels">Labels</option>
+                            <option value="alphabetical">Alphabetical</option>
+                            <option value="date">Created</option>
+                        </select>}
+                        {datasetTypeShown == "saved" && <select title="Sort by" className="explore-datasets-sort" value={sortSavedDatasets} onChange={(e) => {
+                                setSortSavedDatasets(e.target.value)
+                            }}>
+                            <option value="downloads">Downloads</option>
+                            <option value="elements">Elements</option>
+                            <option value="labels">Labels</option>
+                            <option value="alphabetical">Alphabetical</option>
+                            <option value="date">Created</option>
+                        </select>}
+                        
+                        {datasetTypeShown == "my" && <div className="explore-datasets-search-container">
+                            <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
+                                    setLoading(true)
+                                    setSearch(e.target.value)
+                            }} /> 
+                            <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
+                        </div>}
+                        {datasetTypeShown == "saved" && <div className="explore-datasets-search-container">
+                            <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={searchSaved} placeholder="Search datasets" onChange={(e) => {
+                                    setLoading(true)
+                                    setSearchSaved(e.target.value)
+                            }} /> 
+                            <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
+                        </div>}
+                    </div>
+                </div>
+                
                 <p className="create-layer-popup-description">
-                    Building a model generates the actual model file. The model can then be trained and downloaded. 
-                    Note that rebuilding the model will reset it, i.e. updates from training will be erased. A model can be rebuilt as many times as wanted.
+                    You can train the model on your own datasets, as well as any public datasets you've saved.
+                    Warnings will appear when attempting to train on invalid datasets. Make sure that the input dimensions match the dataset.
                 </p>
+
+                <div className="train-model-dataset-type-container">
+                    <div className={"train-model-dataset-type-left train-model-dataset-type " + (datasetTypeShown == "my" ? "train-model-dataset-type-selected" : "")}
+                    onClick={() => setDatasetTypeShown("my")}>My datasets</div>
+                    <div className={"train-model-dataset-type-right train-model-dataset-type " + (datasetTypeShown == "saved" ? "train-model-dataset-type-selected" : "")}
+                    onClick={() => setDatasetTypeShown("saved")}>Saved datasets</div>
+                </div>
+
+                {datasetTypeShown == "my" && <div className="my-datasets-container">
+                    {datasets.map((dataset) => (
+                        ((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText) ? <div key={dataset.id} onClick={() => {
+                            console.log(dataset)
+                        }}>
+                            <DatasetElement isPublic={true} dataset={dataset} isTraining={true} BACKEND_URL={BACKEND_URL}/>
+                        </div> : "")
+                    ))}
+                    {!loading && datasets.length == 0 && search.length > 0 && <p className="gray-text">No such datasets found.</p>}
+                    {loading && datasets.length == 0 && currentProfile.datasetsCount > 0 && [...Array(currentProfile.datasetsCount)].map((e, i) => (
+                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
+                    ))}
+                </div>}
+
+                {savedDatasets && datasetTypeShown == "saved" && <div className="my-datasets-container">
+                    {savedDatasets.map((dataset) => (
+                        (((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText)) ? <div key={dataset.id} onClick={() => {
+                            console.log(dataset)
+                        }}>
+                            <DatasetElement dataset={dataset} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true}/>
+                        </div> : "")
+                    ))}
+                    {!loading && currentProfile && savedDatasets.length == 0 && searchSaved.length == 0 && <p>You don't have any saved datasets.</p>}
+                    {!loading && currentProfile && savedDatasets.length == 0 && searchSaved.length > 0 && <p className="gray-text">No such saved datasets found.</p>}
+                    {loading && currentProfile && savedDatasets.length == 0 && currentProfile.saved_datasets && currentProfile.saved_datasets.length > 0 && currentProfile.saved_datasets.map((e, i) => (
+                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
+                    ))}
+                </div>}
                 
             </div>
         </div>

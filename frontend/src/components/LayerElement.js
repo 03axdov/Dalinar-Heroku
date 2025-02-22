@@ -6,7 +6,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         BACKEND_URL, setLayers, layers, notification, 
                         prevLayer, setWarnings, provided, 
                         updateWarnings, idx, onMouseEnter, 
-                        onMouseLeave, isPublic=false}) {
+                        onMouseLeave, warnings=false, isPublic=false}) {
 
     const [type, setType] = useState(null)  // Workaround to stop warning when reordering layers.
 
@@ -284,7 +284,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     }
 
     function getErrorMessage() {
-        setWarnings(false)
+        setWarnings(false || warnings)
 
         let type = layer.layer_type
         let prevType = (prevLayer ? prevLayer.layer_type : null)
@@ -296,6 +296,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         }
 
         if (!prevLayer && (!layer.input_x && !layer.input_y && !layer.input_z)) {
+            setWarnings(true)
             setErrorMessage("Input dimensions must be specified on the first layer.")
         }
 

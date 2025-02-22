@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react"
 import {useNavigate} from "react-router-dom"
 
-function DatasetElement({dataset, BACKEND_URL, isPublic=false}) {
+function DatasetElement({dataset, BACKEND_URL, isPublic=false, isTraining=false}) {
 
     const [showDescription, setShowDescription] = useState(false)
     const [keywords, setKeywords] = useState([])
@@ -10,6 +10,7 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false}) {
     const navigate = useNavigate()
 
     function onClick() {
+        if (isTraining) {return}
         const URL = window.location.origin + "/datasets/" + (isPublic ? "public/" : "") +  dataset.id
         var win = window.open(URL, '_blank');
         win.focus();

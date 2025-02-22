@@ -419,7 +419,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
-            {showTrainModelPopup && <TrainModelPopup setShowTrainModelPopup={setShowTrainModelPopup} BACKEND_URL={BACKEND_URL}>
+            {showTrainModelPopup && <TrainModelPopup setShowTrainModelPopup={setShowTrainModelPopup} currentProfile={currentProfile} BACKEND_URL={BACKEND_URL}>
                 
             </TrainModelPopup>}
 
@@ -641,6 +641,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                         setLayers={setLayers}
                                         notification={notification}
                                         prevLayer={(idx > 0 ? layers[idx - 1] : null)}
+                                        warnings={warnings}
                                         setWarnings={setWarnings}
                                         provided={provided}
                                         updateWarnings={updateWarnings}
