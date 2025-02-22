@@ -44,6 +44,7 @@ class Dataset(models.Model):
     image = models.ImageField(upload_to='images/', null=True)
     imageSmall = models.ImageField(upload_to="images/", null=True)
     downloaders = models.ManyToManyField(Profile, related_name="downloaded_datasets", blank=True)
+    saved_by = models.ManyToManyField(Profile, related_name="saved_datasets", blank=True)
     verified = models.BooleanField(default=False)
     keywords = models.JSONField(
         default=list,

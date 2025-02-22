@@ -70,6 +70,7 @@ export default function App() {
         })
     }
 
+    console.log(currentProfile)
 
     function activateConfirmPopup(message, onConfirm) {
         setConfirmPopupMessage(message)

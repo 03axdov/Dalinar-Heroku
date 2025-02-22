@@ -93,7 +93,7 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
             } else if (sortModels == "alphabetical") {
                 return m1.name.localeCompare(m2.name)
 
-            } else if (sortDatasets == "layers") {
+            } else if (sortModels == "layers") {
                 if (m1.layers.length != m2.layers.length) {
                     return m2.layers.length - m1.layers.length
                 } else {
