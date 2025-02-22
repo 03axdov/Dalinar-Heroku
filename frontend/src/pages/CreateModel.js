@@ -14,9 +14,14 @@ function CreateModel({notification, BACKEND_URL}) {
     const [description, setDescription] = useState("")
     const [image, setImage] = useState(null)
     const [visibility, setVisibility] = useState("private")
+    const [modelFile, setModelFile] = useState(null)
 
     const imageInputRef = useRef(null)
     const [imageURL, setImageURL] = useState("")
+
+    const [uploadDropdownVisible, setUploadDropdownVisible] = useState(false)
+
+    const hiddenFileRef = useRef(null)
 
 
     useEffect(() => {
@@ -81,6 +86,17 @@ function CreateModel({notification, BACKEND_URL}) {
         }
     }
 
+    function uploadInputClick() {
+        if (hiddenFileRef.current) {
+            hiddenFileRef.current.click();
+        }
+    }
+
+    function uploadModel(e) {
+        if (!e.target.files || e.target.files.length < 1) {return}
+        setModelFile(e.target.files[0])
+    }
+
     return (
         <div className="create-dataset-container">
             <div className="create-dataset-form">
@@ -137,6 +153,29 @@ function CreateModel({notification, BACKEND_URL}) {
                     <label htmlFor="create-dataset-visibility-public" className="create-dataset-type-label">Public</label>
                 </div>
 
+                <h1 className="create-dataset-title create-dataset-subtitle upload-model-title">
+                    Upload model 
+                    <span className="create-dataset-title-optional">(optional)</span>
+                </h1>
+
+                <div className="upload-dataset-form">
+                    <p className="create-dataset-description" >
+                        By uploading a model, this model will be instantiated with all the support layers provided. See the bottom of the landing page for a list of supported layers.
+                        Note that only .h5 and .keras models are supported.
+                    </p>
+
+                    <input id="folders-as-labels-upload-inp" type="file" accept=".h5, .keras" className="hidden" ref={hiddenFileRef} onChange={(e) => {uploadModel(e)}}/>
+
+                    <div className="upload-model-container">
+                        <button type="button" className="upload-model-button" onClick={uploadInputClick}>
+                            <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
+                            Upload model
+                        </button>
+
+                        {modelFile && <div className="uploaded-model-element">{modelFile.name}</div>}
+                    </div>
+                </div>
+                
                 <div className="create-dataset-buttons">
                     <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home?start=models")}>Cancel</button>
                     <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>
@@ -144,8 +183,6 @@ function CreateModel({notification, BACKEND_URL}) {
                         {(!loading ? "Create model" : "Processing...")}
                     </button>
                 </div>
-                
-            
             </div>
         </div>
     )
