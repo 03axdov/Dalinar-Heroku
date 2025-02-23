@@ -117,38 +117,66 @@ def random_light_color():   # Slightly biased towards lighter shades
     return "#{:02x}{:02x}{:02x}".format(r, g, b)
 
 
-def load_and_preprocess_file(file_path, filetype):
-    # Extract bucket and file path from the S3 URL
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    file_key = "media/" + file_path  # Assuming file path is relative to the 'media' directory
+# Function to load and preprocess the images
+def load_and_preprocess_image(file_path,input_dims):
+    # Read the image file
+    image = tf.io.read_file(file_path)
+    # Decode the image
+    image = tf.image.decode_jpeg(image, channels=input_dims[-1])  # Assuming JPEG images
     
-    s3_client = get_s3_client()
+    image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
     
-    # Get the file from S3
-    file_obj = s3_client.get_object(Bucket=bucket_name, Key=file_key)
-    file_bytes = file_obj['Body'].read()
-    
-    if filetype == "image":
-        # Decode the image from bytes
-        image = tf.image.decode_jpeg(file_bytes, channels=3)  # Or tf.image.decode_png for PNG images
-        image = tf.image.resize(image, (224, 224))  # Resize image to a fixed size (e.g., 224x224)
-        image = image / 255.0  # Normalize image to [0, 1]
-        return image
-    elif filetype == "text":
-        text = tf.strings.join(['Start', tf.strings.decode_utf8(file_bytes), 'End'])  # Add start/end tokens
-        return text
+    # Normalize the image to [0, 1]
+    image = tf.cast(image, tf.float32) / 255.0
+    return image
 
-def preprocess_data(file_path, label, dataset_type):
-    # Decode file_path properly as a string
-    print(file_path)
-    file_path = tf.get_static_value(file_path)
-    return load_and_preprocess_file(file_path, dataset_type), label
 
-def create_tensorflow_dataset(dataset_model):
-    if not dataset_model:
+# Function to load and preprocess the text
+def load_and_preprocess_text(file_path):
+    # Read the text file
+    text = tf.io.read_file(file_path)
+    # Optional: Tokenization or other preprocessing
+    return text
+
+
+# Convert labels to numeric form (for classification, example with 2 labels)
+label_map = {}  # Adjust based on your labels
+currentLabel = 0
+def map_labels(label):
+    
+    global label_map
+    global currentLabel
+    
+    labelRef = label.ref()  # Tensor is not hashable
+    
+    if labelRef not in label_map.keys():
+        label_map[labelRef] = currentLabel
+        currentLabel += 1
+    return label_map[labelRef]
+
+
+# Function to apply one-hot encoding
+def one_hot_encode(label, nbr_labels):
+    # Convert to one-hot encoded format
+    return tf.keras.utils.to_categorical(label, num_classes=nbr_labels)
+
+
+def create_tensorflow_dataset(dataset_instance, model_instance):
+    
+    global label_map
+    global currentLabel
+    
+    if not dataset_instance:
         return None
+    
+    first_layer = model_instance.layers.all().first()
+    print(first_layer)
+    input_dims = (512,512,3)    # Just placeholder
+    
+    label_map = {}
+    currentLabel = 0
 
-    elements = dataset_model.elements.all()
+    elements = dataset_instance.elements.all()
     file_paths = [element.file.url for element in elements]
     labels = []
     
@@ -157,22 +185,34 @@ def create_tensorflow_dataset(dataset_model):
             labels.append(element.label.name)
         else:
             labels.append("no-label")
+            
+    print(f"file_paths: {file_paths}")
+    print(f"labels: {labels}")
+    print("")
     
-    print(file_paths)
-    print(labels)
-    
-    # Create TensorFlow dataset from file paths and labels
+    # Create TensorFlow Dataset
     dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels))
-    
-    # Apply the preprocess_data function to each element
-    dataset = dataset.map(lambda file_path, label: preprocess_data(file_path, label, dataset_model.dataset_type))
-    
-    # Shuffle, batch, and prefetch for better performance
-    dataset = dataset.shuffle(buffer_size=len(file_paths))  # Shuffle the dataset
-    dataset = dataset.batch(32)  # Batch size of 32
-    dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)  # Prefetch for better performance
+
+    # Apply transformations
+    if dataset_instance.dataset_type == "image":
+        input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
+        print(input_dims)
+        
+        dataset = dataset.map(lambda file_path, label: (load_and_preprocess_image(file_path,input_dims), one_hot_encode(map_labels(label), len(labels))))
+    elif dataset_instance.dataset_type == "text":
+        dataset = dataset.map(lambda file_path, label: (load_and_preprocess_text(file_path), one_hot_encode(map_labels(label), len(labels))))
+    else:
+        print("Invalid dataset type.")
+        return None
+
+    # Batch the dataset (optional)
+    dataset = dataset.batch(32)
+
+    # Prefetch for performance (optional)
+    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
     
     return dataset
+
 
 
 def get_tf_layer(layer):    # From a Layer instance
@@ -1489,7 +1529,9 @@ class TrainModel(APIView):
                             # Load the TensorFlow model from the temporary file
                             model = tf.keras.models.load_model('temp_model.' + extension)
                             
-                            dataset = create_tensorflow_dataset(dataset_instance)
+                            dataset = create_tensorflow_dataset(dataset_instance, model_instance)
+                            
+                            print(dataset)
                     
                             return Response(None, status=status.HTTP_200_OK)
                         

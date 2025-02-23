@@ -121,7 +121,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             }
         }
         else if (type == "resizing") {
-            if (dimensions_updated(false)) {
+            if (dimensions_updated(true)) {
                 setUpdated(true)
             } else if (outputX != layer.output_x) {
                 setUpdated(true)
