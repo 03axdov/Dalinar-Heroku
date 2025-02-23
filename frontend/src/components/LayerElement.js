@@ -131,7 +131,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         }
 
         const NO_ACTIVATION = new Set(["flatten", "dropout", "randomflip", "maxpool2d", "resizing"])
-        if (NO_ACTIVATION.has(type)) { // Do not have activation functions
+        if (!NO_ACTIVATION.has(type)) { // Do not have activation functions
             if (activation != layer.activation_function) {  
                 setUpdated(true)
             }

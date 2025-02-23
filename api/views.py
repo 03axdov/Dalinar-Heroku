@@ -175,8 +175,128 @@ def create_tensorflow_dataset(dataset_model):
     return dataset
 
 
-def layer_model_from_tf_layer(tf_layer, model):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
-    pass
+def get_tf_layer(layer):    # From a Layer instance
+    layer_type = layer.layer_type
+    activation = layer.activation_function or None
+    
+    if layer_type == "dense":
+        if layer.input_x:
+            return layers.Dense(layer.nodes_count, activation=activation, input_shape=(layer.input_x,))
+        else:
+            return layers.Dense(layer.nodes_count, activation=activation)
+    elif layer_type == "conv2d":
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
+            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+        else:
+            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation)
+    elif layer_type == "maxpool2d":
+        return layers.MaxPool2D(pool_size=layer.pool_size)
+    elif layer_type == "flatten":
+        if layer.input_x or layer.input_y:   # Dimensions specified
+            return layers.Flatten(input_shape=(layer.input_x, layer.input_y))
+        else:
+            return layers.Flatten()
+    elif layer_type == "dropout":
+        return layers.Dropout(rate=layer.rate)
+    elif layer_type == "rescaling":
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
+            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+        else:
+            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset)
+    elif layer_type == "randomflip":
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
+            return layers.RandomFlip(mode=layer.mode, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+        else:
+            return layers.RandomFlip(mode=layer.mode)
+    elif layer_type == "resizing":
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
+            return layers.Resizing(layer.output_y, layer.output_x, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+        else:
+            return layers.Resizing(layer.output_y, layer.output_x)
+    else:
+        print("UNKNOWN LAYER OF TYPE: ", layer_type)
+        raise Exception("Invalid layer: " + layer_type)
+
+
+def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
+    config = tf_layer.get_config()
+    
+    data = {}
+    
+    input_shape = False
+    if "batch_input_shape" in config.keys():
+        input_shape = config["batch_input_shape"]
+    
+    if isinstance(tf_layer, layers.Dense):
+        data["type"] = "dense"
+        data["nodes_count"] = config["units"]
+        if input_shape:
+            data["input_x"] = input_shape[-1]
+    elif isinstance(tf_layer, layers.Conv2D):
+        data["type"] = "conv2d"
+        data["filters"] = config["filters"]
+        data["kernel_size"] = config["kernel_size"][0]
+        if input_shape:
+            data["input_x"] = input_shape[1]    # First one is None
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.MaxPool2D):
+        data["type"] = "maxpool2d"
+        data["pool_size"] = config["pool_size"][0]
+    elif isinstance(tf_layer, layers.Flatten):
+        data["type"] = "flatten"
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+    elif isinstance(tf_layer, layers.Dropout):
+        data["type"] = "dropout"
+        data["rate"] = config["rate"]
+    elif isinstance(tf_layer, layers.Rescaling):
+        data["type"] = "rescaling"
+        data["scale"] = config["scale"]
+        data["offset"] = config["offset"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.RandomFlip):
+        data["type"] = "randomflip"
+        data["mode"] = config["mode"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.Resizing):
+        data["type"] = "resizing"
+        data["output_x"] = config["width"]
+        data["output_y"] = config["height"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    else:
+        print("UNKNOWN LAYER OF TYPE: ", layer_type)
+        raise Exception("Invalid layer: " + layer_type)
+    
+    factory = APIRequestFactory()
+    
+    data["model"] = model_id
+    data["index"] = idx
+    data["activation_function"] = ""
+    if "activation" in config.keys():
+        data["activation_function"] = config["activation"]
+    
+    create_layer = CreateLayer.as_view()
+    
+    layer_request = factory.post('/create-layer/', data=json.dumps(data), content_type='application/json')
+    layer_request.user = request.user
+    
+    layer_response = create_layer(layer_request)
+    if layer_response.status_code != 200:
+        return Response(
+            {'Bad Request': f'Error creating layer {idx}'},
+            status=layer_response.status_code
+        )
 
 
 # PROFILE HANDLING
@@ -1173,7 +1293,8 @@ class CreateModel(APIView):
                     
                     default_storage.delete(file_path)
                     
-                    model.summary()
+                    for t, layer in enumerate(model.layers):
+                        layer_model_from_tf_layer(layer, model_instance.id, request, t)
                        
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -1277,50 +1398,7 @@ class ReorderModelLayers(APIView):
         else:
             return Response({"Unauthorized": "Must be logged in to reorder layers."}, status=status.HTTP_401_UNAUTHORIZED)
         
-        
-def get_tf_layer(layer):    # From a Layer instance
-    layer_type = layer.layer_type
-    activation = layer.activation_function or None
-    
-    if layer_type == "dense":
-        if layer.input_x:
-            return layers.Dense(layer.nodes_count, activation=activation, input_shape=(layer.input_x,))
-        else:
-            return layers.Dense(layer.nodes_count, activation=activation)
-    elif layer_type == "conv2d":
-        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
-            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation, input_shape=(layer.input_x, layer.input_y, layer.input_z))
-        else:
-            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation)
-    elif layer_type == "maxpool2d":
-        return layers.MaxPool2D(pool_size=layer.pool_size)
-    elif layer_type == "flatten":
-        if layer.input_x or layer.input_y:   # Dimensions specified
-            return layers.Flatten(input_shape=(layer.input_x, layer.input_y))
-        else:
-            return layers.Flatten()
-    elif layer_type == "dropout":
-        return layers.Dropout(rate=layer.rate)
-    elif layer_type == "rescaling":
-        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
-            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset, input_shape=(layer.input_x, layer.input_y, layer.input_z))
-        else:
-            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset)
-    elif layer_type == "randomflip":
-        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
-            return layers.RandomFlip(mode=layer.mode, input_shape=(layer.input_x, layer.input_y, layer.input_z))
-        else:
-            return layers.RandomFlip(mode=layer.mode)
-    elif layer_type == "resizing":
-        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
-            return layers.Resizing(layer.output_y, layer.output_x, input_shape=(layer.input_x, layer.input_y, layer.input_z))
-        else:
-            return layers.Resizing(layer.output_y, layer.output_x)
-    else:
-        print("UNKNOWN LAYER OF TYPE: ", layer_type)
-        raise Exception("Invalid layer: " + layer_type)
-        
-        
+
 class BuildModel(APIView):
     parser_classes = [JSONParser]
 
@@ -1416,7 +1494,6 @@ class TrainModel(APIView):
                             return Response(None, status=status.HTTP_200_OK)
                         
                         except Exception as e: # In case of invalid layer combination
-                            raise Exception(e) # Should be removed once this is done
                             return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
                     else:
                         return Response({"Bad request": "Model has not been built."}, status=status.HTTP_400_BAD_REQUEST)
