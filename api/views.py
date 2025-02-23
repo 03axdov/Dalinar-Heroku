@@ -276,7 +276,7 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
             data["input_z"] = input_shape[3]
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
-        raise Exception("Invalid layer: " + layer_type)
+        return # Continue instantiating model
     
     factory = APIRequestFactory()
     
