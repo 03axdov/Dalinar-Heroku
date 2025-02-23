@@ -422,7 +422,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             currentProfile={currentProfile} 
             BACKEND_URL={BACKEND_URL}
             model_id={model.id}
-            notification={notification}>
+            notification={notification}
+            activateConfirmPopup={activateConfirmPopup}>
             </TrainModelPopup>}
 
             {showDownloadPopup && <ModelDownloadPopup setShowDownloadPopup={setShowDownloadPopup} 

@@ -178,13 +178,12 @@ def create_tensorflow_dataset(dataset_instance, model_instance):
 
     elements = dataset_instance.elements.all()
     file_paths = [element.file.url for element in elements]
-    labels = []
+    labels = set([])
     
     for element in elements:
         if element.label:
-            labels.append(element.label.name)
-        else:
-            labels.append("no-label")
+            labels.add(element.label.name)
+    labels = list(labels)
             
     print(f"file_paths: {file_paths}")
     print(f"labels: {labels}")
@@ -1503,6 +1502,7 @@ class TrainModel(APIView):
     def post(self, request, format=None):
         model_id = request.data["model"]
         dataset_id = request.data["dataset"]
+        epochs = int(request.data["epochs"])
         
         user = self.request.user
         
@@ -1532,10 +1532,15 @@ class TrainModel(APIView):
                             dataset = create_tensorflow_dataset(dataset_instance, model_instance)
                             
                             print(dataset)
+                            model.fit(dataset, epochs=epochs)
                     
                             return Response(None, status=status.HTTP_200_OK)
                         
-                        except Exception as e: # In case of invalid layer combination
+                        except ValueError as e: # In case of invalid layer combination
+                            message = str(e).split("ValueError: ")[-1]    # Skips long traceback
+
+                            return Response({"Bad request": str(message)}, status=status.HTTP_400_BAD_REQUEST)
+                        except Exception as e:
                             return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
                     else:
                         return Response({"Bad request": "Model has not been built."}, status=status.HTTP_400_BAD_REQUEST)

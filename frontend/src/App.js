@@ -40,6 +40,7 @@ export default function App() {
     const [showConfirmPopup, setShowConfirmPopup] = useState(false)
     const [confirmPopupOnConfirm, setConfirmPopupOnConfirm] = useState(() => {})
     const [confirmPopupMessage, setConfirmPopupMessage] = useState("")
+    const [confirmPopupColor, setConfirmPopupColor] = useState("red")
 
     const [showNotification, setShowNotification] = useState(false)
     const [notificationMessage, setNotificationMessage] = useState("")
@@ -70,9 +71,10 @@ export default function App() {
         })
     }
 
-    function activateConfirmPopup(message, onConfirm) {
+    function activateConfirmPopup(message, onConfirm, color="red") {
         setConfirmPopupMessage(message)
         setConfirmPopupOnConfirm(() => onConfirm)
+        setConfirmPopupColor(color)
         setShowConfirmPopup(true)
     }
 
@@ -112,7 +114,7 @@ export default function App() {
 
             {showAccountPopup && <AccountPopup setShowAccountPopup={setShowAccountPopup} message={"Please sign in to access this functionality."}/>}
             <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile} checkLoggedIn={checkLoggedIn} BACKEND_URL={BACKEND_URL}></Toolbar>
-            {showConfirmPopup && <ConfirmPopup setShowConfirmPopup={setShowConfirmPopup} message={confirmPopupMessage} onConfirm={confirmPopupOnConfirm} />}
+            {showConfirmPopup && <ConfirmPopup color={confirmPopupColor} setShowConfirmPopup={setShowConfirmPopup} message={confirmPopupMessage} onConfirm={confirmPopupOnConfirm} />}
 
             <div id="app">
                 <Routes>

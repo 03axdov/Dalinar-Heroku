@@ -4,7 +4,7 @@ import DatasetElement from "../components/DatasetElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import ProgressBar from "../components/ProgressBar"
 
-function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACKEND_URL, notification}) {
+function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACKEND_URL, notification, activateConfirmPopup}) {
 
     const [datasets, setDatasets] = useState([])
     const [savedDatasets, setSavedDatasets] = useState([])
@@ -24,6 +24,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
     const [showText, setShowText] = useState(true)
 
     const [showDatasetType, setShowDatasetType] = useState(false)
+
+    const [epochs, setEpochs] = useState(10)
     
     const [datasetTypeShown, setDatasetTypeShown] = useState("my")  // "my" or "saved"
 
@@ -65,6 +67,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
         let data = {
             "model": model_id,
             "dataset": dataset_id,
+            "epochs": epochs
         }
 
         axios.defaults.withCredentials = true;
@@ -229,6 +232,13 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
     }, [searchSaved]);
 
 
+    function datasetOnClick(dataset) {
+        activateConfirmPopup("Are you sure you want to train this model on the dataset " + dataset.name + "? This action can only be undone by rebuilding the model.", () => {
+            trainModel(dataset.id)
+        }, "blue")
+    }
+
+
     return (
         <div className="popup train-model-popup" onClick={() => setShowTrainModelPopup(false)}>
 
@@ -309,17 +319,36 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                     Warnings will appear when attempting to train on invalid datasets. Make sure that the input dimensions match the dataset.
                 </p>
 
-                <div className="train-model-dataset-type-container">
-                    <div className={"train-model-dataset-type-left train-model-dataset-type " + (datasetTypeShown == "my" ? "train-model-dataset-type-selected" : "")}
-                    onClick={() => setDatasetTypeShown("my")}>My datasets</div>
-                    <div className={"train-model-dataset-type-right train-model-dataset-type " + (datasetTypeShown == "saved" ? "train-model-dataset-type-selected" : "")}
-                    onClick={() => setDatasetTypeShown("saved")}>Saved datasets</div>
+                <div className="train-model-row">
+                    <div className="train-model-dataset-type-container">
+                        <div className={"train-model-dataset-type-left train-model-dataset-type " + (datasetTypeShown == "my" ? "train-model-dataset-type-selected" : "")}
+                        onClick={() => setDatasetTypeShown("my")}>My datasets</div>
+                        <div className={"train-model-dataset-type-right train-model-dataset-type " + (datasetTypeShown == "saved" ? "train-model-dataset-type-selected" : "")}
+                        onClick={() => setDatasetTypeShown("saved")}>Saved datasets</div>
+                    </div>
+
+                    <div className="train-model-epochs-container">
+                        <label className="train-model-epochs-label">Epochs</label>
+                        <select className="explore-datasets-sort train-model-epochs" value={epochs} onChange={(e) => {
+                            setEpochs(e.target.value)
+                        }}>
+                            <option value={1}>1</option>
+                            <option value={5}>5</option>
+                            <option value={10}>10</option>
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                            <option value={500}>500</option>
+                            <option value={1000}>1000</option>
+                        </select>
+                    </div>
                 </div>
+                
 
                 {datasetTypeShown == "my" && <div className="my-datasets-container">
                     {datasets.map((dataset) => (
                         ((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText) ? <div title="Train on this dataset" key={dataset.id} onClick={() => {
-                            trainModel(dataset.id)
+                            datasetOnClick(dataset)
                         }}>
                             <DatasetElement isPublic={true} dataset={dataset} isTraining={true} BACKEND_URL={BACKEND_URL}/>
                         </div> : "")
@@ -333,7 +362,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                 {savedDatasets && datasetTypeShown == "saved" && <div className="my-datasets-container">
                     {savedDatasets.map((dataset) => (
                         (((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText)) ? <div title="Train on this dataset" key={dataset.id} onClick={() => {
-                            trainModel(dataset.id)
+                            datasetOnClick(dataset)
                         }}>
                             <DatasetElement dataset={dataset} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true}/>
                         </div> : "")

@@ -7,7 +7,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 5;
 }
 
 .account-popup {
@@ -361,6 +360,10 @@
     box-sizing: border-box;
 }
 
+.confirm-popup {
+    z-index: 11;
+}
+
 .confirm-popup-message {
     margin: 0;
     font-size: 1.1rem;
@@ -379,12 +382,20 @@
     width: 100%;
 }
 
-.confirm-popup-confirm {
+.confirm-popup-confirm-red {
     background: var(--delete-red);
 }
 
-.confirm-popup-confirm:hover {
+.confirm-popup-confirm-red:hover {
     background: var(--delete-red-hover);
+}
+
+.confirm-popup-confirm-blue {
+    background: var(--blue);
+}
+
+.confirm-popup-confirm-blue:hover {
+    background: var(--blue-dark);
 }
 
 .confirm-popup-cancel {
@@ -449,12 +460,19 @@
     min-width: 170px;
 }
 
+.train-model-row {
+    margin-top: 30px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+}
+
 .train-model-dataset-type-container {
     display: flex;
     flex-direction: row;
     align-items: center;
-    margin-top: 20px;
-    width: 100%;
     justify-content: start;
 }
 
@@ -480,6 +498,22 @@
 }
 .train-model-dataset-type-right {
     border-radius: 0 5px 5px 0;
+}
+
+.train-model-epochs-container {
+    margin-left: 40px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.train-model-epochs-label {
+    font-size: 1.1rem;
+    margin-right: 10px;
+}
+
+.train-model-epochs {
+    margin: 0!important;
 }
 
 @media all and (max-width: 1000px) {
