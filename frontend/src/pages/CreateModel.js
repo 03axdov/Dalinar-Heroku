@@ -59,6 +59,10 @@ function CreateModel({notification, BACKEND_URL}) {
         formData.append('image', image)
         formData.append("visibility", visibility)
 
+        if (modelFile) {
+            formData.append("model", modelFile)
+        }
+
         const URL = window.location.origin + '/api/create-model/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
 
@@ -172,7 +176,15 @@ function CreateModel({notification, BACKEND_URL}) {
                             Upload model
                         </button>
 
-                        {modelFile && <div className="uploaded-model-element">{modelFile.name}</div>}
+                        {modelFile && <div className="uploaded-model-element">
+                            {modelFile.name}
+                            <img className="uploaded-model-cross" title="Remove uploaded model" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                                setModelFile(null)
+                                if (hiddenFileRef.current) {
+                                    hiddenFileRef.current.value = null
+                                }
+                            }}/>
+                        </div>}
                     </div>
                 </div>
                 

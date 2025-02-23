@@ -60,6 +60,7 @@
 .landing-header-image {
     box-shadow: 0 0 50px rgb(20,20,20);
     border: 1px solid var(--border);
+    user-select: none;
 }
 
 .landing-logo {

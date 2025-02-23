@@ -174,6 +174,11 @@ def create_tensorflow_dataset(dataset_model):
     
     return dataset
 
+
+def layer_model_from_tf_layer(tf_layer, model):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
+    pass
+
+
 # PROFILE HANDLING
 
 class GetCurrentProfile(APIView):
@@ -1147,6 +1152,28 @@ class CreateModel(APIView):
                 model_instance = serializer.save(owner=request.user.profile)
                 
                 createSmallImage(model_instance, 230, 190)    # Create a smaller image for displaying model elements
+                
+                if request.data["model"]:   # Uploaded model
+                    model_file = request.data["model"]
+                    extension = model_file.name.split(".")[-1]
+                    temp_path = "temp_models/" + model_file.name
+                    file_path = default_storage.save(temp_path, model_file.file)
+                    
+                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                    temp_model_file_path = "media/" + file_path
+                    print(f"Model file saved at: {temp_model_file_path}")
+                            
+                    s3_client = get_s3_client()
+                    
+                    # Download the model file from S3 to a local temporary file
+                    with open('temp_model.' + extension, 'wb') as f:
+                        s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
+
+                    model = tf.keras.models.load_model('temp_model.' + extension)
+                    
+                    default_storage.delete(file_path)
+                    
+                    model.summary()
                        
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
