@@ -79,8 +79,13 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
         setTrainingProgress(0)
 
         axios.post(URL, data, config)
-        .then((data) => {
-            notification("Successfully trained model.", "success")
+        .then((res) => {
+            data = res.data
+            let message = "Succesfully trained model. Accuracy after 1 epoch: " + (data["firstEpochAcc"] * 100 + "%") + "."
+            if (epochs > 1) {
+                message += " Accuracy after " + epochs + " epochs: " + (data["lastEpochAcc"] * 100 + "%") + "."
+            }
+            notification(message, "success")
 
         }).catch((error) => {
             console.log(error)
@@ -317,6 +322,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                 <p className="create-layer-popup-description">
                     You can train the model on your own datasets, as well as any public datasets you've saved.
                     Warnings will appear when attempting to train on invalid datasets. Make sure that the input dimensions match the dataset.
+                    Note that only labelled elements in the dataset will be trained on, and that training currently only supports classification datasets.
                 </p>
 
                 <div className="train-model-row">
@@ -347,10 +353,15 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
 
                 {datasetTypeShown == "my" && <div className="my-datasets-container">
                     {datasets.map((dataset) => (
-                        ((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText) ? <div title="Train on this dataset" key={dataset.id} onClick={() => {
-                            datasetOnClick(dataset)
+                        ((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText) ? <div title={(dataset.datatype == "classification" ? "Train on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
+                            if (dataset.datatype == "classification") {
+                                datasetOnClick(dataset)
+                            } else {
+                                notification("Training on area datasets is not yet supported.", "failure")
+                            }
+
                         }}>
-                            <DatasetElement isPublic={true} dataset={dataset} isTraining={true} BACKEND_URL={BACKEND_URL}/>
+                            <DatasetElement isPublic={true} dataset={dataset} isTraining={true} BACKEND_URL={BACKEND_URL} isDeactivated={dataset.datatype != "classification"}/>
                         </div> : "")
                     ))}
                     {!loading && datasets.length == 0 && search.length > 0 && <p className="gray-text">No such datasets found.</p>}
@@ -361,10 +372,14 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
 
                 {savedDatasets && datasetTypeShown == "saved" && <div className="my-datasets-container">
                     {savedDatasets.map((dataset) => (
-                        (((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText)) ? <div title="Train on this dataset" key={dataset.id} onClick={() => {
-                            datasetOnClick(dataset)
+                        (((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText)) ? <div title={(dataset.datatype == "classification" ? "Train on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
+                            if (dataset.datatype == "classification") {
+                                datasetOnClick(dataset)
+                            } else {
+                                notification("Training on area datasets is not yet supported.", "failure")
+                            }
                         }}>
-                            <DatasetElement dataset={dataset} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true}/>
+                            <DatasetElement dataset={dataset} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true} isDeactivated={dataset.datatype != "classification"}/>
                         </div> : "")
                     ))}
                     {!loading && currentProfile && savedDatasets.length == 0 && searchSaved.length == 0 && <p>You don't have any saved datasets.</p>}

@@ -3,7 +3,7 @@ import React, {useState} from "react"
 function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildModel, BACKEND_URL}) {
 
     const [optimizer, setOptimizer] = useState("adam")
-    const [loss, setLoss] = useState("binary_crossentropy")
+    const [loss, setLoss] = useState("categorical_crossentropy")
 
     return (
         <div className="popup build-model-popup" onClick={() => setShowBuildModelPopup(false)}>

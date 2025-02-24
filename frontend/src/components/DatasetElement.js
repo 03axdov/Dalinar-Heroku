@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react"
 import {useNavigate} from "react-router-dom"
 
-function DatasetElement({dataset, BACKEND_URL, isPublic=false, isTraining=false}) {
+function DatasetElement({dataset, BACKEND_URL, isPublic=false, isTraining=false, isDeactivated=false}) {
 
     const [showDescription, setShowDescription] = useState(false)
     const [keywords, setKeywords] = useState([])
@@ -25,7 +25,12 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false, isTraining=false}
     
 
     return (
-        <div className="dataset-element" onClick={onClick} onMouseEnter={() => setShowDescription(true)} onMouseLeave={() => {setShowDescription(false)}} >
+        <div className="dataset-element" 
+        onClick={onClick} 
+        onMouseEnter={() => setShowDescription(true)} 
+        onMouseLeave={() => {setShowDescription(false)}} 
+        style={{pointerEvents: (isDeactivated ? "none" : "all"), opacity: (isDeactivated ? 0.6 : 1)}}>
+
             <div className="dataset-element-header">
                     
                 {dataset.dataset_type.toLowerCase() == "image" && <img title="Image" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/image.png"}/>}

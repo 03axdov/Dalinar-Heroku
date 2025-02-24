@@ -116,18 +116,27 @@ def random_light_color():   # Slightly biased towards lighter shades
     b = random.randint(150, 255)
     return "#{:02x}{:02x}{:02x}".format(r, g, b)
 
+def download_s3_file(bucket_name, file_key):
+    s3_client = get_s3_client()
+    print(f"file_key: {file_key}")
+    response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
+    return response['Body'].read()  # Returns the raw bytes
+
 
 # Function to load and preprocess the images
-def load_and_preprocess_image(file_path,input_dims):
-    # Read the image file
-    image = tf.io.read_file(file_path)
+def load_and_preprocess_image(file_path,input_dims,file_key):
+    
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    image_bytes = download_s3_file(bucket_name, file_key)
+
     # Decode the image
-    image = tf.image.decode_jpeg(image, channels=input_dims[-1])  # Assuming JPEG images
+    image = tf.image.decode_jpeg(image_bytes, channels=input_dims[-1])  # Assuming JPEG images
     
     image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
     
     # Normalize the image to [0, 1]
     image = tf.cast(image, tf.float32) / 255.0
+    print(f"image: {image}")
     return image
 
 
@@ -162,7 +171,6 @@ def one_hot_encode(label, nbr_labels):
 
 
 def create_tensorflow_dataset(dataset_instance, model_instance):
-    
     global label_map
     global currentLabel
     
@@ -170,36 +178,49 @@ def create_tensorflow_dataset(dataset_instance, model_instance):
         return None
     
     first_layer = model_instance.layers.all().first()
-    print(first_layer)
     input_dims = (512,512,3)    # Just placeholder
     
     label_map = {}
     currentLabel = 0
 
     elements = dataset_instance.elements.all()
-    file_paths = [element.file.url for element in elements]
-    labels = set([])
-    
-    for element in elements:
+
+    file_paths = ["media/" + str(element.file) for element in elements]
+    labels = []
+    labels_set = set()  # To keep track of nbr of unique labels
+
+    for t, element in enumerate(elements):
         if element.label:
-            labels.add(element.label.name)
-    labels = list(labels)
+            labels.append(element.label.name)
+            labels_set.add(element.label.name)
+        else:
+            file_paths.pop(t)   # Don't include elements without labels
             
     print(f"file_paths: {file_paths}")
     print(f"labels: {labels}")
-    print("")
+    print(f"labels_set: {labels_set}")
     
     # Create TensorFlow Dataset
     dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels))
 
+    elementIdx = 0
+    def imageMapFunc(file_path, label):
+        nonlocal elementIdx
+        
+        element = load_and_preprocess_image(file_path,input_dims,file_paths[elementIdx])
+        elementIdx += 1
+        return element, one_hot_encode(map_labels(label), len(labels_set))
+        
+    def textMapFunc(file_path, label):
+        load_and_preprocess_text(file_path), one_hot_encode(map_labels(label), len(labels_set))
+
     # Apply transformations
     if dataset_instance.dataset_type == "image":
         input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
-        print(input_dims)
         
-        dataset = dataset.map(lambda file_path, label: (load_and_preprocess_image(file_path,input_dims), one_hot_encode(map_labels(label), len(labels))))
+        dataset = dataset.map(imageMapFunc)
     elif dataset_instance.dataset_type == "text":
-        dataset = dataset.map(lambda file_path, label: (load_and_preprocess_text(file_path), one_hot_encode(map_labels(label), len(labels))))
+        dataset = dataset.map(textMapFunc)
     else:
         print("Invalid dataset type.")
         return None
@@ -1532,12 +1553,33 @@ class TrainModel(APIView):
                             dataset = create_tensorflow_dataset(dataset_instance, model_instance)
                             
                             print(dataset)
-                            model.fit(dataset, epochs=epochs)
+                            history = model.fit(dataset, epochs=epochs)
+                            
+                            # Create a temporary file
+                            with tempfile.NamedTemporaryFile(delete=False, suffix="."+extension) as temp_file:
+                                temp_path = temp_file.name  # Get temp file path
+
+                            # Save the model to the temp file
+                            model.save(temp_path)
+                            
+                            model_instance.model_file.delete(save=False)
+                            # Open the file and save it to Django's FileField
+                            with open(temp_path, 'rb') as model_file:
+                                model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
+
+                            # Delete the temporary file after saving
+                            os.remove(temp_path)
+                            
+                            accuracy = history.history["accuracy"]
+                            firstEpochAcc = accuracy[0]
+                            lastEpochAcc = accuracy[-1]
                     
-                            return Response(None, status=status.HTTP_200_OK)
+                            return Response({"firstEpochAcc": firstEpochAcc, "lastEpochAcc": lastEpochAcc}, status=status.HTTP_200_OK)
                         
                         except ValueError as e: # In case of invalid layer combination
                             message = str(e).split("ValueError: ")[-1]    # Skips long traceback
+                            
+                            raise ValueError(e)
 
                             return Response({"Bad request": str(message)}, status=status.HTTP_400_BAD_REQUEST)
                         except Exception as e:
