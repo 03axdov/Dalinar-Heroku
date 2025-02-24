@@ -141,10 +141,14 @@ def load_and_preprocess_image(file_path,input_dims,file_key):
 
 
 # Function to load and preprocess the text
-def load_and_preprocess_text(file_path):
-    # Read the text file
-    text = tf.io.read_file(file_path)
-    # Optional: Tokenization or other preprocessing
+def load_and_preprocess_text(file_path, file_key):
+    
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    text_bytes = download_s3_file(bucket_name, file_key)
+    
+    # Decode the text bytes into a string
+    text = tf.io.decode_utf8(text_bytes)  # Assuming UTF-8 encoded text
+    
     return text
 
 
@@ -212,7 +216,11 @@ def create_tensorflow_dataset(dataset_instance, model_instance):
         return element, one_hot_encode(map_labels(label), len(labels_set))
         
     def textMapFunc(file_path, label):
-        load_and_preprocess_text(file_path), one_hot_encode(map_labels(label), len(labels_set))
+        nonlocal elementIdx
+        
+        element = load_and_preprocess_text(file_path,file_paths[elementIdx])
+        elementIdx += 1
+        return element, one_hot_encode(map_labels(label), len(labels_set))
 
     # Apply transformations
     if dataset_instance.dataset_type == "image":
@@ -1544,17 +1552,18 @@ class TrainModel(APIView):
                             extension = model_file_path.split(".")[-1]
 
                             # Download the model file from S3 to a local temporary file
-                            with open('temp_model.' + extension, 'wb') as f:
+                            with open('temp_model' + str(model_instance.id) + '.' + extension, 'wb') as f:
                                 s3_client.download_fileobj(bucket_name, model_file_path, f)
 
                             # Load the TensorFlow model from the temporary file
-                            model = tf.keras.models.load_model('temp_model.' + extension)
+                            model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
                             
                             dataset = create_tensorflow_dataset(dataset_instance, model_instance)
                             
                             print(dataset)
                             history = model.fit(dataset, epochs=epochs)
                             
+                            # UPDATING MODEL_FILE
                             # Create a temporary file
                             with tempfile.NamedTemporaryFile(delete=False, suffix="."+extension) as temp_file:
                                 temp_path = temp_file.name  # Get temp file path
@@ -1568,13 +1577,16 @@ class TrainModel(APIView):
                                 model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
 
                             # Delete the temporary file after saving
-                            os.remove(temp_path)
+                            print(f"temp_path: {'temp_model' + str(model_instance.id) + '.' + extension}")
+                            os.remove('temp_model' + str(model_instance.id) + '.' + extension)
                             
                             accuracy = history.history["accuracy"]
-                            firstEpochAcc = accuracy[0]
-                            lastEpochAcc = accuracy[-1]
+                            loss = history.history["loss"]
+                            
+                            # UPDATING MODEL TRAINED_ON
+                            model_instance.trained_on.add(dataset_instance)
                     
-                            return Response({"firstEpochAcc": firstEpochAcc, "lastEpochAcc": lastEpochAcc}, status=status.HTTP_200_OK)
+                            return Response({"accuracy": accuracy, "loss": loss}, status=status.HTTP_200_OK)
                         
                         except ValueError as e: # In case of invalid layer combination
                             message = str(e).split("ValueError: ")[-1]    # Skips long traceback
@@ -1595,7 +1607,7 @@ class TrainModel(APIView):
         else:
             return Response({"Unauthorized": "Must be logged in to train models."}, status=status.HTTP_401_UNAUTHORIZED)
            
-        
+
 # LAYER FUNCTIONALITY
 
 class CreateLayer(APIView):

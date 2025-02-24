@@ -29,6 +29,10 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
     
     const [datasetTypeShown, setDatasetTypeShown] = useState("my")  // "my" or "saved"
 
+    const [epochAccuracy, setEpochAccuracy] = useState([])  // List over accuracy for trained epochs
+    const [epochLoss, setEpochLoss] = useState([])  // Same as above but for loss
+    const [wasTrained, setWasTrained] = useState(false)
+
     useEffect(() => {
         getDatasets()
     }, [])
@@ -81,11 +85,12 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
         axios.post(URL, data, config)
         .then((res) => {
             data = res.data
-            let message = "Succesfully trained model. Accuracy after 1 epoch: " + (data["firstEpochAcc"] * 100 + "%") + "."
-            if (epochs > 1) {
-                message += " Accuracy after " + epochs + " epochs: " + (data["lastEpochAcc"] * 100 + "%") + "."
-            }
-            notification(message, "success")
+
+            notification("Successfully trained dataset.", "success")
+
+            setEpochAccuracy(res.data["accuracy"])
+            setEpochLoss(res.data["loss"])
+            setWasTrained(true)
 
         }).catch((error) => {
             console.log(error)
@@ -249,7 +254,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
 
             {isTraining && <ProgressBar progress={trainingProgress} message="Training..." BACKEND_URL={BACKEND_URL}></ProgressBar>}
 
-            <div className="train-model-popup-container" onClick={(e) => {
+            {!wasTrained && <div className="train-model-popup-container" onClick={(e) => {
                 e.stopPropagation()
             }}>
                 <div className="explore-datasets-title-container">
@@ -389,7 +394,24 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                     ))}
                 </div>}
                 
-            </div>
+            </div>}
+
+            {wasTrained && <div className="train-model-popup-container" onClick={(e) => {
+                e.stopPropagation()
+            }}>
+                <div className="explore-datasets-title-container">
+                    <h1 className="create-layer-popup-title successfully-trained-title">Successfully trained model <img className="trained-successfully-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/></h1>
+                </div>
+
+                <div className="trained-model-epochs">
+                    {epochAccuracy.map((acc, epoch) => (
+                        <div className="trained-model-epoch" key={epoch}>
+                            <span className="epoch-index">Epoch {epoch}</span>
+                            <span className="epoch-accuracy">Accuracy: {acc * 100 + "%"}</span>Loss: {epochLoss[epoch]}
+                        </div>
+                    ))}
+                </div>
+            </div>}
         </div>
     )
 }

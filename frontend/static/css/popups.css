@@ -516,6 +516,54 @@
     margin: 0!important;
 }
 
+.trained-successfully-icon {
+    height: 40px;
+    width: 40px;
+    margin-left: 15px;
+}
+
+.successfully-trained-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.trained-model-epochs {
+    margin-top: 20px;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    background: var(--background-darker);
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 10px 20px;
+}
+
+.trained-model-epochs::-webkit-scrollbar {
+    width: 10px;
+}
+
+.trained-model-epoch {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+.epoch-index {
+    min-width: 150px;
+    margin-right: 20px;
+}
+
+.epoch-accuracy {
+    min-width: 180px;
+    margin-right: 20px;
+}
+
 @media all and (max-width: 1000px) {
     .download-popup-container {
         padding: 10px 30px;
