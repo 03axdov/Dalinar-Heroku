@@ -1,10 +1,10 @@
 import React, {useState} from "react"
 import {useNavigate} from "react-router-dom"
 
-function DatasetElementLoading({BACKEND_URL, isPublic=false}) {
+function DatasetElementLoading({BACKEND_URL, isPublic=false, isTraining=false}) {
 
     return (
-        <div className="dataset-element">
+        <div className={"dataset-element " + (isTraining ? "no-margin-right" : "")}>
             <div className="dataset-element-header" style={{height: "26px"}}>
                 
                 <p className="dataset-element-name"></p>

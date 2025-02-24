@@ -89,8 +89,10 @@
 .dataset-type-options {
     position: absolute;
     top: calc(100% + 5px);
-    background: var(--toolbar-darker);
-    box-shadow: 0 0 10px black;
+    background: var(--toolbar);
+    box-sizing: border-box;
+    border: 1px solid var(--border-light);
+    border-radius: 5px;
     display: flex;
     flex-direction: column;
     padding: 20px;

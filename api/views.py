@@ -1510,6 +1510,8 @@ class BuildModel(APIView):
                         instance.optimizer = optimizer
                         instance.loss_function = loss_function
                         
+                        instance.trained_on.clear()
+                        
                         instance.save()
                         
                         return Response(None, status=status.HTTP_200_OK)
@@ -1532,6 +1534,7 @@ class TrainModel(APIView):
         model_id = request.data["model"]
         dataset_id = request.data["dataset"]
         epochs = int(request.data["epochs"])
+        validation_split = float(request.data["validation_split"])
         
         user = self.request.user
         

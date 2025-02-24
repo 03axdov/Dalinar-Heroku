@@ -26,6 +26,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
     const [showDatasetType, setShowDatasetType] = useState(false)
 
     const [epochs, setEpochs] = useState(10)
+    const [validationSplit, setValidationSplit] = useState(0.2)
     
     const [datasetTypeShown, setDatasetTypeShown] = useState("my")  // "my" or "saved"
 
@@ -71,7 +72,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
         let data = {
             "model": model_id,
             "dataset": dataset_id,
-            "epochs": epochs
+            "epochs": epochs,
+            "validation_split": validationSplit
         }
 
         axios.defaults.withCredentials = true;
@@ -353,10 +355,24 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                             <option value={1000}>1000</option>
                         </select>
                     </div>
+
+                    <div className="train-model-validation-container">
+                        <label className="train-model-epochs-label">Validation split</label>
+                        <select className="explore-datasets-sort train-model-epochs" value={validationSplit} onChange={(e) => {
+                            setValidationSplit(e.target.value)
+                        }}>
+                            <option value={0}>0</option>
+                            <option value={0.1}>0.1</option>
+                            <option value={0.2}>0.2</option>
+                            <option value={0.3}>0.3</option>
+                            <option value={0.4}>0.4</option>
+                            <option value={0.5}>0.5</option>
+                        </select>
+                    </div>
                 </div>
                 
 
-                {datasetTypeShown == "my" && <div className="my-datasets-container">
+                {datasetTypeShown == "my" && <div className="my-datasets-container" style={{padding: 0, justifyContent: "center"}}>
                     {datasets.map((dataset) => (
                         ((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText) ? <div title={(dataset.datatype == "classification" ? "Train on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
                             if (dataset.datatype == "classification") {
@@ -365,17 +381,18 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                                 notification("Training on area datasets is not yet supported.", "failure")
                             }
 
-                        }}>
+                        }}
+                        className="dataset-element-training-outer">
                             <DatasetElement isPublic={true} dataset={dataset} isTraining={true} BACKEND_URL={BACKEND_URL} isDeactivated={dataset.datatype != "classification"}/>
                         </div> : "")
                     ))}
                     {!loading && datasets.length == 0 && search.length > 0 && <p className="gray-text">No such datasets found.</p>}
                     {loading && datasets.length == 0 && currentProfile.datasetsCount > 0 && [...Array(currentProfile.datasetsCount)].map((e, i) => (
-                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
+                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true}/>
                     ))}
                 </div>}
 
-                {savedDatasets && datasetTypeShown == "saved" && <div className="my-datasets-container">
+                {savedDatasets && datasetTypeShown == "saved" && <div className="my-datasets-container" style={{padding: 0, justifyContent: "center"}}>
                     {savedDatasets.map((dataset) => (
                         (((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText)) ? <div title={(dataset.datatype == "classification" ? "Train on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
                             if (dataset.datatype == "classification") {
@@ -383,14 +400,15 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                             } else {
                                 notification("Training on area datasets is not yet supported.", "failure")
                             }
-                        }}>
+                        }}
+                        className="dataset-element-training-outer">
                             <DatasetElement dataset={dataset} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true} isDeactivated={dataset.datatype != "classification"}/>
                         </div> : "")
                     ))}
                     {!loading && currentProfile && savedDatasets.length == 0 && searchSaved.length == 0 && <p>You don't have any saved datasets.</p>}
                     {!loading && currentProfile && savedDatasets.length == 0 && searchSaved.length > 0 && <p className="gray-text">No such saved datasets found.</p>}
                     {loading && currentProfile && savedDatasets.length == 0 && currentProfile.saved_datasets && currentProfile.saved_datasets.length > 0 && currentProfile.saved_datasets.map((e, i) => (
-                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
+                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true}/>
                     ))}
                 </div>}
                 

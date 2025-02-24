@@ -164,8 +164,8 @@ function CreateModel({notification, BACKEND_URL}) {
 
                 <div className="upload-dataset-form">
                     <p className="create-dataset-description" >
-                        By uploading a model, this model will be instantiated with all the support layers provided. See the bottom of the landing page for a list of supported layers.
-                        Note that only .h5 and .keras models are supported.
+                        By uploading a model, this model will be instantiated with all the supported layers provided—see the bottom of the landing page for a list of supported layers.
+                        Note that only .h5 and .keras models are supported, and that the parameters of uploaded models will not be preserved.
                     </p>
 
                     <input id="folders-as-labels-upload-inp" type="file" accept=".h5, .keras" className="hidden" ref={hiddenFileRef} onChange={(e) => {uploadModel(e)}}/>

@@ -25,11 +25,12 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false, isTraining=false,
     
 
     return (
-        <div className="dataset-element" 
+        <div className={"dataset-element " + (isTraining ? "no-margin-right" : "")}
         onClick={onClick} 
         onMouseEnter={() => setShowDescription(true)} 
         onMouseLeave={() => {setShowDescription(false)}} 
-        style={{pointerEvents: (isDeactivated ? "none" : "all"), opacity: (isDeactivated ? 0.6 : 1)}}>
+        style={{pointerEvents: (isDeactivated ? "none" : "all"), 
+                opacity: (isDeactivated ? 0.6 : 1),}}>
 
             <div className="dataset-element-header">
                     
