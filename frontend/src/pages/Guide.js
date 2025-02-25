@@ -188,7 +188,7 @@ function Guide({BACKEND_URL}) {
                         </div>
 
                         <div className="instructions-area-comment" style={{top: "6%", left: "36%"}}>
-                            Once the model is finished, it can be built (compiled) here.
+                            Once the model is finished, it can be built (compiled) here. After being built it can be trained on datasets here in Dalinar or downloaded.
                         </div>
 
                         <div className="instructions-area-comment" style={{bottom: "13%", right: "17%"}}>

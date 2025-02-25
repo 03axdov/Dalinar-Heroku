@@ -26,13 +26,17 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
     const [showDatasetType, setShowDatasetType] = useState(false)
 
     const [epochs, setEpochs] = useState(10)
-    const [validationSplit, setValidationSplit] = useState(0.2)
+    const [validationSplit, setValidationSplit] = useState(0.1)
     
     const [datasetTypeShown, setDatasetTypeShown] = useState("my")  // "my" or "saved"
 
     const [epochAccuracy, setEpochAccuracy] = useState([])  // List over accuracy for trained epochs
     const [epochLoss, setEpochLoss] = useState([])  // Same as above but for loss
+    const [epochAccuracyValidation, setEpochAccuracyValidation] = useState([])
+    const [epochLossValidation, setEpochLossValidation] = useState([])
+
     const [wasTrained, setWasTrained] = useState(false)
+    const [epochTypeShown, setEpochTypeShown] = useState("training")    // "training" or "validation"
 
     useEffect(() => {
         getDatasets()
@@ -92,6 +96,9 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
 
             setEpochAccuracy(res.data["accuracy"])
             setEpochLoss(res.data["loss"])
+            setEpochAccuracyValidation(res.data["val_accuracy"])
+            setEpochLossValidation(res.data["val_loss"])
+
             setWasTrained(true)
 
         }).catch((error) => {
@@ -330,6 +337,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                     You can train the model on your own datasets, as well as any public datasets you've saved.
                     Warnings will appear when attempting to train on invalid datasets. Make sure that the input dimensions match the dataset.
                     Note that only labelled elements in the dataset will be trained on, and that training currently only supports classification datasets.
+                    Validation will be ignored if the dataset contains too few elements for given split size.
                 </p>
 
                 <div className="train-model-row">
@@ -421,14 +429,30 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                     <h1 className="create-layer-popup-title successfully-trained-title">Successfully trained model <img className="trained-successfully-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/></h1>
                 </div>
 
-                <div className="trained-model-epochs">
+                {epochAccuracyValidation && epochAccuracyValidation.length > 0 && <div className="train-model-successful-row">
+                    <div className="train-model-dataset-type-container">
+                        <div className={"train-model-dataset-type-left train-model-dataset-type " + (epochTypeShown == "training" ? "train-model-dataset-type-selected" : "")}
+                        onClick={() => setEpochTypeShown("training")}>Training</div>
+                        <div className={"train-model-dataset-type-right train-model-dataset-type " + (epochTypeShown == "validation" ? "train-model-dataset-type-selected" : "")}
+                        onClick={() => setEpochTypeShown("validation")}>Validation</div>
+                    </div>
+                </div>}
+                {epochTypeShown == "training" && <div className="trained-model-epochs">
                     {epochAccuracy.map((acc, epoch) => (
                         <div className="trained-model-epoch" key={epoch}>
                             <span className="epoch-index">Epoch {epoch}</span>
                             <span className="epoch-accuracy">Accuracy: {acc * 100 + "%"}</span>Loss: {epochLoss[epoch]}
                         </div>
                     ))}
-                </div>
+                </div>}
+                {epochTypeShown == "validation" && <div className="trained-model-epochs">
+                    {epochAccuracyValidation.map((acc, epoch) => (
+                        <div className="trained-model-epoch" key={epoch}>
+                            <span className="epoch-index">Epoch {epoch}</span>
+                            <span className="epoch-accuracy">Accuracy: {acc * 100 + "%"}</span>Loss: {epochLossValidation[epoch]}
+                        </div>
+                    ))}
+                </div>}
             </div>}
         </div>
     )

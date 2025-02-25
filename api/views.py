@@ -174,7 +174,7 @@ def one_hot_encode(label, nbr_labels):
     return tf.keras.utils.to_categorical(label, num_classes=nbr_labels)
 
 
-def create_tensorflow_dataset(dataset_instance, model_instance):
+def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns tensorflow dataset, number of elements in the dataset
     global label_map
     global currentLabel
     
@@ -199,14 +199,9 @@ def create_tensorflow_dataset(dataset_instance, model_instance):
             labels_set.add(element.label.name)
         else:
             file_paths.pop(t)   # Don't include elements without labels
-            
-    print(f"file_paths: {file_paths}")
-    print(f"labels: {labels}")
-    print(f"labels_set: {labels_set}")
-    
+
     # Create TensorFlow Dataset
     dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels))
-
     elementIdx = 0
     def imageMapFunc(file_path, label):
         nonlocal elementIdx
@@ -227,19 +222,19 @@ def create_tensorflow_dataset(dataset_instance, model_instance):
         input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
         
         dataset = dataset.map(imageMapFunc)
+        
     elif dataset_instance.dataset_type == "text":
         dataset = dataset.map(textMapFunc)
     else:
         print("Invalid dataset type.")
         return None
 
-    # Batch the dataset (optional)
     dataset = dataset.batch(32)
 
     # Prefetch for performance (optional)
     dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
     
-    return dataset
+    return dataset, len(file_paths)
 
 
 
@@ -1530,11 +1525,13 @@ class BuildModel(APIView):
 class TrainModel(APIView):
     parser_classes = [JSONParser]
 
+    @tf.autograph.experimental.do_not_convert
     def post(self, request, format=None):
         model_id = request.data["model"]
         dataset_id = request.data["dataset"]
         epochs = int(request.data["epochs"])
         validation_split = float(request.data["validation_split"])
+        print(f"validation_split: {validation_split}")
         
         user = self.request.user
         
@@ -1561,10 +1558,16 @@ class TrainModel(APIView):
                             # Load the TensorFlow model from the temporary file
                             model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
                             
-                            dataset = create_tensorflow_dataset(dataset_instance, model_instance)
+                            dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
+                            validation_size = int(dataset_length * validation_split)
+                            train_size = dataset_length - validation_size
+                            print(f"train_size: {train_size}, validation_size: {validation_size}")
+                            if validation_size >= 1: # Some dataset are too small for validation
+                                train_dataset, validation_dataset = tf.keras.utils.split_dataset(dataset, train_size, validation_size, shuffle=True)
                             
-                            print(dataset)
-                            history = model.fit(dataset, epochs=epochs)
+                                history = model.fit(train_dataset, epochs=epochs, validation_data=validation_data)
+                            else:
+                                history = model.fit(dataset, epochs=epochs)
                             
                             # UPDATING MODEL_FILE
                             # Create a temporary file
@@ -1585,14 +1588,21 @@ class TrainModel(APIView):
                             
                             accuracy = history.history["accuracy"]
                             loss = history.history["loss"]
+                            val_accuracy = []
+                            val_loss = []
+                            if validation_size >= 1:
+                                val_accuracy = history.history["val_accuracy"]
+                                val_loss = history.history["val_loss"]
                             
                             # UPDATING MODEL TRAINED_ON
                             model_instance.trained_on.add(dataset_instance)
                     
-                            return Response({"accuracy": accuracy, "loss": loss}, status=status.HTTP_200_OK)
+                            return Response({"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss}, status=status.HTTP_200_OK)
                         
                         except ValueError as e: # In case of invalid layer combination
-                            message = str(e).split("ValueError: ")[-1]    # Skips long traceback
+                            message = str(e)
+                            if len(message) > 50 and len(list(dataset)) * validation_split > 1:
+                                message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
                             
                             raise ValueError(e)
 
