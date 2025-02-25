@@ -115,7 +115,7 @@ function Landing({BACKEND_URL}) {
             </div>
 
             <div className="landing-datasets">
-                <div className="landing-header-col landing-header-right" style={{border: "1px solid var(--border)", borderLeft: "none"}}>
+                <div className="landing-header-col landing-header-right">
                     <div className="landing-header-image-container"
                     style={{
                         display: (!imageDatasetsLoaded ? "none" : "inline-block"),
@@ -167,7 +167,7 @@ function Landing({BACKEND_URL}) {
                 </div>
             </div>
 
-            <div className="landing-models" style={{border: "none"}}>
+            <div className="landing-models">
                 <div className="landing-header-col landing-header-left">
                     <h1 className="landing-title"><img className="landing-logo" src={BACKEND_URL + "/static/images/model.svg"}/>Model Creation</h1>
                     <p className="landing-description">

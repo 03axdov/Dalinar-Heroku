@@ -8,6 +8,7 @@ import LayerElement from "../components/LayerElement";
 import BuildModelPopup from "../popups/BuildModelPopup";
 import ModelDownloadPopup from "../popups/ModelDownloadPopup";
 import TrainModelPopup from "../popups/TrainModelPopup"
+import EvaluateModelPopup from "../popups/EvaluateModelPopup";
 
 
 // The default page. Login not required.
@@ -23,6 +24,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [showBuildModelPopup, setShowBuildModelPopup] = useState(false)
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
     const [showTrainModelPopup, setShowTrainModelPopup] = useState(false)
+    const [showEvaluateModelPopup, setShowEvaluateModelPopup] = useState(false)
 
     const [downloading, setDownloading] = useState(false)
     const [isDownloaded, setIsDownloaded] = useState(false)
@@ -426,6 +428,14 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             activateConfirmPopup={activateConfirmPopup}>
             </TrainModelPopup>}
 
+            {showEvaluateModelPopup && <EvaluateModelPopup setShowEvaluateModelPopup={setShowEvaluateModelPopup} 
+            currentProfile={currentProfile} 
+            BACKEND_URL={BACKEND_URL}
+            model_id={model.id}
+            notification={notification}
+            activateConfirmPopup={activateConfirmPopup}>
+            </EvaluateModelPopup>}
+
             {showDownloadPopup && <ModelDownloadPopup setShowDownloadPopup={setShowDownloadPopup} 
                 model={model}
                 downloadModel={downloadModel}
@@ -540,19 +550,31 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             setShowBuildModelPopup(true)
                         }}>
                             <img className="model-download-icon" src={BACKEND_URL + "/static/images/build.svg"} />
-                            {model.model_file ? "Rebuild model" : "Build model"}
+                            {model.model_file ? "Rebuild" : "Build"}
                         </button>}
 
                         {model && <button type="button" 
-                        title={model.model_file ? "Train model" : "Work in progress."}
-                        className={"model-train-button " + (model.model_file ? "" : "model-button-disabled")}
+                        title={model.model_file ? "Train model" : "Model not yet built."}
+                        className={"model-evaluate-button no-margin-right " + (model.model_file ? "" : "model-button-disabled")}
                         onClick={() => {
                             if (model.model_file) {
                               setShowTrainModelPopup(true)  
                             }
                         }}>
                             <img className="model-download-icon" src={BACKEND_URL + "/static/images/lightbulb.svg"} />
-                            Train model
+                            Train
+                        </button>}
+
+                        {model && <button type="button" 
+                        title={model.model_file ? "Evaluate model" : "Model not yet built."}
+                        className={"model-evaluate-button " + (model.model_file ? "" : "model-button-disabled")}
+                        onClick={() => {
+                            if (model.model_file) {
+                                setShowEvaluateModelPopup(true)
+                            }
+                        }}>
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/evaluate.svg"} />
+                            Evaluate
                         </button>}
 
                         {model && <button className={"model-download-button model-download-button " + (model.model_file ? "" : "model-button-disabled")} 

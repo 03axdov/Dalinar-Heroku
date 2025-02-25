@@ -184,6 +184,10 @@
     gap: 10px;
 }
 
+.landing-model-layers::-webkit-scrollbar {
+    width: 7px;
+}
+
 .landing-model-layer {
     margin: 0px 5px;
     border-radius: 3px;
@@ -195,6 +199,16 @@
     padding: 3px 7px;
     height: 30px;
 }
+
+.landing-datasets .landing-header-right {
+    border: 1px solid var(--border);
+    border-left: none;
+}
+
+.landing-models {
+    border: none;
+}
+
 
 @media all and (max-width: 1350px) {
     .landing-header-left {
@@ -249,9 +263,7 @@
     .landing-description {
         text-align: left;
     }
-}
 
-@media all and (max-width: 810px) {
     .landing-header-left {
         padding: 50px 40px;
         width: 100%;
@@ -260,15 +272,24 @@
     }
     
     .landing-header-right {
-        width: 0%;
+        width: 100%;
         background: black;
         align-items: center;
         justify-content: center;
         overflow: hidden;
-        padding: 0;
+        padding: 20px;
+        border: none;
+        border-top: 1px solid var(--border);
+        border-bottom: 1px solid var(--border);
+        order: -1;
+    }
+
+    .landing-header .landing-header-right {
+        border-top: none;
     }
     
     .landing-header, .landing-datasets, .landing-models {
         height: auto;
+        flex-direction: column;
     }
 }

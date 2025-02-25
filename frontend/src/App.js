@@ -106,9 +106,6 @@ export default function App() {
 
     return (
         <div id="main">
-            <div className="small-screen">
-                <p className="small-screen-text">Please switch to a larger screen to use Dalinar.</p>
-            </div>
 
             <Notification show={showNotification} message={notificationMessage} type={notificationType} notificationHover={notificationHover} BACKEND_URL={BACKEND_URL}/>
 

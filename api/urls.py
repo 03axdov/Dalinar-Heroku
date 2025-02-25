@@ -49,6 +49,7 @@ urlpatterns = [
     path("reorder-model-layers/", ReorderModelLayers.as_view(), name="reorder-model-layers"),
     path("build-model/", BuildModel.as_view(), name="build-model"),
     path("train-model/", TrainModel.as_view(), name="train-model"),
+    path("evaluate-model/", EvaluateModel.as_view(), name="evaluate-model"),
     
     # LAYER HANDLING
     path("create-layer/", CreateLayer.as_view(), name="create-layer"),

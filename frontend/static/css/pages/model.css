@@ -336,7 +336,7 @@
 }
 
 
-.model-title-button, .model-download-button, .model-build-button, .model-train-button {
+.model-title-button, .model-download-button, .model-build-button, .model-evaluate-button {
     height: 35px;
     background: var(--sidebar-button);
     border-radius: 3px;
@@ -346,7 +346,7 @@
     white-space: nowrap;
 }
 
-.model-train-button {
+.model-evaluate-button {
     margin-right: 10px;
 }
 

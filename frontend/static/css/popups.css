@@ -542,14 +542,15 @@
     border-radius: 5px;
     display: flex;
     flex-direction: column;
-    background: var(--background-darker);
-    overflow-y: auto;
+    background: var(--background-dark);
+    overflow: auto;
     box-sizing: border-box;
     padding: 10px 20px;
 }
 
 .trained-model-epochs::-webkit-scrollbar {
     width: 10px;
+    height: 10px;
 }
 
 .trained-model-epoch {

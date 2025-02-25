@@ -232,7 +232,7 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     dataset = dataset.batch(32)
 
     # Prefetch for performance (optional)
-    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    # dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
     
     return dataset, len(file_paths)
 
@@ -1561,11 +1561,11 @@ class TrainModel(APIView):
                             dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
                             validation_size = int(dataset_length * validation_split)
                             train_size = dataset_length - validation_size
-                            print(f"train_size: {train_size}, validation_size: {validation_size}")
+
                             if validation_size >= 1: # Some dataset are too small for validation
                                 train_dataset, validation_dataset = tf.keras.utils.split_dataset(dataset, train_size, validation_size, shuffle=True)
                             
-                                history = model.fit(train_dataset, epochs=epochs, validation_data=validation_data)
+                                history = model.fit(train_dataset, epochs=epochs, validation_data=validation_dataset)
                             else:
                                 history = model.fit(dataset, epochs=epochs)
                             
@@ -1583,7 +1583,6 @@ class TrainModel(APIView):
                                 model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
 
                             # Delete the temporary file after saving
-                            print(f"temp_path: {'temp_model' + str(model_instance.id) + '.' + extension}")
                             os.remove('temp_model' + str(model_instance.id) + '.' + extension)
                             
                             accuracy = history.history["accuracy"]
@@ -1619,6 +1618,65 @@ class TrainModel(APIView):
                 return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Unauthorized": "Must be logged in to train models."}, status=status.HTTP_401_UNAUTHORIZED)
+  
+  
+class EvaluateModel(APIView):
+    parser_classes = [JSONParser]
+
+    @tf.autograph.experimental.do_not_convert
+    def post(self, request, format=None):
+        model_id = request.data["model"]
+        dataset_id = request.data["dataset"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                model_instance = Model.objects.get(id=model_id)
+                dataset_instance = Dataset.objects.get(id=dataset_id)
+                
+                if model_instance.owner == user.profile:
+                    if model_instance.model_file:
+                        try:
+                            # Define the S3 bucket and file path
+                            bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                            model_file_path = "media/" + model_instance.model_file.name
+                            
+                            s3_client = get_s3_client()
+                            
+                            extension = model_file_path.split(".")[-1]
+
+                            # Download the model file from S3 to a local temporary file
+                            with open('temp_model' + str(model_instance.id) + '.' + extension, 'wb') as f:
+                                s3_client.download_fileobj(bucket_name, model_file_path, f)
+
+                            # Load the TensorFlow model from the temporary file
+                            model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
+                            
+                            dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance) 
+                            
+                            return Response(None, status=status.HTTP_200_OK)
+                        
+                        except ValueError as e: # In case of invalid layer combination
+                            message = str(e)
+                            if len(message) > 50 and len(list(dataset)) * validation_split > 1:
+                                message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
+                            
+                            raise ValueError(e)
+
+                            return Response({"Bad request": str(message)}, status=status.HTTP_400_BAD_REQUEST)
+                        except Exception as e:
+                            return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        return Response({"Bad request": "Model has not been built."}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"Unauthorized": "You can only evaluate your own models."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Model.DoesNotExist:
+                return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+            except Dataset.DoesNotExist:
+                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "Must be logged in to evaluate models."}, status=status.HTTP_401_UNAUTHORIZED)
            
 
 # LAYER FUNCTIONALITY
