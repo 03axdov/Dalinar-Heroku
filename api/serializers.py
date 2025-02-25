@@ -206,16 +206,31 @@ class CreateResizingLayerSerializer(serializers.ModelSerializer):
         
 # MODEL HANDLING
 
+class EvaluationSerializer(serializers.ModelSerializer):
+    dataset = DatasetSerializer(read_only=True)
+    
+    class Meta:
+        model = Evaluation
+        fields = "__all__"
+        
+class CreateEvaluationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Evaluation
+        fields = ("accuracy", "model", "dataset")
+        
+
 class ModelSerializer(serializers.ModelSerializer):
     layers = LayerSerializer(many=True, read_only=True)
+    evaluations = EvaluationSerializer(many=True, read_only=True)
     
     class Meta:
         model = Model
         fields = "__all__"
         extra_kwargs = {"owner": {"read_only": True}}
         
-
 class CreateModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Model
         fields = ("name", "description", "visibility", "image")
+        
+        

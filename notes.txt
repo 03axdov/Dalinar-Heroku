@@ -1,7 +1,7 @@
 TO-DO:
 - Python security measures for dataset_types
-- .png files not working
-- Resize images to model input size when training
+- .png files not working?
+- Datasets show which / how many models have trained / evaluated on them.
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

@@ -210,6 +210,15 @@ class Model(models.Model):
         return self.name + " - " + self.owner.name
     
     
+class Evaluation(models.Model):
+    accuracy = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(1.0)])
+    model = models.ForeignKey(Model, on_delete=models.CASCADE, related_name="evaluations")
+    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return 'Evaluation for "' + str(self.model) + '" on "' + str(self.dataset) + '" - ' + str(self.accuracy * 100) + "%"
+    
+    
 @receiver(post_delete, sender=Model)
 def delete_model_files(sender, instance, **kwargs):
     if instance.image:

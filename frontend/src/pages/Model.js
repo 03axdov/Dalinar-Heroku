@@ -134,7 +134,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         })
     }
 
-
     function buildModel(optimizer, loss) {
         if (warnings) {
             notification("Warnings must be addressed before building model.", "failure")
@@ -624,11 +623,27 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                 <div className="trained-on-container">
                                     {model.trained_on.map((id, idx) => (
                                         <div key={idx} className="trained-on-element" onClick={() => {
-                                            const URL = window.location.origin + "/datasets/" + id
+                                            const URL = window.location.origin + "/datasets/" + (model.trained_on_visibility[idx] == "public" ? "public/" : "") + id
                                             var win = window.open(URL, '_blank');
                                             win.focus();
                                         }}>
                                             {model.trained_on_names[idx]}
+                                            <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>}
+
+                            {model.evaluations && model.evaluations.length > 0 && <div className="model-description-trained">
+                                <p className="dataset-description-text trained-on-text dataset-description-start">Evaluations:</p>
+                                <div className="trained-on-container">
+                                    {model.evaluations.map((evaluation, idx) => (
+                                        <div key={idx} className="trained-on-element" onClick={() => {
+                                            const URL = window.location.origin + "/datasets/" + (evaluation.dataset.visibility == "public" ? "public/" : "") + evaluation.dataset.id
+                                            var win = window.open(URL, '_blank');
+                                            win.focus();
+                                        }}>
+                                            {evaluation.dataset.name} - {evaluation.accuracy * 100 + "%"} accuracy
                                             <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
                                         </div>
                                     ))}

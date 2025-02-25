@@ -360,7 +360,22 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
             {'Bad Request': f'Error creating layer {idx}'},
             status=layer_response.status_code
         )
-
+        
+        
+def create_evaluation(accuracy, model, dataset):    # Create Evaluation instace. Only called when user is authenticated and owns model. Return True if success, False otherwise
+    data = {
+        "accuracy": accuracy,
+        "model": model.id,
+        "dataset": dataset.id
+    }
+    
+    serializer = CreateEvaluationSerializer(data=data)
+    
+    if serializer.is_valid():
+        serializer.save()
+        return True
+    else:
+        return False
 
 # PROFILE HANDLING
 
@@ -1308,6 +1323,15 @@ class GetModelPublic(APIView):
                 data = modelSerialized.data
                 data["ownername"] = model.owner.name
                 
+                trained_on_names = []
+                trained_on_visibility = []
+                for dataset in model.trained_on.all():
+                    trained_on_names.append(dataset.name)
+                    trained_on_visibility.append(dataset.visibility)
+                    
+                data["trained_on_names"] = trained_on_names
+                data["trained_on_visibility"] = trained_on_visibility
+                
                 return Response(data, status=status.HTTP_200_OK)
                 
             except Model.DoesNotExist:
@@ -1506,6 +1530,7 @@ class BuildModel(APIView):
                         instance.loss_function = loss_function
                         
                         instance.trained_on.clear()
+                        instance.evaluations.all().delete()
                         
                         instance.save()
                         
@@ -1655,7 +1680,16 @@ class EvaluateModel(APIView):
                             
                             dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance) 
                             
-                            return Response(None, status=status.HTTP_200_OK)
+                            res = model.evaluate(dataset, return_dict=True)
+                            
+                            # Delete the temporary file after saving
+                            os.remove('temp_model' + str(model_instance.id) + '.' + extension)
+                            
+                            evaluation_status = create_evaluation(res["accuracy"], model_instance, dataset_instance)
+                            if not evaluation_status:
+                                return Response({"Bad request": "Failed to create evaluation"}, status=status.HTTP_400_BAD_REQUEST)
+                            
+                            return Response(res, status=status.HTTP_200_OK)
                         
                         except ValueError as e: # In case of invalid layer combination
                             message = str(e)
@@ -1678,7 +1712,7 @@ class EvaluateModel(APIView):
         else:
             return Response({"Unauthorized": "Must be logged in to evaluate models."}, status=status.HTTP_401_UNAUTHORIZED)
            
-
+           
 # LAYER FUNCTIONALITY
 
 class CreateLayer(APIView):
