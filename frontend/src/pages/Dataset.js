@@ -2205,7 +2205,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             {dataset.trained_with && dataset.trained_with.length > 0 && <div className="model-description-trained">
                                 <p className="dataset-description-text trained-on-text dataset-description-start">Trained with by:</p>
                                 <div className="trained-on-container">
-                                    {dataset.trained_with.map((model, idx) => (
+                                    {dataset.trained_with.slice(0, 10).map((model, idx) => (
                                         <div key={idx} className="trained-on-element" onClick={() => {
                                             const URL = window.location.origin + "/models/" + model[0]
                                             var win = window.open(URL, '_blank');
@@ -2215,10 +2215,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                             <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
                                         </div>
                                     ))}
+                                    {dataset.trained_with.length > 10 && <p>and {dataset.trained_with.length - 10} others</p>}
                                 </div>
                             </div>}
 
-                            {(dataset.description ? <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{dataset.description}</p> : "This dataset does not have a description.")}
+                            <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{(dataset.description || "This dataset does not have a description.")}</p>
 
                             {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">
                                 {dataset.keywords.length > 0 && <span className="gray-text dataset-description-keywords-title">Keywords: </span>}
@@ -2227,7 +2228,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 ))}
                             </div>}
 
-                            <button className="hide-description-button" onClick={() => {setShowDatasetDescription(false)}}>Hide description</button>
+                            <button 
+                            className="hide-description-button"
+                            style={{marginTop: (dataset.keywords && dataset.keywords.length ? "0" : "auto")}}
+                            onClick={() => {setShowDatasetDescription(false)}}>
+                                <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/minus.png"} />
+                                Hide description
+                            </button>
                         </div>
 
                     </div>}

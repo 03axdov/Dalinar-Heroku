@@ -1095,13 +1095,10 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                                         </div>
                                     ))}
                                 </div>
+                                {dataset.trained_with.length > 10 && <p>and {dataset.trained_with.length - 10} others</p>}
                             </div>}
 
-                            {(dataset.description ? <p className="dataset-description-text dataset-description-description dataset-description-text-margin">
-                                {dataset.description}
-                            </p> : <p className="dataset-description-text dataset-description-description dataset-description-text-margin">
-                                This dataset does not have a description.
-                            </p>)}
+                            <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{(dataset.description || "This dataset does not have a description.")}</p>
 
                             {dataset.keywords && dataset.keywords.length > 0 && <div className="dataset-description-keywords">
                                 {dataset.keywords.length > 0 && <span className="gray-text dataset-description-keywords-title">Keywords: </span>}
@@ -1110,7 +1107,13 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                                 ))}
                             </div>}
 
-                            <button className="hide-description-button" onClick={() => {setShowDatasetDescription(false)}}>Hide description</button>
+                            <button 
+                            className="hide-description-button"
+                            style={{marginTop: (dataset.keywords && dataset.keywords.length ? "0" : "auto")}}
+                            onClick={() => {setShowDatasetDescription(false)}}>
+                                <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/minus.png"} />
+                                Hide description
+                            </button>
                         </div>
                     </div>}
                 </div>

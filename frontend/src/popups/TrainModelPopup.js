@@ -381,6 +381,28 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                 
 
                 {datasetTypeShown == "my" && <div className="my-datasets-container" style={{padding: 0, justifyContent: "center"}}>
+                    <div className="dataset-element no-margin tensorflow-dataset-element">
+                        <div className="dataset-element-header">
+                            <img title="TensorFlow datasets" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/tensorflowWhite.png"}/>
+                        
+                            <div className="dataset-element-name" title="TensorFlow Datasets">
+                                <p className="dataset-element-name-inner">TensorFlow</p>
+                            </div>
+
+                            <span className="dataset-element-icon-empty"></span>
+                        </div>
+
+                        <div className="tensorflow-dataset-container">
+                            <p className="tensorflow-dataset-description">Train on prebuilt TensorFlow datasets.</p>
+
+                            <select className="tensorflow-dataset-select">
+                                <option value="test">Test</option>
+                            </select>
+
+                            <button className="tensorflow-dataset-train-button">Train</button>
+                        </div>
+      
+                    </div>
                     {datasets.map((dataset) => (
                         ((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText) ? <div title={(dataset.datatype == "classification" ? "Train on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
                             if (dataset.datatype == "classification") {

@@ -14,10 +14,6 @@
     position: relative;
 }
 
-.dataset-element-training-outer {
-    margin: 0 5px;
-}
-
 .dataset-element:hover {
     cursor: pointer;
     background: var(--element-light);
@@ -28,13 +24,19 @@
     margin: 0;
     margin-left: 10px;
     margin-right: 10px;
+    display: flex;
+    max-width: calc(100% - 50px);
+    flex-direction: row;
+    align-items: center;
+}
+
+.dataset-element-name-inner {
+    min-width: 0;
     max-width: 100%;
     overflow: hidden; 
     text-overflow: ellipsis;
+    margin: 0;
     white-space: nowrap;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
 }
 
 .dataset-element-name-verified {
@@ -218,6 +220,11 @@
     text-overflow: ellipsis;
     background: var(--element-light);
     border-radius: 3px;
+}
+
+.tensorflow-dataset-element:hover {
+    cursor: default;
+    background: var(--element);
 }
 
 @media all and (max-width: 1110px) {

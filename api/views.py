@@ -453,7 +453,7 @@ class GetDataset(APIView):
                     data["ownername"] = dataset.owner.name
                     
                     trained_with = []
-                    for model in dataset.trained_with.all():
+                    for model in dataset.trained_with.annotate(num_downloads=Count('downloaders')).order_by("-num_downloads"):
                         trained_with.append([model.id, model.name])
                             
                     data["trained_with"] = trained_with
@@ -487,7 +487,7 @@ class GetDatasetPublic(APIView):
                 data["ownername"] = dataset.owner.name
                 
                 trained_with = []
-                for model in dataset.trained_with.all():
+                for model in dataset.trained_with.annotate(num_downloads=Count('downloaders')).order_by("-num_downloads"):
                     if model.visibility == "public":
                         trained_with.append([model.id, model.name])
                         
@@ -613,13 +613,14 @@ class EditDataset(APIView):
                         createSmallImage(dataset, 230, 190)
                         
                     dataset.visibility = visibility
-                    if keywords:
-                        dataset.keywords = keywords.split(",")
+                    dataset.keywords = list(filter(lambda el: el != "", keywords.split(",")))
+                        
                     if imageWidth:
                         dataset.imageWidth = int(imageWidth)
                     else: dataset.imageWidth = None
                     if imageHeight:
                         dataset.imageHeight = int(imageHeight)
+                    else: dataset.imageHeight = None
                         
                     if imageWidth and imageHeight:
                         for element in dataset.elements.all():

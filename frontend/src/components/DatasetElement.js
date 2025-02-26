@@ -37,10 +37,11 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false, isTraining=false,
                 {dataset.dataset_type.toLowerCase() == "image" && <img title="Image" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/image.png"}/>}
                 {dataset.dataset_type.toLowerCase() == "text" && <img title="Text" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/text.svg"}/>}
                 
-                <p className="dataset-element-name" title={dataset.name}>
-                    {dataset.name}
+                <div className="dataset-element-name" title={dataset.name}>
+                    <p className="dataset-element-name-inner">{dataset.name}</p>
+                    
                     {dataset.verified && <img title="Verified" className="dataset-element-name-verified" src={BACKEND_URL + "/static/images/blueCheck.png"} />}
-                </p>
+                </div>
 
                 {!isPublic && <img title="Edit dataset" className="dataset-element-icon dataset-element-options" src={BACKEND_URL + "/static/images/options.png"} onClick={(e) => {
                     e.stopPropagation()
