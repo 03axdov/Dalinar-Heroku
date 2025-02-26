@@ -452,6 +452,12 @@ class GetDataset(APIView):
                     data = datasetSerialized.data
                     data["ownername"] = dataset.owner.name
                     
+                    trained_with = []
+                    for model in dataset.trained_with.all():
+                        trained_with.append([model.id, model.name])
+                            
+                    data["trained_with"] = trained_with
+                    
                     return Response(data, status=status.HTTP_200_OK)
                     
                 except Dataset.DoesNotExist:
@@ -479,6 +485,13 @@ class GetDatasetPublic(APIView):
                 datasetSerialized = self.serializer_class(dataset)
                 data = datasetSerialized.data
                 data["ownername"] = dataset.owner.name
+                
+                trained_with = []
+                for model in dataset.trained_with.all():
+                    if model.visibility == "public":
+                        trained_with.append([model.id, model.name])
+                        
+                data["trained_with"] = trained_with
                 
                 return Response(data, status=status.HTTP_200_OK)
                 
@@ -1589,6 +1602,9 @@ class TrainModel(APIView):
 
                             if validation_size >= 1: # Some dataset are too small for validation
                                 train_dataset, validation_dataset = tf.keras.utils.split_dataset(dataset, train_size, validation_size, shuffle=True)
+                                
+                                train_dataset = train_dataset.prefetch(tf.data.experimental.AUTOTUNE)
+                                validation_dataset = validation_dataset.prefetch(tf.data.experimental.AUTOTUNE)
                             
                                 history = model.fit(train_dataset, epochs=epochs, validation_data=validation_dataset)
                             else:
@@ -1679,6 +1695,8 @@ class EvaluateModel(APIView):
                             model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
                             
                             dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance) 
+                            
+                            dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
                             
                             res = model.evaluate(dataset, return_dict=True)
                             

@@ -1071,6 +1071,8 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                                 </div>}
                             </div>
 
+                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p>
+
                             {dataset.dataset_type.toLowerCase() == "image" && dataset.imageWidth && <p className="dataset-description-text"><span className="dataset-description-start">Default Image Dimensions: </span>({dataset.imageWidth}, {dataset.imageHeight})</p>}
 
                             {dataset.dataset_type.toLowerCase() == "image" && <p className="dataset-description-text dataset-description-text-flex" style={{textTransform: "capitalize"}}>
@@ -1079,7 +1081,21 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                                 {dataset.datatype}
                             </p>}
 
-                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p>
+                            {dataset.trained_with && dataset.trained_with.length > 0 && <div className="model-description-trained">
+                                <p className="dataset-description-text trained-on-text dataset-description-start">Trained with by:</p>
+                                <div className="trained-on-container">
+                                    {dataset.trained_with.map((model, idx) => (
+                                        <div key={idx} className="trained-on-element" onClick={() => {
+                                            const URL = window.location.origin + "/models/public/" + model[0]
+                                            var win = window.open(URL, '_blank');
+                                            win.focus();
+                                        }}>
+                                            {model[1]}
+                                            <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>}
 
                             {(dataset.description ? <p className="dataset-description-text dataset-description-description dataset-description-text-margin">
                                 {dataset.description}

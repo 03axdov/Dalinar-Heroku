@@ -1783,6 +1783,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         document.addEventListener("mouseup", handleMouseUp);
     };
 
+    console.log(dataset)
+
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
@@ -2190,6 +2192,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 </div>}
                             </div>
 
+                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p>
+
                             {dataset.dataset_type.toLowerCase() == "image" && dataset.imageWidth && <p className="dataset-description-text"><span className="dataset-description-start">Default Image Dimensions: </span>({dataset.imageWidth}, {dataset.imageHeight})</p>}
 
                             {dataset.dataset_type.toLowerCase() == "image" && <p className="dataset-description-text dataset-description-text-flex" style={{textTransform: "capitalize"}}>
@@ -2198,7 +2202,21 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 {dataset.datatype}
                             </p>}
 
-                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p>
+                            {dataset.trained_with && dataset.trained_with.length > 0 && <div className="model-description-trained">
+                                <p className="dataset-description-text trained-on-text dataset-description-start">Trained with by:</p>
+                                <div className="trained-on-container">
+                                    {dataset.trained_with.map((model, idx) => (
+                                        <div key={idx} className="trained-on-element" onClick={() => {
+                                            const URL = window.location.origin + "/models/" + model[0]
+                                            var win = window.open(URL, '_blank');
+                                            win.focus();
+                                        }}>
+                                            {model[1]}
+                                            <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>}
 
                             {(dataset.description ? <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{dataset.description}</p> : "This dataset does not have a description.")}
 
