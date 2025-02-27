@@ -349,6 +349,9 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                     Warnings will appear when attempting to train on invalid datasets. Make sure that the input dimensions match the dataset.
                     Note that only labelled elements in the dataset will be trained on, and that training currently only supports classification datasets.
                     Validation will be ignored if the dataset contains too few elements for given split size.
+                    <br></br>
+                    <br></br>
+                    Be aware that training on TensorFlow datasets generally takes longer than training on Dalinar datasets.
                 </p>
 
                 <div className="train-model-row">

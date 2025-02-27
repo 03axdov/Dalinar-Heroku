@@ -1,9 +1,7 @@
 TO-DO:
 - Python security measures for dataset_types
 - .png files not working?
-- Datasets show which / how many models have trained / evaluated on them.
-- Check if training works regardless of image size.
-- Support for inbuilt TensorFlow datasets.
+- Show when trained on TensorFlow datasets
 - Text layers.
 
 For building:

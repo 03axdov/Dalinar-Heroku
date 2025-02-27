@@ -1715,9 +1715,105 @@ def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, us
     except Dataset.DoesNotExist:
         return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
      
+     
+def getTensorflowPrebuiltDataset(tensorflowDataset):
+    if tensorflowDataset == "boston_housing":
+        return tf.keras.datasets.boston_housing.load_data()
+    elif tensorflowDataset == "california_housing":
+        return tf.keras.datasets.california_housing.load_data()
+    elif tensorflowDataset == "cifar10":
+        return tf.keras.datasets.cifar10.load_data()
+    elif tensorflowDataset == "cifar100":
+        return tf.keras.datasets.cifar100.load_data()
+    elif tensorflowDataset == "fashion_mnist":
+        return tf.keras.datasets.fashion_mnist.load_data()
+    elif tensorflowDataset == "imdb":
+        return tf.keras.datasets.imdb.load_data()
+    elif tensorflowDataset == "mnist":
+        return tf.keras.datasets.mnist.load_data()
+    elif tensorflowDataset == "reuters":
+        return tf.keras.datasets.reuters.load_data()
+    else:
+        raise Exception("Invalid dataset.")
 
-def trainModelTensorflowDataset(model_id, epochs, validation_split, user):
-    return Response(None, status=status.HTTP_200_OK)
+def trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_split, user):
+    try:
+        model_instance = Model.objects.get(id=model_id)
+        
+        dataset = getTensorflowPrebuiltDataset(tensorflowDataset=tensorflowDataset)
+        
+        if model_instance.owner == user.profile:
+            if model_instance.model_file:
+                try:
+                    # Define the S3 bucket and file path
+                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                    model_file_path = "media/" + model_instance.model_file.name
+                    
+                    s3_client = get_s3_client()
+                    
+                    extension = model_file_path.split(".")[-1]
+
+                    # Download the model file from S3 to a local temporary file
+                    with open('temp_model' + str(model_instance.id) + '.' + extension, 'wb') as f:
+                        s3_client.download_fileobj(bucket_name, model_file_path, f)
+
+                    # Load the TensorFlow model from the temporary file
+                    model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
+                    
+                    dataset_length = len(dataset)
+                    validation_size = int(dataset_length * validation_split)
+                    train_size = dataset_length - validation_size
+
+                    if validation_size >= 1: # Some dataset are too small for validation
+                        train_dataset = dataset[:train_size]
+                        validation_dataset = data[train_size:]
+                    
+                        history = model.fit(train_dataset, epochs=epochs, validation_data=validation_dataset)
+                    else:
+                        history = model.fit(dataset, epochs=epochs)
+                    
+                    # UPDATING MODEL_FILE
+                    # Create a temporary file
+                    with tempfile.NamedTemporaryFile(delete=False, suffix="."+extension) as temp_file:
+                        temp_path = temp_file.name  # Get temp file path
+
+                    # Save the model to the temp file
+                    model.save(temp_path)
+                    
+                    model_instance.model_file.delete(save=False)
+                    # Open the file and save it to Django's FileField
+                    with open(temp_path, 'rb') as model_file:
+                        model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
+
+                    # Delete the temporary file after saving
+                    os.remove('temp_model' + str(model_instance.id) + '.' + extension)
+                    
+                    accuracy = history.history["accuracy"]
+                    loss = history.history["loss"]
+                    val_accuracy = []
+                    val_loss = []
+                    if validation_size >= 1:
+                        val_accuracy = history.history["val_accuracy"]
+                        val_loss = history.history["val_loss"]
+            
+                    return Response({"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss}, status=status.HTTP_200_OK)
+                
+                except ValueError as e: # In case of invalid layer combination
+                    message = str(e)
+                    if len(message) > 50 and len(list(dataset)) * validation_split > 1:
+                        message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
+                    
+                    raise ValueError(e)
+
+                    return Response({"Bad request": str(message)}, status=status.HTTP_400_BAD_REQUEST)
+                except Exception as e:
+                    return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"Bad request": "Model has not been built."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"Unauthorized": "You can only train your own models."}, status=status.HTTP_401_UNAUTHORIZED)
+    except Model.DoesNotExist:
+        return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         
 class TrainModel(APIView):
     parser_classes = [JSONParser]
@@ -1736,7 +1832,7 @@ class TrainModel(APIView):
             if dataset_id > 0 and tensorflowDataset == "":
                 return trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, user)
             else:
-                return trainModelTensorflowDataset(model_id, epochs, validation_split, user)
+                return trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_split, user)
         else:
             return Response({"Unauthorized": "Must be logged in to train models."}, status=status.HTTP_401_UNAUTHORIZED)
   
