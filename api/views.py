@@ -1561,6 +1561,74 @@ class BuildModel(APIView):
             return Response({"Unauthorized": "Must be logged in to build models."}, status=status.HTTP_401_UNAUTHORIZED)
         
         
+class RecompileModel(APIView):
+    parser_classes = [JSONParser]
+
+    def post(self, request, format=None):
+        model_id = request.data["id"]
+        optimizer = request.data["optimizer"]
+        loss_function = request.data["loss"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                model_instance = Model.objects.get(id=model_id)
+                if not model_instance.model_file: return Response({"Bad request": "Model has not been built."}, status=status.HTTP_200_OK)
+                
+                if model_instance.owner == user.profile:
+                    try:
+                       # Define the S3 bucket and file path
+                        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                        model_file_path = "media/" + model_instance.model_file.name
+                        
+                        s3_client = get_s3_client()
+                        
+                        extension = model_file_path.split(".")[-1]
+
+                        # Download the model file from S3 to a local temporary file
+                        with open('temp_model' + str(model_instance.id) + '.' + extension, 'wb') as f:
+                            s3_client.download_fileobj(bucket_name, model_file_path, f)
+
+                        # Load the TensorFlow model from the temporary file
+                        model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
+
+                        model.compile(optimizer=optimizer, loss=loss_function, metrics=['accuracy'])
+                        
+                        # UPDATING MODEL_FILE
+                        # Create a temporary file
+                        with tempfile.NamedTemporaryFile(delete=False, suffix="."+extension) as temp_file:
+                            temp_path = temp_file.name  # Get temp file path
+
+                        # Save the model to the temp file
+                        model.save(temp_path)
+                        
+                        model_instance.model_file.delete(save=False)
+                        # Open the file and save it to Django's FileField
+                        with open(temp_path, 'rb') as model_file:
+                            model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
+
+                        # Delete the temporary file after saving
+                        os.remove('temp_model' + str(model_instance.id) + '.' + extension)
+                        
+                        model_instance.optimizer = optimizer
+                        model_instance.loss_function = loss_function
+                        
+                        model_instance.save()
+                        
+                        return Response(None, status=status.HTTP_200_OK)
+                
+                    except ValueError as e: # In case of invalid layer combination
+                        print("Error: ", e)
+                        return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+                else:
+                    return Response({"Unauthorized": "You can only recompile your own models."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Model.DoesNotExist:
+                return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "Must be logged in to recompile models."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
 def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, user):
     try:
         model_instance = Model.objects.get(id=model_id)

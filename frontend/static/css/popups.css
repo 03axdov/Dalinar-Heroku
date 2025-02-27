@@ -648,6 +648,10 @@
     background: rgb(75,75,75);
 }
 
+.build-model-recompile {
+    margin-right: 20px;
+}
+
 @media all and (max-width: 1000px) {
     .download-popup-container {
         padding: 10px 30px;

@@ -1,6 +1,6 @@
 import React, {useState} from "react"
 
-function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildModel, BACKEND_URL}) {
+function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildModel, BACKEND_URL, isBuilt, recompileModel, processingRecompile}) {
 
     const [optimizer, setOptimizer] = useState("adam")
     const [loss, setLoss] = useState("categorical_crossentropy")
@@ -13,7 +13,8 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
                 <h1 className="create-layer-popup-title">Build model</h1>
                 <p className="create-layer-popup-description">
                     Building a model generates the actual model file. The model can then be trained and downloaded. 
-                    Note that rebuilding the model will reset it, i.e. updates from training will be erased. A model can be rebuilt as many times as wanted.
+                    Note that rebuilding the model will reset it, i.e. updates from training will be erased. Recompiling will not reset these, but only recompiles the last built model (i.e. not any changes made since). 
+                    A model can be rebuilt or recompiled as many times as needed.
                 </p>
 
                 <form className="build-model-form" onSubmit={(e) => {
@@ -53,6 +54,12 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
 
                     <div className="create-layer-popup-buttons">
                         <button type="button" className="create-layer-popup-cancel" onClick={() => setShowBuildModelPopup(false)}>Cancel</button>
+                        {isBuilt && <button type="button" className="create-layer-popup-submit build-model-recompile" onClick={() => {
+                            recompileModel(optimizer, loss)
+                        }}>
+                            {processingRecompile && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                            {(!processingRecompile ? "Recompile" : "Compiling...")}
+                        </button>}
                         <button type="submit" className="create-layer-popup-submit">
                             {processingBuildModel && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
                             {(!processingBuildModel ? "Build model" : "Building...")}

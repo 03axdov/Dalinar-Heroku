@@ -17,8 +17,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const { id } = useParams();
     const [model, setModel] = useState(null)
     const [layers, setLayers] = useState([])
+
     const [loading, setLoading] = useState(true)
     const [processingBuildModel, setProcessingBuildModel] = useState(false)
+    const [processingCreateLayer, setProcessingCreateLayer] = useState(false)
+    const [processingRecompile, setProcessingRecompile] = useState(false)
 
     const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
     const [showBuildModelPopup, setShowBuildModelPopup] = useState(false)
@@ -29,7 +32,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [downloading, setDownloading] = useState(false)
     const [isDownloaded, setIsDownloaded] = useState(false)
 
-    const [processingCreateLayer, setProcessingCreateLayer] = useState(false)
+    
 
     const [showModelDescription, setShowModelDescription] = useState(false)
     const pageRef = useRef(null)
@@ -135,11 +138,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }
 
     function buildModel(optimizer, loss) {
-        if (warnings) {
-            notification("Warnings must be addressed before building model.", "failure")
-            return;
-        }
 
+        if (processingBuildModel) {return}
         setProcessingBuildModel(true)
 
         const URL = window.location.origin + '/api/build-model/'
@@ -173,6 +173,45 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             
         }).finally(() => {
             setProcessingBuildModel(false)
+            setShowBuildModelPopup(false)
+        })
+    }
+
+    function recompileModel(optimizer, loss) {
+
+        if (processingRecompile) {return}
+        setProcessingRecompile(true)
+
+        const URL = window.location.origin + '/api/recompile-model/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        console.log(layers)
+
+        let data = {
+            "id": model.id,
+            "optimizer": optimizer,
+            "loss": loss,
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            notification("Successfully recompiled model.", "success")
+            getModel()
+        }).catch((error) => {
+            console.log(error)
+            if (error.status == 400) {
+                notification(error.response.data["Bad request"], "failure")
+            } else {
+                notification("Error: " + error, "failure")
+            }
+
+            
+        }).finally(() => {
+            setProcessingRecompile(false)
             setShowBuildModelPopup(false)
         })
     }
@@ -448,7 +487,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                 setShowBuildModelPopup={setShowBuildModelPopup} 
                 buildModel={buildModel}
                 processingBuildModel={processingBuildModel}
-                BACKEND_URL={BACKEND_URL}></BuildModelPopup>}
+                BACKEND_URL={BACKEND_URL}
+                isBuilt={model.model_file != null}
+                recompileModel={recompileModel}
+                processingRecompile={processingRecompile}></BuildModelPopup>}
 
             {showCreateLayerPopup && <CreateLayerPopup BACKEND_URL={BACKEND_URL}
                                                     onSubmit={createLayer} 
@@ -649,6 +691,9 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                     ))}
                                 </div>
                             </div>}
+
+                            {model.optimizer && <p className="dataset-description-text"><span className="dataset-description-start">Optimizer: </span>{model.optimizer}</p>}
+                            {model.loss_function && <p className="dataset-description-text"><span className="dataset-description-start">Loss function: </span>{model.loss_function}</p>}
 
                             <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{model.ownername}</p>
 
