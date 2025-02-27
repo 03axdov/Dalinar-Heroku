@@ -3,6 +3,7 @@ TO-DO:
 - .png files not working?
 - Show when trained on TensorFlow datasets
 - Text layers.
+- Model prediction
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

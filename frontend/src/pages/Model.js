@@ -455,6 +455,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         document.addEventListener("mouseup", handleMouseUp);
     };
 
+    console.log(model)
+
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
@@ -660,35 +662,53 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                 </div>}
                             </div>
 
-                            {model.trained_on && model.trained_on.length > 0 && <div className="model-description-trained">
-                                <p className="dataset-description-text trained-on-text dataset-description-start">Trained on:</p>
+                            {(model.trained_on || model.trained_on_tensorflow) && <div className="model-description-trained">
+                                <p className="dataset-description-text trained-on-text dataset-description-start">Last trained on:</p>
                                 <div className="trained-on-container">
-                                    {model.trained_on.map((id, idx) => (
-                                        <div key={idx} className="trained-on-element" onClick={() => {
-                                            const URL = window.location.origin + "/datasets/" + (model.trained_on_visibility[idx] == "public" ? "public/" : "") + id
-                                            var win = window.open(URL, '_blank');
-                                            win.focus();
-                                        }}>
-                                            {model.trained_on_names[idx]}
-                                            <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
-                                        </div>
-                                    ))}
+                                    {model.trained_on && <div className="trained-on-element" onClick={() => {
+                                        const URL = window.location.origin + "/datasets/" + (model.trained_on.visibility == "public" ? "public/" : "") + model.trained_on.id
+                                        var win = window.open(URL, '_blank');
+                                        win.focus();
+                                    }}>
+                                        {model.trained_on.name} - {Math.round(10**6 * model.trained_accuracy) / 10**4 + "%"} accuracy
+                                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                                    </div>}
+
+                                    {model.trained_on_tensorflow && <div className="trained-on-element" onClick={() => {
+                                        const URL = "https://www.tensorflow.org/api_docs/python/tf/keras/datasets/" + model.trained_on_tensorflow + "/load_data"
+                                        var win = window.open(URL, '_blank');
+                                        win.focus();
+                                    }}>
+                                        <img className="trained-on-tensorflow-icon" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} />
+                                        {model.trained_on_tensorflow} - {Math.round(10**6 * model.trained_accuracy) / 10**4 + "%"} accuracy
+                                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                                    </div>}
                                 </div>
                             </div>}
 
-                            {model.evaluations && model.evaluations.length > 0 && <div className="model-description-trained">
-                                <p className="dataset-description-text trained-on-text dataset-description-start">Evaluations:</p>
+                            {(model.evaluated_on || model.evaluated_on_tensorflow) && <div className="model-description-trained">
+                                <p className="dataset-description-text trained-on-text dataset-description-start">Evaluated on:</p>
                                 <div className="trained-on-container">
-                                    {model.evaluations.map((evaluation, idx) => (
-                                        <div key={idx} className="trained-on-element" onClick={() => {
-                                            const URL = window.location.origin + "/datasets/" + (evaluation.dataset.visibility == "public" ? "public/" : "") + evaluation.dataset.id
-                                            var win = window.open(URL, '_blank');
-                                            win.focus();
-                                        }}>
-                                            {evaluation.dataset.name} - {evaluation.accuracy * 100 + "%"} accuracy
-                                            <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
-                                        </div>
-                                    ))}
+
+                                    {model.evaluated_on && <div className="trained-on-element" onClick={() => {
+                                        const URL = window.location.origin + "/datasets/" + (model.evaluated_on.visibility == "public" ? "public/" : "") + model.evaluated_on.id
+                                        var win = window.open(URL, '_blank');
+                                        win.focus();
+                                    }}>
+                                        {model.evaluated_on.name} - {Math.round(10**6 * model.evaluated_accuracy) / 10**4 + "%"} accuracy
+                                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                                    </div>}
+
+                                    {model.evaluated_on_tensorflow && <div className="trained-on-element" onClick={() => {
+                                        const URL = "https://www.tensorflow.org/api_docs/python/tf/keras/datasets/" + model.evaluated_on_tensorflow + "/load_data"
+                                        var win = window.open(URL, '_blank');
+                                        win.focus();
+                                    }}>
+                                        <img className="trained-on-tensorflow-icon" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} />
+                                        {model.evaluated_on_tensorflow} - {Math.round(10**6 * model.evaluated_accuracy) / 10**4 + "%"} accuracy
+                                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                                    </div>}
+
                                 </div>
                             </div>}
 

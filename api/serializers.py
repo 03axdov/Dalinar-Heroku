@@ -206,22 +206,11 @@ class CreateResizingLayerSerializer(serializers.ModelSerializer):
         
 # MODEL HANDLING
 
-class EvaluationSerializer(serializers.ModelSerializer):
-    dataset = DatasetSerializer(read_only=True)
-    
-    class Meta:
-        model = Evaluation
-        fields = "__all__"
-        
-class CreateEvaluationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Evaluation
-        fields = ("accuracy", "model", "dataset")
-        
 
 class ModelSerializer(serializers.ModelSerializer):
     layers = LayerSerializer(many=True, read_only=True)
-    evaluations = EvaluationSerializer(many=True, read_only=True)
+    trained_on = DatasetSerializer(read_only=True)
+    evaluated_on = DatasetSerializer(read_only=True)
     
     class Meta:
         model = Model

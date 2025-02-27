@@ -194,7 +194,14 @@ class Model(models.Model):
     imageSmall = models.ImageField(upload_to="images/", null=True)
     downloaders = models.ManyToManyField(Profile, related_name="downloaded_models", blank=True)
     verified = models.BooleanField(default=False)
-    trained_on = models.ManyToManyField(Dataset, related_name="trained_with", blank=True)   # Only names and id of these datasets
+    
+    trained_on = models.ForeignKey(Dataset, on_delete=models.SET_NULL, related_name="trained_with", blank=True, null=True)   # Last trained on
+    trained_on_tensorflow = models.CharField(max_length=100, blank=True, null=True)  # Used when training on TensorFlow datasets
+    trained_accuracy = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], blank=True, null=True)
+    
+    evaluated_on = models.ForeignKey(Dataset, on_delete=models.SET_NULL, related_name="evaluated_with", blank=True, null=True)
+    evaluated_on_tensorflow = models.CharField(max_length=100, blank=True, null=True)   # Used when evaluating on TensorFlow datasets
+    evaluated_accuracy = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], blank=True, null=True)
     
     VISIBILITY_CHOICES = [
         ("private", "Private"),
@@ -208,15 +215,6 @@ class Model(models.Model):
     
     def __str__(self):
         return self.name + " - " + self.owner.name
-    
-    
-class Evaluation(models.Model):
-    accuracy = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(1.0)])
-    model = models.ForeignKey(Model, on_delete=models.CASCADE, related_name="evaluations")
-    dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
-    
-    def __str__(self):
-        return 'Evaluation for "' + str(self.model) + '" on "' + str(self.dataset) + '" - ' + str(self.accuracy * 100) + "%"
     
     
 @receiver(post_delete, sender=Model)

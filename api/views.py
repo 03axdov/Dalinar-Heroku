@@ -360,22 +360,7 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
             {'Bad Request': f'Error creating layer {idx}'},
             status=layer_response.status_code
         )
-        
-        
-def create_evaluation(accuracy, model, dataset):    # Create Evaluation instace. Only called when user is authenticated and owns model. Return True if success, False otherwise
-    data = {
-        "accuracy": accuracy,
-        "model": model.id,
-        "dataset": dataset.id
-    }
     
-    serializer = CreateEvaluationSerializer(data=data)
-    
-    if serializer.is_valid():
-        serializer.save()
-        return True
-    else:
-        return False
 
 # PROFILE HANDLING
 
@@ -452,11 +437,8 @@ class GetDataset(APIView):
                     data = datasetSerialized.data
                     data["ownername"] = dataset.owner.name
                     
-                    trained_with = []
-                    for model in dataset.trained_with.annotate(num_downloads=Count('downloaders')).order_by("-num_downloads"):
-                        trained_with.append([model.id, model.name])
-                            
-                    data["trained_with"] = trained_with
+                    if dataset.trained_with:    
+                        data["trained_with"] = [dataset.trained_with.id, dataset.trained_with.id]
                     
                     return Response(data, status=status.HTTP_200_OK)
                     
@@ -486,12 +468,8 @@ class GetDatasetPublic(APIView):
                 data = datasetSerialized.data
                 data["ownername"] = dataset.owner.name
                 
-                trained_with = []
-                for model in dataset.trained_with.annotate(num_downloads=Count('downloaders')).order_by("-num_downloads"):
-                    if model.visibility == "public":
-                        trained_with.append([model.id, model.name])
-                        
-                data["trained_with"] = trained_with
+                if dataset.trained_with:    
+                    data["trained_with"] = [dataset.trained_with.id, dataset.trained_with.id]
                 
                 return Response(data, status=status.HTTP_200_OK)
                 
@@ -1300,15 +1278,6 @@ class GetModel(APIView):
                     data = modelSerialized.data
                     data["ownername"] = model.owner.name
                     
-                    trained_on_names = []
-                    trained_on_visibility = []
-                    for dataset in model.trained_on.all():
-                        trained_on_names.append(dataset.name)
-                        trained_on_visibility.append(dataset.visibility)
-                        
-                    data["trained_on_names"] = trained_on_names
-                    data["trained_on_visibility"] = trained_on_visibility
-                    
                     return Response(data, status=status.HTTP_200_OK)
                     
                 except Model.DoesNotExist:
@@ -1336,15 +1305,6 @@ class GetModelPublic(APIView):
                 modelSerialized = self.serializer_class(model)
                 data = modelSerialized.data
                 data["ownername"] = model.owner.name
-                
-                trained_on_names = []
-                trained_on_visibility = []
-                for dataset in model.trained_on.all():
-                    trained_on_names.append(dataset.name)
-                    trained_on_visibility.append(dataset.visibility)
-                    
-                data["trained_on_names"] = trained_on_names
-                data["trained_on_visibility"] = trained_on_visibility
                 
                 return Response(data, status=status.HTTP_200_OK)
                 
@@ -1543,8 +1503,13 @@ class BuildModel(APIView):
                         instance.optimizer = optimizer
                         instance.loss_function = loss_function
                         
-                        instance.trained_on.clear()
-                        instance.evaluations.all().delete()
+                        instance.trained_on = None
+                        instance.trained_on_tensorflow = None
+                        instance.trained_accuracy = ""
+                        
+                        instance.evaluated_on = None
+                        instance.evaluated_on_tensorflow = None
+                        instance.evaluated_accuracy = ""
                         
                         instance.save()
                         
@@ -1692,7 +1657,9 @@ def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, us
                         val_loss = history.history["val_loss"]
                     
                     # UPDATING MODEL TRAINED_ON
-                    model_instance.trained_on.add(dataset_instance)
+                    model_instance.trained_on = dataset_instance
+                    model_instance.trained_accuracy = accuracy[-1]
+                    model_instance.save()
             
                     return Response({"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss}, status=status.HTTP_200_OK)
                 
@@ -1795,6 +1762,10 @@ def trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_
                     if validation_size >= 1:
                         val_accuracy = history.history["val_accuracy"]
                         val_loss = history.history["val_loss"]
+                        
+                    model_instance.trained_on_tensorflow = tensorflowDataset
+                    model_instance.trained_accuracy = accuracy[-1]
+                    model_instance.save()
             
                     return Response({"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss}, status=status.HTTP_200_OK)
                 
@@ -1814,6 +1785,7 @@ def trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_
             return Response({"Unauthorized": "You can only train your own models."}, status=status.HTTP_401_UNAUTHORIZED)
     except Model.DoesNotExist:
         return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        
         
 class TrainModel(APIView):
     parser_classes = [JSONParser]
@@ -1879,9 +1851,8 @@ class EvaluateModel(APIView):
                             # Delete the temporary file after saving
                             os.remove('temp_model' + str(model_instance.id) + '.' + extension)
                             
-                            evaluation_status = create_evaluation(res["accuracy"], model_instance, dataset_instance)
-                            if not evaluation_status:
-                                return Response({"Bad request": "Failed to create evaluation"}, status=status.HTTP_400_BAD_REQUEST)
+                            model_instance.evaluated_on = dataset_instance
+                            model_instance.evaluated_accuracy = res["accuracy"]
                             
                             return Response(res, status=status.HTTP_200_OK)
                         
