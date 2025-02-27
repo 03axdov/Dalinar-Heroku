@@ -38,6 +38,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
     const [wasTrained, setWasTrained] = useState(false)
     const [epochTypeShown, setEpochTypeShown] = useState("training")    // "training" or "validation"
 
+    const [tensorflowDataset, setTensorflowDataset] = useState("cifar10")
+
     useEffect(() => {
         getDatasets()
     }, [])
@@ -69,7 +71,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
         })
     }
 
-    function trainModel(dataset_id) {
+    function trainModel(dataset_id, tensorflowDatasetSelected = "") {
         const URL = window.location.origin + '/api/train-model/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
@@ -77,7 +79,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
             "model": model_id,
             "dataset": dataset_id,
             "epochs": epochs,
-            "validation_split": validationSplit
+            "validation_split": validationSplit,
+            "tensorflow_dataset": tensorflowDatasetSelected
         }
 
         axios.defaults.withCredentials = true;
@@ -90,7 +93,9 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
 
         axios.post(URL, data, config)
         .then((res) => {
+            
             data = res.data
+            if (!data) {return}
 
             notification("Successfully trained dataset.", "success")
 
@@ -257,6 +262,12 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
         }, "blue")
     }
 
+    function tensorflowDatasetOnClick() {
+        activateConfirmPopup("Are you sure you want to train this model on the dataset " + tensorflowDataset + "? This action can only be undone by rebuilding the model.", () => {
+            trainModel(-1, tensorflowDataset)
+        }, "blue")
+    }
+
 
     return (
         <div className="popup train-model-popup" onClick={() => setShowTrainModelPopup(false)}>
@@ -334,7 +345,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                 </div>
                 
                 <p className="create-layer-popup-description">
-                    You can train the model on your own datasets, as well as any public datasets you've saved.
+                    You can train the model on your own datasets, prebuilt TensorFlow datasets, as well as any public datasets you've saved.
                     Warnings will appear when attempting to train on invalid datasets. Make sure that the input dimensions match the dataset.
                     Note that only labelled elements in the dataset will be trained on, and that training currently only supports classification datasets.
                     Validation will be ignored if the dataset contains too few elements for given split size.
@@ -393,13 +404,30 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                         </div>
 
                         <div className="tensorflow-dataset-container">
-                            <p className="tensorflow-dataset-description">Train on prebuilt TensorFlow datasets.</p>
-
-                            <select className="tensorflow-dataset-select">
-                                <option value="test">Test</option>
+                            <select className="tensorflow-dataset-select" value={tensorflowDataset} onChange={(e) => {
+                                setTensorflowDataset(e.target.value)
+                            }}>
+                                <option value="boston_housing">boston_housing</option>
+                                <option value="california_housing">california_housing</option>
+                                <option value="cifar10">cifar10</option>
+                                <option value="cifar100">cifar100</option>
+                                <option value="fashion_mnist">fashion_mnist</option>
+                                <option value="imdb">imdb</option>
+                                <option value="mnist">mnist</option>
+                                <option value="reuters">reuters</option>
                             </select>
 
-                            <button className="tensorflow-dataset-train-button">Train</button>
+                            <button className="tensorflow-dataset-train-button" onClick={() => {
+                                tensorflowDatasetOnClick()
+                            }}>Train</button>
+                            <button className="tensorflow-dataset-train-button tensorflow-dataset-more-info" onClick={() => {
+                                const URL = "https://www.tensorflow.org/api_docs/python/tf/keras/datasets"
+                                var win = window.open(URL, '_blank');
+                                win.focus();
+                            }}>
+                                More info
+                                <img className="tensorflow-dataset-external" src={BACKEND_URL + "/static/images/external.png"}/>
+                            </button>
                         </div>
       
                     </div>

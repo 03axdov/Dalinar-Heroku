@@ -591,7 +591,7 @@
     max-height: 190px;
     background: var(--background-dark);
     border-radius: 5px;
-    padding: 20px 10px;
+    padding: 20px;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -600,6 +600,16 @@
 .tensorflow-dataset-description {
     margin: 0;
     font-size: 0.9rem;
+    display: flex;
+    flex-direction: row;
+    margin-top: 5px;
+    align-items: center;
+}
+
+.tensorflow-dataset-external {
+    margin-left: 5px;
+    height: 15px;
+    width: 15px;
 }
 
 .tensorflow-dataset-select {
@@ -619,7 +629,6 @@
     -ms-text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
     width: 100%;
-    margin-top: 20px;
 }
 
 .tensorflow-dataset-train-button {
@@ -628,6 +637,15 @@
     padding: 5px 10px;
     font-size: 1rem;
     background: var(--sidebar-button);
+}
+
+.tensorflow-dataset-more-info {
+    margin-top: 5px;
+    background: var(--sidebar-button-hover);
+}
+
+.tensorflow-dataset-more-info:hover {
+    background: rgb(75,75,75);
 }
 
 @media all and (max-width: 1000px) {
