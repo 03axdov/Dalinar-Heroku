@@ -1321,7 +1321,6 @@ class CreateModel(APIView):
     
     def post(self, request, format=None):
         data = request.data
-        data_dict = dict(data)
         
         user = request.user
         
@@ -1334,7 +1333,7 @@ class CreateModel(APIView):
                 
                 createSmallImage(model_instance, 230, 190)    # Create a smaller image for displaying model elements
                 
-                if request.data["model"]:   # Uploaded model
+                if "model" in request.data.keys() and request.data["model"]:   # Uploaded model
                     model_file = request.data["model"]
                     extension = model_file.name.split(".")[-1]
                     temp_path = "temp_models/" + model_file.name

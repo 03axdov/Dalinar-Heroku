@@ -392,6 +392,11 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                                 </div>
                             </div>}
 
+                            <p className="dataset-description-text"><span className="dataset-description-start">Type: </span>{model.model_type}</p>
+
+                            {model.optimizer && <p className="dataset-description-text"><span className="dataset-description-start">Optimizer: </span>{model.optimizer}</p>}
+                            {model.loss_function && <p className="dataset-description-text"><span className="dataset-description-start">Loss function: </span>{model.loss_function}</p>}
+
                             <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{model.ownername}</p>
 
                             {(model.description ? <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{model.description}</p> : "This dataset does not have a description.")}

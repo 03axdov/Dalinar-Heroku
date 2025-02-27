@@ -9,7 +9,7 @@ function CreateModel({notification, BACKEND_URL}) {
 
     const [loading, setLoading] = useState(false)
 
-    const [type, setType] = useState("classification")
+    const [modelType, setModelType] = useState("image")
     const [name, setName] = useState("")
     const [description, setDescription] = useState("")
     const [image, setImage] = useState(null)
@@ -54,10 +54,10 @@ function CreateModel({notification, BACKEND_URL}) {
         let formData = new FormData()
 
         formData.append('name', name)
-        formData.append('datatype', type)
         formData.append('description', (description ? description : ""))
         formData.append('image', image)
         formData.append("visibility", visibility)
+        formData.append('model_type', modelType)
 
         if (modelFile) {
             formData.append("model", modelFile)
@@ -109,6 +109,18 @@ function CreateModel({notification, BACKEND_URL}) {
                     Machine learning models consist of an arbitrary number of different layers, which can be added to created models.
                     Once layers have been specified, the model can be trained and downloaded.
                 </p>
+
+                <div className="create-dataset-label-inp">
+                    <p className="create-dataset-label create-dataset-type">Model type</p>
+                    <input type="radio" id="create-dataset-type-image" name="imagetype" value="image" checked={modelType == "image"} onChange={(e) => {
+                        setModelType(e.target.value)
+                    }} />
+                    <label htmlFor="create-dataset-type-image" className="create-dataset-type-label">Image</label>
+                    <input type="radio" id="create-dataset-type-text" name="texttype" value="text" checked={modelType == "text"}  onChange={(e) => {
+                        setModelType(e.target.value)
+                    }} />
+                    <label htmlFor="create-dataset-type-text" className="create-dataset-type-label">Text</label>
+                </div>
 
                 <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="dataset-name">Model name <span className="create-dataset-required">(required)</span></label>

@@ -314,6 +314,12 @@ function CreateDataset({notification, BACKEND_URL}) {
         return true;
     }
 
+    function clearUploadedDatasets() {
+        setUploadedDatasets({})
+        setUploadedFilenamesAsLabels([])
+        setUploadedFoldersAsLabels([])
+    }
+
     return (
         <div className="create-dataset-container">
 
@@ -330,17 +336,17 @@ function CreateDataset({notification, BACKEND_URL}) {
                     <p className="create-dataset-label create-dataset-type">Dataset type</p>
                     <input type="radio" id="create-dataset-type-image" name="imagetype" value="image" checked={datasetType == "image"} onChange={(e) => {
                         setDatasetType(e.target.value)
-                        setUploadedFoldersAsLabels([])
+                        clearUploadedDatasets()
                     }} />
                     <label htmlFor="create-dataset-type-image" className="create-dataset-type-label">Image</label>
                     <input type="radio" id="create-dataset-type-text" name="texttype" value="text" checked={datasetType == "text"}  onChange={(e) => {
                         setDatasetType(e.target.value)
-                        setUploadedFilenamesAsLabels([])
-                        setType("classification")
+                        clearUploadedDatasets()
+                        setType("classification")   // Area not valid for text datasets
                     }} />
                     <label htmlFor="create-dataset-type-text" className="create-dataset-type-label">Text</label>
                 </div>
-                <p className="create-dataset-description">Note that switching dataset type will remove all uploaded datasets.</p>
+                <p className="create-dataset-description">Note that switching dataset type will remove uploaded datasets.</p>
                 
 
                 <div className="create-dataset-label-inp">

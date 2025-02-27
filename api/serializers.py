@@ -220,6 +220,6 @@ class ModelSerializer(serializers.ModelSerializer):
 class CreateModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Model
-        fields = ("name", "description", "visibility", "image")
+        fields = ("name", "model_type", "description", "visibility", "image")
         
         

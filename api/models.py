@@ -195,6 +195,12 @@ class Model(models.Model):
     downloaders = models.ManyToManyField(Profile, related_name="downloaded_models", blank=True)
     verified = models.BooleanField(default=False)
     
+    MODEL_TYPE_CHOICES = [
+        ("image", "Image"),
+        ("text", "Text")
+    ]
+    model_type = models.CharField(max_length=20, choices=MODEL_TYPE_CHOICES, default="Image")
+    
     trained_on = models.ForeignKey(Dataset, on_delete=models.SET_NULL, related_name="trained_with", blank=True, null=True)   # Last trained on
     trained_on_tensorflow = models.CharField(max_length=100, blank=True, null=True)  # Used when training on TensorFlow datasets
     trained_accuracy = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], blank=True, null=True)

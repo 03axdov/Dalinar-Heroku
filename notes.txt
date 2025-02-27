@@ -1,7 +1,7 @@
 TO-DO:
 - Python security measures for dataset_types
 - .png files not working?
-- Show when trained on TensorFlow datasets
+- Confirm popup when switching type with uploaded dataset / model
 - Text layers.
 - Model prediction
 

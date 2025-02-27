@@ -712,6 +712,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                 </div>
                             </div>}
 
+                            <p className="dataset-description-text"><span className="dataset-description-start">Type: </span>{model.model_type}</p>
+
                             {model.optimizer && <p className="dataset-description-text"><span className="dataset-description-start">Optimizer: </span>{model.optimizer}</p>}
                             {model.loss_function && <p className="dataset-description-text"><span className="dataset-description-start">Loss function: </span>{model.loss_function}</p>}
 
