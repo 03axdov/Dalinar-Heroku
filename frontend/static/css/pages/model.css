@@ -503,6 +503,56 @@ div.layer-element-mode-input {
     align-items: center;
 }
 
+.predict-image-container {
+    width: 100%;
+    height: 275px;
+}
+
+.predict-text-container {
+    width: 100%;
+    height: 275px;
+    font-size: 1rem;
+    font-weight: 500;
+    outline: none;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+    box-sizing: border-box;
+    padding: 15px;
+    border: 1px solid var(--border);
+    background: var(--background-dark);
+    resize: none;
+}
+
+.predict-text-container::-webkit-scrollbar {
+    width: 7px;
+}
+
+.model-prediction-container {
+    width: 100%;
+    margin-top: 30px;
+}
+
+.predict-image {
+    object-fit: contain;
+}
+
+.model-prediction {
+    background: var(--background-dark);
+    margin-top: 30px;
+    font-size: 1.1rem;
+    border: 1px solid var(--border);
+    box-sizing: border-box;
+    padding: 7px 14px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.prediction-bottom {
+    width: 100%;
+    margin-top: auto;
+}
+
 @media all and (max-width: 1280px) {
     .model-evaluate-button {
         font-size: 0rem;

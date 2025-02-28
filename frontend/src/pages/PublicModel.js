@@ -336,7 +336,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                                 setShowPredictionPopup(true)
                             }
                         }}>
-                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/evaluate.svg"} />
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/prediction.svg"} />
                             Predict
                         </button>}
 
