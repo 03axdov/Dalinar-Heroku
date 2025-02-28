@@ -3,7 +3,7 @@ TO-DO:
 - .png files not working?
 - Confirm popup when switching type with uploaded dataset / model
 - Text layers.
-- Model prediction
+- Model prediction (multiple)
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

@@ -13,6 +13,7 @@ from django.urls import resolve
 import json
 from rest_framework.test import APIRequestFactory
 import math
+import numpy as np
 
 import tempfile
 import os
@@ -361,6 +362,58 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
             status=layer_response.status_code
         )
     
+    
+def get_tf_model(model_instance):     # Gets a Tensorflow model from a built Model instance
+    # Define the S3 bucket and file path
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    model_file_path = "media/" + model_instance.model_file.name
+    
+    s3_client = get_s3_client()
+    
+    extension = model_file_path.split(".")[-1]
+
+    # Download the model file from S3 to a local temporary file
+    with open('temp_model' + str(model_instance.id) + '.' + extension, 'wb') as f:
+        s3_client.download_fileobj(bucket_name, model_file_path, f)
+
+    # Load the TensorFlow model from the temporary file
+    model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
+    return model
+    
+    
+def remove_temp_tf_model(model_instance):
+    extension = str(model_instance.model_file).split(".")[-1]
+    os.remove('temp_model' + str(model_instance.id) + '.' + extension) 
+    
+    
+def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Convert uploaded files to tensors for TensorFlow processing
+    image = Image.open(uploaded_file)
+    
+    # Convert to RGB (to handle grayscale images)
+    if target_size[-1] == 3:
+        image = image.convert("RGB")
+    elif target_size[-1] == 4:
+        image = image.convert("RGBA")
+    elif target_size[-1] == 1:
+        image = image.convert("I")
+    
+    # Resize the image to fit model requirements
+    image = image.resize((target_size[0], target_size[1]))
+    
+    # Convert image to NumPy array
+    image_array = np.array(image)
+    
+    # Normalize pixel values to [0,1]
+    image_array = image_array / 255.0
+    
+    # Expand dimensions to match TensorFlow model input
+    image_array = np.expand_dims(image_array, axis=0)  # Shape: (1, height, width, channels)
+    
+    # Convert to TensorFlow tensor
+    image_tensor = tf.convert_to_tensor(image_array, dtype=tf.float32)
+    
+    return image_tensor
+
 
 # PROFILE HANDLING
 
@@ -1350,12 +1403,14 @@ class CreateModel(APIView):
                     s3_client = get_s3_client()
                     
                     # Download the model file from S3 to a local temporary file
-                    with open('temp_model.' + extension, 'wb') as f:
+                    with open('temp_model.' + str(model_instance.id) + extension, 'wb') as f:
                         s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
 
                     model = tf.keras.models.load_model('temp_model.' + extension)
                     
                     default_storage.delete(file_path)
+                    
+                    os.remove('temp_model' + str(model_instance.id) + '.' + extension)
                     
                     for t, layer in enumerate(model.layers):
                         layer_model_from_tf_layer(layer, model_instance.id, request, t)
@@ -1552,20 +1607,7 @@ class RecompileModel(APIView):
                 
                 if model_instance.owner == user.profile:
                     try:
-                       # Define the S3 bucket and file path
-                        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                        model_file_path = "media/" + model_instance.model_file.name
-                        
-                        s3_client = get_s3_client()
-                        
-                        extension = model_file_path.split(".")[-1]
-
-                        # Download the model file from S3 to a local temporary file
-                        with open('temp_model' + str(model_instance.id) + '.' + extension, 'wb') as f:
-                            s3_client.download_fileobj(bucket_name, model_file_path, f)
-
-                        # Load the TensorFlow model from the temporary file
-                        model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
+                        model = get_tf_model(model_instance)
 
                         model.compile(optimizer=optimizer, loss=loss_function, metrics=['accuracy'])
                         
@@ -1583,7 +1625,7 @@ class RecompileModel(APIView):
                             model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
 
                         # Delete the temporary file after saving
-                        os.remove('temp_model' + str(model_instance.id) + '.' + extension)
+                        remove_temp_tf_model(model_instance)
                         
                         model_instance.optimizer = optimizer
                         model_instance.loss_function = loss_function
@@ -1612,20 +1654,8 @@ def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, us
         if model_instance.owner == user.profile:
             if model_instance.model_file:
                 try:
-                    # Define the S3 bucket and file path
-                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                    model_file_path = "media/" + model_instance.model_file.name
-                    
-                    s3_client = get_s3_client()
-                    
-                    extension = model_file_path.split(".")[-1]
-
-                    # Download the model file from S3 to a local temporary file
-                    with open('temp_model' + str(model_instance.id) + '.' + extension, 'wb') as f:
-                        s3_client.download_fileobj(bucket_name, model_file_path, f)
-
-                    # Load the TensorFlow model from the temporary file
-                    model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
+                    extension = str(model_instance.model_file).split(".")[-1]
+                    model = get_tf_model(model_instance)
                     
                     dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
                     validation_size = int(dataset_length * validation_split)
@@ -1655,7 +1685,7 @@ def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, us
                         model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
 
                     # Delete the temporary file after saving
-                    os.remove('temp_model' + str(model_instance.id) + '.' + extension)
+                    remove_temp_tf_model(model_instance)
                     
                     accuracy = history.history["accuracy"]
                     loss = history.history["loss"]
@@ -1721,20 +1751,9 @@ def trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_
         if model_instance.owner == user.profile:
             if model_instance.model_file:
                 try:
-                    # Define the S3 bucket and file path
-                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                    model_file_path = "media/" + model_instance.model_file.name
+                    extension = str(model_instance.model_file).split(".")[-1]
                     
-                    s3_client = get_s3_client()
-                    
-                    extension = model_file_path.split(".")[-1]
-
-                    # Download the model file from S3 to a local temporary file
-                    with open('temp_model' + str(model_instance.id) + '.' + extension, 'wb') as f:
-                        s3_client.download_fileobj(bucket_name, model_file_path, f)
-
-                    # Load the TensorFlow model from the temporary file
-                    model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
+                    model = get_tf_model(model_instance)
                     
                     dataset_length = len(dataset)
                     validation_size = int(dataset_length * validation_split)
@@ -1762,7 +1781,7 @@ def trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_
                         model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
 
                     # Delete the temporary file after saving
-                    os.remove('temp_model' + str(model_instance.id) + '.' + extension)
+                    remove_temp_tf_model(model_instance)
                     
                     accuracy = history.history["accuracy"]
                     loss = history.history["loss"]
@@ -1836,20 +1855,7 @@ class EvaluateModel(APIView):
                 if model_instance.owner == user.profile:
                     if model_instance.model_file:
                         try:
-                            # Define the S3 bucket and file path
-                            bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-                            model_file_path = "media/" + model_instance.model_file.name
-                            
-                            s3_client = get_s3_client()
-                            
-                            extension = model_file_path.split(".")[-1]
-
-                            # Download the model file from S3 to a local temporary file
-                            with open('temp_model' + str(model_instance.id) + '.' + extension, 'wb') as f:
-                                s3_client.download_fileobj(bucket_name, model_file_path, f)
-
-                            # Load the TensorFlow model from the temporary file
-                            model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
+                            model = get_tf_model(model_instance)
                             
                             dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance) 
                             
@@ -1858,7 +1864,7 @@ class EvaluateModel(APIView):
                             res = model.evaluate(dataset, return_dict=True)
                             
                             # Delete the temporary file after saving
-                            os.remove('temp_model' + str(model_instance.id) + '.' + extension)
+                            remove_temp_tf_model(model_instance)
                             
                             model_instance.evaluated_on = dataset_instance
                             model_instance.evaluated_accuracy = res["accuracy"]
@@ -1885,6 +1891,48 @@ class EvaluateModel(APIView):
                 return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Unauthorized": "Must be logged in to evaluate models."}, status=status.HTTP_401_UNAUTHORIZED)
+           
+           
+class PredictModel(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+    
+    @tf.autograph.experimental.do_not_convert
+    def post(self, request, format=None):
+        model_id = request.data["model"]
+        image = request.data["image"]
+        text = request.data["text"]
+        
+        try:
+            model_instance = Model.objects.get(id=model_id)
+            
+            if model_instance.trained_on:
+                if model_instance.model_type.lower() == "image":
+                    first_layer = model_instance.layers.all().first()
+                    
+                    target_size = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
+                    
+                    image_tensor = preprocess_uploaded_image(image, target_size)
+                    
+                    model = get_tf_model(model_instance)
+                    
+                    prediction_arr = model.predict(image_tensor)
+                    print(f"prediction_arr: {prediction_arr}")
+                    prediction_idx = int(np.argmax(prediction_arr))
+                    predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
+                    
+                    remove_temp_tf_model(model_instance)
+                    
+                    return Response({"prediction": predicted_label.name, "color": predicted_label.color}, status=status.HTTP_200_OK)
+                    
+                elif model_instance.model_type.lower() == "text":
+                    pass
+            
+                return Response({}, status=status.HTTP_200_OK)
+            
+            else:
+                return Response({"Bad request": "Model has not been trained."}, status=status.HTTP_400_BAD_REQUEST)
+        except Model.DoesNotExist:
+            return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
            
            
 # LAYER FUNCTIONALITY

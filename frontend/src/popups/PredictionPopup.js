@@ -17,6 +17,9 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
     const [imageURL, setImageURL] = useState("")
     const hiddenFileRef = useRef(null)
 
+    const [prediction, setPrediction] = useState("")
+    const [predictionColor, setPredictionColor] = useState("")
+
 
     useEffect(() => {
         if (image === null) return
@@ -26,6 +29,9 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
         binaryData.push(image);
         const url = URL.createObjectURL(new Blob(binaryData, {type: "application/zip"}))
         setImageURL(url)
+        
+        setPrediction("")
+        setPredictionColor("")
     }, [image])
 
 
@@ -38,18 +44,18 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
             notification("Please enter text to make a prediction.", "failure")
             return;
         }
-
-        const URL = window.location.origin + '/api/predict-model/'
-        const config = {headers: {'Content-Type': 'application/json'}}
-
-        let data = {
-            "model": model_id,
+        if (!model.trained_on) {
+            notification("Model must be trained to support prediction.", "failure")
+            return
         }
 
-        if (model.model_type.toLowerCase() == "image") {
-            data["image"] = image
-        } else if (model.model_type.toLowerCase() == "text") {
-            data["text"] = text
+        const URL = window.location.origin + '/api/predict-model/'
+        const config = {headers: {'Content-Type': 'multipart/form-data'}}
+
+        let data = {
+            "model": model.id,
+            "image": image,
+            "text": text
         }
 
         axios.defaults.withCredentials = true;
@@ -63,6 +69,9 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
         axios.post(URL, data, config)
         .then((res) => {
             data = res.data
+
+            setPrediction(data["prediction"])
+            setPredictionColor(data["color"])
 
         }).catch((error) => {
             console.log(error)
@@ -94,7 +103,7 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
     return (
         <div className="popup train-model-popup" onClick={() => setShowPredictionPopup(false)}>
 
-            {isPredicting && <ProgressBar progress={predictionProgress} message="Evaluating..." BACKEND_URL={BACKEND_URL}></ProgressBar>}
+            {isPredicting && <ProgressBar progress={predictionProgress} message="Predicting..." BACKEND_URL={BACKEND_URL}></ProgressBar>}
 
             <div className="build-model-popup-container" onClick={(e) => {
                 e.stopPropagation()
@@ -121,7 +130,10 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
                     </div>}
 
                     <div className="model-prediction">
-                        <span className="gray-text unselectable">Press predict to make a prediction</span>
+                        {!prediction && <span className="gray-text unselectable">Press predict to make a prediction</span>}
+                        {prediction && <span style={{color: predictionColor}}>
+                            {prediction}
+                        </span>}
                     </div>
                 </div>}
 

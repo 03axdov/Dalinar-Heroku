@@ -147,8 +147,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         const URL = window.location.origin + '/api/build-model/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
-        console.log(layers)
-
         let data = {
             "id": model.id,
             "optimizer": optimizer,
@@ -186,8 +184,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
         const URL = window.location.origin + '/api/recompile-model/'
         const config = {headers: {'Content-Type': 'application/json'}}
-
-        console.log(layers)
 
         let data = {
             "id": model.id,
@@ -456,8 +452,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         document.addEventListener("mousemove", handleMouseMove);
         document.addEventListener("mouseup", handleMouseUp);
     };
-
-    console.log(model)
 
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
