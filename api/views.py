@@ -1359,6 +1359,12 @@ class CreateModel(APIView):
                     
                     for t, layer in enumerate(model.layers):
                         layer_model_from_tf_layer(layer, model_instance.id, request, t)
+                        
+                    model_instance.model_file = model_file
+                    model_instance.optimizer = model.optimizer.__class__.__name__.lower()
+                    model_instance.loss_function = model.loss
+                    
+                    model_instance.save()
                        
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:

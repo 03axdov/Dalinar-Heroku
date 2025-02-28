@@ -739,9 +739,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
                             <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{model.ownername}</p>
 
-                            {(model.description ? <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{model.description}</p> : "This dataset does not have a description.")}
+                            <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{(model.description || "This model does not have a description.")}</p>
 
-                            <button className="hide-description-button" onClick={() => {setShowModelDescription(false)}}>
+                            <button className="hide-description-button" 
+                            onClick={() => {setShowModelDescription(false)}}
+                            style={{marginTop: "auto"}}>
                                 <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/minus.png"} />
                                 Hide description
                             </button>

@@ -4,7 +4,7 @@ import axios from "axios"
 import ProgressBar from "../components/ProgressBar"
 
 
-function CreateDataset({notification, BACKEND_URL}) {
+function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
 
     const navigate = useNavigate()
 
@@ -32,6 +32,7 @@ function CreateDataset({notification, BACKEND_URL}) {
 
     const [uploadedFoldersAsLabels, setUploadedFoldersAsLabels] = useState([])
     const [uploadedFilenamesAsLabels, setUploadedFilenamesAsLabels] = useState([])
+    const [uploadedCsvs, setUploadedCsvs] = useState([])
 
     const [uploadedDatasets, setUploadedDatasets] = useState({}) // Labels as keys, with the value as an array of files with that label
 
@@ -257,6 +258,10 @@ function CreateDataset({notification, BACKEND_URL}) {
             processCSV(text, e);
         };
         reader.readAsText(file);
+
+        let tempUploadedCsvs = [...uploadedCsvs]
+        tempUploadedCsvs.push(file.name)
+        setUploadedCsvs(tempUploadedCsvs)
     }
 
     function processCSV(csvText, e) {
@@ -318,7 +323,34 @@ function CreateDataset({notification, BACKEND_URL}) {
         setUploadedDatasets({})
         setUploadedFilenamesAsLabels([])
         setUploadedFoldersAsLabels([])
+        setUploadedCsvs([])
     }
+
+    function setDatasetTypeImageInner(e) {
+        setDatasetType(e.target.value)
+        clearUploadedDatasets()
+    }
+    function setDatasetTypeImage(e) {
+        if (!isEmpty(uploadedDatasets)) {
+            activateConfirmPopup("Are you sure you want to change the dataset type? This will remove data from all uploaded datasets.", () => setDatasetTypeImageInner(e))
+        } else {
+            setDatasetTypeImageInner(e)
+        }
+    }
+
+    function setDatasetTypeTextInner(e) {
+        setDatasetType(e.target.value)
+        clearUploadedDatasets()
+        setType("classification")   // Area not valid for text datasets
+    }
+    function setDatasetTypeText(e) {
+        if (!isEmpty(uploadedDatasets)) {
+            activateConfirmPopup("Are you sure you want to change the dataset type? This will remove data from all uploaded datasets.", () => setDatasetTypeTextInner(e))
+        } else {
+            setDatasetTypeTextInner(e)
+        }
+    }
+
 
     return (
         <div className="create-dataset-container">
@@ -335,14 +367,11 @@ function CreateDataset({notification, BACKEND_URL}) {
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Dataset type</p>
                     <input type="radio" id="create-dataset-type-image" name="imagetype" value="image" checked={datasetType == "image"} onChange={(e) => {
-                        setDatasetType(e.target.value)
-                        clearUploadedDatasets()
+                        setDatasetTypeImage(e)
                     }} />
                     <label htmlFor="create-dataset-type-image" className="create-dataset-type-label">Image</label>
                     <input type="radio" id="create-dataset-type-text" name="texttype" value="text" checked={datasetType == "text"}  onChange={(e) => {
-                        setDatasetType(e.target.value)
-                        clearUploadedDatasets()
-                        setType("classification")   // Area not valid for text datasets
+                        setDatasetTypeText(e)
                     }} />
                     <label htmlFor="create-dataset-type-text" className="create-dataset-type-label">Text</label>
                 </div>
@@ -565,7 +594,7 @@ function CreateDataset({notification, BACKEND_URL}) {
                             </button>
 
                             <div className="uploaded-dataset-element-container">
-                                {uploadedFoldersAsLabels.map((e, i) => (
+                                {uploadedCsvs.map((e, i) => (
                                     <p title={e} key={i} className="uploaded-dataset-element">{e}</p>
                                 ))}
                             </div>
