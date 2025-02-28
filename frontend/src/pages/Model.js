@@ -9,6 +9,7 @@ import BuildModelPopup from "../popups/BuildModelPopup";
 import ModelDownloadPopup from "../popups/ModelDownloadPopup";
 import TrainModelPopup from "../popups/TrainModelPopup"
 import EvaluateModelPopup from "../popups/EvaluateModelPopup";
+import PredictionPopup from "../popups/PredictionPopup";
 
 
 // The default page. Login not required.
@@ -28,6 +29,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
     const [showTrainModelPopup, setShowTrainModelPopup] = useState(false)
     const [showEvaluateModelPopup, setShowEvaluateModelPopup] = useState(false)
+    const [showPredictionPopup, setShowPredictionPopup] = useState(false)
 
     const [downloading, setDownloading] = useState(false)
     const [isDownloaded, setIsDownloaded] = useState(false)
@@ -460,6 +462,12 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
+            {showPredictionPopup && <PredictionPopup setShowPredictionPopup={setShowPredictionPopup}
+            model={model}
+            BACKEND_URL={BACKEND_URL}
+            notification={notification}>
+            </PredictionPopup>}
+
             {showTrainModelPopup && <TrainModelPopup setShowTrainModelPopup={setShowTrainModelPopup} 
             currentProfile={currentProfile} 
             BACKEND_URL={BACKEND_URL}
@@ -609,6 +617,18 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         </button>}
 
                         {model && <button type="button" 
+                        title={model.model_file ? "Predict" : "Model not yet built."}
+                        className={"model-evaluate-button no-margin-right " + (model.model_file ? "" : "model-button-disabled")}
+                        onClick={() => {
+                            if (model.model_file) {
+                                setShowPredictionPopup(true)
+                            }
+                        }}>
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/evaluate.svg"} />
+                            Predict
+                        </button>}
+
+                        {model && <button type="button" 
                         title={model.model_file ? "Evaluate model" : "Model not yet built."}
                         className={"model-evaluate-button " + (model.model_file ? "" : "model-button-disabled")}
                         onClick={() => {
@@ -721,7 +741,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
                             {(model.description ? <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{model.description}</p> : "This dataset does not have a description.")}
 
-                            <button className="hide-description-button" onClick={() => {setShowModelDescription(false)}}>Hide description</button>
+                            <button className="hide-description-button" onClick={() => {setShowModelDescription(false)}}>
+                                <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/minus.png"} />
+                                Hide description
+                            </button>
                         </div>
 
                     </div>}

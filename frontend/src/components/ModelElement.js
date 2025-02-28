@@ -20,10 +20,10 @@ function DatasetElement({model, BACKEND_URL, isPublic=false}) {
                     
                 <img title="Model" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/model.svg"}/>
                 
-                <p className="dataset-element-name" title={model.name}>
-                    {model.name}
+                <div className="dataset-element-name" title={model.name}>
+                    <p className="dataset-element-name-inner">{model.name}</p>
                     {model.verified && <img title="Verified" className="dataset-element-name-verified" src={BACKEND_URL + "/static/images/blueCheck.png"} />}
-                </p>
+                </div>
 
                 {!isPublic && <img title="Edit model" className="dataset-element-icon dataset-element-options" src={BACKEND_URL + "/static/images/options.png"} onClick={(e) => {
                     e.stopPropagation()

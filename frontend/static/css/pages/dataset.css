@@ -1191,6 +1191,7 @@ canvas {
 
     .dataset-description-image {
         height: 100%;
+        max-height: 100%;
         width: auto;
         max-width: 100%;
     }

@@ -4,6 +4,7 @@ import axios from "axios"
 
 import LayerElement from "../components/LayerElement";
 import ModelDownloadPopup from "../popups/ModelDownloadPopup";
+import PredictionPopup from "../popups/PredictionPopup";
 
 
 // The default page. Login not required.
@@ -18,6 +19,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
     const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
     const [showBuildModelPopup, setShowBuildModelPopup] = useState(false)
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
+    const [showPredictionPopup, setShowPredictionPopup] = useState(false)
 
     const [downloading, setDownloading] = useState(false)
     const [isDownloaded, setIsDownloaded] = useState(false)
@@ -262,7 +264,13 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
-{showDownloadPopup && <ModelDownloadPopup setShowDownloadPopup={setShowDownloadPopup} 
+            {showPredictionPopup && <PredictionPopup setShowPredictionPopup={setShowPredictionPopup}
+            model={model}
+            BACKEND_URL={BACKEND_URL}
+            notification={notification}>
+            </PredictionPopup>}
+
+            {showDownloadPopup && <ModelDownloadPopup setShowDownloadPopup={setShowDownloadPopup} 
                 model={model}
                 downloadModel={downloadModel}
                 isDownloading={downloading}
@@ -319,6 +327,18 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
 
                             <img className="dataset-title-expand-icon" src={BACKEND_URL + "/static/images/" + (!showModelDescription ? "plus.png" : "minus.png")} />
                         </div>}
+
+                        {model && <button type="button" 
+                        title={model.model_file ? "Predict" : "Model not yet built."}
+                        className={"model-evaluate-button " + (model.model_file ? "" : "model-button-disabled")}
+                        onClick={() => {
+                            if (model.model_file) {
+                                setShowPredictionPopup(true)
+                            }
+                        }}>
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/evaluate.svg"} />
+                            Predict
+                        </button>}
 
                         {model && <button className={"model-download-button model-download-button " + (model.model_file ? "" : "model-button-disabled")} 
                         title={model.model_file ? "Download model" : "You must build the model before downloading it."}
@@ -401,7 +421,10 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
 
                             {(model.description ? <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{model.description}</p> : "This dataset does not have a description.")}
 
-                            <button className="hide-description-button" onClick={() => {setShowModelDescription(false)}}>Hide description</button>
+                            <button className="hide-description-button" onClick={() => {setShowModelDescription(false)}}>
+                                <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/minus.png"} />
+                                Hide description
+                            </button>
                         </div>
 
                     </div>}

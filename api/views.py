@@ -437,8 +437,10 @@ class GetDataset(APIView):
                     data = datasetSerialized.data
                     data["ownername"] = dataset.owner.name
                     
-                    if dataset.trained_with:    
-                        data["trained_with"] = [dataset.trained_with.id, dataset.trained_with.id]
+                    trained_with = []
+                    for model in dataset.trained_with.all():
+                        trained_with.append([model.id, model.name])
+                    data["trained_with"] = trained_with
                     
                     return Response(data, status=status.HTTP_200_OK)
                     
@@ -468,8 +470,10 @@ class GetDatasetPublic(APIView):
                 data = datasetSerialized.data
                 data["ownername"] = dataset.owner.name
                 
-                if dataset.trained_with:    
-                    data["trained_with"] = [dataset.trained_with.id, dataset.trained_with.id]
+                trained_with = []
+                for model in dataset.trained_with.all():
+                    trained_with.append([model.id, model.name])
+                data["trained_with"] = trained_with
                 
                 return Response(data, status=status.HTTP_200_OK)
                 
