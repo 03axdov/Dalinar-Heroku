@@ -3,7 +3,7 @@ import {useNavigate} from "react-router-dom"
 
 function ProgressBar({progress, message, BACKEND_URL}) {
     
-    return (<div className="progress-bar-outer">
+    return (<div className="progress-bar-outer" onClick={(e) => e.stopPropagation()}>
         <div className="progress-bar-container">
             <img className="progress-bar-spinner" src={BACKEND_URL + "/static/images/loading.gif"} />
             <p className="progress-bar-text">{message}</p>

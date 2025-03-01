@@ -172,7 +172,9 @@ def map_labels(label):
 # Function to apply one-hot encoding
 def one_hot_encode(label, nbr_labels):
     # Convert to one-hot encoded format
-    return tf.keras.utils.to_categorical(label, num_classes=nbr_labels)
+    encoded = tf.keras.utils.to_categorical(label, num_classes=nbr_labels)
+    print(f"encoded: {encoded}")
+    return encoded
 
 
 def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns tensorflow dataset, number of elements in the dataset
@@ -191,21 +193,28 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     elements = dataset_instance.elements.all()
 
     file_paths = ["media/" + str(element.file) for element in elements]
-    labels = []
     labels_set = set()  # To keep track of nbr of unique labels
+    
+    dataset_elements = []
 
     for t, element in enumerate(elements):
         if element.label:
-            labels.append(element.label.name)
+            dataset_elements.append((file_paths[t], element.label.name))
             labels_set.add(element.label.name)
         else:
             file_paths.pop(t)   # Don't include elements without labels
+            
+    print(f"dataset_elements: {dataset_elements}")
 
     # Create TensorFlow Dataset
-    dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels))
+    dataset = tf.data.Dataset.from_tensor_slices(dataset_elements)
     elementIdx = 0
-    def imageMapFunc(file_path, label):
+    def imageMapFunc(element):
         nonlocal elementIdx
+        
+        file_path, label = element[0], element[1]
+        
+        print(f"file_path: {file_path}, label: {label}")
         
         element = load_and_preprocess_image(file_path,input_dims,file_paths[elementIdx])
         elementIdx += 1
