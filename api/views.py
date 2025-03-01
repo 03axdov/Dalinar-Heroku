@@ -172,9 +172,9 @@ def map_labels(label):
 # Function to apply one-hot encoding
 def one_hot_encode(label, nbr_labels):
     # Convert to one-hot encoded format
-    encoded = tf.keras.utils.to_categorical(label, num_classes=nbr_labels)
-    print(f"encoded: {encoded}")
-    return encoded
+    li = [0] * nbr_labels
+    li[label] = 1
+    return tf.convert_to_tensor(li)
 
 
 def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns tensorflow dataset, number of elements in the dataset
@@ -204,27 +204,26 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
         else:
             file_paths.pop(t)   # Don't include elements without labels
             
-    print(f"dataset_elements: {dataset_elements}")
-
     # Create TensorFlow Dataset
     dataset = tf.data.Dataset.from_tensor_slices(dataset_elements)
-    elementIdx = 0
-    def imageMapFunc(element):
-        nonlocal elementIdx
+    dataset = dataset.enumerate()
+        
+    for x, y in dataset:
+        print(f"x: {x}, y: {y}")
+        
+    def imageMapFunc(idx, element):
         
         file_path, label = element[0], element[1]
         
-        print(f"file_path: {file_path}, label: {label}")
-        
-        element = load_and_preprocess_image(file_path,input_dims,file_paths[elementIdx])
-        elementIdx += 1
+        element = load_and_preprocess_image(file_path,input_dims,file_paths[idx])
+        print(f"idx: {idx}")
         return element, one_hot_encode(map_labels(label), len(labels_set))
         
-    def textMapFunc(file_path, label):
-        nonlocal elementIdx
+    def textMapFunc(idx, element):
+        file_path, label = element[0], element[1]
         
-        element = load_and_preprocess_text(file_path,file_paths[elementIdx])
-        elementIdx += 1
+        element = load_and_preprocess_text(file_path,file_paths[idx])
+
         return element, one_hot_encode(map_labels(label), len(labels_set))
 
     # Apply transformations
@@ -238,6 +237,13 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     else:
         print("Invalid dataset type.")
         return None
+    
+    print("")
+    print("BREAK")
+    print("")
+    
+    for x, y in dataset:
+        print(f"x: {x}, y: {y}")
 
     dataset = dataset.batch(32)
 
@@ -1666,7 +1672,11 @@ def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, us
                     extension = str(model_instance.model_file).split(".")[-1]
                     model = get_tf_model(model_instance)
                     
+                    print("BEFORE CREATE DATSAET")
                     dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
+                    
+                    return Response({}, status=status.HTTP_200_OK)
+                    
                     validation_size = int(dataset_length * validation_split)
                     train_size = dataset_length - validation_size
 
@@ -1839,8 +1849,10 @@ class TrainModel(APIView):
         
         if user.is_authenticated:
             if dataset_id > 0 and tensorflowDataset == "":
+                print("A")
                 return trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, user)
             else:
+                print("B")
                 return trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_split, user)
         else:
             return Response({"Unauthorized": "Must be logged in to train models."}, status=status.HTTP_401_UNAUTHORIZED)
