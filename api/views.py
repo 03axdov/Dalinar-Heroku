@@ -161,12 +161,10 @@ def map_labels(label):
     global label_map
     global currentLabel
     
-    labelRef = label.ref()  # Tensor is not hashable
-    
-    if labelRef not in label_map.keys():
-        label_map[labelRef] = currentLabel
+    if label not in label_map.keys():
+        label_map[label] = currentLabel
         currentLabel += 1
-    return label_map[labelRef]
+    return label_map[label]
 
 
 # Function to apply one-hot encoding
@@ -201,34 +199,41 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
         else:
             file_paths.pop(t)   # Don't include elements without labels
 
-    # Create TensorFlow Dataset
-    dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels))
+
     elementIdx = 0
-    def imageMapFunc(file_path, label):
+    def imageMapFunc(file_path):
         nonlocal elementIdx
         
-        element = load_and_preprocess_image(file_path,input_dims,file_paths[elementIdx])
+        element = load_and_preprocess_image(file_path,input_dims,file_path)
         elementIdx += 1
-        return element, one_hot_encode(map_labels(label), len(labels_set))
+        return element
         
-    def textMapFunc(file_path, label):
+    def textMapFunc(file_path):
         nonlocal elementIdx
         
         element = load_and_preprocess_text(file_path,file_paths[elementIdx])
         elementIdx += 1
-        return element, one_hot_encode(map_labels(label), len(labels_set))
+        return element
 
-    # Apply transformations
+
     if dataset_instance.dataset_type == "image":
         input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
         
-        dataset = dataset.map(imageMapFunc)
+        file_paths = list(map(imageMapFunc, file_paths))
         
     elif dataset_instance.dataset_type == "text":
-        dataset = dataset.map(textMapFunc)
+        file_paths = list(map(textMapFunc, file_paths))
     else:
         print("Invalid dataset type.")
         return None
+    
+    labels = list(map(lambda label: one_hot_encode(map_labels(label), len(labels_set)), labels))
+    
+    print(f"file_paths: {file_paths}")
+    print(f"labels: {labels}")
+
+    # Create TensorFlow Dataset
+    dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels))
 
     dataset = dataset.batch(32)
 
@@ -1569,11 +1574,11 @@ class BuildModel(APIView):
                         
                         instance.trained_on = None
                         instance.trained_on_tensorflow = None
-                        instance.trained_accuracy = ""
+                        instance.trained_accuracy = None
                         
                         instance.evaluated_on = None
                         instance.evaluated_on_tensorflow = None
-                        instance.evaluated_accuracy = ""
+                        instance.evaluated_accuracy = None
                         
                         instance.save()
                         
@@ -1657,6 +1662,7 @@ def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, us
                     extension = str(model_instance.model_file).split(".")[-1]
                     model = get_tf_model(model_instance)
                     
+                    print("A")
                     dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
                     validation_size = int(dataset_length * validation_split)
                     train_size = dataset_length - validation_size
@@ -1703,6 +1709,7 @@ def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, us
                     return Response({"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss}, status=status.HTTP_200_OK)
                 
                 except ValueError as e: # In case of invalid layer combination
+                    raise Exception(e)
                     message = str(e)
                     if len(message) > 50 and len(list(dataset)) * validation_split > 1:
                         message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
@@ -1711,6 +1718,7 @@ def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, us
 
                     return Response({"Bad request": str(message)}, status=status.HTTP_400_BAD_REQUEST)
                 except Exception as e:
+                    raise Exception(e)
                     return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({"Bad request": "Model has not been built."}, status=status.HTTP_400_BAD_REQUEST)

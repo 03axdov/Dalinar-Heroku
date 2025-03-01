@@ -62,7 +62,7 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
                         </button>}
                         <button type="submit" className="create-layer-popup-submit">
                             {processingBuildModel && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
-                            {(!processingBuildModel ? "Build model" : "Building...")}
+                            {(!processingBuildModel ? (!isBuilt ? "Build model" : "Rebuild model") : "Building...")}
                         </button>
                     </div>
                 </form>

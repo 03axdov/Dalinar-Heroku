@@ -569,7 +569,11 @@
 }
 
 .epoch-accuracy {
-    min-width: 180px;
+    min-width: 250px;
+    max-width: 250px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
     margin-right: 20px;
 }
 
