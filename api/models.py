@@ -105,11 +105,21 @@ class Label(models.Model):
 # ELEMENTS
 # Datasets contain elements, which can be e.g. files
 
+def element_file_path(instance, filename):
+    """Generate a dynamic path for file uploads based on dataset ID and name."""
+    if instance.dataset:
+        dataset_dir = f"files/{instance.dataset.id}-{instance.dataset.name}"
+    else:
+        dataset_dir = "files/unknown_dataset"  # Fallback if dataset is missing
+
+    return os.path.join(dataset_dir, filename)
+
+
 class Element(models.Model):
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="elements", null=True)
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="elements", null=True)
     name = models.CharField(max_length=100)
-    file = models.FileField(upload_to="files/", null=True, validators=[FileExtensionValidator(allowed_extensions=ALLOWED_IMAGE_FILE_EXTENSIONS + ALLOWED_TEXT_FILE_EXTENSIONS)])
+    file = models.FileField(upload_to=element_file_path, null=True, validators=[FileExtensionValidator(allowed_extensions=ALLOWED_IMAGE_FILE_EXTENSIONS + ALLOWED_TEXT_FILE_EXTENSIONS)])
     
     label = models.ForeignKey(Label, on_delete=models.SET_NULL, related_name="labels", blank=True, null=True)
     

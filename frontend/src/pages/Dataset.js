@@ -2112,7 +2112,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             }
                         }}>
                             
-                            <label htmlFor="resize-width" className="resize-label">Width</label>
+                            {(!dataset.imageWidth && !dataset.imageHeight) && <label htmlFor="resize-width" className="resize-label">Width</label>}
+                            {(dataset.imageWidth && dataset.imageHeight) && <label className="resize-label">Width</label>}
+
                             {(!dataset.imageWidth && !dataset.imageHeight) && <input type="number" id="resize-width" className="resize-inp" value={currentImageWidth} min="0" max="1024" onChange={(e) => {
                                 setCurrentImageWidth(Math.min(1024, Math.max(0, e.target.value)))
                             }}/>}
@@ -2120,7 +2122,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 {dataset.imageWidth}
                             </div>)}
 
-                            <label htmlFor="resize-height" className="resize-label resize-label-margin">Height</label>
+                            {(!dataset.imageWidth && !dataset.imageHeight) && <label htmlFor="resize-height" className="resize-label resize-label-margin">Height</label>}
+                            {(dataset.imageWidth && dataset.imageHeight) && <label className="resize-label resize-label-margin">Height</label>}
                             {(!dataset.imageWidth && !dataset.imageHeight) && <input type="number" id="resize-height" className="resize-inp" value={currentImageHeight} min="0" max="1024" onChange={(e) => {
                                 setCurrentImageHeight(Math.min(1024, Math.max(0, e.target.value)))
                             }}/>}
