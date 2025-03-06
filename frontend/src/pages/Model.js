@@ -319,7 +319,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         setProcessingCreateLayer(true)
 
         data["model"] = model.id
-        data["index"] = layers.length
         
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -467,7 +466,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             BACKEND_URL={BACKEND_URL}
             model_id={model.id}
             notification={notification}
-            activateConfirmPopup={activateConfirmPopup}>
+            activateConfirmPopup={activateConfirmPopup}
+            getModel={getModel}>
             </TrainModelPopup>}
 
             {showEvaluateModelPopup && <EvaluateModelPopup setShowEvaluateModelPopup={setShowEvaluateModelPopup} 
@@ -611,10 +611,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         </button>}
 
                         {model && <button type="button" 
-                        title={model.model_file ? "Predict" : "Model not yet built."}
-                        className={"model-evaluate-button no-margin-right " + (model.model_file ? "" : "model-button-disabled")}
+                        title={model.model_file ? (model.trained_on ? "Predict" : "Model not yet trained") : "Model not yet built."}
+                        className={"model-evaluate-button no-margin-right " + ((model.model_file && model.trained_on) ? "" : "model-button-disabled")}
                         onClick={() => {
-                            if (model.model_file) {
+                            if (model.model_file && model.trained_on) {
                                 setShowPredictionPopup(true)
                             }
                         }}>

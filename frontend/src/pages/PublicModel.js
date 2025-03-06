@@ -329,10 +329,10 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                         </div>}
 
                         {model && <button type="button" 
-                        title={model.model_file ? "Predict" : "Model not yet built."}
-                        className={"model-evaluate-button " + (model.model_file ? "" : "model-button-disabled")}
+                        title={model.model_file ? (model.trained_on ? "Predict" : "Model not yet trained") : "Model not yet built."}
+                        className={"model-evaluate-button no-margin-right " + ((model.model_file && model.trained_on) ? "" : "model-button-disabled")}
                         onClick={() => {
-                            if (model.model_file) {
+                            if (model.model_file && model.trained_on) {
                                 setShowPredictionPopup(true)
                             }
                         }}>

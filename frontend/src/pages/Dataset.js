@@ -893,6 +893,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
                     setTimeout(() => {
                         setUploadLoading(false)
+                        setUploadPercentage(0)
                         getDataset()
                     }, 200)
                     

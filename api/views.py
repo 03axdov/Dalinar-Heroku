@@ -119,7 +119,6 @@ def random_light_color():   # Slightly biased towards lighter shades
 
 def download_s3_file(bucket_name, file_key):
     s3_client = get_s3_client()
-    print(f"file_key: {file_key}")
     response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
     return response['Body'].read()  # Returns the raw bytes
 
@@ -137,7 +136,6 @@ def load_and_preprocess_image(file_path,input_dims,file_key):
     
     # Normalize the image to [0, 1]
     image = tf.cast(image, tf.float32) / 255.0
-    print(f"image: {image}")
     return image
 
 
@@ -161,9 +159,7 @@ def map_labels(label):
     global label_map
     global currentLabel
     
-    if label not in label_map.keys():
-        label_map[label] = currentLabel
-        currentLabel += 1
+    if label not in label_map.keys(): return None
     return label_map[label]
 
 
@@ -180,22 +176,25 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     if not dataset_instance:
         return None
     
+    # Initiate label_map
+    label_map = {}
+    num_labels = dataset_instance.labels.count()
+    for t, label in enumerate(dataset_instance.labels.all()):
+        label_map[label.name] = t
+    
     first_layer = model_instance.layers.all().first()
     input_dims = (512,512,3)    # Just placeholder
-    
-    label_map = {}
+
     currentLabel = 0
 
     elements = dataset_instance.elements.all()
 
     file_paths = ["media/" + str(element.file) for element in elements]
     labels = []
-    labels_set = set()  # To keep track of nbr of unique labels
 
     for t, element in enumerate(elements):
         if element.label:
             labels.append(element.label.name)
-            labels_set.add(element.label.name)
         else:
             file_paths.pop(t)   # Don't include elements without labels
 
@@ -227,10 +226,7 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
         print("Invalid dataset type.")
         return None
     
-    labels = list(map(lambda label: one_hot_encode(map_labels(label), len(labels_set)), labels))
-    
-    print(f"file_paths: {file_paths}")
-    print(f"labels: {labels}")
+    labels = list(map(lambda label: one_hot_encode(map_labels(label), num_labels), labels))
 
     # Create TensorFlow Dataset
     dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels))
@@ -1662,10 +1658,11 @@ def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, us
                     extension = str(model_instance.model_file).split(".")[-1]
                     model = get_tf_model(model_instance)
                     
-                    print("A")
                     dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
                     validation_size = int(dataset_length * validation_split)
                     train_size = dataset_length - validation_size
+                    
+                    model.summary()
 
                     if validation_size >= 1: # Some dataset are too small for validation
                         train_dataset, validation_dataset = tf.keras.utils.split_dataset(dataset, train_size, validation_size, shuffle=True)
@@ -1990,7 +1987,8 @@ class CreateLayer(APIView):
                 if user.is_authenticated:
                     
                     if user.profile == model.owner:
-                        instance = serializer.save(model=model, layer_type=layer_type, index=data["index"], activation_function=data["activation_function"])
+                        idx = model.layers.all().last().index + 1
+                        instance = serializer.save(model=model, layer_type=layer_type, index=idx, activation_function=data["activation_function"])
                             
                         return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
                     

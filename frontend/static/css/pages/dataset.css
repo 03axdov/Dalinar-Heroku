@@ -63,6 +63,14 @@
     overflow-x: hidden;
 }
 
+.dataset-elements-list::-webkit-scrollbar {
+    width: 5px;
+}
+
+.dataset-elements-list::-webkit-scrollbar-track {
+    background: var(--sidebar);
+}
+
 .dataset-labels-container {
     width: 100%;
     display: flex;
@@ -84,10 +92,10 @@
 }
 
 .dataset-labels-container-area::-webkit-scrollbar{
-    width: 6px;
+    width: 5px;
 }
-.dataset-labels-container-area::-webkit-scrollbar-thumb {
-    border-radius: 0;
+.dataset-labels-container-area::-webkit-scrollbar-track {
+    background: var(--sidebar);
 }
 
 .dataset-areas-container {

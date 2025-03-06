@@ -67,6 +67,16 @@
     width: 100%;
     display: flex;
     flex-direction: column;
+    overflow-y: auto;
+    max-height: 100%;
+}
+
+.model-layers-list::-webkit-scrollbar {
+    width: 5px;
+}
+
+.model-layers-list::-webkit-scrollbar-track {
+    background: var(--sidebar);
 }
 
 .model-layers-container-outer {

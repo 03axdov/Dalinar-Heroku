@@ -1,9 +1,9 @@
 TO-DO:
 - Python security measures for dataset_types
 - .png files not working?
-- Confirm popup when switching type with uploaded dataset / model
 - Text layers.
 - Model prediction (multiple)
+- Scrollto elements in elements list when changing idx with arrows.
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

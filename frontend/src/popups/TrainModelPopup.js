@@ -4,7 +4,7 @@ import DatasetElement from "../components/DatasetElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import ProgressBar from "../components/ProgressBar"
 
-function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACKEND_URL, notification, activateConfirmPopup}) {
+function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACKEND_URL, notification, activateConfirmPopup, setModelTrained, getModel}) {
 
     const [datasets, setDatasets] = useState([])
     const [savedDatasets, setSavedDatasets] = useState([])
@@ -270,7 +270,12 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
 
 
     return (
-        <div className="popup train-model-popup" onClick={() => setShowTrainModelPopup(false)}>
+        <div className="popup train-model-popup" onClick={() => {
+            setShowTrainModelPopup(false)
+            if (wasTrained) {
+                getModel();
+            }
+        }}>
 
             {isTraining && <ProgressBar progress={trainingProgress} message="Training..." BACKEND_URL={BACKEND_URL}></ProgressBar>}
 
