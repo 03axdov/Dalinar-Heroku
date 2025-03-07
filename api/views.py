@@ -1873,6 +1873,7 @@ class EvaluateModel(APIView):
                             
                             model_instance.evaluated_on = dataset_instance
                             model_instance.evaluated_accuracy = res["accuracy"]
+                            model_instance.save()
                             
                             return Response(res, status=status.HTTP_200_OK)
                         

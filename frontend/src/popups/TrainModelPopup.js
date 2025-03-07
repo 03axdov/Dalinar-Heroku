@@ -72,6 +72,15 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
     }
 
     function trainModel(dataset_id, tensorflowDatasetSelected = "") {
+
+        if (!epochs) {
+            notification("Please specify the number of epochs to train for.", "failure")
+            return;
+        }
+        if (!validationSplit) {
+            setValidationSplit(0)
+        }
+
         const URL = window.location.origin + '/api/train-model/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
@@ -369,32 +378,29 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
 
                     <div className="train-model-epochs-container">
                         <label className="train-model-epochs-label">Epochs</label>
-                        <select className="explore-datasets-sort train-model-epochs" value={epochs} onChange={(e) => {
-                            setEpochs(e.target.value)
-                        }}>
-                            <option value={1}>1</option>
-                            <option value={5}>5</option>
-                            <option value={10}>10</option>
-                            <option value={25}>25</option>
-                            <option value={50}>50</option>
-                            <option value={100}>100</option>
-                            <option value={500}>500</option>
-                            <option value={1000}>1000</option>
-                        </select>
+                        <input type="number" className="train-model-inp" value={epochs} onChange={(e) => {
+                            let intEpochs = Math.round(e.target.value)
+                            if (e.target.value) {
+                                setEpochs(Math.max(0, Math.min(intEpochs, 1000)))
+                            } else {
+                                setEpochs("")
+                            }
+                            
+                        }}></input>
                     </div>
 
                     <div className="train-model-validation-container">
                         <label className="train-model-epochs-label">Validation split</label>
-                        <select className="explore-datasets-sort train-model-epochs" value={validationSplit} onChange={(e) => {
-                            setValidationSplit(e.target.value)
-                        }}>
-                            <option value={0}>0</option>
-                            <option value={0.1}>0.1</option>
-                            <option value={0.2}>0.2</option>
-                            <option value={0.3}>0.3</option>
-                            <option value={0.4}>0.4</option>
-                            <option value={0.5}>0.5</option>
-                        </select>
+                        <input type="number" className="train-model-inp" step="0.01" value={validationSplit} onChange={(e) => {
+                            let roundedSplit = Math.round(e.target.value * 100) / 100
+                            if (e.target.value) {
+                                console.log(e.target.value)
+                                setValidationSplit(Math.max(0, Math.min(roundedSplit, 1)))
+                            } else {
+                                setValidationSplit("")
+                            }
+                        }}></input>
+                        
                     </div>
                 </div>
                 

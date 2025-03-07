@@ -524,6 +524,17 @@
     margin: 0!important;
 }
 
+.train-model-inp {
+    background: var(--background-dark);
+    outline: none;
+    border: 1px solid var(--border);
+    font-size: 1.1rem;
+    padding: 5px;
+    padding-left: 10px;
+    width: 80px;
+    border-radius: 3px;
+}
+
 .trained-successfully-icon {
     height: 40px;
     width: 40px;
