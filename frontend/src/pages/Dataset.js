@@ -24,6 +24,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [idToText, setIdToText] = useState({})
 
     const [elementsIndex, setElementsIndex] = useState(0)
+    const currentElementRef = useRef(null);
 
     const [showElementPreview, setShowElementPreview] = useState(false)
     const [showElementPreviewTimeout, setShowElementPreviewTimeout] = useState(null);
@@ -618,6 +619,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         return keys.join('+')
     }
 
+    useEffect(() => {
+        if (!currentElementRef.current) return;
+        currentElementRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, [elementsIndex])
+
     // Handles user button presses
     useEffect(() => {
         const handleKeyDown = (event) => {
@@ -632,12 +638,14 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     return;
                 }
                 setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
+   
             } else if (key === "ArrowUp" || key === "ArrowLeft") {
                 if (loading) {
                     notification("Cannot switch element while loading.", "failure")
                     return;
                 }
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
+
             } else if (labelKeybinds[key]) {
                 labelOnClick(labelKeybinds[key])
             } else if (key === "Backspace" || key === "Delete") {  // For datatype area, deleting points
@@ -1420,7 +1428,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 notification("Error: " + e, "failure")
                 
             }
-            console.log(i)
+
             setDownloadingPercentage(Math.round(100 * ((i+1) / NUM_ELEMENTS)))
             
         }
@@ -1784,8 +1792,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         document.addEventListener("mouseup", handleMouseUp);
     };
 
-    console.log(dataset)
-
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
@@ -1906,7 +1912,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 ref={provided.innerRef}>
                                     {dataset && dataset.datatype == "classification" && elements.map((element, idx) => (
                                         <Draggable key={element.id} draggableId={"" + element.id} index={idx}>
-                                            {(provided) => (<div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected " : "") + (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")} 
+                                            {(provided) => (<div className="dataset-sidebar-element-outer" ref={idx == elementsIndex ? currentElementRef : null}><div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected " : "") + (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")} 
                                             {...provided.draggableProps}
                                             {...provided.dragHandleProps}
                                             onClick={() => {
@@ -1967,13 +1973,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                                 >
                                                 </span>}
                                                 
-                                            </div>)}
+                                            </div></div>)}
                                         </Draggable>
                                     ))}
                                     
                                     {dataset && dataset.datatype == "area" && elements.map((element, idx) => (
                                         <Draggable key={element.id} draggableId={"" + element.id} index={idx}>
-                                            {(provided) => (<div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected " : "") + (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")} 
+                                            {(provided) => (<div className="dataset-sidebar-element-outer" ref={idx == elementsIndex ? currentElementRef : null}><div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected " : "") + (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")} 
                                             {...provided.draggableProps}
                                             {...provided.dragHandleProps}
                                             onClick={() => {
@@ -2009,7 +2015,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                                 {dataset.dataset_type.toLowerCase() == "image" && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
                                                 {dataset.dataset_type.toLowerCase() == "text" && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.svg"}/>}
 
-                                                <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
+                                                <span className="dataset-sidebar-element-name" title={element.name} ref={idx == elementsIndex ? currentElementRef : null}>{element.name}</span>
 
                                                 {(hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
                                                     className="dataset-sidebar-options dataset-sidebar-options-margin"
@@ -2033,7 +2039,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                                     className={"dataset-sidebar-labeled " + (hoveredElement == "idx" ? "dataset-sidebar-labeled-margin" : "")} 
                                                     src={BACKEND_URL + "/static/images/area.svg"} />}
 
-                                        </div>)}
+                                        </div></div>)}
                                         </Draggable>
                                     ))}
                                     {provided.placeholder} 

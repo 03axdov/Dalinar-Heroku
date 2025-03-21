@@ -28,6 +28,7 @@ from io import BytesIO
 from PIL import Image
 from django.core.files.storage import default_storage
 from django.core.files import File
+from django.http import StreamingHttpResponse
 
 from .serializers import *
 from .models import *
@@ -1644,6 +1645,12 @@ class RecompileModel(APIView):
                 return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Unauthorized": "Must be logged in to recompile models."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+def stream_training_progress(request):
+    response = StreamingHttpResponse(train_model(), content_type="text/event-stream")
+    response['Cache-Control'] = 'no-cache'
+    return response
         
         
 def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, user):

@@ -25,6 +25,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
     const [currentText, setCurrentText] = useState("") // Used to display text files
 
     const [elementsIndex, setElementsIndex] = useState(0)
+    const currentElementRef = useRef(null);
 
     const [showElementPreview, setShowElementPreview] = useState(false)
     const [showElementPreviewTimeout, setShowElementPreviewTimeout] = useState(null);
@@ -250,6 +251,12 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
         if (dataset) {
             setShowDatasetDescription(false)
         }
+    }, [elementsIndex])
+
+
+    useEffect(() => {
+        if (!currentElementRef.current) return;
+        currentElementRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }, [elementsIndex])
 
     // Handles user button presses
@@ -909,7 +916,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                                     ref={provided.innerRef}>
                                     {elements.map((element, idx) => (
                                         <Draggable key={element.id} draggableId={"" + element.id} index={idx}>
-                                            {(provided) => (<div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected " : "") + (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")} 
+                                            {(provided) => (<div className="dataset-sidebar-element-outer" ref={idx == elementsIndex ? currentElementRef : null}><div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected " : "") + (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")} 
                                             {...provided.draggableProps}
                                             {...provided.dragHandleProps}
                                             style={{...provided.draggableProps.style}}
@@ -953,7 +960,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                                                     className="dataset-sidebar-labeled"
                                                     src={BACKEND_URL + "/static/images/area.svg"} />}
                         
-                                            </div>)}
+                                            </div></div>)}
                                         </Draggable>
                                     ))}
                                     {provided.placeholder} 

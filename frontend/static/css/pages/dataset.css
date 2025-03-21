@@ -427,6 +427,10 @@
     overflow: hidden;
 }
 
+.dataset-sidebar-element-outer {
+    width: 100%;
+}
+
 .dataset-sidebar-element {
     font-size: 0.9rem;
     width: 100%;

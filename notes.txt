@@ -4,6 +4,7 @@ TO-DO:
 - Text layers.
 - Model prediction (multiple)
 - Scrollto elements in elements list when changing idx with arrows.
+- Links in buttons
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py
