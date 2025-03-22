@@ -43,6 +43,7 @@ function DatasetElement({model, BACKEND_URL, isPublic=false}) {
             {!isPublic && <p className="dataset-element-private">{model.visibility}</p>}
             {model.downloaders && <p className="dataset-element-date">{model.downloaders.length + " download" + (model.downloaders.length != 1 ? "s" : "")}</p>}
             {model.layers && <p className="dataset-element-count">{model.layers.length + " layer" + (model.layers.length != 1 ? "s" : "")}</p>}
+            {model.model_file && <p className="dataset-element-datatype">Built</p>}
 
         </div>
     )

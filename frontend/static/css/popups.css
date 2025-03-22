@@ -41,7 +41,7 @@
 }
 
 .train-model-popup-container {
-    width: 950px;
+    width: 925px;
     max-width: 95%;
     overflow-y: scroll;
     height: 95%;
@@ -674,6 +674,13 @@
   
 .train-datasets-container:not(:last-child) {
     justify-content: flex-start!important; /* for incomplete rows */
+}
+
+.prediction-circle {
+    height: 20px;
+    width: 20px;
+    border-radius: 10px;
+    margin-right: 10px;
 }
 
 @media all and (max-width: 1000px) {

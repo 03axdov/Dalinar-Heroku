@@ -10,33 +10,43 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
     const [predictionProgress, setPredictionProgress] = useState(0)
 
     // Will use one of these based on the model_type
-    const [image, setImage] = useState(null)
+    const [images, setImages] = useState([])
     const [text, setText] = useState("")
 
     const imageInputRef = useRef(null)
-    const [imageURL, setImageURL] = useState("")
+    const [imageURLS, setImageURLS] = useState([])
     const hiddenFileRef = useRef(null)
 
     const [prediction, setPrediction] = useState("")
     const [predictionColor, setPredictionColor] = useState("")
 
+    const [currentIndex, setCurrentIndex] = useState(0)
+
 
     useEffect(() => {
-        if (image === null) return
-        if (image === '') return
-        if (image === undefined) return
-        var binaryData = [];
-        binaryData.push(image);
-        const url = URL.createObjectURL(new Blob(binaryData, {type: "application/zip"}))
-        setImageURL(url)
+        if (images === null)
+            setImages([])
+        if (images.length == 0) return
+
+        let imageURLSTemp = [];
+
+        for (let i=0; i < images.length; i++) {
+            let image = images[i]
+            var binaryData = [];
+            binaryData.push(image);
+            const url = URL.createObjectURL(new Blob(binaryData, {type: "application/zip"}))
+            imageURLSTemp.push(url)
+        }
         
+        setImageURLS(imageURLSTemp)
+
         setPrediction("")
         setPredictionColor("")
-    }, [image])
+    }, [images])
 
 
     function predictModel() {
-        if (model.model_type.toLowerCase() == "image" && !image) {
+        if (model.model_type.toLowerCase() == "image" && images.length == 0) {
             notification("Please upload an image to make a prediction.", "failure")
             return;
         }
@@ -54,7 +64,7 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
 
         let data = {
             "model": model.id,
-            "image": image,
+            "images": images,
             "text": text
         }
 
@@ -99,6 +109,26 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
         }
     }
 
+    console.log(currentIndex)
+
+    function predictionImageLeft() {
+        if (images.length == 0) return
+        if (currentIndex == 0) {
+            setCurrentIndex(images.length - 1)
+        } else {
+            setCurrentIndex(currentIndex - 1)
+        }
+    }
+
+    function predictionImageRight() {
+        if (images.length == 0) return;
+        if (currentIndex == images.length - 1) {
+            setCurrentIndex(0)
+        } else {
+            setCurrentIndex(currentIndex + 1)
+        }
+    }
+
 
     return (
         <div className="popup train-model-popup" onClick={() => setShowPredictionPopup(false)}>
@@ -114,27 +144,43 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
                 </p>
 
                 {model.model_type.toLowerCase() == "image" && <div className="model-prediction-container">
-                    <input type="file" accept="image/png, image/jpeg, image/webp" required className="hidden" ref={imageInputRef} onChange={(e) => {
-                        if (e.target.files[0]) {
-                            setImage(e.target.files[0])
+                    <input type="file" accept="image/png, image/jpeg, image/webp" multiple required className="hidden" ref={imageInputRef} onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                            setImages(e.target.files)
                         }
                     }} />
-                    {imageURL && <div className="create-dataset-image-container predict-image-container no-border" onClick={imageOnClick}>
-                        <img className="create-dataset-image predict-image no-border" src={imageURL} onClick={imageOnClick}/>
-                        <div className="create-dataset-image-hover">
-                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
-                        </div>
-                    </div>}
-                    {!imageURL && <div className="create-dataset-image-container predict-image-container" onClick={imageOnClick}>
-                        <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
-                    </div>}
 
-                    <div className="model-prediction">
-                        {!prediction && <span className="gray-text unselectable">Press predict to make a prediction</span>}
-                        {prediction && <span style={{color: predictionColor}}>
-                            {prediction}
-                        </span>}
+                    <div className="predict-image-row">
+                        <div className="model-prediction-left" onClick={predictionImageLeft}>
+                            <img className="model-prediction-arrow" src={BACKEND_URL + "/static/images/down.svg"} style={{transform: "rotate(90deg)"}}/>
+                        </div>
+
+                        {imageURLS[currentIndex] && <div className="create-dataset-image-container predict-image-container no-border" onClick={imageOnClick}>
+                            <img className="create-dataset-image predict-image no-border" src={imageURLS[currentIndex]} onClick={imageOnClick}/>
+                            <div className="create-dataset-image-hover">
+                                <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                            </div>
+                        </div>}
+                        {!imageURLS[currentIndex] && <div className="create-dataset-image-container predict-image-container" onClick={imageOnClick}>
+                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                        </div>}
+
+                        <div className="model-prediction-right" onClick={predictionImageRight}>
+                            <img className="model-prediction-arrow" src={BACKEND_URL + "/static/images/down.svg"} style={{transform: "rotate(270deg)"}}/>
+                        </div>
                     </div>
+                    
+                    <div className="model-prediction">                       
+                        {!prediction && <span className="gray-text unselectable">Press predict to make a prediction</span>}
+                        
+                        {prediction && <span className="prediction-circle" style={{background: predictionColor}}></span>}
+
+                        {prediction && <span>
+                            {prediction}
+                        </span>} 
+                    </div>
+
+                    {images.length > 0 && <p className="gray-text" style={{textAlign: "right"}}>{currentIndex + 1} / {images.length} images</p>}
                 </div>}
 
                 {model.model_type.toLowerCase() == "text" && <div className="model-prediction-container">
