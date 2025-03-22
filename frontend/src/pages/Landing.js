@@ -68,7 +68,7 @@ function Landing({BACKEND_URL}) {
                         <button type="button" className="landing-header-button landing-header-signup" onClick={() => {
                             window.location.href = window.location.origin + "/accounts/signup/"
                         }}>
-                            <img className="landing-header-button-icon" src={BACKEND_URL + "/static/images/rocket.png"} />
+                            <img className="landing-header-button-icon" src={BACKEND_URL + "/static/images/rocket.svg"} />
                             Get started
                         </button>
                         <button type="button" className="landing-header-button landing-header-explore" onClick={() => navigate("/explore")}>
@@ -155,7 +155,7 @@ function Landing({BACKEND_URL}) {
                         <button type="button" className="landing-header-button landing-header-signup" onClick={() => {
                             window.location.href = window.location.origin + "/accounts/signup/"
                         }}>
-                            <img className="landing-header-button-icon" src={BACKEND_URL + "/static/images/rocket.png"} />
+                            <img className="landing-header-button-icon" src={BACKEND_URL + "/static/images/rocket.svg"} />
                             Get started
                         </button>
                         <button type="button" className="landing-header-button landing-header-explore" onClick={() => navigate("/explore")}>

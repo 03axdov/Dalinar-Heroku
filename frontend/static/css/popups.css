@@ -667,6 +667,16 @@
     margin-right: 20px;
 }
 
+.train-datasets-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between!important;
+  }
+  
+.train-datasets-container:not(:last-child) {
+    justify-content: flex-start!important; /* for incomplete rows */
+}
+
 @media all and (max-width: 1000px) {
     .download-popup-container {
         padding: 10px 30px;

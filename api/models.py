@@ -214,6 +214,7 @@ class Model(models.Model):
     trained_on = models.ForeignKey(Dataset, on_delete=models.SET_NULL, related_name="trained_with", blank=True, null=True)   # Last trained on
     trained_on_tensorflow = models.CharField(max_length=100, blank=True, null=True)  # Used when training on TensorFlow datasets
     trained_accuracy = models.FloatField(validators=[MinValueValidator(0.0), MaxValueValidator(1.0)], blank=True, null=True)
+    training_progress = models.FloatField(default=0) # Used to track progress when training model.
     
     evaluated_on = models.ForeignKey(Dataset, on_delete=models.SET_NULL, related_name="evaluated_with", blank=True, null=True)
     evaluated_on_tensorflow = models.CharField(max_length=100, blank=True, null=True)   # Used when evaluating on TensorFlow datasets

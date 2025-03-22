@@ -1647,12 +1647,6 @@ class RecompileModel(APIView):
             return Response({"Unauthorized": "Must be logged in to recompile models."}, status=status.HTTP_401_UNAUTHORIZED)
         
         
-def stream_training_progress(request):
-    response = StreamingHttpResponse(train_model(), content_type="text/event-stream")
-    response['Cache-Control'] = 'no-cache'
-    return response
-        
-        
 def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, user):
     try:
         model_instance = Model.objects.get(id=model_id)
@@ -1848,6 +1842,26 @@ class TrainModel(APIView):
         else:
             return Response({"Unauthorized": "Must be logged in to train models."}, status=status.HTTP_401_UNAUTHORIZED)
   
+  
+class GetModelTrainingProgress(APIView):
+    parser_classes = [JSONParser]  
+    
+    def get(self, request, format=None):
+        user = self.request.user
+        
+        if user.is_authenticated:
+            model_id = request.data["model"]
+            
+            try:
+                model = Model.objects.get(id=model_id)
+                
+                return Response({"progress": model.training_progress}, status=status.HTTP_200_OK)
+            
+            except Model.DoesNotExist:
+                return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "Must be logged in to get training progress of model."}, status=status.HTTP_401_UNAUTHORIZED)
+
   
 class EvaluateModel(APIView):
     parser_classes = [JSONParser]
