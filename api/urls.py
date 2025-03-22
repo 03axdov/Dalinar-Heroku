@@ -52,7 +52,7 @@ urlpatterns = [
     path("train-model/", TrainModel.as_view(), name="train-model"),
     path("evaluate-model/", EvaluateModel.as_view(), name="evaluate-model"),
     path("predict-model/", PredictModel.as_view(), name="predict-model"),
-    path("training-progress/", GetModelTrainingProgress.as_view(), name="training-progress"),
+    path("training-progress/<int:id>", GetModelTrainingProgress.as_view(), name="training-progress"),
     
     # LAYER HANDLING
     path("create-layer/", CreateLayer.as_view(), name="create-layer"),

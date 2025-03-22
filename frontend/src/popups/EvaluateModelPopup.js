@@ -340,7 +340,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, currentProfile
                 </div>
                 
 
-                {datasetTypeShown == "my" && <div className="my-datasets-container" style={{padding: 0, justifyContent: "center"}}>
+                {datasetTypeShown == "my" && <div className="my-datasets-container train-datasets-container" style={{padding: 0}}>
                     {datasets.map((dataset) => (
                         ((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText) ? <div title={(dataset.datatype == "classification" ? "Evaluate on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
                             if (dataset.datatype == "classification") {
@@ -360,7 +360,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, currentProfile
                     ))}
                 </div>}
 
-                {savedDatasets && datasetTypeShown == "saved" && <div className="my-datasets-container" style={{padding: 0, justifyContent: "center"}}>
+                {savedDatasets && datasetTypeShown == "saved" && <div className="my-datasets-container train-datasets-container" style={{padding: 0}}>
                     {savedDatasets.map((dataset) => (
                         (((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText)) ? <div title={(dataset.datatype == "classification" ? "Evaluate on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
                             if (dataset.datatype == "classification") {

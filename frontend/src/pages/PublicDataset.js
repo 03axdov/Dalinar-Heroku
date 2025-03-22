@@ -1007,17 +1007,15 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                         {dataset && currentProfile && currentProfile.user && !dataset.saved_by.includes(currentProfile.user) && <button className="dataset-save-button" 
                         title="Save dataset" 
                         onClick={() => saveDataset()}>
-                            {!saving && <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/star.svg"}/>}
-                            {saving && <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/loading.gif"}/>}
-                            {(saving ? "" : "Save")}
+                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/star.svg"}/>
+                            Save
                         </button>}
 
                         {dataset && currentProfile && currentProfile.user && dataset.saved_by.includes(currentProfile.user) && <button className="dataset-save-button"
                         title="Save dataset" 
                         onClick={() => unsaveDataset()}>
-                            {!saving && <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/>}
-                            {saving && <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/loading.gif"}/>}
-                            {(saving ? "" : "Saved")}
+                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/>
+                            Saved
                         </button>}
                         {elements && elements[elementsIndex] && dataset && dataset.dataset_type.toLowerCase() == "image" && <div className="resize-form" onSubmit={(e) => {
                             e.preventDefault()

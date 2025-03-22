@@ -100,9 +100,27 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
         setIsTraining(true)
         setTrainingProgress(0)
 
+        let axios_outstanding = 0;
+        const trainingInterval = setInterval(() => {
+            if (axios_outstanding > 0) return;
+            axios_outstanding += 1
+            axios({
+                method: 'GET',
+                url: window.location.origin + '/api/training-progress/' + model_id,
+            })
+            .then((res) => {
+                setTrainingProgress(res.data.progress * 100)
+            })
+            .catch(error => console.error("Error fetching progress:", error))
+            .finally(() => {
+                axios_outstanding -= 1
+            });
+        }, 2500); // Update every 2.5s
+      
+
         axios.post(URL, data, config)
         .then((res) => {
-            
+            console.log("AFTER")
             data = res.data
             if (!data) {return}
 
@@ -125,6 +143,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
 
             
         }).finally(() => {
+            clearInterval(trainingInterval)
             setTrainingProgress(100)
 
             setTimeout(() => {
@@ -133,6 +152,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
             }, 200)
 
         })
+
+        console.log("BEFORE")
     }
 
     function sort_datasets(ds) {
