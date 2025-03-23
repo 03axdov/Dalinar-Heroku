@@ -13,6 +13,7 @@ from django.urls import resolve
 import json
 from rest_framework.test import APIRequestFactory
 import math
+import time
 import numpy as np
 
 import tempfile
@@ -364,6 +365,10 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
             status=layer_response.status_code
         )
     
+
+def get_temp_model_name(id, timestamp, extension):
+    return 'temp_model' + str(id) + "-" + str(timestamp) + '.' + extension
+    
     
 def get_tf_model(model_instance):     # Gets a Tensorflow model from a built Model instance
     # Define the S3 bucket and file path
@@ -373,19 +378,22 @@ def get_tf_model(model_instance):     # Gets a Tensorflow model from a built Mod
     s3_client = get_s3_client()
     
     extension = model_file_path.split(".")[-1]
+    
+    timestamp = time.time()
 
     # Download the model file from S3 to a local temporary file
-    with open('temp_model' + str(model_instance.id) + '.' + extension, 'wb') as f:
+    temp_file_path = get_temp_model_name(model_instance.id, timestamp, extension)
+    with open(temp_file_path, 'wb') as f:
         s3_client.download_fileobj(bucket_name, model_file_path, f)
 
     # Load the TensorFlow model from the temporary file
-    model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
-    return model
+    model = tf.keras.models.load_model(temp_file_path)
+    return model, timestamp
     
     
-def remove_temp_tf_model(model_instance):
+def remove_temp_tf_model(model_instance, timestamp):
     extension = str(model_instance.model_file).split(".")[-1]
-    os.remove('temp_model' + str(model_instance.id) + '.' + extension) 
+    os.remove(get_temp_model_name(model_instance.id, timestamp, extension)) 
     
     
 def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Convert uploaded files to tensors for TensorFlow processing
@@ -1405,14 +1413,16 @@ class CreateModel(APIView):
                     s3_client = get_s3_client()
                     
                     # Download the model file from S3 to a local temporary file
-                    with open('temp_model' + str(model_instance.id) + "." + extension, 'wb') as f:
+                    timestamp = time.time()
+                    backend_temp_model_path = get_temp_model_name(model_instance.id, timestamp, extension)
+                    with open(backend_temp_model_path, 'wb') as f:
                         s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
 
-                    model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
+                    model = tf.keras.models.load_model(backend_temp_model_path)
                     
                     default_storage.delete(file_path)
                     
-                    os.remove('temp_model' + str(model_instance.id) + '.' + extension)
+                    os.remove(backend_temp_model_path)
                     
                     for t, layer in enumerate(model.layers):
                         layer_model_from_tf_layer(layer, model_instance.id, request, t)
@@ -1609,7 +1619,7 @@ class RecompileModel(APIView):
                 
                 if model_instance.owner == user.profile:
                     try:
-                        model = get_tf_model(model_instance)
+                        model, timestamp = get_tf_model(model_instance)
 
                         model.compile(optimizer=optimizer, loss=loss_function, metrics=['accuracy'])
                         
@@ -1627,7 +1637,7 @@ class RecompileModel(APIView):
                             model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
 
                         # Delete the temporary file after saving
-                        remove_temp_tf_model(model_instance)
+                        remove_temp_tf_model(model_instance, timestamp)
                         
                         model_instance.optimizer = optimizer
                         model_instance.loss_function = loss_function
@@ -1672,7 +1682,7 @@ def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, us
             if model_instance.model_file:
                 try:
                     extension = str(model_instance.model_file).split(".")[-1]
-                    model = get_tf_model(model_instance)
+                    model, timestamp = get_tf_model(model_instance)
                     
                     dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
                     validation_size = int(dataset_length * validation_split)
@@ -1717,7 +1727,7 @@ def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, us
                         model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
 
                     # Delete the temporary file after saving
-                    remove_temp_tf_model(model_instance)
+                    remove_temp_tf_model(model_instance, timestamp)
                     
                     accuracy = history.history["accuracy"]
                     loss = history.history["loss"]
@@ -1791,7 +1801,7 @@ def trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_
                 try:
                     extension = str(model_instance.model_file).split(".")[-1]
                     
-                    model = get_tf_model(model_instance)
+                    model, timestamp = get_tf_model(model_instance)
                     
                     dataset_length = len(dataset)
                     validation_size = int(dataset_length * validation_split)
@@ -1829,7 +1839,7 @@ def trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_
                         model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
 
                     # Delete the temporary file after saving
-                    remove_temp_tf_model(model_instance)
+                    remove_temp_tf_model(model_instance, timestamp)
                     
                     accuracy = history.history["accuracy"]
                     loss = history.history["loss"]
@@ -1912,7 +1922,7 @@ class EvaluateModel(APIView):
 
             if model_instance.model_file:
                 try:
-                    model = get_tf_model(model_instance)
+                    model, timestamp = get_tf_model(model_instance)
                     
                     dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance) 
                     
@@ -1921,7 +1931,7 @@ class EvaluateModel(APIView):
                     res = model.evaluate(dataset, return_dict=True)
                     
                     # Delete the temporary file after saving
-                    remove_temp_tf_model(model_instance)
+                    remove_temp_tf_model(model_instance, timestamp)
                     
                     if (user.is_authenticated and model_instance.owner == user.profile):
                         model_instance.evaluated_on = dataset_instance
@@ -1969,7 +1979,7 @@ class PredictModel(APIView):
                     
                     target_size = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
                     
-                    model = get_tf_model(model_instance)
+                    model, timestamp = get_tf_model(model_instance)
                     
                     prediction_names = []
                     prediction_colors = []
@@ -1986,7 +1996,7 @@ class PredictModel(APIView):
                         prediction_names.append(predicted_label.name)
                         prediction_colors.append(predicted_label.color)
                     
-                    remove_temp_tf_model(model_instance)
+                    remove_temp_tf_model(model_instance, timestamp)
                     
                     return Response({"predictions": prediction_names, "colors": prediction_colors}, status=status.HTTP_200_OK)
                     

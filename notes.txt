@@ -4,9 +4,7 @@ TO-DO:
 - Text layers.
 - Links in buttons
 - Make sure to remove temp models
-- Only image datasets for image models etc
-- Possibly add random strings to temp model names?
-- Evaluation progress
+- Possibly add user id
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py
