@@ -368,6 +368,11 @@
     margin-right: 10px;
 }
 
+.model-copy-button {
+    margin-right: 10px;
+    margin-left: auto;
+}
+
 .model-download-button {
     margin-left: auto;
     width: 175px;

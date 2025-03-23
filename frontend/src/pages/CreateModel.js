@@ -1,11 +1,15 @@
 import React, {useState, useRef, useEffect} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
+import { useParams, useSearchParams } from "react-router-dom";
 
 
 function CreateModel({notification, BACKEND_URL}) {
 
     const navigate = useNavigate()
+
+    const [searchParams] = useSearchParams();
+    const copyModel = searchParams.get("copy"); // Get the 'start' param
 
     const [loading, setLoading] = useState(false)
 
@@ -16,12 +20,72 @@ function CreateModel({notification, BACKEND_URL}) {
     const [visibility, setVisibility] = useState("private")
     const [modelFile, setModelFile] = useState(null)
 
+    const [loadingModelFile, setLoadingModelFile] = useState(false)
+
     const imageInputRef = useRef(null)
     const [imageURL, setImageURL] = useState("")
 
     const [uploadDropdownVisible, setUploadDropdownVisible] = useState(false)
 
     const hiddenFileRef = useRef(null)
+
+
+    useEffect(() => {
+        if (!copyModel) return;
+
+        getModelFile(copyModel)
+
+    }, [copyModel])
+
+    function getModelFile(copyModelId) {
+        setLoadingModelFile(true)
+        axios({
+            method: 'GET',
+            url: window.location.origin + '/api/models/public/' + copyModelId,
+        })
+        .then((res) => {
+            let model = res.data
+            
+            if (model.model_file) {
+                createFileFromUrl(model.model_file)
+            }
+
+        }).catch((err) => {
+            navigate("/")
+            notification("An error occured when loading model with id " + id + ".", "failure")
+
+            console.log(err)
+        })
+    }
+
+    console.log(modelFile)
+
+    async function createFileFromUrl(url) {
+        try {
+            // Fetch the file content from the URL
+            const response = await fetch(url);
+    
+            // Check if the response is successful
+            if (!response.ok) {
+                throw new Error('Failed to fetch the file');
+            }
+    
+            // Get the file name from the URL (optional)
+            const fileName = url.split('/').pop(); 
+    
+            // Convert the response to a Blob
+            const blob = await response.blob();
+    
+            // Create a File object from the Blob
+            const file = new File([blob], fileName, { type: blob.type });
+    
+            setModelFile(file)
+        } catch (error) {
+            console.error('Error creating file:', error);
+        } finally {
+            setLoadingModelFile(false)
+        }
+    }
 
 
     useEffect(() => {
@@ -196,6 +260,10 @@ function CreateModel({notification, BACKEND_URL}) {
                                     hiddenFileRef.current.value = null
                                 }
                             }}/>
+                        </div>}
+                        {loadingModelFile && <div className="uploaded-model-element">
+                            <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} style={{width: "15px", height: "15px", marginRight: "10px"}}/>
+                            Loading...
                         </div>}
                     </div>
                 </div>

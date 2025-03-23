@@ -1405,10 +1405,10 @@ class CreateModel(APIView):
                     s3_client = get_s3_client()
                     
                     # Download the model file from S3 to a local temporary file
-                    with open('temp_model.' + str(model_instance.id) + extension, 'wb') as f:
+                    with open('temp_model' + str(model_instance.id) + "." + extension, 'wb') as f:
                         s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
 
-                    model = tf.keras.models.load_model('temp_model.' + extension)
+                    model = tf.keras.models.load_model('temp_model' + str(model_instance.id) + '.' + extension)
                     
                     default_storage.delete(file_path)
                     
@@ -1419,7 +1419,7 @@ class CreateModel(APIView):
                         
                     model_instance.model_file = model_file
                     model_instance.optimizer = model.optimizer.__class__.__name__.lower()
-                    model_instance.loss_function = model.loss
+                    model_instance.loss_function = model.loss.__class__.__name__.lower()
                     
                     model_instance.save()
                        
@@ -1901,51 +1901,47 @@ class EvaluateModel(APIView):
         
         user = self.request.user
         
-        if user.is_authenticated:
-            try:
-                model_instance = Model.objects.get(id=model_id)
-                dataset_instance = Dataset.objects.get(id=dataset_id)
-                
-                if model_instance.owner == user.profile:
-                    if model_instance.model_file:
-                        try:
-                            model = get_tf_model(model_instance)
-                            
-                            dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance) 
-                            
-                            dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
-                            
-                            res = model.evaluate(dataset, return_dict=True)
-                            
-                            # Delete the temporary file after saving
-                            remove_temp_tf_model(model_instance)
-                            
-                            model_instance.evaluated_on = dataset_instance
-                            model_instance.evaluated_accuracy = res["accuracy"]
-                            model_instance.save()
-                            
-                            return Response(res, status=status.HTTP_200_OK)
-                        
-                        except ValueError as e: # In case of invalid layer combination
-                            message = str(e)
-                            if len(message) > 50 and len(list(dataset)) * validation_split > 1:
-                                message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
-                            
-                            raise ValueError(e)
+        try:
+            model_instance = Model.objects.get(id=model_id)
+            dataset_instance = Dataset.objects.get(id=dataset_id)
 
-                            return Response({"Bad request": str(message)}, status=status.HTTP_400_BAD_REQUEST)
-                        except Exception as e:
-                            return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-                    else:
-                        return Response({"Bad request": "Model has not been built."}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    return Response({"Unauthorized": "You can only evaluate your own models."}, status=status.HTTP_401_UNAUTHORIZED)
-            except Model.DoesNotExist:
-                return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
-            except Dataset.DoesNotExist:
-                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            return Response({"Unauthorized": "Must be logged in to evaluate models."}, status=status.HTTP_401_UNAUTHORIZED)
+            if model_instance.model_file:
+                try:
+                    model = get_tf_model(model_instance)
+                    
+                    dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance) 
+                    
+                    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+                    
+                    res = model.evaluate(dataset, return_dict=True)
+                    
+                    # Delete the temporary file after saving
+                    remove_temp_tf_model(model_instance)
+                    
+                    if (user.is_authenticated and model_instance.owner == user.profile):
+                        model_instance.evaluated_on = dataset_instance
+                        model_instance.evaluated_accuracy = res["accuracy"]
+                        model_instance.save()
+                    
+                    return Response(res, status=status.HTTP_200_OK)
+                
+                except ValueError as e: # In case of invalid layer combination
+                    message = str(e)
+                    if len(message) > 50 and len(list(dataset)) * validation_split > 1:
+                        message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
+                    
+                    raise ValueError(e)
+
+                    return Response({"Bad request": str(message)}, status=status.HTTP_400_BAD_REQUEST)
+                except Exception as e:
+                    return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            else:
+                return Response({"Bad request": "Model has not been built."}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Model.DoesNotExist:
+            return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        except Dataset.DoesNotExist:
+            return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
            
            
 class PredictModel(APIView):
@@ -2047,7 +2043,10 @@ class CreateLayer(APIView):
                 if user.is_authenticated:
                     
                     if user.profile == model.owner:
-                        idx = model.layers.all().last().index + 1
+                        last = model.layers.all().last()
+                        idx = 0
+                        if last: 
+                            idx = model.layers.all().last().index + 1
                         instance = serializer.save(model=model, layer_type=layer_type, index=idx, activation_function=data["activation_function"])
                             
                         return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)

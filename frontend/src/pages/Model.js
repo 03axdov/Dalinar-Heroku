@@ -611,7 +611,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         </button>}
 
                         {model && <button type="button" 
-                        title={model.model_file ? (model.trained_on ? "Predict" : "Model not yet trained") : "Model not yet built."}
+                        title={model.model_file ? (model.trained_on ? "Predict" : "Model not yet trained or trained on unknown dataset.") : "Model not yet built."}
                         className={"model-evaluate-button no-margin-right " + ((model.model_file && model.trained_on) ? "" : "model-button-disabled")}
                         onClick={() => {
                             if (model.model_file && model.trained_on) {

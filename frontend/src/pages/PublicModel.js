@@ -5,10 +5,11 @@ import axios from "axios"
 import LayerElement from "../components/LayerElement";
 import ModelDownloadPopup from "../popups/ModelDownloadPopup";
 import PredictionPopup from "../popups/PredictionPopup";
+import EvaluateModelPopup from "../popups/EvaluateModelPopup";
 
 
 // The default page. Login not required.
-function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEND_URL}) {
+function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEND_URL, checkLoggedIn}) {
 
     const { id } = useParams();
     const [model, setModel] = useState(null)
@@ -20,6 +21,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
     const [showBuildModelPopup, setShowBuildModelPopup] = useState(false)
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
     const [showPredictionPopup, setShowPredictionPopup] = useState(false)
+    const [showEvaluateModelPopup, setShowEvaluateModelPopup] = useState(false)
 
     const [downloading, setDownloading] = useState(false)
     const [isDownloaded, setIsDownloaded] = useState(false)
@@ -270,6 +272,14 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
             notification={notification}>
             </PredictionPopup>}
 
+            {showEvaluateModelPopup && <EvaluateModelPopup setShowEvaluateModelPopup={setShowEvaluateModelPopup} 
+            currentProfile={currentProfile} 
+            BACKEND_URL={BACKEND_URL}
+            model_id={model.id}
+            notification={notification}
+            activateConfirmPopup={activateConfirmPopup}>
+            </EvaluateModelPopup>}
+
             {showDownloadPopup && <ModelDownloadPopup setShowDownloadPopup={setShowDownloadPopup} 
                 model={model}
                 downloadModel={downloadModel}
@@ -329,7 +339,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                         </div>}
 
                         {model && <button type="button" 
-                        title={model.model_file ? (model.trained_on ? "Predict" : "Model not yet trained") : "Model not yet built."}
+                        title={model.model_file ? (model.trained_on ? "Predict" : "Model not yet trained or trained on unknown dataset") : "Model not yet built."}
                         className={"model-evaluate-button no-margin-right " + ((model.model_file && model.trained_on) ? "" : "model-button-disabled")}
                         onClick={() => {
                             if (model.model_file && model.trained_on) {
@@ -340,7 +350,35 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                             Predict
                         </button>}
 
-                        {model && <button className={"model-download-button model-download-button " + (model.model_file ? "" : "model-button-disabled")} 
+                        {model && <button type="button" 
+                        title={model.model_file ? "Evaluate model" : "Model not yet built."}
+                        className={"model-evaluate-button " + (model.model_file ? "" : "model-button-disabled")}
+                        onClick={() => {
+                            if (!currentProfile.user) {
+                                checkLoggedIn("")
+                                return;
+                            }
+                            if (model.model_file) {
+                                setShowEvaluateModelPopup(true)
+                            }
+                        }}>
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/evaluate.svg"} />
+                            Evaluate
+                        </button>}
+
+                        {model && <button type="button" 
+                        title={model.model_file ? "Create copy" : "Model not yet built."}
+                        className={"model-evaluate-button model-copy-button " + (model.model_file ? "" : "model-button-disabled")}
+                        onClick={() => {
+                            if (model.model_file) {
+                                checkLoggedIn("/create-model?copy=" + model.id)
+                            }
+                        }}>
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/evaluate.svg"} />
+                            Create copy
+                        </button>}
+
+                        {model && <button style={{marginLeft: 0}} className={"model-download-button model-download-button " + (model.model_file ? "" : "model-button-disabled")} 
                         title={model.model_file ? "Download model" : "You must build the model before downloading it."}
                         onClick={() => setShowDownloadPopup(true)}>
                             <img className="model-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>
@@ -385,29 +423,49 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                             {model.trained_on && <div className="model-description-trained">
                                 <p className="dataset-description-text trained-on-text dataset-description-start">Last trained on:</p>
                                 <div className="trained-on-container">
-                                    <div className="trained-on-element" onClick={() => {
+                                    {model.trained_on && <div className="trained-on-element" onClick={() => {
                                         const URL = window.location.origin + "/datasets/" + (model.trained_on.visibility == "public" ? "public/" : "") + model.trained_on.id
                                         var win = window.open(URL, '_blank');
                                         win.focus();
                                     }}>
-                                        {model.trained_on.name} - {model.trained_accuracy * 100 + "%"} accuracy
+                                        {model.trained_on.name} - {Math.round(10**6 * model.trained_accuracy) / 10**4 + "%"} accuracy
                                         <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
-                                    </div>
+                                    </div>}
+
+                                    {model.trained_on_tensorflow && <div className="trained-on-element" onClick={() => {
+                                        const URL = "https://www.tensorflow.org/api_docs/python/tf/keras/datasets/" + model.trained_on_tensorflow + "/load_data"
+                                        var win = window.open(URL, '_blank');
+                                        win.focus();
+                                    }}>
+                                        <img className="trained-on-tensorflow-icon" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} />
+                                        {model.trained_on_tensorflow} - {Math.round(10**6 * model.trained_accuracy) / 10**4 + "%"} accuracy
+                                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                                    </div>}
                                 </div>
                             </div>}
 
                             {model.evaluated_on && <div className="model-description-trained">
-                                <p className="dataset-description-text trained-on-text dataset-description-start">Evaluation:</p>
+                                <p className="dataset-description-text trained-on-text dataset-description-start">Evaluated on:</p>
                                 <div className="trained-on-container">
 
-                                    <div className="trained-on-element" onClick={() => {
+                                    {model.evaluated_on && <div className="trained-on-element" onClick={() => {
                                         const URL = window.location.origin + "/datasets/" + (model.evaluated_on.visibility == "public" ? "public/" : "") + model.evaluated_on.id
                                         var win = window.open(URL, '_blank');
                                         win.focus();
                                     }}>
-                                        {model.evaluated_on.name} - {model.evaluated_accuracy * 100 + "%"} accuracy
+                                        {model.evaluated_on.name} - {Math.round(10**6 * model.evaluated_accuracy) / 10**4 + "%"} accuracy
                                         <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
-                                    </div>
+                                    </div>}
+
+                                    {model.evaluated_on_tensorflow && <div className="trained-on-element" onClick={() => {
+                                        const URL = "https://www.tensorflow.org/api_docs/python/tf/keras/datasets/" + model.evaluated_on_tensorflow + "/load_data"
+                                        var win = window.open(URL, '_blank');
+                                        win.focus();
+                                    }}>
+                                        <img className="trained-on-tensorflow-icon" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} />
+                                        {model.evaluated_on_tensorflow} - {Math.round(10**6 * model.evaluated_accuracy) / 10**4 + "%"} accuracy
+                                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                                    </div>}
 
                                 </div>
                             </div>}

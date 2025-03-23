@@ -27,7 +27,11 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
     const [showImage, setShowImage] = useState(true)
     const [showText, setShowText] = useState(true)
 
+    const [showBuilt, setShowBuilt] = useState(true)
+    const [showNotBuilt, setShowNotBuilt] = useState(true)
+
     const [showDatasetType, setShowDatasetType] = useState(false)
+    const [showModelType, setShowModelType] = useState(false)
 
     useEffect(() => {
         getDatasets()
@@ -292,6 +296,33 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
 
                     <div className="title-forms">
 
+                        <div className="dataset-type-options-container" onClick={(e) => {
+                            e.stopPropagation()
+                        }}>
+                            <button className="dataset-type-options-button" onClick={(e) => {
+                                
+                                setShowModelType(!showModelType)
+                            }}>
+                                Types<img className="dataset-type-options-icon" src={BACKEND_URL + "/static/images/down.svg"}/>
+                            </button>
+                            
+                            {showModelType && <div className="model-type-options">
+                                <div className="explore-datasets-type">
+                                    <input className="explore-datasets-checkbox" type="checkbox" id="built" checked={showBuilt} onChange={() => {
+                                        setShowBuilt(!showBuilt)
+                                    }}/>
+                                    <label htmlFor="built" className="explore-label">Built</label>
+                                </div>
+                                
+                                <div className="explore-datasets-type no-margin"> 
+                                    <input className="explore-datasets-checkbox" type="checkbox" id="not-built" checked={showNotBuilt} onChange={() => {
+                                        setShowNotBuilt(!showNotBuilt)
+                                    }}/> 
+                                    <label htmlFor="not-built" className="explore-label">Not built</label>
+                                </div>
+                            </div>}
+                        </div>
+
                         <select title="Sort by" className="explore-datasets-sort" value={sortModels} onChange={(e) => {
                                 setSortModels(e.target.value)
                             }}>
@@ -312,7 +343,7 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
                 
                 <div className="my-datasets-container">
                     {models.map((model) => (
-                       <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL} isPublic={true}/>
+                       ((model.model_file ? showBuilt : showNotBuilt) ? <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL} isPublic={true}/> : "")
                     ))}
                     {!loadingModels && models.length == 0 && searchModels.length > 0 && <p className="gray-text">No such models found.</p>}
                     {loadingModels && models.length == 0 && [...Array(4)].map((e, i) => (

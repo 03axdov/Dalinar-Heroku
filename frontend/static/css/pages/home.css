@@ -86,7 +86,7 @@
     margin-left: 10px;
 }
 
-.dataset-type-options {
+.dataset-type-options, .model-type-options {
     position: absolute;
     top: calc(100% + 5px);
     background: var(--toolbar);
@@ -97,6 +97,7 @@
     flex-direction: column;
     padding: 20px;
     padding-right: 40px;
+    white-space: nowrap;
 }
 
 .sidebar-types-container {

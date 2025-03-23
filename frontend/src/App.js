@@ -125,7 +125,7 @@ export default function App() {
                     <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/datasets/public/:id" element={<PublicDataset currentProfile={currentProfile} BACKEND_URL={BACKEND_URL} notification={notification}/>}/>
                     <Route path="/models/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/models/public/:id" element={<PublicModel currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/models/public/:id" element={<PublicModel checkLoggedIn={checkLoggedIn} currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/edit-model/:id" element={<EditModel activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                 </Routes>
             </div>

@@ -2,9 +2,10 @@ TO-DO:
 - Python security measures for dataset_types
 - .png files not working?
 - Text layers.
-- Model prediction (multiple)
-- Scrollto elements in elements list when changing idx with arrows.
 - Links in buttons
+- Make sure to remove temp models
+- Only image datasets for image models etc
+- Possibly add random strings to temp model names?
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py
