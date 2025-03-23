@@ -680,6 +680,19 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
+}
+
+.dataset-element-view-label {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 1.4rem;
+    padding: 5px 10px;
+    border-radius: 3px;
+    background: rgb(0,0,0,0.5);
+    border: 1px solid var(--border);
+    z-index: 1;
 }
 
 .dataset-element-view-image-container-area {

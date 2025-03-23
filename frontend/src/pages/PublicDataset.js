@@ -256,7 +256,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
 
     useEffect(() => {
         if (!currentElementRef.current) return;
-        currentElementRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        currentElementRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
     }, [elementsIndex])
 
     // Handles user button presses
@@ -414,6 +414,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                     onWheel={handleElementScroll}
                     onMouseMove={handleElementMouseMove}
                     style={{overflow: "hidden"}}>
+                        {element.label && idToLabel[element.label] && <div className="dataset-element-view-label">{idToLabel[element.label].name}</div>}
                         <img ref={elementRef} 
                             className="dataset-element-view-image" 
                             src={element.file} 
@@ -1078,7 +1079,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
 
                             <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p>
 
-                            {dataset.dataset_type.toLowerCase() == "image" && dataset.imageWidth && <p className="dataset-description-text"><span className="dataset-description-start">Default Image Dimensions: </span>({dataset.imageWidth}, {dataset.imageHeight})</p>}
+                            {dataset.dataset_type.toLowerCase() == "image" && dataset.imageWidth && <p className="dataset-description-text"><span className="dataset-description-start">Image Dimensions: </span>({dataset.imageWidth}, {dataset.imageHeight})</p>}
 
                             {dataset.dataset_type.toLowerCase() == "image" && <p className="dataset-description-text dataset-description-text-flex" style={{textTransform: "capitalize"}}>
                                 <span className="dataset-description-start">Type of data: </span>

@@ -1419,7 +1419,7 @@ class CreateModel(APIView):
                         
                     model_instance.model_file = model_file
                     model_instance.optimizer = model.optimizer.__class__.__name__.lower()
-                    model_instance.loss_function = str(model.loss)
+                    model_instance.loss_function = model.loss.__name__
                     
                     model_instance.save()
                        

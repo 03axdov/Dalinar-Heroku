@@ -621,7 +621,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     useEffect(() => {
         if (!currentElementRef.current) return;
-        currentElementRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        currentElementRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
     }, [elementsIndex])
 
     // Handles user button presses
@@ -769,6 +769,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     onWheel={handleElementScroll}
                     onMouseMove={handleElementMouseMove}
                     style={{overflow: "hidden"}}>
+                        {element.label && idToLabel[element.label] && <div className="dataset-element-view-label">{idToLabel[element.label].name}</div>}
                         <img ref={elementRef} 
                         className="dataset-element-view-image" 
                         src={element.file} 
@@ -867,28 +868,21 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         let errorMessages = ""
         let totalSize = 0
+        for (let i=0; i < files.length; i++) {
+            let file = files[i]
+            totalSize += file.size
+        }
+
+        if (totalSize > 1 * 10**9) {
+            notification("A maximum of 1 Gb can be uploaded at a time.", "failure")
+            return;
+        }
         
         setUploadLoading(true)
         const NUM_FILES = files.length;
         let AXIOS_OUTSTANDING = files.length
         for (let i=0; i < files.length; i++) {
             let file = files[i]
-            
-            totalSize += file.size
-
-            if (totalSize > 10 * 10**9) {
-                if (errorMessages) {errorMessages += "\n\n"}
-                errorMessages += "Stopped uploading after " + file.name + " as only 1 Gigabyte can be uploaded at a time."
-                notification(errorMessages, "failure")
-                setUploadPercentage(100)
-                
-                setTimeout(() => {
-                    setUploadLoading(false)
-                    getDataset()
-                }, 200)
-                
-                return
-            }
 
             let extension = file.name.split(".").pop()
             if (!ALLOWED_FILE_EXTENSIONS.has(extension)) {
@@ -2204,7 +2198,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
                             <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p>
 
-                            {dataset.dataset_type.toLowerCase() == "image" && dataset.imageWidth && <p className="dataset-description-text"><span className="dataset-description-start">Default Image Dimensions: </span>({dataset.imageWidth}, {dataset.imageHeight})</p>}
+                            {dataset.dataset_type.toLowerCase() == "image" && dataset.imageWidth && <p className="dataset-description-text"><span className="dataset-description-start">Image Dimensions: </span>({dataset.imageWidth}, {dataset.imageHeight})</p>}
 
                             {dataset.dataset_type.toLowerCase() == "image" && <p className="dataset-description-text dataset-description-text-flex" style={{textTransform: "capitalize"}}>
                                 <span className="dataset-description-start">Type of data: </span>

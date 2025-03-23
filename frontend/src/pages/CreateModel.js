@@ -213,7 +213,7 @@ function CreateModel({notification, BACKEND_URL}) {
                 </div>
 
                 <p className="create-dataset-image-description">
-                    The image that will represent this model. Elements (in Home or Explore) are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.
+                    The image that will represent this model. Elements are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.
                 </p>
 
                 <div className="create-dataset-label-inp create-dataset-label-inp-description">
@@ -243,7 +243,7 @@ function CreateModel({notification, BACKEND_URL}) {
                 <div className="upload-dataset-form">
                     <p className="create-dataset-description" >
                         By uploading a model, this model will be instantiated with all the supported layers provided—see the bottom of the landing page for a list of supported layers.
-                        Note that only .h5 and .keras models are supported, and that the parameters of uploaded models will not be preserved.
+                        Note that only .h5 and .keras models are supported.
                     </p>
 
                     <input id="folders-as-labels-upload-inp" type="file" accept=".h5, .keras" className="hidden" ref={hiddenFileRef} onChange={(e) => {uploadModel(e)}}/>

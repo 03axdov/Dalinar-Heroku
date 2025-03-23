@@ -193,7 +193,10 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
     }, [searchModels]);
 
 
-    return <div className="explore-container">
+    return <div className="explore-container" onClick={() => {
+        setShowDatasetType(false)
+        setShowModelType(false)
+    }}>
         <div className="home-sidebar">
             <button className="sidebar-button" onClick={() => {
                 checkLoggedIn("/create-dataset")
