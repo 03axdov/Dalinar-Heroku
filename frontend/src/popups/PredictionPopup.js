@@ -159,11 +159,11 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
                         {imageURLS[currentIndex] && <div className="create-dataset-image-container predict-image-container no-border" onClick={imageOnClick}>
                             <img className="create-dataset-image predict-image no-border" src={imageURLS[currentIndex]} onClick={imageOnClick}/>
                             <div className="create-dataset-image-hover">
-                                <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                                <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload images</p>
                             </div>
                         </div>}
                         {!imageURLS[currentIndex] && <div className="create-dataset-image-container predict-image-container" onClick={imageOnClick}>
-                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload images</p>
                         </div>}
 
                         <div className="model-prediction-right" onClick={predictionImageRight}>

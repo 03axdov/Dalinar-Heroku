@@ -465,6 +465,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             currentProfile={currentProfile} 
             BACKEND_URL={BACKEND_URL}
             model_id={model.id}
+            model_type={model.model_type.toLowerCase()}
             notification={notification}
             activateConfirmPopup={activateConfirmPopup}
             getModel={getModel}>
@@ -474,6 +475,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             currentProfile={currentProfile} 
             BACKEND_URL={BACKEND_URL}
             model_id={model.id}
+            model_type={model.model_type.toLowerCase()}
             notification={notification}
             activateConfirmPopup={activateConfirmPopup}>
             </EvaluateModelPopup>}
@@ -623,10 +625,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         </button>}
 
                         {model && <button type="button" 
-                        title={model.model_file ? "Evaluate model" : "Model not yet built."}
-                        className={"model-evaluate-button " + (model.model_file ? "" : "model-button-disabled")}
+                        title={model.model_file ? (model.trained_on ? "Evaluate model" : "Model not yet trained or trained on unknown dataset.") : "Model not yet built."}
+                        className={"model-evaluate-button " + ((model.model_file && model.trained_on) ? "" : "model-button-disabled")}
                         onClick={() => {
-                            if (model.model_file) {
+                            if ((model.model_file && model.trained_on)) {
                                 setShowEvaluateModelPopup(true)
                             }
                         }}>
@@ -634,7 +636,19 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             Evaluate
                         </button>}
 
-                        {model && <button className={"model-download-button model-download-button " + (model.model_file ? "" : "model-button-disabled")} 
+                        {model && <button type="button" 
+                        title={model.model_file ? "Create copy" : "Model not yet built."}
+                        className={"model-build-button model-copy-button " + (model.model_file ? "" : "model-button-disabled")}
+                        onClick={() => {
+                            if (model.model_file) {
+                                navigate("/create-model?copy=" + model.id)
+                            }
+                        }}>
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/copy.png"} />
+                            Copy
+                        </button>}
+
+                        {model && <button style={{marginLeft: 0}} className={"model-download-button model-download-button " + (model.model_file ? "" : "model-button-disabled")} 
                         title={model.model_file ? "Download model" : "You must build the model before downloading it."}
                         onClick={() => setShowDownloadPopup(true)}>
                             <img className="model-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>

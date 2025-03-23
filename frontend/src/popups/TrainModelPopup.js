@@ -4,7 +4,7 @@ import DatasetElement from "../components/DatasetElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import ProgressBar from "../components/ProgressBar"
 
-function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACKEND_URL, notification, activateConfirmPopup, setModelTrained, getModel}) {
+function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentProfile, BACKEND_URL, notification, activateConfirmPopup, setModelTrained, getModel}) {
 
     const [datasets, setDatasets] = useState([])
     const [savedDatasets, setSavedDatasets] = useState([])
@@ -19,11 +19,6 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
 
     const [sortSavedDatasets, setSortSavedDatasets] = useState("downloads")
     const [searchSaved, setSearchSaved] = useState("")
-
-    const [showImage, setShowImage] = useState(true)
-    const [showText, setShowText] = useState(true)
-
-    const [showDatasetType, setShowDatasetType] = useState(false)
 
     const [epochs, setEpochs] = useState(10)
     const [validationSplit, setValidationSplit] = useState(0.1)
@@ -316,32 +311,6 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
                     <h1 className="create-layer-popup-title">Train model</h1>
 
                     <div className="title-forms">
-                        <div className="dataset-type-options-container" onClick={(e) => {
-                            e.stopPropagation()
-                        }}>
-                            <button className="dataset-type-options-button" onClick={(e) => {
-                                
-                                setShowDatasetType(!showDatasetType)
-                            }}>
-                                Types<img className="dataset-type-options-icon" src={BACKEND_URL + "/static/images/down.svg"}/>
-                            </button>
-                            
-                            {showDatasetType && <div className="dataset-type-options">
-                                <div className="explore-datasets-type">
-                                    <input className="explore-datasets-checkbox" type="checkbox" id="image" checked={showImage} onChange={() => {
-                                        setShowImage(!showImage)
-                                    }}/>
-                                    <label htmlFor="image" className="explore-label">Image</label>
-                                </div>
-                                
-                                <div className="explore-datasets-type no-margin"> 
-                                    <input className="explore-datasets-checkbox" type="checkbox" id="text" checked={showText} onChange={() => {
-                                        setShowText(!showText)
-                                    }}/> 
-                                    <label htmlFor="text" className="explore-label">Text</label>
-                                </div>
-                            </div>}
-                        </div>
 
                         {datasetTypeShown == "my" && <select title="Sort by" className="explore-datasets-sort" value={sortDatasets} onChange={(e) => {
                                 setSortDatasets(e.target.value)
@@ -467,7 +436,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
       
                     </div>
                     {datasets.map((dataset) => (
-                        ((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText) ? <div title={(dataset.datatype == "classification" ? "Train on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
+                        ((dataset.dataset_type.toLowerCase() == model_type) ? <div title={(dataset.datatype == "classification" ? "Train on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
                             if (dataset.datatype == "classification") {
                                 datasetOnClick(dataset)
                             } else {
@@ -487,7 +456,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, currentProfile, BACK
 
                 {savedDatasets && datasetTypeShown == "saved" && <div className="my-datasets-container train-datasets-container" style={{padding: 0}}>
                     {savedDatasets.map((dataset) => (
-                        (((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText)) ? <div title={(dataset.datatype == "classification" ? "Train on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
+                        (((dataset.dataset_type.toLowerCase() == model_type)) ? <div title={(dataset.datatype == "classification" ? "Train on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
                             if (dataset.datatype == "classification") {
                                 datasetOnClick(dataset)
                             } else {

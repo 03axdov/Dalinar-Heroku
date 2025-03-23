@@ -276,6 +276,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
             currentProfile={currentProfile} 
             BACKEND_URL={BACKEND_URL}
             model_id={model.id}
+            model_type={model.model_type.toLowerCase()}
             notification={notification}
             activateConfirmPopup={activateConfirmPopup}>
             </EvaluateModelPopup>}
@@ -351,14 +352,14 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                         </button>}
 
                         {model && <button type="button" 
-                        title={model.model_file ? "Evaluate model" : "Model not yet built."}
-                        className={"model-evaluate-button " + (model.model_file ? "" : "model-button-disabled")}
+                        title={model.model_file ? (model.trained_on ? "Evaluate model" : "Model not yet trained or trained on unknown dataset") : "Model not yet built."}
+                        className={"model-evaluate-button " + ((model.model_file && model.trained_on) ? "" : "model-button-disabled")}
                         onClick={() => {
                             if (!currentProfile.user) {
                                 checkLoggedIn("")
                                 return;
                             }
-                            if (model.model_file) {
+                            if (model.model_file && model.trained_on) {
                                 setShowEvaluateModelPopup(true)
                             }
                         }}>
@@ -368,14 +369,14 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
 
                         {model && <button type="button" 
                         title={model.model_file ? "Create copy" : "Model not yet built."}
-                        className={"model-evaluate-button model-copy-button " + (model.model_file ? "" : "model-button-disabled")}
+                        className={"model-build-button model-copy-button " + (model.model_file ? "" : "model-button-disabled")}
                         onClick={() => {
                             if (model.model_file) {
                                 checkLoggedIn("/create-model?copy=" + model.id)
                             }
                         }}>
-                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/evaluate.svg"} />
-                            Create copy
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/copy.png"} />
+                            Copy
                         </button>}
 
                         {model && <button style={{marginLeft: 0}} className={"model-download-button model-download-button " + (model.model_file ? "" : "model-button-disabled")} 

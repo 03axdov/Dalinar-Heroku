@@ -298,8 +298,6 @@
     background: var(--sidebar-lighter);
 }
 
-
-
 .layer-element-connection {
     width: 50px;
     height: 5px;
@@ -375,8 +373,6 @@
 
 .model-download-button {
     margin-left: auto;
-    width: 175px;
-    min-width: 175px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -592,7 +588,7 @@ div.layer-element-mode-input {
 }
 
 
-@media all and (max-width: 1280px) {
+@media all and (max-width: 1400px) {
     .model-evaluate-button {
         font-size: 0rem;
         padding: 0;

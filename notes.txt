@@ -6,6 +6,7 @@ TO-DO:
 - Make sure to remove temp models
 - Only image datasets for image models etc
 - Possibly add random strings to temp model names?
+- Evaluation progress
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

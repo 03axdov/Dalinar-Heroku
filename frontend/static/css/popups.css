@@ -41,7 +41,7 @@
 }
 
 .train-model-popup-container {
-    width: 925px;
+    width: 880px;
     max-width: 95%;
     overflow-y: scroll;
     height: 95%;
@@ -672,8 +672,11 @@
     justify-content: space-between!important;
   }
   
-.train-datasets-container:not(:last-child) {
-    justify-content: flex-start!important; /* for incomplete rows */
+.train-datasets-container::after {
+    content: '';
+    width: 250px;
+    max-width: 250px;
+    flex: auto;
 }
 
 .prediction-circle {

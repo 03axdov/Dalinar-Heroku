@@ -21,11 +21,10 @@ function CreateModel({notification, BACKEND_URL}) {
     const [modelFile, setModelFile] = useState(null)
 
     const [loadingModelFile, setLoadingModelFile] = useState(false)
+    const [modelFileName, setModelFileName] = useState("")  // Used for copying
 
     const imageInputRef = useRef(null)
     const [imageURL, setImageURL] = useState("")
-
-    const [uploadDropdownVisible, setUploadDropdownVisible] = useState(false)
 
     const hiddenFileRef = useRef(null)
 
@@ -47,12 +46,14 @@ function CreateModel({notification, BACKEND_URL}) {
             let model = res.data
             
             if (model.model_file) {
+                let ext = model.model_file.split(".").pop()
+                setModelFileName(model.name.replaceAll(" ", "_") + "." + ext)
                 createFileFromUrl(model.model_file)
             }
 
         }).catch((err) => {
             navigate("/")
-            notification("An error occured when loading model with id " + id + ".", "failure")
+            notification("An error occured when loading model.", "failure")
 
             console.log(err)
         })
@@ -162,6 +163,7 @@ function CreateModel({notification, BACKEND_URL}) {
 
     function uploadModel(e) {
         if (!e.target.files || e.target.files.length < 1) {return}
+        setModelFileName("")
         setModelFile(e.target.files[0])
     }
 
@@ -253,7 +255,7 @@ function CreateModel({notification, BACKEND_URL}) {
                         </button>
 
                         {modelFile && <div className="uploaded-model-element">
-                            {modelFile.name}
+                            {(modelFileName ? modelFileName : modelFile.name)}
                             <img className="uploaded-model-cross" title="Remove uploaded model" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 setModelFile(null)
                                 if (hiddenFileRef.current) {
