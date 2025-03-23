@@ -1954,7 +1954,9 @@ class PredictModel(APIView):
     @tf.autograph.experimental.do_not_convert
     def post(self, request, format=None):
         model_id = request.data["model"]
-        image = request.data["image"]
+        print(request.data)
+        images = request.data.getlist("images[]")
+        print(images)
         text = request.data["text"]
         
         try:
@@ -1966,18 +1968,26 @@ class PredictModel(APIView):
                     
                     target_size = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
                     
-                    image_tensor = preprocess_uploaded_image(image, target_size)
-                    
                     model = get_tf_model(model_instance)
                     
-                    prediction_arr = model.predict(image_tensor)
-                    print(f"prediction_arr: {prediction_arr}")
-                    prediction_idx = int(np.argmax(prediction_arr))
-                    predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
+                    prediction_names = []
+                    prediction_colors = []
+                    
+                    for image in images:
+                        #print(image)
+                        image_tensor = preprocess_uploaded_image(image, target_size)
+                        
+                        prediction_arr = model.predict(image_tensor)
+                        print(f"prediction_arr: {prediction_arr}")
+                        prediction_idx = int(np.argmax(prediction_arr))
+                        predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
+                        
+                        prediction_names.append(predicted_label.name)
+                        prediction_colors.append(predicted_label.color)
                     
                     remove_temp_tf_model(model_instance)
                     
-                    return Response({"prediction": predicted_label.name, "color": predicted_label.color}, status=status.HTTP_200_OK)
+                    return Response({"predictions": prediction_names, "colors": prediction_colors}, status=status.HTTP_200_OK)
                     
                 elif model_instance.model_type.lower() == "text":
                     pass

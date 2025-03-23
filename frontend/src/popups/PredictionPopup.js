@@ -17,8 +17,8 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
     const [imageURLS, setImageURLS] = useState([])
     const hiddenFileRef = useRef(null)
 
-    const [prediction, setPrediction] = useState("")
-    const [predictionColor, setPredictionColor] = useState("")
+    const [predictions, setPredictions] = useState([])
+    const [predictionColors, setPredictionColors] = useState([])
 
     const [currentIndex, setCurrentIndex] = useState(0)
 
@@ -38,10 +38,11 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
             imageURLSTemp.push(url)
         }
         
+        setCurrentIndex(0)
         setImageURLS(imageURLSTemp)
 
-        setPrediction("")
-        setPredictionColor("")
+        setPredictions([])
+        setPredictionColors([])
     }, [images])
 
 
@@ -62,6 +63,8 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
         const URL = window.location.origin + '/api/predict-model/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
 
+        console.log(images)
+
         let data = {
             "model": model.id,
             "images": images,
@@ -80,8 +83,8 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
         .then((res) => {
             data = res.data
 
-            setPrediction(data["prediction"])
-            setPredictionColor(data["color"])
+            setPredictions(data["predictions"])
+            setPredictionColors(data["colors"])
 
         }).catch((error) => {
             console.log(error)
@@ -108,8 +111,6 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
             imageInputRef.current.click()
         }
     }
-
-    console.log(currentIndex)
 
     function predictionImageLeft() {
         if (images.length == 0) return
@@ -146,7 +147,7 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
                 {model.model_type.toLowerCase() == "image" && <div className="model-prediction-container">
                     <input type="file" accept="image/png, image/jpeg, image/webp" multiple required className="hidden" ref={imageInputRef} onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
-                            setImages(e.target.files)
+                            setImages([...e.target.files])
                         }
                     }} />
 
@@ -171,12 +172,12 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
                     </div>
                     
                     <div className="model-prediction">                       
-                        {!prediction && <span className="gray-text unselectable">Press predict to make a prediction</span>}
+                        {predictions.length == 0 && <span className="gray-text unselectable">Press predict to make a prediction</span>}
                         
-                        {prediction && <span className="prediction-circle" style={{background: predictionColor}}></span>}
+                        {predictions.length > 0 && <span className="prediction-circle" style={{background: predictionColors[currentIndex]}}></span>}
 
-                        {prediction && <span>
-                            {prediction}
+                        {predictions.length > 0 && <span>
+                            {predictions[currentIndex]}
                         </span>} 
                     </div>
 
