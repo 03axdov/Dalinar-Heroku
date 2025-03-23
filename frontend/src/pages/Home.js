@@ -19,7 +19,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
     const [loading, setLoading] = useState(true)
     const [loadingModels, setLoadingModels] = useState(true)
-    const [loadingSaved, setLoadingSaved] = useState(false)
+    const [loadingSaved, setLoadingSaved] = useState(true)
     
     const [typeShown, setTypeShown] = useState(startParam ? startParam : "datasets") // Either "datasets" or "models"
     const [savedTypeShown, setSavedTypeShown] = useState(typeParam ? typeParam : "datasets")
@@ -48,13 +48,21 @@ function Home({currentProfile, notification, BACKEND_URL}) {
         getModels()
     }, [])
 
+
+
     useEffect(() => {
-        if (currentProfile && currentProfile.saved_datasets) {
-            setSavedDatasets(sort_saved_datasets(currentProfile.saved_datasets))
+        if (currentProfile && (currentProfile.saved_datasets || currentProfile.saved_models)) {
+            setLoadingSaved(true)
+            if (currentProfile.saved_datasets) {
+                setSavedDatasets(sort_saved_datasets(currentProfile.saved_datasets))
+            }
+            if (currentProfile.saved_models) {
+                setSavedModels(sort_saved_models(currentProfile.saved_models))
+            }
+            setLoadingSaved(false)
         }
-        if (currentProfile && currentProfile.saved_models) {
-            setSavedModels(sort_saved_models(currentProfile.saved_models))
-        }
+        
+        
     }, [currentProfile])
 
     const getDatasets = () => {
