@@ -10,7 +10,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
     const [savedDatasets, setSavedDatasets] = useState([])
 
     const [isTraining, setIsTraining] = useState(false)
-    const [trainingProgress, setTrainingProgress] = useState(0)
+    const [trainingProgress, setTrainingProgress] = useState(-1)    // Negative means processing
 
     const [loading, setLoading] = useState(false)
 
@@ -93,7 +93,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
 
         if (isTraining) {return}
         setIsTraining(true)
-        setTrainingProgress(0)
+        setTrainingProgress(-1)
 
         let axios_outstanding = 0;
         const trainingInterval = setInterval(() => {
@@ -143,7 +143,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
 
             setTimeout(() => {
                 setIsTraining(false)
-                setTrainingProgress(0)
+                setTrainingProgress(-1)
             }, 200)
 
         })
@@ -302,7 +302,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
             }
         }}>
 
-            {isTraining && <ProgressBar progress={trainingProgress} message="Training..." BACKEND_URL={BACKEND_URL}></ProgressBar>}
+            {isTraining && <ProgressBar progress={trainingProgress} message={(trainingProgress >= 0 ? (Math.round(trainingProgress * epochs / 100) + " / " + epochs + " epochs") : "Processing...")} BACKEND_URL={BACKEND_URL}></ProgressBar>}
 
             {!wasTrained && <div className="train-model-popup-container" onClick={(e) => {
                 e.stopPropagation()

@@ -1648,25 +1648,27 @@ class RecompileModel(APIView):
       
       
 class TrainingProgressCallback(tf.keras.callbacks.Callback):
-    def __init__(self, model_instance, total_epochs):
+    def __init__(self, profile, total_epochs):
         super().__init__()
-        self.model_instance = model_instance
+        self.profile = profile
         self.total_epochs = total_epochs
 
     def on_epoch_end(self, epoch, logs=None):
-        self.model_instance.training_progress = round((epoch + 1) / self.total_epochs, 4)
-        self.model_instance.save()
+        self.profile.training_progress = round((epoch + 1) / self.total_epochs, 4)
+        self.profile.save()
         
         
 def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, user):
     try:
         model_instance = Model.objects.get(id=model_id)
-        model_instance.training_progress = 0
-        model_instance.save()
         
         dataset_instance = Dataset.objects.get(id=dataset_id)
         
         if model_instance.owner == user.profile:
+            
+            user.profile.training_progress = -1 # To Show Preprocessing
+            user.profile.save()
+            
             if model_instance.model_file:
                 try:
                     extension = str(model_instance.model_file).split(".")[-1]
@@ -1678,7 +1680,7 @@ def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, us
                     
                     model.summary() # For debugging
                     
-                    progress_callback = TrainingProgressCallback(model_instance=model_instance, total_epochs=epochs)
+                    progress_callback = TrainingProgressCallback(profile=user.profile, total_epochs=epochs)
 
                     if validation_size >= 1: # Some dataset are too small for validation
                         train_dataset, validation_dataset = tf.keras.utils.split_dataset(dataset, train_size, validation_size, shuffle=True)
@@ -1686,11 +1688,17 @@ def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, us
                         train_dataset = train_dataset.prefetch(tf.data.experimental.AUTOTUNE)
                         validation_dataset = validation_dataset.prefetch(tf.data.experimental.AUTOTUNE)
                     
+                        user.profile.training_progress = 0
+                        user.profile.save()
+                    
                         history = model.fit(train_dataset, 
                                             epochs=epochs, 
                                             validation_data=validation_dataset,
                                             callbacks=[progress_callback])
                     else:
+                        user.profile.training_progress = 0
+                        user.profile.save()
+                        
                         history = model.fit(dataset, 
                                             epochs=epochs,
                                             callbacks=[progress_callback])
@@ -1771,12 +1779,14 @@ def getTensorflowPrebuiltDataset(tensorflowDataset):
 def trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_split, user):
     try:
         model_instance = Model.objects.get(id=model_id)
-        model_instance.training_progress = 0
-        model_instance.save()
         
         dataset = getTensorflowPrebuiltDataset(tensorflowDataset=tensorflowDataset)
         
         if model_instance.owner == user.profile:
+            
+            user.profile.training_progress = -1
+            user.profile.save()
+            
             if model_instance.model_file:
                 try:
                     extension = str(model_instance.model_file).split(".")[-1]
@@ -1787,7 +1797,10 @@ def trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_
                     validation_size = int(dataset_length * validation_split)
                     train_size = dataset_length - validation_size
                     
-                    progress_callback = TrainingProgressCallback(model_instance=model_instance, total_epochs=epochs)
+                    progress_callback = TrainingProgressCallback(profile=user.profile, total_epochs=epochs)
+
+                    user.profile.training_progress = 0
+                    user.profile.save()
 
                     if validation_size >= 1: # Some dataset are too small for validation
                         train_dataset = dataset[:train_size]
@@ -1872,21 +1885,13 @@ class TrainModel(APIView):
             return Response({"Unauthorized": "Must be logged in to train models."}, status=status.HTTP_401_UNAUTHORIZED)
   
   
-class GetModelTrainingProgress(APIView):
-    lookup_url_kwarg = 'id' 
+class GetModelTrainingProgress(APIView): 
     
     def get(self, request, *args, **kwargs):
-        model_id = kwargs[self.lookup_url_kwarg]
         user = self.request.user
         
         if user.is_authenticated:
-            try:
-                model = Model.objects.get(id=model_id)
-                
-                return Response({"progress": model.training_progress}, status=status.HTTP_200_OK)
-            
-            except Model.DoesNotExist:
-                return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"progress": user.profile.training_progress}, status=status.HTTP_200_OK)
         else:
             return Response({"Unauthorized": "Must be logged in to get training progress of model."}, status=status.HTTP_401_UNAUTHORIZED)
 

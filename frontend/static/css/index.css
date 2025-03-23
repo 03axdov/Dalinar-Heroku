@@ -338,7 +338,7 @@ input {
 .progress-bar-container {
     height: 50px;
     width: 550px;
-    max-width: 60%;
+    max-width: 70%;
     border-radius: 5px;
     background: var(--toolbar);
     display: flex;
@@ -358,6 +358,7 @@ input {
 .progress-bar-text {
     margin: 0;
     margin-right: 20px;
+    white-space: nowrap;
 }
 
 .progress-bar {
