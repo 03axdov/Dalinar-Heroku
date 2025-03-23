@@ -1011,13 +1011,13 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                             <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/star.svg"}/>
                             Save
                         </button>}
-
                         {dataset && currentProfile && currentProfile.user && dataset.saved_by.includes(currentProfile.user) && <button className="dataset-save-button"
-                        title="Save dataset" 
+                        title="Unsave dataset" 
                         onClick={() => unsaveDataset()}>
                             <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/>
                             Saved
                         </button>}
+
                         {elements && elements[elementsIndex] && dataset && dataset.dataset_type.toLowerCase() == "image" && <div className="resize-form" onSubmit={(e) => {
                             e.preventDefault()
                             resizeElementImage()

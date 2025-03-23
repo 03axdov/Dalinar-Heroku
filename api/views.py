@@ -1994,6 +1994,50 @@ class PredictModel(APIView):
                 return Response({"Bad request": "Model has not been trained."}, status=status.HTTP_400_BAD_REQUEST)
         except Model.DoesNotExist:
             return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+       
+       
+class SaveModel(APIView):
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        model_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                model = Model.objects.get(id=model_id)
+                
+                model.saved_by.add(user.profile)
+                
+                return Response(None, status=status.HTTP_200_OK)
+            
+            except Model.DoesNotExist:
+                return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "You must be signed in to save models."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class UnsaveModel(APIView):
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        model_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                model = Model.objects.get(id=model_id)
+                
+                model.saved_by.remove(user.profile)
+                
+                return Response(None, status=status.HTTP_200_OK)
+            
+            except Model.DoesNotExist:
+                return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "You must be signed in to unsave models."}, status=status.HTTP_401_UNAUTHORIZED)
            
            
 # LAYER FUNCTIONALITY

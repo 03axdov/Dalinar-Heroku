@@ -68,16 +68,6 @@ class CreateDatasetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
         fields = ("name", "description", "visibility", "image", "datatype", "dataset_type", "keywords", "imageWidth", "imageHeight")    # Not image small as this is added post-creation
-       
-       
-# PROFILE HANDLING
-
-class ProfileSerializer(serializers.ModelSerializer):
-    saved_datasets = DatasetSerializer(many=True, read_only=True)
-    
-    class Meta:
-        model = Profile
-        fields = "__all__"
         
         
 # LAYER HANDLING
@@ -223,3 +213,12 @@ class CreateModelSerializer(serializers.ModelSerializer):
         fields = ("name", "model_type", "description", "visibility", "image")
         
         
+# PROFILE HANDLING
+
+class ProfileSerializer(serializers.ModelSerializer):
+    saved_datasets = DatasetSerializer(many=True, read_only=True)
+    saved_models = ModelSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Profile
+        fields = "__all__"

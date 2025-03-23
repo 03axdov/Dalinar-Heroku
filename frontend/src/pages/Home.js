@@ -10,24 +10,29 @@ function Home({currentProfile, notification, BACKEND_URL}) {
     const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams();
     const startParam = searchParams.get("start"); // Get the 'start' param
+    const typeParam = searchParams.get("type"); // Get the 'start' param
 
     const [datasets, setDatasets] = useState([])
     const [savedDatasets, setSavedDatasets] = useState([])
     const [models, setModels] = useState([])
+    const [savedModels, setSavedModels] = useState([])
 
     const [loading, setLoading] = useState(true)
     const [loadingModels, setLoadingModels] = useState(true)
+    const [loadingSaved, setLoadingSaved] = useState(false)
     
     const [typeShown, setTypeShown] = useState(startParam ? startParam : "datasets") // Either "datasets" or "models"
-    const [savedTypeShown, setSavedTypeShown] = useState("datasets")
+    const [savedTypeShown, setSavedTypeShown] = useState(typeParam ? typeParam : "datasets")
 
     const [sortDatasets, setSortDatasets] = useState("downloads")
     const [sortModels, setSortModels] = useState("downloads")
     const [sortSavedDatasets, setSortSavedDatasets] = useState("downloads")
+    const [sortSavedModels, setSortSavedModels] = useState("downloads")
 
     const [search, setSearch] = useState("")
     const [searchModels, setSearchModels] = useState("")
     const [searchSaved, setSearchSaved] = useState("")
+    const [searchSavedModels, setSearchSavedModels] = useState("")
 
     const [showImage, setShowImage] = useState(true)
     const [showText, setShowText] = useState(true)
@@ -46,7 +51,10 @@ function Home({currentProfile, notification, BACKEND_URL}) {
     useEffect(() => {
         if (currentProfile && currentProfile.saved_datasets) {
             setSavedDatasets(sort_saved_datasets(currentProfile.saved_datasets))
-        }  
+        }
+        if (currentProfile && currentProfile.saved_models) {
+            setSavedModels(sort_saved_models(currentProfile.saved_models))
+        }
     }, [currentProfile])
 
     const getDatasets = () => {
@@ -187,8 +195,34 @@ function Home({currentProfile, notification, BACKEND_URL}) {
         return tempDatasets
     }
 
+    function sort_saved_models(ms) {
+        let tempModels = [...ms]
+        
+        tempModels.sort((m1, m2) => {
+            if (sortSavedModels == "downloads") {
+                if (m1.downloaders.length != m2.downloaders.length) {
+                    return m2.downloaders.length - m1.downloaders.length
+                } else {
+                    return m1.name.localeCompare(m2.name)
+                }
+
+            } else if (sortSavedModels == "alphabetical") {
+                return m1.name.localeCompare(m2.name)
+
+            } else if (sortSavedModels == "layers") {
+                if (m1.layers.length != m2.layers.length) {
+                    return m2.layers.length - m1.layers.length
+                } else {
+                    return m1.name.localeCompare(m2.name)
+                }
+            }
+        })
+
+        return tempModels
+    }
+
     useEffect(() => {
-        if (!loading) {
+        if (!loadingSaved) {
             setSavedDatasets(sort_saved_datasets(savedDatasets))
         }
     }, [sortSavedDatasets])
@@ -198,6 +232,18 @@ function Home({currentProfile, notification, BACKEND_URL}) {
             setDatasets(sort_datasets(datasets))
         }
     }, [sortDatasets])
+
+    useEffect(() => {
+        if (!loadingModels) {
+            setModels(sort_models(models))
+        }
+    }, [sortModels])
+
+    useEffect(() => {
+        if (!loadingSaved) {
+            setSavedModels(sort_saved_models(savedModels))
+        }
+    }, [sortSavedModels])
 
 
     const firstSearch = useRef(true)
@@ -227,7 +273,6 @@ function Home({currentProfile, notification, BACKEND_URL}) {
             return;
         }
         // Set a timeout to update debounced value after 500ms
-        setLoading(true)
         const handler = setTimeout(() => {
             getModels()
         }, 350);
@@ -246,7 +291,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
             return;
         }
         // Set a timeout to update debounced value after 500ms
-        setLoading(true)
+        setLoadingSaved(true)
         const handler = setTimeout(() => {
             if (searchSaved.length > 0) {
                 let temp = [...savedDatasets]
@@ -257,7 +302,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
             } else {
                 setSavedDatasets(sort_saved_datasets(currentProfile.saved_datasets))
             }
-            setLoading(false)
+            setLoadingSaved(false)
         }, 350);
     
         // Cleanup the timeout if inputValue changes before delay
@@ -265,6 +310,34 @@ function Home({currentProfile, notification, BACKEND_URL}) {
             clearTimeout(handler);
         };
     }, [searchSaved]);
+
+    const firstSavedModelSearch = useRef(true)
+    // Search input timing
+    useEffect(() => {
+        if (firstSavedModelSearch.current) {
+            firstSavedModelSearch.current = false; // Set to false after first render
+            return;
+        }
+        // Set a timeout to update debounced value after 500ms
+        setLoadingSaved(true)
+        const handler = setTimeout(() => {
+            if (searchSavedModels.length > 0) {
+                let temp = [...savedModels]
+                temp = temp.filter((model) => {
+                    return model.name.toLowerCase().startsWith(searchSavedModels.toLowerCase())
+                })
+                setSavedModels(sort_saved_models(temp))
+            } else {
+                setSavedModels(sort_saved_models(currentProfile.saved_models))
+            }
+            setLoadingSaved(false)
+        }, 350);
+    
+        // Cleanup the timeout if inputValue changes before delay
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [searchSavedModels]);
 
     return <div className="home-container" onClick={(e) => {
         setShowDatasetType(false)
@@ -443,6 +516,11 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
                     <div className="title-forms">
                         <select title="Type shown " className="explore-datasets-sort" value={savedTypeShown} onChange={(e) => {
+                                let temp = {
+                                    start: startParam,
+                                    type: e.target.value
+                                }
+                                setSearchParams(temp)
                                 setSavedTypeShown(e.target.value)
                             }}>
                             <option value="datasets">Datasets</option>
@@ -514,8 +592,8 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                             <option value="date">Created</option>
                         </select>}
 
-                        {savedTypeShown == "models" && <select title="Sort by" className="explore-datasets-sort" value={sortModels} onChange={(e) => {
-                                setSortModels(e.target.value)
+                        {savedTypeShown == "models" && <select title="Sort by" className="explore-datasets-sort" value={sortSavedModels} onChange={(e) => {
+                                setSortSavedModels(e.target.value)
                             }}>
                             <option value="downloads">Downloads</option>
                             <option value="alphabetical">Alphabetical</option>
@@ -529,6 +607,14 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                             }} /> 
                             <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
                         </div>}
+
+                        {savedTypeShown == "models" && <div className="explore-datasets-search-container">
+                            <input title="Will search names." type="text" className="explore-datasets-search" value={searchSavedModels} placeholder="Search models" onChange={(e) => {
+                                    setLoadingModels(true)
+                                    setSearchSavedModels(e.target.value)
+                            }} /> 
+                            <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
+                        </div>}
                     </div>
                 </div>
                 
@@ -536,9 +622,20 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                     {savedDatasets.map((dataset) => (
                         (((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText)) ? <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL} isPublic={true}/> : "")
                     ))}
-                    {!loading && currentProfile && savedDatasets.length == 0 && searchSaved.length == 0 && <p>You don't have any saved datasets.</p>}
-                    {!loading && currentProfile && savedDatasets.length == 0 && searchSaved.length > 0 && <p className="gray-text">No such saved datasets found.</p>}
-                    {loading && currentProfile && savedDatasets.length == 0 && currentProfile.saved_datasets && currentProfile.saved_datasets.length > 0 && currentProfile.saved_datasets.map((e, i) => (
+                    {!loadingSaved && currentProfile && savedDatasets.length == 0 && searchSaved.length == 0 && <p className="gray-text">You don't have any saved datasets.</p>}
+                    {!loadingSaved && currentProfile && savedDatasets.length == 0 && searchSaved.length > 0 && <p className="gray-text">No such saved datasets found.</p>}
+                    {loadingSaved && currentProfile && savedDatasets.length == 0 && currentProfile.saved_datasets && currentProfile.saved_datasets.length > 0 && currentProfile.saved_datasets.map((e, i) => (
+                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
+                    ))}
+                </div>}
+
+                {savedTypeShown == "models" && savedModels && <div className="my-datasets-container">
+                    {savedModels.map((model) => (
+                       ((model.model_file ? showBuilt : showNotBuilt) ? <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL} isPublic={true}/> : "")
+                    ))}
+                    {!loadingSaved && savedModels.length == 0 && searchSavedModels.length == 0 && <p className="gray-text">You don't have any saved models.</p>}
+                    {!loadingSaved && savedModels.length == 0 && searchSavedModels.length > 0 && <p className="gray-text">No such saved models found.</p>}
+                    {loadingSaved && savedModels.length == 0 && currentProfile.saved_models && currentProfile.saved_models.length > 0 && currentProfile.saved_models.map((e, i) => (
                         <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                     ))}
                 </div>}

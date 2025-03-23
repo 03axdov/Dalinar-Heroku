@@ -204,6 +204,7 @@ class Model(models.Model):
     imageSmall = models.ImageField(upload_to="images/", null=True)
     downloaders = models.ManyToManyField(Profile, related_name="downloaded_models", blank=True)
     verified = models.BooleanField(default=False)
+    saved_by = models.ManyToManyField(Profile, related_name="saved_models", blank=True)
     
     MODEL_TYPE_CHOICES = [
         ("image", "Image"),

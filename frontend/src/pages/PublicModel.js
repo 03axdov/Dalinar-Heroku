@@ -15,18 +15,14 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
     const [model, setModel] = useState(null)
     const [layers, setLayers] = useState([])
     const [loading, setLoading] = useState(true)
-    const [processingBuildModel, setProcessingBuildModel] = useState(false)
+    const [saving, setSaving] = useState(false)
 
-    const [showCreateLayerPopup, setShowCreateLayerPopup] = useState(false)
-    const [showBuildModelPopup, setShowBuildModelPopup] = useState(false)
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
     const [showPredictionPopup, setShowPredictionPopup] = useState(false)
     const [showEvaluateModelPopup, setShowEvaluateModelPopup] = useState(false)
 
     const [downloading, setDownloading] = useState(false)
     const [isDownloaded, setIsDownloaded] = useState(false)
-
-    const [processingCreateLayer, setProcessingCreateLayer] = useState(false)
 
     const [showModelDescription, setShowModelDescription] = useState(true)
     const pageRef = useRef(null)
@@ -160,6 +156,69 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
           setDownloading(false)
         }
     };
+
+
+    function saveModel() {
+        if (!currentProfile) {return}
+
+        const URL = window.location.origin + '/api/save-model/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": model.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        if (saving) {return}
+        setSaving(true)
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            let tempModel = {...model}
+            tempModel.saved_by.push(currentProfile.user)
+            setModel(tempModel)
+        }).catch((error) => {
+
+            notification("Error: " + error, "failure")
+            
+        }).finally(() => {
+            setSaving(false)
+        })
+    }
+
+    function unsaveModel() {
+        if (!currentProfile) {return}
+
+        const URL = window.location.origin + '/api/unsave-model/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": model.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        if (saving) {return}
+        setSaving(true)
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            let tempModel = {...model}
+            tempModel.saved_by = tempModel.saved_by.filter((user) => user != currentProfile.user)
+            setModel(tempModel)
+        }).catch((error) => {
+
+            notification("Error: " + error, "failure")
+            
+        }).finally(() => {
+            setSaving(false)
+        })
+    }
     
 
     // LAYER FUNCTIONALITY
@@ -338,6 +397,19 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
 
                             <img className="dataset-title-expand-icon" src={BACKEND_URL + "/static/images/" + (!showModelDescription ? "plus.png" : "minus.png")} />
                         </div>}
+
+                        {model && currentProfile && currentProfile.user && !model.saved_by.includes(currentProfile.user) && <button className="dataset-save-button" 
+                        title="Save model" 
+                        onClick={() => saveModel()}>
+                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/star.svg"}/>
+                            Save
+                        </button>}
+                        {model && currentProfile && currentProfile.user && model.saved_by.includes(currentProfile.user) && <button className="dataset-save-button"
+                        title="Unsave model" 
+                        onClick={() => unsaveModel()}>
+                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/>
+                            Saved
+                        </button>}
 
                         {model && <button type="button" 
                         title={model.model_file ? (model.trained_on ? "Predict" : "Model not yet trained or trained on unknown dataset") : "Model not yet built."}

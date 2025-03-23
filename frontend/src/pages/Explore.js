@@ -153,6 +153,12 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
         }
     }, [sortDatasets])
 
+    useEffect(() => {
+        if (!loadingModels) {
+            setModels(sort_models(models))
+        }
+    }, [sortModels])
+
 
     // Search input timing
     const firstSearch = useRef(true)
@@ -181,7 +187,6 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
                 return;
             }
             // Set a timeout to update debounced value after 500ms
-            setLoading(true)
             const handler = setTimeout(() => {
                 getModels()
             }, 350);
