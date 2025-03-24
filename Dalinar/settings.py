@@ -178,11 +178,12 @@ MEDIA_URL = '/media/'
 if os.environ.get('HEROKU') == 'True':
     CELERY_BROKER_URL = os.environ.get('REDIS_URL')  # Redis URL from Heroku Redis add-on
 else:
-    CELERY_BROKER_URL = 'redis://localhost:6379/0'  # For local development
+    CELERY_BROKER_URL = 'redis://127.0.0.1:6379'  # For local development
 
 # Result backend for Celery (you can use the same backend or a different one)
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL  # Use Redis for result backend as well
 
 # Additional Celery settings
-CELERY_ACCEPT_CONTENT = ['json']
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
