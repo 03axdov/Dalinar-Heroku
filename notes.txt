@@ -12,9 +12,8 @@ For building:
 - Remove migrations (not __init__.py)
 - python manage.py makemigrations api
 
-Django Allauth 0.50.0
-setuptools>=58.0
-Remove backports.zoneInfo
-dj-database-url==2.3.0
-psycopg==3.2.4
-psycopg2-binary==2.9.3
+Redis server (in terminal):
+wsl
+sudo systemctl enable redis-server.service
+redis-server
+Check running: redis-cli ping (should give PONG)
