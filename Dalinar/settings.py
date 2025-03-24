@@ -174,6 +174,15 @@ DEFAULT_FILE_STORAGE = 'Dalinar.storages.MediaStore'
 MEDIA_ROOT =  os.path.join(BASE_DIR, 'frontend/media')
 MEDIA_URL = '/media/'
 
-CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
+# Set Redis URL based on the environment
+if os.environ.get('HEROKU') == 'True':
+    CELERY_BROKER_URL = os.environ.get('REDIS_URL')  # Redis URL from Heroku Redis add-on
+else:
+    CELERY_BROKER_URL = 'redis://localhost:6379/0'  # For local development
+
+# Result backend for Celery (you can use the same backend or a different one)
+CELERY_RESULT_BACKEND = CELERY_BROKER_URL  # Use Redis for result backend as well
+
+# Additional Celery settings
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'

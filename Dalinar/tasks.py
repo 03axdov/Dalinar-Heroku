@@ -5,8 +5,11 @@ import time
 import boto3
 from django.conf import settings
 
-from .serializers import *
-from .models import *
+from api.serializers import *
+from api.models import *
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 def get_s3_client():
@@ -67,6 +70,8 @@ def train_model_task(model_id, dataset_id, epochs, validation_split, user_id):
     profile = Profile.objects.get(user_id=user_id)
     
     try:
+        logger.info("Starting task for model %d and dataset %d", model_id, dataset_id)
+        
         model_instance = Model.objects.get(id=model_id)
         
         dataset_instance = Dataset.objects.get(id=dataset_id)

@@ -66,6 +66,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         })
     }
 
+    let resInterval = null;
     function trainModel(dataset_id, tensorflowDatasetSelected = "") {
 
         if (!epochs) {
@@ -119,14 +120,18 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
             data = res.data
             if (!data) {return}
 
-            notification("Successfully trained dataset.", "success")
+            // notification("Successfully trained dataset.", "success")
 
-            setEpochAccuracy(res.data["accuracy"])
-            setEpochLoss(res.data["loss"])
-            setEpochAccuracyValidation(res.data["val_accuracy"])
-            setEpochLossValidation(res.data["val_loss"])
+            // setEpochAccuracy(res.data["accuracy"])
+            // setEpochLoss(res.data["loss"])
+            // setEpochAccuracyValidation(res.data["val_accuracy"])
+            // setEpochLossValidation(res.data["val_loss"])
 
-            setWasTrained(true)
+            // setWasTrained(true)
+
+            console.log(data)
+
+            resInterval = setInterval(() => getTrainingResult(data["task_id"]), 2500)
 
         }).catch((error) => {
             console.log(error)
@@ -149,6 +154,26 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         })
 
         console.log("BEFORE")
+    }
+
+    let trainingResOutstanding = 0;
+    function getTrainingResult(id) {
+        if (trainingResOutstanding > 0) return;
+        trainingResOutstanding += 1
+        axios({
+            method: 'GET',
+            url: window.location.origin + '/api/training-result/' + id,
+        })
+        .then((res) => {
+            console.log(res.data)
+            if (res.data["status"] == "Training completed") {
+                clearInterval(resInterval)
+            }
+        })
+        .catch(error => console.error("Error fetching result:", error))
+        .finally(() => {
+            trainingResOutstanding -= 1
+        });
     }
 
     function sort_datasets(ds) {

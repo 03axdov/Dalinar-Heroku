@@ -33,7 +33,7 @@ from django.http import StreamingHttpResponse
 
 from .serializers import *
 from .models import *
-from .tasks import train_model_task
+from Dalinar.tasks import train_model_task
 
 
 # CONSTANTS
@@ -1669,32 +1669,41 @@ class TrainingProgressCallback(tf.keras.callbacks.Callback):
         self.profile.save()
         
         
-def get_training_result(request, task_id):
+def get_training_result(task_id):
     # Get the task result using task ID
     from celery.result import AsyncResult
     task = AsyncResult(task_id)
 
     if task.state == 'SUCCESS':
         # Return the results in the HTTP response
-        return JsonResponse({
+        return Resonse({
             'status': 'Training completed',
             'accuracy': task.result['accuracy'],
             'loss': task.result['loss']
-        })
+        }, status=status.HTTP_200_OK)
     elif task.state == 'PENDING':
-        return JsonResponse({'status': 'Training in progress'})
+        return Response({'status': 'Training in progress'}, status=status.HTTP_200_OK)
     else:
-        return JsonResponse({'status': 'Training failed'})
+        return Response({'status': 'Training failed'}, status=status.HTTP_200_OK)
+        
+
+class GetModelTrainingResult(APIView):
+    lookup_url_kwarg = "id"
+    
+    def get(self, request, *args, **kwargs):
+        task_id = kwargs[self.lookup_url_kwarg]
+        
+        return get_training_result(task_id)
         
         
 def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, user):
     task = train_model_task.delay(model_id, dataset_id, epochs, validation_split, user.id)
 
     # Optionally, you could return a task ID to the client if you plan to track progress
-    return JsonResponse({
+    return Response({
         "message": "Training started",
         "task_id": task.id
-    })
+    }, status=status.HTTP_200_OK)
      
      
 def getTensorflowPrebuiltDataset(tensorflowDataset):
