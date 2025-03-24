@@ -33,6 +33,7 @@ from django.http import StreamingHttpResponse
 
 from .serializers import *
 from .models import *
+from .tasks import train_model_task
 
 
 # CONSTANTS
@@ -1668,102 +1669,32 @@ class TrainingProgressCallback(tf.keras.callbacks.Callback):
         self.profile.save()
         
         
+def get_training_result(request, task_id):
+    # Get the task result using task ID
+    from celery.result import AsyncResult
+    task = AsyncResult(task_id)
+
+    if task.state == 'SUCCESS':
+        # Return the results in the HTTP response
+        return JsonResponse({
+            'status': 'Training completed',
+            'accuracy': task.result['accuracy'],
+            'loss': task.result['loss']
+        })
+    elif task.state == 'PENDING':
+        return JsonResponse({'status': 'Training in progress'})
+    else:
+        return JsonResponse({'status': 'Training failed'})
+        
+        
 def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, user):
-    try:
-        model_instance = Model.objects.get(id=model_id)
-        
-        dataset_instance = Dataset.objects.get(id=dataset_id)
-        
-        if model_instance.owner == user.profile:
-            
-            user.profile.training_progress = -1 # To Show Preprocessing
-            user.profile.save()
-            
-            if model_instance.model_file:
-                try:
-                    extension = str(model_instance.model_file).split(".")[-1]
-                    model, timestamp = get_tf_model(model_instance)
-                    
-                    dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
-                    validation_size = int(dataset_length * validation_split)
-                    train_size = dataset_length - validation_size
-                    
-                    model.summary() # For debugging
-                    
-                    progress_callback = TrainingProgressCallback(profile=user.profile, total_epochs=epochs)
+    task = train_model_task.delay(model_id, dataset_id, epochs, validation_split, user.id)
 
-                    if validation_size >= 1: # Some dataset are too small for validation
-                        train_dataset, validation_dataset = tf.keras.utils.split_dataset(dataset, train_size, validation_size, shuffle=True)
-                        
-                        train_dataset = train_dataset.prefetch(tf.data.experimental.AUTOTUNE)
-                        validation_dataset = validation_dataset.prefetch(tf.data.experimental.AUTOTUNE)
-                    
-                        user.profile.training_progress = 0
-                        user.profile.save()
-                    
-                        history = model.fit(train_dataset, 
-                                            epochs=epochs, 
-                                            validation_data=validation_dataset,
-                                            callbacks=[progress_callback])
-                    else:
-                        user.profile.training_progress = 0
-                        user.profile.save()
-                        
-                        history = model.fit(dataset, 
-                                            epochs=epochs,
-                                            callbacks=[progress_callback])
-                    
-                    # UPDATING MODEL_FILE
-                    # Create a temporary file
-                    with tempfile.NamedTemporaryFile(delete=False, suffix="."+extension) as temp_file:
-                        temp_path = temp_file.name  # Get temp file path
-
-                    # Save the model to the temp file
-                    model.save(temp_path)
-                    
-                    model_instance.model_file.delete(save=False)
-                    # Open the file and save it to Django's FileField
-                    with open(temp_path, 'rb') as model_file:
-                        model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
-
-                    # Delete the temporary file after saving
-                    remove_temp_tf_model(model_instance, timestamp)
-                    
-                    accuracy = history.history["accuracy"]
-                    loss = history.history["loss"]
-                    val_accuracy = []
-                    val_loss = []
-                    if validation_size >= 1:
-                        val_accuracy = history.history["val_accuracy"]
-                        val_loss = history.history["val_loss"]
-                    
-                    # UPDATING MODEL TRAINED_ON
-                    model_instance.trained_on = dataset_instance
-                    model_instance.trained_accuracy = accuracy[-1]
-                    model_instance.save()
-            
-                    return Response({"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss}, status=status.HTTP_200_OK)
-                
-                except ValueError as e: # In case of invalid layer combination
-                    raise Exception(e)
-                    message = str(e)
-                    if len(message) > 50 and len(list(dataset)) * validation_split > 1:
-                        message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
-                    
-                    raise ValueError(e)
-
-                    return Response({"Bad request": str(message)}, status=status.HTTP_400_BAD_REQUEST)
-                except Exception as e:
-                    raise Exception(e)
-                    return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-            else:
-                return Response({"Bad request": "Model has not been built."}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({"Unauthorized": "You can only train your own models."}, status=status.HTTP_401_UNAUTHORIZED)
-    except Model.DoesNotExist:
-        return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
-    except Dataset.DoesNotExist:
-        return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+    # Optionally, you could return a task ID to the client if you plan to track progress
+    return JsonResponse({
+        "message": "Training started",
+        "task_id": task.id
+    })
      
      
 def getTensorflowPrebuiltDataset(tensorflowDataset):

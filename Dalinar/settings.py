@@ -173,3 +173,7 @@ DEFAULT_FILE_STORAGE = 'Dalinar.storages.MediaStore'
     
 MEDIA_ROOT =  os.path.join(BASE_DIR, 'frontend/media')
 MEDIA_URL = '/media/'
+
+CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
