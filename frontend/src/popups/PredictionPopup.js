@@ -46,6 +46,7 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
     }, [images])
 
 
+    let resInterval = null;
     function predictModel() {
         if (model.model_type.toLowerCase() == "image" && images.length == 0) {
             notification("Please upload an image to make a prediction.", "failure")
@@ -83,8 +84,7 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
         .then((res) => {
             data = res.data
 
-            setPredictions(data["predictions"])
-            setPredictionColors(data["colors"])
+            resInterval = setInterval(() => getPredictionResult(data["task_id"]), 2500)
 
         }).catch((error) => {
             console.log(error)
@@ -95,15 +95,36 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
             }
 
             
-        }).finally(() => {
-            setPredictionProgress(100)
-
-            setTimeout(() => {
-                setIsPredicting(false)
-                setPredictionProgress(0)
-            }, 200)
-
         })
+    }
+
+    let predictionResOutstanding = 0;
+    function getPredictionResult(id) {
+        if (predictionResOutstanding > 0) return;
+        predictionResOutstanding += 1
+        axios({
+            method: 'GET',
+            url: window.location.origin + '/api/prediction-result/' + id,
+        })
+        .then((res) => {
+            if (res.data["status"] != "Prediction in progress") {
+                let data = res.data
+                setPredictions(data["predictions"])
+                setPredictionColors(data["colors"])
+
+                clearInterval(resInterval)
+                setPredictionProgress(100)
+    
+                setTimeout(() => {
+                    setIsPredicting(false)
+                    setPredictionProgress(0)
+                }, 200)
+            }
+        })
+        .catch(error => console.error("Error fetching predictions:", error))
+        .finally(() => {
+            predictionResOutstanding -= 1
+        });
     }
 
     function imageOnClick() {

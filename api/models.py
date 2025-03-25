@@ -21,6 +21,7 @@ class Profile(models.Model):    # Extends default User class
     user = models.OneToOneField(User, primary_key=True, verbose_name='user', related_name='profile', on_delete=models.CASCADE)
     name = models.CharField(max_length=30, blank=True, null=True, unique=True)
     training_progress = models.FloatField(default=0) # Used to track progress when training model.
+    evaluation_progress = models.FloatField(default=0)
     
     def __str__(self):
         return self.name

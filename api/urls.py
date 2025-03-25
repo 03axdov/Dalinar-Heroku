@@ -52,8 +52,9 @@ urlpatterns = [
     path("train-model/", TrainModel.as_view(), name="train-model"),
     path("evaluate-model/", EvaluateModel.as_view(), name="evaluate-model"),
     path("predict-model/", PredictModel.as_view(), name="predict-model"),
-    path("training-progress/<int:id>", GetModelTrainingProgress.as_view(), name="training-progress"),
     path("training-result/<str:id>", GetModelTrainingResult.as_view(), name="training-result"),
+    path("evaluation-result/<str:id>", GetModelEvaluationResult.as_view(), name="evaluation-result"),
+    path("prediction-result/<str:id>", GetModelPredictionResult.as_view(), name="prediction-result"),
     path("save-model/", SaveModel.as_view(), name="save-model"),
     path("unsave-model/", UnsaveModel.as_view(), name="unsave-model"),
     

@@ -59,6 +59,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
         })
     }
 
+    let resInterval = null;
     function evaluateModel(dataset_id) {
         const URL = window.location.origin + '/api/evaluate-model/'
         const config = {headers: {'Content-Type': 'application/json'}}
@@ -80,12 +81,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
         .then((res) => {
             data = res.data
 
-            notification("Successfully evaluated dataset.", "success")
-
-            setAccuracy(res.data["accuracy"])
-            setLoss(res.data["loss"])
-
-            setWasEvaluated(true)
+            resInterval = setInterval(() => getEvaluationResult(data["task_id"]), 2500)
 
         }).catch((error) => {
             console.log(error)
@@ -96,15 +92,46 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
             }
 
             
-        }).finally(() => {
-            setEvaluationProgress(100)
-
-            setTimeout(() => {
-                setIsEvaluating(false)
-                setEvaluationProgress(0)
-            }, 200)
-
         })
+    }
+
+    let evaluationResOutstanding = 0;
+    function getEvaluationResult(id) {
+        if (evaluationResOutstanding > 0) return;
+        evaluationResOutstanding += 1
+        axios({
+            method: 'GET',
+            url: window.location.origin + '/api/evaluation-result/' + id,
+        })
+        .then((res) => {
+            if (res.data["status"] != "Evaluation in progress") {
+                console.log(res.data)
+                clearInterval(resInterval)
+                setEvaluationProgress(100)
+    
+                setTimeout(() => {
+                    setIsEvaluating(false)
+                    setEvaluationProgress(0)
+
+                    if (res.data["status"] != "Evaluation failed") {
+                        notification("Successfully evaluated dataset.", "success")
+    
+                        setAccuracy(res.data["accuracy"])
+                        setLoss(res.data["loss"])
+    
+                        setWasEvaluated(true)
+                    } else {
+                        notification("Evaluation failed.", "failure")
+                    }
+                }, 200)
+            } else {
+                setEvaluationProgress(res.data["progress"] * 100)
+            }
+        })
+        .catch(error => console.error("Error fetching result:", error))
+        .finally(() => {
+            evaluationResOutstanding -= 1
+        });
     }
 
     function sort_datasets(ds) {

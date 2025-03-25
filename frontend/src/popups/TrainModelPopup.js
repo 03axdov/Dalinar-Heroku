@@ -67,7 +67,6 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
     }
 
     let resInterval = null;
-    let trainingInterval = null;
     function trainModel(dataset_id, tensorflowDatasetSelected = "") {
 
         if (!epochs) {
@@ -97,40 +96,10 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         setIsTraining(true)
         setTrainingProgress(-1)
 
-        let axios_outstanding = 0;
-        trainingInterval = setInterval(() => {
-            if (axios_outstanding > 0) return;
-            axios_outstanding += 1
-            axios({
-                method: 'GET',
-                url: window.location.origin + '/api/training-progress/' + model_id,
-            })
-            .then((res) => {
-                setTrainingProgress(res.data.progress * 100)
-            })
-            .catch(error => console.error("Error fetching progress:", error))
-            .finally(() => {
-                axios_outstanding -= 1
-            });
-        }, 2500); // Update every 2.5s
-      
-
         axios.post(URL, data, config)
         .then((res) => {
-            console.log("AFTER")
             data = res.data
             if (!data) {return}
-
-            // notification("Successfully trained dataset.", "success")
-
-            // setEpochAccuracy(res.data["accuracy"])
-            // setEpochLoss(res.data["loss"])
-            // setEpochAccuracyValidation(res.data["val_accuracy"])
-            // setEpochLossValidation(res.data["val_loss"])
-
-            // setWasTrained(true)
-
-            console.log(data)
 
             resInterval = setInterval(() => getTrainingResult(data["task_id"]), 2500)
 
@@ -145,7 +114,6 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
             
         })
 
-        console.log("BEFORE")
     }
 
     let trainingResOutstanding = 0;
@@ -157,18 +125,30 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
             url: window.location.origin + '/api/training-result/' + id,
         })
         .then((res) => {
-            console.log(res.data)
             if (res.data["status"] != "Training in progress") {
-                console.log("DATA:")
                 console.log(res.data)
                 clearInterval(resInterval)
-                clearInterval(trainingInterval)
                 setTrainingProgress(100)
     
                 setTimeout(() => {
                     setIsTraining(false)
                     setTrainingProgress(-1)
+
+                    if (res.data["status"] == "Training completed") {   // Training success
+                        notification("Successfully trained dataset.", "success")
+    
+                        setEpochAccuracy(res.data["accuracy"])
+                        setEpochLoss(res.data["loss"])
+                        setEpochAccuracyValidation(res.data["val_accuracy"])
+                        setEpochLossValidation(res.data["val_loss"])
+    
+                        setWasTrained(true)
+                    } else if (res.data["status"] == "Training failed") {
+                        notification("Training failed.", "failure")
+                    }
                 }, 200)
+            } else if (res.data["status"] == "Training in progress") {
+                setTrainingProgress(res.data["progress"] * 100)
             }
         })
         .catch(error => console.error("Error fetching result:", error))

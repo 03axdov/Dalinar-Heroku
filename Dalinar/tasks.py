@@ -1,11 +1,14 @@
 from celery import shared_task
 import tensorflow as tf
+import numpy as np
 import os
 import time
 import boto3
+import base64
 from django.conf import settings
 import tempfile
 from django.core.files import File
+from io import BytesIO
 
 from api.serializers import *
 from api.models import *
@@ -34,7 +37,6 @@ def get_tf_model(model_instance):     # Gets a Tensorflow model from a built Mod
     model_file_path = "media/" + model_instance.model_file.name
     
     s3_client = get_s3_client()
-    print("A")
     
     extension = model_file_path.split(".")[-1]
     
@@ -42,15 +44,13 @@ def get_tf_model(model_instance):     # Gets a Tensorflow model from a built Mod
 
     # Download the model file from S3 to a local temporary file
     temp_file_path = get_temp_model_name(model_instance.id, timestamp, extension)
-    print("B")
-    print(f"bucket_name: {bucket_name}, model_file_path: {model_file_path}")
+
     with open(temp_file_path, 'wb') as f:
         s3_client.download_fileobj(bucket_name, model_file_path, f)
 
     # Load the TensorFlow model from the temporary file
-    print("C")
     model = tf.keras.models.load_model(temp_file_path)
-    print("D")
+
     return model, timestamp
     
     
@@ -294,3 +294,257 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
     except Dataset.DoesNotExist:
         return {"Not found": "Could not find dataset with the id " + str(dataset_id) + ".", "status": 404}
+    
+
+def getTensorflowPrebuiltDataset(tensorflowDataset):
+    if tensorflowDataset == "boston_housing":
+        return tf.keras.datasets.boston_housing.load_data()
+    elif tensorflowDataset == "california_housing":
+        return tf.keras.datasets.california_housing.load_data()
+    elif tensorflowDataset == "cifar10":
+        return tf.keras.datasets.cifar10.load_data()
+    elif tensorflowDataset == "cifar100":
+        return tf.keras.datasets.cifar100.load_data()
+    elif tensorflowDataset == "fashion_mnist":
+        return tf.keras.datasets.fashion_mnist.load_data()
+    elif tensorflowDataset == "imdb":
+        return tf.keras.datasets.imdb.load_data()
+    elif tensorflowDataset == "mnist":
+        return tf.keras.datasets.mnist.load_data()
+    elif tensorflowDataset == "reuters":
+        return tf.keras.datasets.reuters.load_data()
+    else:
+        raise Exception("Invalid dataset.")
+
+
+@shared_task(bind=True)
+def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epochs, validation_split, user_id):
+    
+    profile = Profile.objects.get(user_id=user_id)
+    
+    try:
+        model_instance = Model.objects.get(id=model_id)
+        
+        dataset = getTensorflowPrebuiltDataset(tensorflowDataset=tensorflowDataset)
+        
+        if model_instance.owner == profile:
+            
+            profile.training_progress = -1
+            profile.save()
+            
+            if model_instance.model_file:
+                try:
+                    extension = str(model_instance.model_file).split(".")[-1]
+                    
+                    model, timestamp = get_tf_model(model_instance)
+                    
+                    dataset_length = len(dataset)
+                    validation_size = int(dataset_length * validation_split)
+                    train_size = dataset_length - validation_size
+                    
+                    progress_callback = TrainingProgressCallback(profile=profile, total_epochs=epochs)
+
+                    profile.training_progress = 0
+                    profile.save()
+
+                    if validation_size >= 1: # Some dataset are too small for validation
+                        train_dataset = dataset[:train_size]
+                        validation_dataset = data[train_size:]
+                    
+                        history = model.fit(train_dataset, 
+                                            epochs=epochs, 
+                                            validation_data=validation_dataset,
+                                            callbacks=[progress_callback])
+                    else:
+                        history = model.fit(dataset, 
+                                            epochs=epochs,
+                                            callbacks=[progress_callback])
+                    
+                    # UPDATING MODEL_FILE
+                    # Create a temporary file
+                    with tempfile.NamedTemporaryFile(delete=False, suffix="."+extension) as temp_file:
+                        temp_path = temp_file.name  # Get temp file path
+
+                    # Save the model to the temp file
+                    model.save(temp_path)
+                    
+                    model_instance.model_file.delete(save=False)
+                    # Open the file and save it to Django's FileField
+                    with open(temp_path, 'rb') as model_file:
+                        model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
+
+                    # Delete the temporary file after saving
+                    remove_temp_tf_model(model_instance, timestamp)
+                    
+                    accuracy = history.history["accuracy"]
+                    loss = history.history["loss"]
+                    val_accuracy = []
+                    val_loss = []
+                    if validation_size >= 1:
+                        val_accuracy = history.history["val_accuracy"]
+                        val_loss = history.history["val_loss"]
+                        
+                    model_instance.trained_on_tensorflow = tensorflowDataset
+                    model_instance.trained_accuracy = accuracy[-1]
+                    model_instance.save()
+            
+                    return{"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss, "status": 200}
+                
+                except ValueError as e: # In case of invalid layer combination
+                    message = str(e)
+                    if len(message) > 50 and len(list(dataset)) * validation_split > 1:
+                        message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
+                    
+                    raise ValueError(e)
+
+                    return {"Bad request": str(message), "status": 400}
+                except Exception as e:
+                    return {"Bad request": str(e), "status": 400}
+            else:
+                return {"Bad request": "Model has not been built.", "status": 400}
+        else:
+            {"Unauthorized": "You can only train your own models.", "status": 401}
+    except Model.DoesNotExist:
+        return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    
+    
+@shared_task(bind=True)
+def evaluate_model_task(self, model_id, dataset_id, user_id):
+    try:
+        model_instance = Model.objects.get(id=model_id)
+        dataset_instance = Dataset.objects.get(id=dataset_id)
+        profile = Profile.objects.get(user_id=user_id)
+        
+        profile.evaluation_progress = 0
+        profile.save()
+
+        if model_instance.model_file:
+            try:
+                model, timestamp = get_tf_model(model_instance)
+                
+                profile.evaluation_progress = 0.25
+                profile.save()
+                
+                dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance) 
+                
+                profile.evaluation_progress = 0.5
+                profile.save()
+                
+                dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+                
+                res = model.evaluate(dataset, return_dict=True)
+                
+                # Delete the temporary file after saving
+                remove_temp_tf_model(model_instance, timestamp)
+                
+                profile.evaluation_progress = 0.8
+                profile.save()
+                
+                if model_instance.owner == profile:
+                    model_instance.evaluated_on = dataset_instance
+                    model_instance.evaluated_accuracy = res["accuracy"]
+                    model_instance.save()
+                    
+                res["status"] = 200
+                
+                return res
+            
+            except ValueError as e: # In case of invalid layer combination
+                message = str(e)
+                if len(message) > 50 and len(list(dataset)) * validation_split > 1:
+                    message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
+                
+                raise ValueError(e)
+
+                return {"Bad request": str(message), "status": 400}
+            except Exception as e:
+                return {"Bad request": str(e), "status": 400}
+        else:
+            return {"Bad request": "Model has not been built.", "status": 400}
+
+    except Model.DoesNotExist:
+        return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    except Dataset.DoesNotExist:
+        return {"Not found": "Could not find dataset with the id " + str(dataset_id) + ".", "status": 404}
+    
+    
+def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Convert uploaded files to tensors for TensorFlow processing
+    image = Image.open(uploaded_file)
+    
+    # Convert to RGB (to handle grayscale images)
+    if target_size[-1] == 3:
+        image = image.convert("RGB")
+    elif target_size[-1] == 4:
+        image = image.convert("RGBA")
+    elif target_size[-1] == 1:
+        image = image.convert("I")
+    
+    # Resize the image to fit model requirements
+    image = image.resize((target_size[0], target_size[1]))
+    
+    # Convert image to NumPy array
+    image_array = np.array(image)
+    
+    # Normalize pixel values to [0,1]
+    image_array = image_array / 255.0
+    
+    # Expand dimensions to match TensorFlow model input
+    image_array = np.expand_dims(image_array, axis=0)  # Shape: (1, height, width, channels)
+    
+    # Convert to TensorFlow tensor
+    image_tensor = tf.convert_to_tensor(image_array, dtype=tf.float32)
+    
+    return image_tensor    
+
+
+def decode_image(encoded_image):    # Used for prediction, creates a BytesIO object that can be opened with Image.open
+    img_data = base64.b64decode(encoded_image)
+        
+    # Convert binary data to file-like object (InMemoryUploadedFile)
+    file_like_object = BytesIO(img_data)
+    return file_like_object
+
+    
+@shared_task(bind=True)
+def predict_model_task(self, model_id, encoded_images, text):
+    images = [decode_image(image_str) for image_str in encoded_images]
+    
+    try:
+        model_instance = Model.objects.get(id=model_id)
+        
+        if model_instance.trained_on:
+            if model_instance.model_type.lower() == "image":
+                first_layer = model_instance.layers.all().first()
+                
+                target_size = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
+                
+                model, timestamp = get_tf_model(model_instance)
+                
+                prediction_names = []
+                prediction_colors = []
+                
+                for image in images:
+                    #print(image)
+                    image_tensor = preprocess_uploaded_image(image, target_size)
+                    
+                    prediction_arr = model.predict(image_tensor)
+                    print(f"prediction_arr: {prediction_arr}")
+                    prediction_idx = int(np.argmax(prediction_arr))
+                    predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
+                    
+                    prediction_names.append(predicted_label.name)
+                    prediction_colors.append(predicted_label.color)
+                
+                remove_temp_tf_model(model_instance, timestamp)
+                
+                return {"predictions": prediction_names, "colors": prediction_colors, "status": 200}
+                
+            elif model_instance.model_type.lower() == "text":
+                pass    # TO IMPLEMENT
+        
+            return {"status": 200}
+        
+        else:
+            return {"Bad request": "Model has not been trained.", "status": 400}
+    except Model.DoesNotExist:
+        return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
