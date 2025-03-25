@@ -1,6 +1,6 @@
 import React, {useState} from "react"
 
-function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildModel, BACKEND_URL, isBuilt, recompileModel, processingRecompile}) {
+function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildModel, BACKEND_URL, isBuilt, recompileModel, processingRecompile, activateConfirmPopup}) {
 
     const [optimizer, setOptimizer] = useState("adam")
     const [loss, setLoss] = useState("categorical_crossentropy")
@@ -19,7 +19,12 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
 
                 <form className="build-model-form" onSubmit={(e) => {
                     e.preventDefault()
-                    buildModel(optimizer, loss)
+                    if (isBuilt) {
+                        activateConfirmPopup("Are you sure you want to rebuild the model? This will reset all parameters, and should only be used over recompile if you've changed the model.", () => buildModel(optimizer, loss))
+                    } else {
+                        buildModel(optimizer, loss)
+                    }
+                    
                 }}>
                     <div className="create-dataset-label-inp">
                         <label className="create-dataset-label" htmlFor="optimizer">Optimizer</label>

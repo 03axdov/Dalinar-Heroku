@@ -177,6 +177,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         })
     }
 
+    let recompileResInterval = null;
     function recompileModel(optimizer, loss) {
 
         if (processingRecompile) {return}
@@ -196,9 +197,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         axios.defaults.xsrfCookieName = 'csrftoken';    
 
         axios.post(URL, data, config)
-        .then((data) => {
-            notification("Successfully recompiled model.", "success")
-            getModel()
+        .then((res) => {
+            recompileResInterval = setInterval(() => getRecompileRes(res.data["task_id"]), 2000)
         }).catch((error) => {
             console.log(error)
             if (error.status == 400) {
@@ -208,10 +208,37 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             }
 
             
-        }).finally(() => {
-            setProcessingRecompile(false)
-            setShowBuildModelPopup(false)
         })
+    }
+
+    let recompileResOutstanding = 0;
+    function getRecompileRes(id) {
+        if (recompileResOutstanding > 0) return;
+        recompileResOutstanding += 1
+        axios({
+            method: 'GET',
+            url: window.location.origin + '/api/recompile-result/' + id,
+        })
+        .then((res) => {
+            if (res.data["status"] != "Recompiling in progress") {
+                clearInterval(recompileResInterval)
+
+                if (res.data["status"] != "Recompilation failed") {
+                    notification("Successfully recompiled model.", "success")
+                    getModel()
+                } else {
+                    notification("Recompilation failed.", "failure")
+                }
+
+                setProcessingRecompile(false)
+                setShowBuildModelPopup(false)
+
+            }
+        })
+        .catch(error => console.error("Error fetching result:", error))
+        .finally(() => {
+            recompileResOutstanding -= 1
+        });
     }
 
     function downloadModel(e, format, filename) {
@@ -496,7 +523,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                 BACKEND_URL={BACKEND_URL}
                 isBuilt={model.model_file != null}
                 recompileModel={recompileModel}
-                processingRecompile={processingRecompile}></BuildModelPopup>}
+                processingRecompile={processingRecompile}
+                activateConfirmPopup={activateConfirmPopup}></BuildModelPopup>}
 
             {showCreateLayerPopup && <CreateLayerPopup BACKEND_URL={BACKEND_URL}
                                                     onSubmit={createLayer} 

@@ -105,7 +105,6 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
         })
         .then((res) => {
             if (res.data["status"] != "Evaluation in progress") {
-                console.log(res.data)
                 clearInterval(resInterval)
                 setEvaluationProgress(100)
     

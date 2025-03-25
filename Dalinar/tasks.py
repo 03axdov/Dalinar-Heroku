@@ -181,8 +181,6 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     return dataset, len(file_paths)
 
 
-
-
 class TrainingProgressCallback(tf.keras.callbacks.Callback):
     def __init__(self, profile, total_epochs):
         super().__init__()
@@ -546,5 +544,53 @@ def predict_model_task(self, model_id, encoded_images, text):
         
         else:
             return {"Bad request": "Model has not been trained.", "status": 400}
+    except Model.DoesNotExist:
+        return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    
+    
+@shared_task(bind=True)
+def recompile_model_task(self, model_id, optimizer, loss_function, user_id):
+    
+    profile = Profile.objects.get(user_id=user_id)
+    
+    try:
+        model_instance = Model.objects.get(id=model_id)
+        if not model_instance.model_file: return Response({"Bad request": "Model has not been built."}, status=status.HTTP_200_OK)
+        
+        if model_instance.owner == profile:
+            try:
+                extension = str(model_instance.model_file).split(".")[-1]
+                model, timestamp = get_tf_model(model_instance)
+
+                model.compile(optimizer=optimizer, loss=loss_function, metrics=['accuracy'])
+                
+                # UPDATING MODEL_FILE
+                # Create a temporary file
+                with tempfile.NamedTemporaryFile(delete=False, suffix="."+extension) as temp_file:
+                    temp_path = temp_file.name  # Get temp file path
+
+                # Save the model to the temp file
+                model.save(temp_path)
+                
+                model_instance.model_file.delete(save=False)
+                # Open the file and save it to Django's FileField
+                with open(temp_path, 'rb') as model_file:
+                    model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
+
+                # Delete the temporary file after saving
+                remove_temp_tf_model(model_instance, timestamp)
+                
+                model_instance.optimizer = optimizer
+                model_instance.loss_function = loss_function
+                
+                model_instance.save()
+                
+                return {"status": 200}
+        
+            except ValueError as e: # In case of invalid layer combination
+                print("Error: ", e)
+                return {"Bad request": str(e), "status": 400}
+        else:
+            return {"Unauthorized": "You can only recompile your own models.", "status": 401}
     except Model.DoesNotExist:
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}

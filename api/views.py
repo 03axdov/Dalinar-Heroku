@@ -33,7 +33,7 @@ from django.http import StreamingHttpResponse
 
 from .serializers import *
 from .models import *
-from Dalinar.tasks import train_model_task, train_model_tensorflow_dataset_task, evaluate_model_task, predict_model_task
+from Dalinar.tasks import train_model_task, train_model_tensorflow_dataset_task, evaluate_model_task, predict_model_task, recompile_model_task
 import base64
 
 
@@ -120,128 +120,6 @@ def random_light_color():   # Slightly biased towards lighter shades
     g = random.randint(150, 255)
     b = random.randint(150, 255)
     return "#{:02x}{:02x}{:02x}".format(r, g, b)
-
-def download_s3_file(bucket_name, file_key):
-    s3_client = get_s3_client()
-    response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
-    return response['Body'].read()  # Returns the raw bytes
-
-
-# Function to load and preprocess the images
-def load_and_preprocess_image(file_path,input_dims,file_key):
-    
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    image_bytes = download_s3_file(bucket_name, file_key)
-
-    # Decode the image
-    image = tf.image.decode_jpeg(image_bytes, channels=input_dims[-1])  # Assuming JPEG images
-    
-    image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
-    
-    # Normalize the image to [0, 1]
-    image = tf.cast(image, tf.float32) / 255.0
-    return image
-
-
-# Function to load and preprocess the text
-def load_and_preprocess_text(file_path, file_key):
-    
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    text_bytes = download_s3_file(bucket_name, file_key)
-    
-    # Decode the text bytes into a string
-    text = tf.io.decode_utf8(text_bytes)  # Assuming UTF-8 encoded text
-    
-    return text
-
-
-# Convert labels to numeric form (for classification, example with 2 labels)
-label_map = {}  # Adjust based on your labels
-currentLabel = 0
-def map_labels(label):
-    
-    global label_map
-    global currentLabel
-    
-    if label not in label_map.keys(): return None
-    return label_map[label]
-
-
-# Function to apply one-hot encoding
-def one_hot_encode(label, nbr_labels):
-    # Convert to one-hot encoded format
-    return tf.keras.utils.to_categorical(label, num_classes=nbr_labels)
-
-
-def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns tensorflow dataset, number of elements in the dataset
-    global label_map
-    global currentLabel
-    
-    if not dataset_instance:
-        return None
-    
-    # Initiate label_map
-    label_map = {}
-    num_labels = dataset_instance.labels.count()
-    for t, label in enumerate(dataset_instance.labels.all()):
-        label_map[label.name] = t
-    
-    first_layer = model_instance.layers.all().first()
-    input_dims = (512,512,3)    # Just placeholder
-
-    currentLabel = 0
-
-    elements = dataset_instance.elements.all()
-
-    file_paths = ["media/" + str(element.file) for element in elements]
-    labels = []
-
-    for t, element in enumerate(elements):
-        if element.label:
-            labels.append(element.label.name)
-        else:
-            file_paths.pop(t)   # Don't include elements without labels
-
-
-    elementIdx = 0
-    def imageMapFunc(file_path):
-        nonlocal elementIdx
-        
-        element = load_and_preprocess_image(file_path,input_dims,file_path)
-        elementIdx += 1
-        return element
-        
-    def textMapFunc(file_path):
-        nonlocal elementIdx
-        
-        element = load_and_preprocess_text(file_path,file_paths[elementIdx])
-        elementIdx += 1
-        return element
-
-
-    if dataset_instance.dataset_type == "image":
-        input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
-        
-        file_paths = list(map(imageMapFunc, file_paths))
-        
-    elif dataset_instance.dataset_type == "text":
-        file_paths = list(map(textMapFunc, file_paths))
-    else:
-        print("Invalid dataset type.")
-        return None
-    
-    labels = list(map(lambda label: one_hot_encode(map_labels(label), num_labels), labels))
-
-    # Create TensorFlow Dataset
-    dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels))
-
-    dataset = dataset.batch(32)
-
-    # Prefetch for performance (optional)
-    # dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
-    
-    return dataset, len(file_paths)
-
 
 
 def get_tf_layer(layer):    # From a Layer instance
@@ -372,59 +250,9 @@ def get_temp_model_name(id, timestamp, extension):
     return 'temp_model' + str(id) + "-" + str(timestamp) + '.' + extension
     
     
-def get_tf_model(model_instance):     # Gets a Tensorflow model from a built Model instance
-    # Define the S3 bucket and file path
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    model_file_path = "media/" + model_instance.model_file.name
-    
-    s3_client = get_s3_client()
-    
-    extension = model_file_path.split(".")[-1]
-    
-    timestamp = time.time()
-
-    # Download the model file from S3 to a local temporary file
-    temp_file_path = get_temp_model_name(model_instance.id, timestamp, extension)
-    with open(temp_file_path, 'wb') as f:
-        s3_client.download_fileobj(bucket_name, model_file_path, f)
-
-    # Load the TensorFlow model from the temporary file
-    model = tf.keras.models.load_model(temp_file_path)
-    return model, timestamp
-    
-    
 def remove_temp_tf_model(model_instance, timestamp):
     extension = str(model_instance.model_file).split(".")[-1]
     os.remove(get_temp_model_name(model_instance.id, timestamp, extension)) 
-    
-    
-def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Convert uploaded files to tensors for TensorFlow processing
-    image = Image.open(uploaded_file)
-    
-    # Convert to RGB (to handle grayscale images)
-    if target_size[-1] == 3:
-        image = image.convert("RGB")
-    elif target_size[-1] == 4:
-        image = image.convert("RGBA")
-    elif target_size[-1] == 1:
-        image = image.convert("I")
-    
-    # Resize the image to fit model requirements
-    image = image.resize((target_size[0], target_size[1]))
-    
-    # Convert image to NumPy array
-    image_array = np.array(image)
-    
-    # Normalize pixel values to [0,1]
-    image_array = image_array / 255.0
-    
-    # Expand dimensions to match TensorFlow model input
-    image_array = np.expand_dims(image_array, axis=0)  # Shape: (1, height, width, channels)
-    
-    # Convert to TensorFlow tensor
-    image_tensor = tf.convert_to_tensor(image_array, dtype=tf.float32)
-    
-    return image_tensor
 
 
 # PROFILE HANDLING
@@ -1615,46 +1443,13 @@ class RecompileModel(APIView):
         user = self.request.user
         
         if user.is_authenticated:
-            try:
-                model_instance = Model.objects.get(id=model_id)
-                if not model_instance.model_file: return Response({"Bad request": "Model has not been built."}, status=status.HTTP_200_OK)
-                
-                if model_instance.owner == user.profile:
-                    try:
-                        model, timestamp = get_tf_model(model_instance)
+            task = recompile_model_task.delay(model_id, optimizer, loss_function, user.id)
 
-                        model.compile(optimizer=optimizer, loss=loss_function, metrics=['accuracy'])
-                        
-                        # UPDATING MODEL_FILE
-                        # Create a temporary file
-                        with tempfile.NamedTemporaryFile(delete=False, suffix="."+extension) as temp_file:
-                            temp_path = temp_file.name  # Get temp file path
-
-                        # Save the model to the temp file
-                        model.save(temp_path)
-                        
-                        model_instance.model_file.delete(save=False)
-                        # Open the file and save it to Django's FileField
-                        with open(temp_path, 'rb') as model_file:
-                            model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
-
-                        # Delete the temporary file after saving
-                        remove_temp_tf_model(model_instance, timestamp)
-                        
-                        model_instance.optimizer = optimizer
-                        model_instance.loss_function = loss_function
-                        
-                        model_instance.save()
-                        
-                        return Response(None, status=status.HTTP_200_OK)
-                
-                    except ValueError as e: # In case of invalid layer combination
-                        print("Error: ", e)
-                        return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    return Response({"Unauthorized": "You can only recompile your own models."}, status=status.HTTP_401_UNAUTHORIZED)
-            except Model.DoesNotExist:
-                return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+            # Optionally, you could return a task ID to the client if you plan to track progress
+            return Response({
+                "message": "Training started",
+                "task_id": task.id
+            }, status=status.HTTP_200_OK)
         else:
             return Response({"Unauthorized": "Must be logged in to recompile models."}, status=status.HTTP_401_UNAUTHORIZED)
       
@@ -1669,34 +1464,6 @@ class TrainingProgressCallback(tf.keras.callbacks.Callback):
         self.profile.training_progress = round((epoch + 1) / self.total_epochs, 4)
         self.profile.save()
         
-
-class GetModelTrainingResult(APIView):
-    lookup_url_kwarg = "id"
-    
-    def get(self, request, *args, **kwargs):
-        task_id = kwargs[self.lookup_url_kwarg]
-        
-        from celery.result import AsyncResult
-        task = AsyncResult(task_id)
-
-        if task.state == 'SUCCESS' and task.result["status"] == 200:
-            # Return the results in the HTTP response
-            return Response({
-                'status': 'Training completed',
-                'accuracy': task.result['accuracy'],
-                'loss': task.result['loss'],
-                "val_accuracy": task.result["val_accuracy"],
-                "val_loss": task.result["val_loss"]
-            }, status=status.HTTP_200_OK)
-        elif task.state == 'PENDING':
-            user = self.request.user
-            
-            if user.is_authenticated:
-                return Response({'status': 'Training in progress', "progress": user.profile.training_progress}, status=status.HTTP_200_OK)
-            else:
-                return Response({"Unauthorized": "Must be logged in to get training progress of model."}, status=status.HTTP_401_UNAUTHORIZED)
-        else:
-            return Response({'status': 'Training failed'}, status=status.HTTP_200_OK)
         
         
 def trainModelDatasetInstance(model_id, dataset_id, epochs, validation_split, user):
@@ -1739,30 +1506,6 @@ class TrainModel(APIView):
                 return trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_split, user)
         else:
             return Response({"Unauthorized": "Must be logged in to train models."}, status=status.HTTP_401_UNAUTHORIZED)
-            
-            
-class GetModelEvaluationResult(APIView):
-    lookup_url_kwarg = "id"
-    
-    def get(self, request, *args, **kwargs):
-        task_id = kwargs[self.lookup_url_kwarg]
-        
-        from celery.result import AsyncResult
-        task = AsyncResult(task_id)
-
-        if task.state == 'SUCCESS' and task.result["status"] == 200:
-            # Return the results in the HTTP response
-            return Response(task.result, status=status.HTTP_200_OK)
-        elif task.state == 'PENDING':
-            user = self.request.user
-            
-            if user.is_authenticated:
-                return Response({'status': 'Evaluation in progress', "progress": user.profile.evaluation_progress}, status=status.HTTP_200_OK)
-            else:
-                return Response({"Unauthorized": "Must be logged in to get evaluation progress of model."}, status=status.HTTP_401_UNAUTHORIZED)
-
-        else:
-            return Response({'status': 'Evaluation failed'}, status=status.HTTP_200_OK)
             
   
 class EvaluateModel(APIView):
@@ -1812,27 +1555,8 @@ class PredictModel(APIView):
             "message": "Prediction started",
             "task_id": task.id
         }, status=status.HTTP_200_OK)
-        
-        
-class GetModelPredictionResult(APIView):
-    lookup_url_kwarg = "id"
-    
-    def get(self, request, *args, **kwargs):
-        task_id = kwargs[self.lookup_url_kwarg]
-        
-        from celery.result import AsyncResult
-        task = AsyncResult(task_id)
 
-        if task.state == 'SUCCESS' and task.result["status"] == 200:
-            # Return the results in the HTTP response
-            return Response(task.result, status=status.HTTP_200_OK)
-        elif task.state == 'PENDING':
-            return Response({'status': 'Prediction in progress'}, status=status.HTTP_200_OK)
-
-        else:
-            return Response({'status': 'Prediction failed'}, status=status.HTTP_200_OK)
-       
-       
+ 
 class SaveModel(APIView):
     parser_classes = [JSONParser]
     
@@ -1875,6 +1599,89 @@ class UnsaveModel(APIView):
                 return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Unauthorized": "You must be signed in to unsave models."}, status=status.HTTP_401_UNAUTHORIZED)
+          
+          
+          
+# RESULT HANDLERS (USED TO TRACK RESULTS FROM CELERY TASKS)
+          
+          
+from celery.result import AsyncResult
+class GetModelTrainingResult(APIView):
+    lookup_url_kwarg = "id"
+    
+    def get(self, request, *args, **kwargs):
+        task_id = kwargs[self.lookup_url_kwarg]
+        task = AsyncResult(task_id)
+
+        if task.state == 'SUCCESS' and task.result["status"] == 200:
+            return Response(task.result, status=status.HTTP_200_OK)
+        elif task.state == 'PENDING':
+            user = self.request.user
+            
+            if user.is_authenticated:
+                return Response({'status': 'Training in progress', "progress": user.profile.training_progress}, status=status.HTTP_200_OK)
+            else:
+                return Response({"Unauthorized": "Must be logged in to get training progress of model."}, status=status.HTTP_401_UNAUTHORIZED)
+        else:
+            return Response({'status': 'Training failed'}, status=status.HTTP_200_OK)
+       
+       
+class GetModelEvaluationResult(APIView):
+    lookup_url_kwarg = "id"
+    
+    def get(self, request, *args, **kwargs):
+        task_id = kwargs[self.lookup_url_kwarg]
+        task = AsyncResult(task_id)
+
+        if task.state == 'SUCCESS' and task.result["status"] == 200:
+            return Response(task.result, status=status.HTTP_200_OK)
+        elif task.state == 'PENDING':
+            user = self.request.user
+            
+            if user.is_authenticated:
+                return Response({'status': 'Evaluation in progress', "progress": user.profile.evaluation_progress}, status=status.HTTP_200_OK)
+            else:
+                return Response({"Unauthorized": "Must be logged in to get evaluation progress of model."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        else:
+            return Response({'status': 'Evaluation failed'}, status=status.HTTP_200_OK)
+        
+        
+class GetModelPredictionResult(APIView):
+    lookup_url_kwarg = "id"
+    
+    def get(self, request, *args, **kwargs):
+        task_id = kwargs[self.lookup_url_kwarg]
+        task = AsyncResult(task_id)
+
+        if task.state == 'SUCCESS' and task.result["status"] == 200:
+            return Response(task.result, status=status.HTTP_200_OK)
+        elif task.state == 'PENDING':
+            return Response({'status': 'Prediction in progress'}, status=status.HTTP_200_OK)
+
+        else:
+            return Response({'status': 'Prediction failed'}, status=status.HTTP_200_OK)
+        
+
+class GetModelRecompileResult(APIView):
+    lookup_url_kwarg = "id"
+    
+    def get(self, request, *args, **kwargs):
+        task_id = kwargs[self.lookup_url_kwarg]
+        task = AsyncResult(task_id)
+
+        if task.state == 'SUCCESS' and task.result["status"] == 200:
+            return Response(task.result, status=status.HTTP_200_OK)
+        elif task.state == 'PENDING':
+            user = self.request.user
+            
+            if user.is_authenticated:
+                return Response({'status': 'Recompiling in progress'}, status=status.HTTP_200_OK)
+            else:
+                return Response({"Unauthorized": "Must be logged in to recompile model."}, status=status.HTTP_401_UNAUTHORIZED)
+
+        else:
+            return Response({'status': 'Recompilation failed'}, status=status.HTTP_200_OK)
            
            
 # LAYER FUNCTIONALITY

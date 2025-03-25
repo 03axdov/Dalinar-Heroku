@@ -134,7 +134,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                     setIsTraining(false)
                     setTrainingProgress(-1)
 
-                    if (res.data["status"] == "Training completed") {   // Training success
+                    if (res.data["status"] != "Training failed") {   // Training success
                         notification("Successfully trained dataset.", "success")
     
                         setEpochAccuracy(res.data["accuracy"])
@@ -143,7 +143,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         setEpochLossValidation(res.data["val_loss"])
     
                         setWasTrained(true)
-                    } else if (res.data["status"] == "Training failed") {
+                    } else {
                         notification("Training failed.", "failure")
                     }
                 }, 200)
