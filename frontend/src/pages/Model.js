@@ -139,6 +139,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         })
     }
 
+    let buildResInterval = null;
     function buildModel(optimizer, loss) {
 
         if (processingBuildModel) {return}
@@ -158,10 +159,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         axios.defaults.xsrfCookieName = 'csrftoken';    
 
         axios.post(URL, data, config)
-        .then((data) => {
-            notification("Successfully built model.", "success")
-            getModel()
-
+        .then((res) => {
+            buildResInterval = setInterval(() => getBuildRes(res.data["task_id"]), 2000)
         }).catch((error) => {
             console.log(error)
             if (error.status == 400) {
@@ -171,10 +170,37 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             }
 
             
-        }).finally(() => {
-            setProcessingBuildModel(false)
-            setShowBuildModelPopup(false)
         })
+    }
+
+    let buildResOutstanding = 0;
+    function getBuildRes(id) {
+        if (buildResOutstanding > 0) return;
+        buildResOutstanding += 1
+        axios({
+            method: 'GET',
+            url: window.location.origin + '/api/task-result/' + id,
+        })
+        .then((res) => {
+            if (res.data["status"] != "in progress") {
+                clearInterval(buildResInterval)
+
+                if (res.data["status"] != "failed") {
+                    notification("Successfully built model.", "success")
+                    getModel()
+                } else {
+                    notification("Building failed.", "failure")
+                }
+
+                setProcessingBuildModel(false)
+                setShowBuildModelPopup(false)
+
+            }
+        })
+        .catch(error => console.error("Error fetching result:", error))
+        .finally(() => {
+            buildResOutstanding -= 1
+        });
     }
 
     let recompileResInterval = null;
@@ -217,13 +243,13 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         recompileResOutstanding += 1
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/recompile-result/' + id,
+            url: window.location.origin + '/api/task-result/' + id,
         })
         .then((res) => {
-            if (res.data["status"] != "Recompiling in progress") {
+            if (res.data["status"] != "in progress") {
                 clearInterval(recompileResInterval)
 
-                if (res.data["status"] != "Recompilation failed") {
+                if (res.data["status"] != "failed") {
                     notification("Successfully recompiled model.", "success")
                     getModel()
                 } else {

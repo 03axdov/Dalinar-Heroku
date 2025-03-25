@@ -122,10 +122,10 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         trainingResOutstanding += 1
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/training-result/' + id,
+            url: window.location.origin + '/api/task-result/' + id,
         })
         .then((res) => {
-            if (res.data["status"] != "Training in progress") {
+            if (res.data["status"] != "in progress") {
                 console.log(res.data)
                 clearInterval(resInterval)
                 setTrainingProgress(100)
@@ -134,7 +134,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                     setIsTraining(false)
                     setTrainingProgress(-1)
 
-                    if (res.data["status"] != "Training failed") {   // Training success
+                    if (res.data["status"] != "failed") {   // Training success
                         notification("Successfully trained dataset.", "success")
     
                         setEpochAccuracy(res.data["accuracy"])
@@ -147,8 +147,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         notification("Training failed.", "failure")
                     }
                 }, 200)
-            } else if (res.data["status"] == "Training in progress") {
-                setTrainingProgress(res.data["progress"] * 100)
+            } else if (res.data["status"] == "in progress") {
+                setTrainingProgress(res.data["training_progress"] * 100)
             }
         })
         .catch(error => console.error("Error fetching result:", error))

@@ -101,10 +101,10 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
         evaluationResOutstanding += 1
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/evaluation-result/' + id,
+            url: window.location.origin + '/api/task-result/' + id,
         })
         .then((res) => {
-            if (res.data["status"] != "Evaluation in progress") {
+            if (res.data["status"] != "in progress") {
                 clearInterval(resInterval)
                 setEvaluationProgress(100)
     
@@ -112,7 +112,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                     setIsEvaluating(false)
                     setEvaluationProgress(0)
 
-                    if (res.data["status"] != "Evaluation failed") {
+                    if (res.data["status"] != "failed") {
                         notification("Successfully evaluated dataset.", "success")
     
                         setAccuracy(res.data["accuracy"])
@@ -124,7 +124,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                     }
                 }, 200)
             } else {
-                setEvaluationProgress(res.data["progress"] * 100)
+                setEvaluationProgress(res.data["evaluation_progress"] * 100)
             }
         })
         .catch(error => console.error("Error fetching result:", error))

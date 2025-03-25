@@ -1,5 +1,6 @@
 from celery import shared_task
 import tensorflow as tf
+from tensorflow.keras import layers
 import numpy as np
 import os
 import time
@@ -8,6 +9,7 @@ import base64
 from django.conf import settings
 import tempfile
 from django.core.files import File
+from django.core.files.storage import default_storage
 from io import BytesIO
 
 from api.serializers import *
@@ -57,6 +59,49 @@ def get_tf_model(model_instance):     # Gets a Tensorflow model from a built Mod
 def remove_temp_tf_model(model_instance, timestamp):
     extension = str(model_instance.model_file).split(".")[-1]
     os.remove(get_temp_model_name(model_instance.id, timestamp, extension)) 
+
+
+def get_tf_layer(layer):    # From a Layer instance
+    layer_type = layer.layer_type
+    activation = layer.activation_function or None
+    
+    if layer_type == "dense":
+        if layer.input_x:
+            return layers.Dense(layer.nodes_count, activation=activation, input_shape=(layer.input_x,))
+        else:
+            return layers.Dense(layer.nodes_count, activation=activation)
+    elif layer_type == "conv2d":
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
+            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+        else:
+            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation)
+    elif layer_type == "maxpool2d":
+        return layers.MaxPool2D(pool_size=layer.pool_size)
+    elif layer_type == "flatten":
+        if layer.input_x or layer.input_y:   # Dimensions specified
+            return layers.Flatten(input_shape=(layer.input_x, layer.input_y))
+        else:
+            return layers.Flatten()
+    elif layer_type == "dropout":
+        return layers.Dropout(rate=layer.rate)
+    elif layer_type == "rescaling":
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
+            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+        else:
+            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset)
+    elif layer_type == "randomflip":
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
+            return layers.RandomFlip(mode=layer.mode, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+        else:
+            return layers.RandomFlip(mode=layer.mode)
+    elif layer_type == "resizing":
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
+            return layers.Resizing(layer.output_y, layer.output_x, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+        else:
+            return layers.Resizing(layer.output_y, layer.output_x)
+    else:
+        print("UNKNOWN LAYER OF TYPE: ", layer_type)
+        raise Exception("Invalid layer: " + layer_type)
 
 
 def download_s3_file(bucket_name, file_key):
@@ -549,6 +594,64 @@ def predict_model_task(self, model_id, encoded_images, text):
     
     
 @shared_task(bind=True)
+def build_model_task(self, model_id, optimizer, loss_function, user_id):
+    
+    profile = Profile.objects.get(user_id=user_id)
+    
+    try:
+        instance = Model.objects.get(id=model_id)
+        
+        if instance.owner == profile:
+            try:
+                model = tf.keras.Sequential()
+                
+                if instance.model_file:
+                    instance.model_file.delete(save=False)
+                
+                for layer in instance.layers.all():
+                    model.add(get_tf_layer(layer))
+
+                model.compile(optimizer=optimizer, loss=loss_function, metrics=['accuracy'])
+                
+                # Create a temporary file
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".keras") as temp_file:
+                    temp_path = temp_file.name  # Get temp file path
+
+                # Save the model to the temp file
+                model.save(temp_path)
+                
+                # Open the file and save it to Django's FileField
+                with open(temp_path, 'rb') as model_file:
+                    instance.model_file.save(instance.name + ".keras", File(model_file))
+
+                # Delete the temporary file after saving
+                os.remove(temp_path)
+                
+                instance.optimizer = optimizer
+                instance.loss_function = loss_function
+                
+                instance.trained_on = None
+                instance.trained_on_tensorflow = None
+                instance.trained_accuracy = None
+                
+                instance.evaluated_on = None
+                instance.evaluated_on_tensorflow = None
+                instance.evaluated_accuracy = None
+                
+                instance.save()
+                
+                return {"status": 200}
+        
+            except ValueError as e: # In case of invalid layer combination
+                print("Error: ", e)
+                return {"Bad request": str(e), "status": 400}
+        else:
+            return {"Unauthorized": "You can only build your own models.", "status": 401}
+    except Model.DoesNotExist:
+        return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    
+    
+@shared_task(bind=True)
 def recompile_model_task(self, model_id, optimizer, loss_function, user_id):
     
     profile = Profile.objects.get(user_id=user_id)
@@ -594,3 +697,119 @@ def recompile_model_task(self, model_id, optimizer, loss_function, user_id):
             return {"Unauthorized": "You can only recompile your own models.", "status": 401}
     except Model.DoesNotExist:
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    
+    
+def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
+    config = tf_layer.get_config()
+    
+    data = {}
+    
+    input_shape = False
+    if "batch_input_shape" in config.keys():
+        input_shape = config["batch_input_shape"]
+    
+    if isinstance(tf_layer, layers.Dense):
+        data["type"] = "dense"
+        data["nodes_count"] = config["units"]
+        if input_shape:
+            data["input_x"] = input_shape[-1]
+    elif isinstance(tf_layer, layers.Conv2D):
+        data["type"] = "conv2d"
+        data["filters"] = config["filters"]
+        data["kernel_size"] = config["kernel_size"][0]
+        if input_shape:
+            data["input_x"] = input_shape[1]    # First one is None
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.MaxPool2D):
+        data["type"] = "maxpool2d"
+        data["pool_size"] = config["pool_size"][0]
+    elif isinstance(tf_layer, layers.Flatten):
+        data["type"] = "flatten"
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+    elif isinstance(tf_layer, layers.Dropout):
+        data["type"] = "dropout"
+        data["rate"] = config["rate"]
+    elif isinstance(tf_layer, layers.Rescaling):
+        data["type"] = "rescaling"
+        data["scale"] = config["scale"]
+        data["offset"] = config["offset"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.RandomFlip):
+        data["type"] = "randomflip"
+        data["mode"] = config["mode"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.Resizing):
+        data["type"] = "resizing"
+        data["output_x"] = config["width"]
+        data["output_y"] = config["height"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    else:
+        print("UNKNOWN LAYER OF TYPE: ", layer_type)
+        return # Continue instantiating model
+    
+    factory = APIRequestFactory()
+    
+    data["model"] = model_id
+    data["index"] = idx
+    data["activation_function"] = ""
+    if "activation" in config.keys():
+        data["activation_function"] = config["activation"]
+    
+    create_layer = CreateLayer.as_view()
+    
+    layer_request = factory.post('/create-layer/', data=json.dumps(data), content_type='application/json')
+    layer_request.user = request.user
+    
+    layer_response = create_layer(layer_request)
+    if layer_response.status_code != 200:
+        return Response(
+            {'Bad Request': f'Error creating layer {idx}'},
+            status=layer_response.status_code
+        )
+    
+    
+# Not currently a task
+def create_model_file(request, model_instance):
+    model_file = request.data["model"]
+    extension = model_file.name.split(".")[-1]
+    temp_path = "temp_models/" + model_file.name
+    file_path = default_storage.save(temp_path, model_file.file)
+    
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    temp_model_file_path = "media/" + file_path
+    print(f"Model file saved at: {temp_model_file_path}")
+            
+    s3_client = get_s3_client()
+    
+    # Download the model file from S3 to a local temporary file
+    timestamp = time.time()
+    backend_temp_model_path = get_temp_model_name(model_instance.id, timestamp, extension)
+    with open(backend_temp_model_path, 'wb') as f:
+        s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
+
+    model = tf.keras.models.load_model(backend_temp_model_path)
+    
+    default_storage.delete(file_path)
+    
+    os.remove(backend_temp_model_path)
+    
+    for t, layer in enumerate(model.layers):
+        layer_model_from_tf_layer(layer, model_instance.id, request, t)
+        
+    model_instance.model_file = model_file
+    model_instance.optimizer = model.optimizer.__class__.__name__.lower()
+    model_instance.loss_function = model.loss.__name__
+    
+    model_instance.save()
