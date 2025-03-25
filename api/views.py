@@ -1674,9 +1674,9 @@ def get_training_result(task_id):
     from celery.result import AsyncResult
     task = AsyncResult(task_id)
 
-    if task.state == 'SUCCESS':
+    if task.state == 'SUCCESS' and task.result["status"] == 200:
         # Return the results in the HTTP response
-        return Resonse({
+        return Response({
             'status': 'Training completed',
             'accuracy': task.result['accuracy'],
             'loss': task.result['loss']

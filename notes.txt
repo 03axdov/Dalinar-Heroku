@@ -17,3 +17,6 @@ wsl
 sudo systemctl enable redis-server.service
 redis-server
 Check running: redis-cli ping (should give PONG)
+
+Start Celery Worker: 
+celery -A Dalinar.celery worker --pool=solo -l info

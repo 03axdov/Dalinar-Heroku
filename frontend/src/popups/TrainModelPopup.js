@@ -67,6 +67,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
     }
 
     let resInterval = null;
+    let trainingInterval = null;
     function trainModel(dataset_id, tensorflowDatasetSelected = "") {
 
         if (!epochs) {
@@ -97,7 +98,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         setTrainingProgress(-1)
 
         let axios_outstanding = 0;
-        const trainingInterval = setInterval(() => {
+        trainingInterval = setInterval(() => {
             if (axios_outstanding > 0) return;
             axios_outstanding += 1
             axios({
@@ -142,15 +143,6 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
             }
 
             
-        }).finally(() => {
-            clearInterval(trainingInterval)
-            setTrainingProgress(100)
-
-            setTimeout(() => {
-                setIsTraining(false)
-                setTrainingProgress(-1)
-            }, 200)
-
         })
 
         console.log("BEFORE")
@@ -166,8 +158,17 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         })
         .then((res) => {
             console.log(res.data)
-            if (res.data["status"] == "Training completed") {
+            if (res.data["status"] != "Training in progress") {
+                console.log("DATA:")
+                console.log(res.data)
                 clearInterval(resInterval)
+                clearInterval(trainingInterval)
+                setTrainingProgress(100)
+    
+                setTimeout(() => {
+                    setIsTraining(false)
+                    setTrainingProgress(-1)
+                }, 200)
             }
         })
         .catch(error => console.error("Error fetching result:", error))
