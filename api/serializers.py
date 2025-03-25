@@ -90,6 +90,8 @@ class LayerSerializer(serializers.BaseSerializer):
             return RandomFlipLayerSerializer(instance).data
         elif isinstance(instance, ResizingLayer):
             return ResizingLayerSerializer(instance).data
+        elif isinstance(instance, TextVectorizationLayer):
+            return TextVectorizationLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     
@@ -111,6 +113,8 @@ class CreateLayerSerializer(serializers.BaseSerializer):
             return CreateRandomFlipLayer(instance).data
         elif isinstance(instance, ResizingLayer):
             return CreateResizingLayerSerializer(instance).data
+        elif isinstance(instance, TextVectorizationLayer):
+            return CreateTextVectorizationLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
 
@@ -192,6 +196,16 @@ class CreateResizingLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ResizingLayer
         fields = ["input_x", "input_y", "input_z", "output_x", "output_y"]      
+
+
+class TextVectorizationLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TextVectorizationLayer
+        fields = "__all__"
+class CreateTextVectorizationLayer(serializers.ModelSerializer):
+    class Meta:
+        model = TextVectorizationLayer
+        fields = ["max_tokens", "standardize"]
 
         
 # MODEL HANDLING

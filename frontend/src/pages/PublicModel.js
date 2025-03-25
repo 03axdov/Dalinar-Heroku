@@ -77,7 +77,8 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
         "dropout": "blue",
         "rescaling": "darkblue",
         "randomflip": "cyan",
-        "resizing": "green"
+        "resizing": "green",
+        "textvectorization": "green"
     }
 
     useEffect(() => {
@@ -241,6 +242,8 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
             return "RandomFlip (" + layer.mode + ")"
         } else if (type == "resizing") {
             return "Resizing (" + layer.input_x + ", " + layer.input_y + ")"
+        } else if (type == "textvectorization") {
+            return "TextVectorization (" + layer.max_tokens + ")"
         }
     }
 

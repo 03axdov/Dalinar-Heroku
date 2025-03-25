@@ -12,8 +12,8 @@ from django.core.files import File
 from django.core.files.storage import default_storage
 from io import BytesIO
 
-from api.serializers import *
-from api.models import *
+from .serializers import *
+from .models import *
 
 import logging
 logger = logging.getLogger(__name__)
@@ -99,6 +99,8 @@ def get_tf_layer(layer):    # From a Layer instance
             return layers.Resizing(layer.output_y, layer.output_x, input_shape=(layer.input_x, layer.input_y, layer.input_z))
         else:
             return layers.Resizing(layer.output_y, layer.output_x)
+    elif layer_type == "textvectorization":
+        return layers.TextVectorization(max_tokens=layer.max_tokens, standardize=layer.standardize)
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         raise Exception("Invalid layer: " + layer_type)
@@ -755,6 +757,10 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
             data["input_x"] = input_shape[1]
             data["input_y"] = input_shape[2]
             data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.TextVectorization):
+        data["type"] = "textvectorization"
+        data["max_tokens"] = config["max_tokens"]
+        data["standardize"] = config["standardize"]
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         return # Continue instantiating model

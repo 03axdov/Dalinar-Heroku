@@ -25,7 +25,7 @@ from django.core.files.storage import default_storage
 
 from .serializers import *
 from .models import *
-from Dalinar.tasks import train_model_task, train_model_tensorflow_dataset_task, evaluate_model_task, predict_model_task, recompile_model_task, build_model_task, create_model_file
+from .tasks import train_model_task, train_model_tensorflow_dataset_task, evaluate_model_task, predict_model_task, recompile_model_task, build_model_task, create_model_file
 import base64
 
 
@@ -1377,7 +1377,7 @@ class CreateLayer(APIView):
         
         ALLOWED_TYPES = set(["dense", "conv2d", "flatten",
                              "dropout", "maxpool2d", "rescaling",
-                             "randomflip", "resizing"])
+                             "randomflip", "resizing", "textvectorization"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1399,6 +1399,8 @@ class CreateLayer(APIView):
             serializer = CreateRandomFlipLayerSerializer(data=data)
         elif layer_type == "resizing":
             serializer = CreateResizingLayerSerializer(data=data)
+        elif layer_type == "textvectorization":
+            serializer = TextVectorizationLayerSerializer(data=data)
         
         if serializer and serializer.is_valid():
             
@@ -1503,6 +1505,9 @@ class EditLayer(APIView):
                         
                         layer.output_x = request.data["output_x"]
                         layer.output_y = request.data["output_y"]
+                    elif layer_type == "textvectorization":
+                        layer.max_tokens = request.data["max_tokens"]
+                        layer.standardize = request.data["standardize"]
                         
                     layer.activation_function = request.data["activation_function"]
                     layer.save()

@@ -89,7 +89,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         "dropout": "blue",
         "rescaling": "darkblue",
         "randomflip": "cyan",
-        "resizing": "green"
+        "resizing": "green",
+        "textvectorization": "green"
     }
 
     useEffect(() => {
@@ -329,6 +330,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             return "RandomFlip (" + layer.mode + ")"
         } else if (type == "resizing") {
             return "Resizing (" + layer.input_x + ", " + layer.input_y + ")"
+        } else if (type == "textvectorization") {
+            return "TextVectorization (" + layer.max_tokens + ")"
         }
     }
 

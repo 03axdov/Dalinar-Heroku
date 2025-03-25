@@ -3,8 +3,6 @@ TO-DO:
 - .png files not working?
 - Text layers.
 - Links in buttons
-- Make sure to remove temp models
-- Possibly add user id
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

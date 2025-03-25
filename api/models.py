@@ -288,25 +288,6 @@ class DenseLayer(Layer):
         return res
     
     
-class Conv2DLayer(Layer):
-    filters = models.PositiveIntegerField(default=1)
-    kernel_size = models.PositiveIntegerField(default=3)
-    
-    def __str__(self):
-        res = f"Conv2D ({self.filters}, {self.kernel_size})"
-        if self.model: res += " - " + self.model.name
-        return res
-    
-    
-class MaxPool2DLayer(Layer):
-    pool_size = models.PositiveIntegerField(null=True)
-    
-    def __str__(self):
-        res = "MaxPool2DLayer - " + str(self.pool_size)
-        if self.model: res += " - " + self.model.name
-        return res
-    
-    
 class FlattenLayer(Layer):
     def __str__(self):
         res = "Flatten"
@@ -325,6 +306,28 @@ class DropoutLayer(Layer):
     
     def __str__(self):
         res = f"Dropout ({self.rate})"
+        if self.model: res += " - " + self.model.name
+        return res
+    
+    
+# Image Classification Layers
+    
+    
+class Conv2DLayer(Layer):
+    filters = models.PositiveIntegerField(default=1)
+    kernel_size = models.PositiveIntegerField(default=3)
+    
+    def __str__(self):
+        res = f"Conv2D ({self.filters}, {self.kernel_size})"
+        if self.model: res += " - " + self.model.name
+        return res
+    
+    
+class MaxPool2DLayer(Layer):
+    pool_size = models.PositiveIntegerField(null=True)
+    
+    def __str__(self):
+        res = "MaxPool2DLayer - " + str(self.pool_size)
         if self.model: res += " - " + self.model.name
         return res
     
@@ -374,5 +377,24 @@ class ResizingLayer(Layer):
     
     def __str__(self):
         res = f"Resizing ({self.output_x}, {self.output_y})"
+        if self.model: res += " - " + self.model.name
+        return res
+    
+    
+# Text Classification Layers
+
+class TextVectorizationLayer(Layer):
+    max_tokens = models.PositiveIntegerField(default=10000, null=True)
+    
+    STANDARDIZE_CHOICES = [
+        ("", ""),
+        ("lower_and_strip_punctuation", "lower_and_strip_punctuation"),
+        ("lower", "lower"),
+        ("strip_punctuation", "strip_punctuation"),
+    ]
+    standardize = models.CharField(max_length=100, choices=STANDARDIZE_CHOICES, default="lower_and_strip_punctuation")
+    
+    def __str__(self):
+        res = f"TextVectorization ({self.max_tokens}, {self.standardize})"
         if self.model: res += " - " + self.model.name
         return res

@@ -16,10 +16,13 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
     const [scale, setScale] = useState("1/255.0") // Used for layers of type ["rescaling"]
     const [offset, setOffset] = useState(0) // Used for layers of type ["rescaling"]
     const [mode, setMode] = useState("horizontal_and_vertical") // Used for layers of type ["randomflip"]
-    const [outputX, setOutputX] = useState(256)
-    const [outputY, setOutputY] = useState(256)
+    const [outputX, setOutputX] = useState(256) // Used for layers of type ["resizing"]
+    const [outputY, setOutputY] = useState(256) // Used for layers of type ["resizing"]
+    const [maxTokens, setMaxTokens] = useState(10000)
+    const [standardize, setStandardize] = useState("lower_and_strip_punctuation")
 
-    const [activation, setActivation] = useState("")    // Used for layers of type ["dense", "conv2d"]
+
+    const [activation, setActivation] = useState("")
 
     useEffect(() => {   // Empty fields shared by many types
         setInputX("")
@@ -150,9 +153,12 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         }
                         data["output_x"] = outputX
                         data["output_y"] = outputY
+                    } else if (type == "textvectorization") {
+                        data["max_tokens"] = maxTokens
+                        data["standardize"] = standardize
                     }
 
-                    const NO_ACTIVATION = new Set(["flatten", "dropout", "rescaling", "randomflip", "maxpool2d", "resizing"])
+                    const NO_ACTIVATION = new Set(["flatten", "dropout", "rescaling", "randomflip", "maxpool2d", "resizing", "textvectorization"])
                     if (NO_ACTIVATION.has(type)) {    // These layers cannot have activation functions
                         data["activation_function"] = ""
                     }
@@ -178,7 +184,9 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                 <option value="conv2d">Conv2D</option>
                                 <option value="maxpool2d">MaxPool2D</option>
                             </optgroup>
-                            
+                            <optgroup label="Text">
+                                <option value="textvectorization">TextVectorization</option>
+                            </optgroup>
                             
                         </select>
                     </div>
@@ -378,6 +386,27 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                     setInputZ(e.target.value)
                                 }} />
                             </div>
+                        </div>
+                    </div>}
+
+                    {type == "textvectorization" && <div className="create-layer-type-fields">
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label" htmlFor="layer-max-tokens">Max tokens</label>
+                            <input className="create-dataset-inp" id="layer-max-tokens" type="number" required value={maxTokens} onChange={(e) => {
+                                setMaxTokens(Math.max(0, Math.min(20000, e.target.value)))
+                            }} />
+                        </div>
+
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label" htmlFor="textvectorization-standardize">Standardize</label>
+                            <select className="create-dataset-inp" id="textvectorization-standardize" value={standardize} onChange={(e) => {
+                                setStandardize(e.target.value)
+                            }}>
+                                <option value="">(none)</option>
+                                <option value="lower_and_strip_punctuation">lower_and_strip_punctuation</option>
+                                <option value="lower">lower</option>
+                                <option value="strip_punctuation">strip_punctuation</option>
+                            </select>
                         </div>
                     </div>}
 
