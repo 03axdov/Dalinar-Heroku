@@ -664,6 +664,11 @@
 
 .build-model-recompile {
     margin-right: 20px;
+    background: #0051ff;
+}
+
+.build-model-recompile:hover {
+    background: #0147dd;
 }
 
 .train-datasets-container {
