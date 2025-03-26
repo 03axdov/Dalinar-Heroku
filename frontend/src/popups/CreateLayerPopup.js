@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from "react"
+import LAYERS from "../layers"
 
 function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, processingCreateLayer, notification}) {
 
@@ -22,40 +23,110 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
     const [standardize, setStandardize] = useState("lower_and_strip_punctuation")   // Used for layers of type ["textvectorization"]
     const [outputDim, setOutputDim] = useState(16)  // Used for layers of type ["embedding"]
 
-
     const [activation, setActivation] = useState("")
 
-    useEffect(() => {   // Empty fields shared by many types
-        setInputX("")
-        setInputY("")
-        setActivation("")
-        setMaxTokens(10000)
+    
+    const [params, setParams] = useState({})
+
+    useEffect(() => {
+        let temp = {
+            "input_x": "",
+            "input_y": "",
+            "input_z": "",
+            "activation": ""
+        }
+        Object.keys(LAYERS).forEach((key) => {
+            let layer = LAYERS[key]
+            for (let i=0; i < layer.params.length; i++) {
+                let param = layer.params[i]
+                temp[param.name] = param.default
+            }
+        })
+        setParams(temp)
     }, [type])
 
-    function checkInputDimensions(data, include_z) {  // Adds dimensions, returns true if valid else false
-        if (!(inputX && inputY && (include_z ? inputZ : true)) && (inputX || inputY || (include_z ? inputZ : false))) {
-            notification("All dimensions must be specified or all left empty.", "failure")
-            return false;
-        }
-        data["input_x"] = inputX
-        if (inputX && inputX <= 0) {
-            notification("Input width must be positive.", "failure")
-            return false;
-        }
-        data["input_y"] = inputY
-        if (inputY && inputY <= 0) {
-            notification("Input height must be positive.", "failure")
-            return false;
-        }
-        if (include_z) {
-            data["input_z"] = inputZ
-            if (inputZ && inputZ <= 0) {
-                notification("Input depth must be positive.", "failure")
-                return false;
-            }
-        }
+    function checkInputDimensions(param) {  // Adds dimensions, returns true if valid else false
+        let numDims = 0
+        if (param.input_x) numDims += 1
+        if (param.input_y) numDims += 1
+        if (param.input_z) numDims += 1
+
+        let notSpecifiedDims = numDims
+        if (params.input_x && param.input_x) notSpecifiedDims -= 1
+        if (params.input_y && param.input_y) notSpecifiedDims -= 1
+        if (params.input_z && param.input_z) notSpecifiedDims -= 1
         
-        return true;
+        return (notSpecifiedDims == numDims || notSpecifiedDims == 0);
+    }
+
+    function getInputs(type) {
+        let layer = LAYERS[type]
+
+        return <div className="create-layer-type-fields">
+            {layer.params.map((param, idx) => {
+                if (!param.choices) {
+                    return (<div key={idx} className="create-layer-label-inp">
+                        <label className="create-dataset-label" htmlFor={param.name}>{param.name_readable}</label>
+                        <input className="create-dataset-inp" id={param.name} type={param.type} value={params[param.name]} onChange={(e) => {
+                            let temp = {...params}
+                            temp[param.name] = e.target.value
+                            setParams(temp)
+                        }} {...(param.required ? { required: true } : {})}/>
+                    </div>)
+                } else {
+                    return (<div className="create-layer-label-inp">
+                        <label className="create-dataset-label" htmlFor={param.name}>{param.name}</label>
+                        <select className="create-dataset-inp" id={param.name} value={params[param.name]} onChange={(e) => {
+                            let temp = {...params}
+                            temp[param.name] = e.target.value
+                            setParams(temp)
+                        }}>
+                            {param.choices.map((choice, idx2) => (
+                                <option key={idx2} value={choice.value}>{(choice.name || choice.value)}</option>
+                            ))}
+                        </select>
+                    </div>)
+                }
+            })}
+            {layer.dimensions && layer.dimensions.map((dimension, idx) => (
+                <div className="create-layer-label-inp">
+                    <label className="create-dataset-label">{dimension.name}</label>
+                    <div className="create-layer-dimensions">
+                        {dimension.params.map((param, idx2) => (
+                            <input className="create-dataset-inp create-layer-dimensions-inp" type={param.type} placeholder={param.name_readable} value={params[param.name]} onChange={(e) => {
+                                let temp = {...params}
+                                temp[param.name] = e.target.value
+                                setParams(temp)
+                            }} />
+                        ))}
+                    </div>
+                </div>
+            ))}
+            {(layer.input_x || layer.input_y || layer.input_z) && <div className="create-layer-label-inp">
+                <label className="create-dataset-label">Input dimensions <span className="create-dataset-required">(optional)</span></label>
+                <div className="create-layer-dimensions">
+                    {layer.input_x && <input className="create-dataset-inp create-layer-dimensions-inp" type="number" placeholder="Width" value={params["input_x"]} onChange={(e) => {
+                        let temp = {...params}
+                        temp["input_x"] = e.target.value
+                        setParams(temp)
+                    }} />}
+                    {layer.input_y && <input className="create-dataset-inp create-layer-dimensions-inp" type="number" placeholder="Height" value={params["input_y"]} onChange={(e) => {
+                        let temp = {...params}
+                        temp["input_y"] = e.target.value
+                        setParams(temp)
+                    }} />}
+                    {layer.input_z && <input className="create-dataset-inp create-layer-dimensions-inp" type="number" placeholder="Depth" value={params["input_z"]} onChange={(e) => {
+                        let temp = {...params}
+                        temp["input_z"] = e.target.value
+                        setParams(temp)
+                    }} />}
+                </div>
+            </div>}
+        </div>
+    }
+
+    function isEmptyObject(obj) {
+        return obj && Object.keys(obj).length === 0 && obj.constructor === Object;
     }
 
     return (
@@ -74,97 +145,37 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
                     let data = {
                         "type": type,
-                        "activation_function": activation
+                        "activation_function": params["activation"],
+                        "input_x": params["input_x"],
+                        "input_y": params["input_y"],
+                        "input_z": params["input_z"]
                     }
- 
-                    if (type == "dense") {
-                        data["nodes_count"] = nodesCount
-                        if (inputX && inputX <= 0) {
-                            notification("Input size must be positive or unspecified.", "failure")
-                            return;
-                        }
-                        if (inputX) {
-                            data["input_x"] = inputX
-                        }
-                        
-                    }
-                    else if (type == "conv2d") {
-                        data["filters"] = filters
-                        data["kernel_size"] = kernelSize
 
-                        if (!(inputX && inputY && inputZ) && (inputX || inputY || inputZ)) {
-                            notification("All dimensions must be specified or all left empty.", "failure")
-                            return;
-                        }
-
-                        if (!checkInputDimensions(data, true)) {
-                            return;
-                        }
-                    }
-                    else if (type == "maxpool2d") {
-                        data["pool_size"] = poolSize
-                    }
-                    else if (type == "flatten") {
-                        if (!checkInputDimensions(data, false)) {
-                            return;
-                        }
-                        data["input_x"] = inputX
-                        data["input_y"] = inputY
-                    }
-                    else if (type == "dropout") {
-                        data["rate"] = rate
-                    }
-                    else if (type == "rescaling") {
-                        if (scale === null || offset === null) {
-                            notification("Please enter both scale and offset", "failure")
-                            return;
-                        }
-                        if (!checkInputDimensions(data, true)) {
-                            return;
-                        }
-                        try {
-                            const result = eval(scale); 
-                        } catch {
-                            notification("Scale must be a valid number.", "failure")
-                            return;
-                        }
-                        data["scale"] = scale
-                        data["offset"] = offset
-
-                    }
-                    else if (type == "randomflip") {
-                        if (!checkInputDimensions(data, true)) {
-                            return;
-                        }
-                        data["mode"] = mode
-                        data["input_x"] = inputX
-                        data["input_y"] = inputY
-                        data["input_z"] = inputZ
-
-                    } else if (type == "resizing") {
-                        if (!checkInputDimensions(data, true)) {
-                            return;
-                        }
-                        data["input_x"] = inputX
-                        data["input_y"] = inputY
-                        data["input_z"] = inputZ
-
-                        if (outputX <= 0 || outputY <= 0) {
-                            notification("Output dimensions must be positive.", "failure")
+                    let layer = LAYERS[type]
+                    for (let i=0; i < layer.params.length; i++) {
+                        let param = layer.params[i]
+                        if (param.required && !params[param.name]) {
+                            notification("Please enter " + param.name, "failure")
                             return
                         }
-                        data["output_x"] = outputX
-                        data["output_y"] = outputY
-                    } else if (type == "textvectorization") {
-                        data["max_tokens"] = maxTokens
-                        data["standardize"] = standardize
-                    } else if (type == "embedding") {
-                        data["max_tokens"] = maxTokens
-                        data["output_dim"] = outputDim
-                    }
+                        if (param.input_x || param.input_y || param.input_y) {
+                            if (!checkInputDimensions(param)) {
+                                notification("You must specify all dimensions or none of them.", "failure")
+                                return
+                            }
+                        }
+                        if (param.validator) {
+                            let message = param.validator(params[param.name].length > 0)
+                            if (message.length > 0) {
+                                notification(message, "failure")
+                                return
+                            }
+                        }
 
-                    const NO_ACTIVATION = new Set(["flatten", "dropout", "rescaling", "randomflip", "maxpool2d", "resizing", "textvectorization", "embedding"])
-                    if (NO_ACTIVATION.has(type)) {    // These layers cannot have activation functions
+                        data[param.name] = params[param.name]
+                    }
+ 
+                    if (!layer.activation) {
                         data["activation_function"] = ""
                     }
 
@@ -201,238 +212,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
                     <div className="create-layer-line"></div>
 
-                    {type == "dense" && <div className="create-layer-type-fields">
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-nodes-count">Number of nodes</label>
-                            <input className="create-dataset-inp" id="layer-nodes-count" type="number" required value={nodesCount} onChange={(e) => {
-                                setNodesCount(Math.max(0, Math.min(512, e.target.value)))
-                            }} />
-                        </div>
-
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="dense-size">Input size <span className="create-dataset-required">(optional)</span></label>
-                            <input className="create-dataset-inp" id="dense-size" type="number" value={inputX} onChange={(e) => {
-                                setInputX(e.target.value)
-                            }} />
-                        </div>
-
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="dense-activation-function">Activation function</label>
-                            <select className="create-dataset-inp" id="dense-activation-function" value={activation} onChange={(e) => {
-                                setActivation(e.target.value)
-                            }}>
-                                <option value="">-</option>
-                                <option value="relu">ReLU</option>
-                                <option value="softmax">Softmax</option>
-                            </select>
-                        </div>
-                    </div>}
-
-                    {type == "conv2d" && <div className="create-layer-type-fields">
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-filters">Number of filters</label>
-                            <input className="create-dataset-inp" id="layer-filters" type="number" required value={filters} onChange={(e) => {
-                                setFilters(Math.max(0, Math.min(100, e.target.value)))
-                            }} />
-                        </div>
-
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-kernels">Kernel size</label>
-                            <input className="create-dataset-inp" id="layer-kernels" type="number" required value={kernelSize} onChange={(e) => {
-                                setKernelSize(Math.max(0, Math.min(100, e.target.value)))
-                            }} />
-                        </div>
-
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label">Input dimensions <span className="create-dataset-required">(optional)</span></label>
-                            <div className="create-layer-dimensions">
-                                
-                                <input className="create-dataset-inp create-layer-dimensions-inp" type="number" placeholder="Width" value={inputX} onChange={(e) => {
-                                    setInputX(e.target.value)
-                                }} />
-                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Height" type="number" value={inputY} onChange={(e) => {
-                                    setInputY(e.target.value)
-                                }} />
-                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Depth" type="number" value={inputZ} onChange={(e) => {
-                                    setInputZ(e.target.value)
-                                }} />
-                                
-                            </div>
-                        </div>
-
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="dense-activation-function">Activation function</label>
-                            <select className="create-dataset-inp" id="dense-activation-function" value={activation} onChange={(e) => {
-                                setActivation(e.target.value)
-                            }}>
-                                <option value="">-</option>
-                                <option value="relu">ReLU</option>
-                                <option value="softmax">Softmax</option>
-                            </select>
-                        </div>
-                        
-                    </div>}
-
-                    {type == "maxpool2d" && <div className="create-layer-type-fields">
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="pool-size">Pool size</label>
-                            <input className="create-dataset-inp" id="pool-size" type="number" required value={poolSize} onChange={(e) => {
-                                setPoolSize(Math.max(0, Math.min(99, e.target.value)))
-                            }} />
-                        </div>
-                    </div>}
-
-                    {type == "flatten" && <div className="create-layer-type-fields">
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label">Input dimensions <span className="create-dataset-required">(optional)</span></label>
-                            <div className="create-layer-dimensions">
-                                <input className="create-dataset-inp create-layer-dimensions-inp" type="number" placeholder="Width" value={inputX} onChange={(e) => {
-                                    setInputX(e.target.value)
-                                }} />
-                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Height" type="number" value={inputY} onChange={(e) => {
-                                    setInputY(e.target.value)
-                                }} />
-                            </div>
-                        </div>
-                    </div>}
-
-                    {type == "dropout" && <div className="create-layer-type-fields">
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-rate">Rate</label>
-                            <input className="create-dataset-inp" id="layer-rate" type="number" value={rate} step="0.05" onChange={(e) => {
-                                setRate(Math.max(0, Math.min(1, e.target.value)))
-                            }} />
-                        </div>
-                    </div>}
-
-                    {type == "rescaling" && <div className="create-layer-type-fields">
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-scale">Scale</label>
-                            <input className="create-dataset-inp" id="layer-scale" type="text" value={scale} onChange={(e) => {
-                                setScale(e.target.value)
-                            }} />
-                        </div>
-
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-offset">Offset</label>
-                            <input className="create-dataset-inp" id="layer-offset" type="number" value={offset} step="0.01" onChange={(e) => {
-                                setOffset(e.target.value)
-                            }} />
-                        </div>
-
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label">Input dimensions <span className="create-dataset-required">(optional)</span></label>
-                            <div className="create-layer-dimensions">
-                                
-                                <input className="create-dataset-inp create-layer-dimensions-inp" type="number" placeholder="Width" value={inputX} onChange={(e) => {
-                                    setInputX(e.target.value)
-                                }} />
-                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Height" type="number" value={inputY} onChange={(e) => {
-                                    setInputY(e.target.value)
-                                }} />
-                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Depth" type="number" value={inputZ} onChange={(e) => {
-                                    setInputZ(e.target.value)
-                                }} />
-                                
-                            </div>
-                        </div>
-                    </div>}
-
-                    {type == "randomflip" && <div className="create-layer-type-fields">
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="randomflip-mode">Mode</label>
-                            <select className="create-dataset-inp" id="randomflip-mode" value={mode} onChange={(e) => {
-                                setMode(e.target.value)
-                            }}>
-                                <option value="horizontal_and_vertical">horizontal_and_vertical</option>
-                                <option value="horizontal">horizontal</option>
-                                <option value="vertical">vertical</option>
-                            </select>
-                        </div>
-
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label">Input dimensions <span className="create-dataset-required">(optional)</span></label>
-                            <div className="create-layer-dimensions">
-                                
-                                <input className="create-dataset-inp create-layer-dimensions-inp" type="number" placeholder="Width" value={inputX} onChange={(e) => {
-                                    setInputX(e.target.value)
-                                }} />
-                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Height" type="number" value={inputY} onChange={(e) => {
-                                    setInputY(e.target.value)
-                                }} />
-                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" placeholder="Depth" type="number" value={inputZ} onChange={(e) => {
-                                    setInputZ(e.target.value)
-                                }} />
-                                
-                            </div>
-                        </div>
-
-                    </div>}
-
-                    {type == "resizing" && <div className="create-layer-type-fields">
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label">Output dimensions</label>
-                            <div className="create-layer-dimensions">
-                                <input className="create-dataset-inp create-layer-dimensions-inp" required type="number" placeholder="Width" value={outputX} onChange={(e) => {
-                                    setOutputX(e.target.value)
-                                }} />
-                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" required placeholder="Height" type="number" value={outputY} onChange={(e) => {
-                                    setOutputY(e.target.value)
-                                }} />
-                            </div>
-                        </div>
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label">Input dimensions</label>
-                            <div className="create-layer-dimensions">
-                                <input className="create-dataset-inp create-layer-dimensions-inp" required type="number" placeholder="Width" value={inputX} onChange={(e) => {
-                                    setInputX(e.target.value)
-                                }} />
-                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" required placeholder="Height" type="number" value={inputY} onChange={(e) => {
-                                    setInputY(e.target.value)
-                                }} />
-                                <input className="create-dataset-inp create-layer-dimensions-inp create-layer-dimensions-inp-margin" required placeholder="Depth" type="number" value={inputZ} onChange={(e) => {
-                                    setInputZ(e.target.value)
-                                }} />
-                            </div>
-                        </div>
-                    </div>}
-
-                    {type == "textvectorization" && <div className="create-layer-type-fields">
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-max-tokens">Max tokens</label>
-                            <input className="create-dataset-inp" id="layer-max-tokens" type="number" required value={maxTokens} onChange={(e) => {
-                                setMaxTokens(Math.max(0, Math.min(20000, e.target.value)))
-                            }} />
-                        </div>
-
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="textvectorization-standardize">Standardize</label>
-                            <select className="create-dataset-inp" id="textvectorization-standardize" value={standardize} onChange={(e) => {
-                                setStandardize(e.target.value)
-                            }}>
-                                <option value="">(none)</option>
-                                <option value="lower_and_strip_punctuation">lower_and_strip_punctuation</option>
-                                <option value="lower">lower</option>
-                                <option value="strip_punctuation">strip_punctuation</option>
-                            </select>
-                        </div>
-                    </div>}
-
-                    {type == "embedding" && <div className="create-layer-type-fields">
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-max-tokens">Max tokens</label>
-                            <input className="create-dataset-inp" id="layer-max-tokens" type="number" required value={maxTokens} onChange={(e) => {
-                                setMaxTokens(Math.max(0, Math.min(20000, e.target.value)))
-                            }} />
-                        </div>
-
-                        <div className="create-layer-label-inp">
-                            <label className="create-dataset-label" htmlFor="layer-output-dim">Output dim</label>
-                            <input className="create-dataset-inp" id="layer-output-dim" type="number" required value={outputDim} onChange={(e) => {
-                                setOutputDim(Math.max(0, Math.min(100, e.target.value)))
-                            }} />
-                        </div>
-                    </div>}
+                    {!isEmptyObject(params) && getInputs(type)}
 
                     <div className="create-layer-popup-buttons">
                         <button type="button" className="create-layer-popup-cancel" onClick={() => setShowCreateLayerPopup(false)}>Cancel</button>

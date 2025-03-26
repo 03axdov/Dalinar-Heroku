@@ -699,7 +699,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
                     </form>}
 
-                    {type == "textvectorization" && <form className="layer-element-inner">
+                    {type == "embedding" && <form className="layer-element-inner">
                         <h1 className="layer-element-title">
                             <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/text.png"} />
                             <span className="layer-element-title-text">Embedding</span>
