@@ -11,6 +11,8 @@ import TrainModelPopup from "../popups/TrainModelPopup"
 import EvaluateModelPopup from "../popups/EvaluateModelPopup";
 import PredictionPopup from "../popups/PredictionPopup";
 
+import { LAYERS, getLayerName } from "../layers";
+
 
 // The default page. Login not required.
 function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}) {
@@ -79,20 +81,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const descriptionContainerRef = useRef(null)
 
     const navigate = useNavigate()
-
-    // Used to map layer types to colors in sidebar
-    const typeToColor = {
-        "dense": "purple",
-        "conv2d": "lightblue",
-        "maxpool2d": "pink2",
-        "flatten": "pink",
-        "dropout": "blue",
-        "rescaling": "darkblue",
-        "randomflip": "cyan",
-        "resizing": "green",
-        "textvectorization": "cyan",
-        "embedding": "green",
-    }
 
     useEffect(() => {
         getModel()
@@ -312,31 +300,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     
 
     // LAYER FUNCTIONALITY
-
-    function getLayerName(layer) {
-        let type = layer.layer_type
-        if (type == "dense") {
-            return "Dense - " + layer.nodes_count + (layer.input_x ? " (" + layer.input_x + ")" : "")
-        } else if (type == "conv2d") {
-            return "Conv2D - (" + layer.filters + ", " + layer.kernel_size + ")"
-        } else if (type == "maxpool2d") {
-            return "MaxPool2D - " + layer.pool_size
-        } else if (type == "flatten") {
-            return "Flatten" + (layer.input_x ? " - (" + layer.input_x + ", " + layer.input_y + ")" : "")
-        } else if (type == "dropout") {
-            return "Dropout (" + layer.rate + ")"
-        } else if (type == "rescaling") {
-            return "Rescale (" + layer.scale + ", " + layer.offset + ")"
-        } else if (type == "randomflip") {
-            return "RandomFlip (" + layer.mode + ")"
-        } else if (type == "resizing") {
-            return "Resizing (" + layer.input_x + ", " + layer.input_y + ")"
-        } else if (type == "textvectorization") {
-            return "TextVectorization (" + layer.max_tokens + ")"
-        } else if (type == "embedding") {
-            return "Embedding (" + layer.max_tokens + ", " + layer.output_dim + ")"
-        }
-    }
 
     const layersHandleDragEnd = (result) => {
         if (!result.destination) return; // Dropped outside
@@ -607,7 +570,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                         clearTimeout(hoveredLayerTimeout);
                                         setHoveredLayer(null)
                                     }}>
-                                        <span className={"model-sidebar-color model-sidebar-color-" + typeToColor[layer.layer_type]}></span>
+                                        <span className={"model-sidebar-color model-sidebar-color-" + LAYERS[layer.layer_type].color}></span>
 
                                         <span className="model-sidebar-layer-name">
                                             {getLayerName(layer)}

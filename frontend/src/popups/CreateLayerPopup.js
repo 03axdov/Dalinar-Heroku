@@ -1,30 +1,10 @@
 import React, {useState, useEffect} from "react"
-import LAYERS from "../layers"
+import {LAYERS} from "../layers"
 
 function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, processingCreateLayer, notification}) {
 
     // Data fields for different layers
     const [type, setType] = useState("dense")
-
-    const [filters, setFilters] = useState(1)   // Used for layers of type ["conv2d"]
-    const [kernelSize, setKernelSize] = useState(3) // Used for layers of type ["conv2d"]
-    const [nodesCount, setNodesCount] = useState(8) // Used for layers of type ["dense"]
-    const [inputX, setInputX] = useState("")    // Used for layers of type ["conv2d", "flatten", "rescaling"]
-    const [inputY, setInputY] = useState("")    // Used for layers of type ["conv2d", "flatten", "rescaling"]
-    const [inputZ, setInputZ] = useState("")    // Used for layers of type ["conv2d", "rescaling"]
-    const [poolSize, setPoolSize] = useState(2) // Used for layers of type ["maxpool2d"]
-    const [rate, setRate] = useState(0.2) // Used for layers of type ["dropout"]
-    const [scale, setScale] = useState("1/255.0") // Used for layers of type ["rescaling"]
-    const [offset, setOffset] = useState(0) // Used for layers of type ["rescaling"]
-    const [mode, setMode] = useState("horizontal_and_vertical") // Used for layers of type ["randomflip"]
-    const [outputX, setOutputX] = useState(256) // Used for layers of type ["resizing"]
-    const [outputY, setOutputY] = useState(256) // Used for layers of type ["resizing"]
-    const [maxTokens, setMaxTokens] = useState(10000)   // Used for layers of type ["textvectorization", "embedding"]
-    const [standardize, setStandardize] = useState("lower_and_strip_punctuation")   // Used for layers of type ["textvectorization"]
-    const [outputDim, setOutputDim] = useState(16)  // Used for layers of type ["embedding"]
-
-    const [activation, setActivation] = useState("")
-
     
     const [params, setParams] = useState({})
 
@@ -45,16 +25,16 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
         setParams(temp)
     }, [type])
 
-    function checkInputDimensions(param) {  // Adds dimensions, returns true if valid else false
+    function checkInputDimensions(layer) {  // Adds dimensions, returns true if valid else false
         let numDims = 0
-        if (param.input_x) numDims += 1
-        if (param.input_y) numDims += 1
-        if (param.input_z) numDims += 1
+        if (layer.input_x) numDims += 1
+        if (layer.input_y) numDims += 1
+        if (layer.input_z) numDims += 1
 
         let notSpecifiedDims = numDims
-        if (params.input_x && param.input_x) notSpecifiedDims -= 1
-        if (params.input_y && param.input_y) notSpecifiedDims -= 1
-        if (params.input_z && param.input_z) notSpecifiedDims -= 1
+        if (layer.input_x && param.input_x) notSpecifiedDims -= 1
+        if (layer.input_y && param.input_y) notSpecifiedDims -= 1
+        if (layer.input_z && param.input_z) notSpecifiedDims -= 1
         
         return (notSpecifiedDims == numDims || notSpecifiedDims == 0);
     }
@@ -74,7 +54,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         }} {...(param.required ? { required: true } : {})}/>
                     </div>)
                 } else {
-                    return (<div className="create-layer-label-inp">
+                    return (<div className="create-layer-label-inp" key={idx}>
                         <label className="create-dataset-label" htmlFor={param.name}>{param.name}</label>
                         <select className="create-dataset-inp" id={param.name} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
@@ -89,11 +69,11 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                 }
             })}
             {layer.dimensions && layer.dimensions.map((dimension, idx) => (
-                <div className="create-layer-label-inp">
+                <div className="create-layer-label-inp" key={idx}>
                     <label className="create-dataset-label">{dimension.name}</label>
                     <div className="create-layer-dimensions">
                         {dimension.params.map((param, idx2) => (
-                            <input className="create-dataset-inp create-layer-dimensions-inp" type={param.type} placeholder={param.name_readable} value={params[param.name]} onChange={(e) => {
+                            <input key={idx2} className="create-dataset-inp create-layer-dimensions-inp" type={param.type} placeholder={param.name_readable} value={params[param.name]} onChange={(e) => {
                                 let temp = {...params}
                                 temp[param.name] = e.target.value
                                 setParams(temp)
@@ -121,6 +101,18 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         setParams(temp)
                     }} />}
                 </div>
+            </div>}
+            {layer.activation && <div className="create-layer-label-inp">
+                <label className="create-dataset-label" htmlFor="activation-function">Activation function</label>
+                <select className="create-dataset-inp" id="activation-function" value={params["activation"]} onChange={(e) => {
+                    let temp = {...params}
+                    temp["activation"] = e.target.value
+                    setParams(temp)
+                }}>
+                    <option value="">-</option>
+                    <option value="relu">ReLU</option>
+                    <option value="softmax">Softmax</option>
+                </select>
             </div>}
         </div>
     }
@@ -158,12 +150,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             notification("Please enter " + param.name, "failure")
                             return
                         }
-                        if (param.input_x || param.input_y || param.input_y) {
-                            if (!checkInputDimensions(param)) {
-                                notification("You must specify all dimensions or none of them.", "failure")
-                                return
-                            }
-                        }
+                        
                         if (param.validator) {
                             let message = param.validator(params[param.name].length > 0)
                             if (message.length > 0) {
@@ -173,6 +160,12 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         }
 
                         data[param.name] = params[param.name]
+                    }
+                    if (layer.input_x || layer.input_y || layer.input_y) {
+                        if (!checkInputDimensions(layer)) {
+                            notification("You must specify all dimensions or none of them.", "failure")
+                            return
+                        }
                     }
  
                     if (!layer.activation) {

@@ -1,5 +1,6 @@
-const LAYERS = {
+export const LAYERS = {
     dense: {
+        "name": "Dense",
         "params": [
             {
                 "name": "nodes_count",
@@ -9,15 +10,21 @@ const LAYERS = {
                 "required": true
             }
         ],
+        "image": "dense.svg",
         "has_activation": true,
-        "input_x": true
+        "input_x": true,
+        "color": "purple"
     },
     flatten: {
+        "name": "Flatten",
         "params": [],
+        "image": "area.svg",
         "input_x": true,
-        "input_y": true
+        "input_y": true,
+        "color": "pink"
     },
     dropout: {
+        "name": "Dropout",
         "params": [
             {
                 "name": "rate",
@@ -26,9 +33,12 @@ const LAYERS = {
                 "type": "number",
                 "required": true
             }
-        ]
+        ],
+        "image": "dropout.svg",
+        "color": "blue"
     },
     rescaling: {
+        "name": "Rescaling",
         "params": [
             {
                 "name": "scale",
@@ -52,11 +62,14 @@ const LAYERS = {
                 "required": true
             }
         ],
+        "image": "area.svg",
         "input_x": true,
         "input_y": true,
-        "input_z": true
+        "input_z": true,
+        "color": "darkblue"
     },
     randomflip: {
+        "name": "RandomFlip",
         "params": [
             {
                 "name": "mode",
@@ -76,11 +89,14 @@ const LAYERS = {
                 "required": true
             }
         ],
+        "image": "image.png",
         "input_x": true,
         "input_y": true,
-        "input_z": true
+        "input_z": true,
+        "color": "cyan"
     },
     resizing: {
+        "name": "Resizing",
         "params": [],
         "dimensions": [
             {
@@ -119,11 +135,14 @@ const LAYERS = {
                 ]
             }
         ],
+        "image": "image.png",
         "input_x": true,
         "input_y": true,
-        "input_z": true
+        "input_z": true,
+        "color": "green"
     },
     conv2d: {
+        "name": "Conv2D",
         "params": [
             {
                 "name": "filters",
@@ -140,12 +159,15 @@ const LAYERS = {
                 "required": true
             }
         ],
+        "image": "image.png",
         "has_activation": true,
         "input_x": true,
         "input_y": true,
-        "input_z": true
+        "input_z": true,
+        "color": "lightblue"
     },
     maxpool2d: {
+        "name": "MaxPool2D",
         "params": [
             {
                 "name": "pool_size",
@@ -154,9 +176,12 @@ const LAYERS = {
                 "type": "number",
                 "required": true
             }
-        ]
+        ],
+        "image": "image.png",
+        "color": "pink2"
     },
     textvectorization: {
+        "name": "TextVectorization",
         "params": [
             {
                 "name": "max_tokens",
@@ -185,9 +210,12 @@ const LAYERS = {
                 ],
                 "default": "lower_and_strip_punctuation"
             }
-        ]
+        ],
+        "image": "text.png",
+        "color": "cyan"
     },
     embedding: {
+        "name": "Embedding",
         "params": [
             {
                 "name": "max_tokens",
@@ -203,8 +231,60 @@ const LAYERS = {
                 "type": "number",
                 "required": true
             }
-        ]
+        ],
+        "image": "text.png",
+        "color": "green"
     }
 }
 
-export default LAYERS
+
+export const VALID_PREV_LAYERS = { // null means that it can be the first layer
+    "dense": [null, "dense", "flatten", "dropout", "textvectorization"],
+    "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "resizing"],
+    "maxpool2d": ["conv2d", "maxpool2d", "rescaling", "resizing"],
+    "dropout": ["dense", "dropout", "flatten"],
+    "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling", "resizing"],
+    "rescaling": [null, "randomflip", "resizing"],
+    "randomflip": [null, "rescaling", "resizing"],
+    "resizing": [null],
+    "textvectorization": [null],
+    "embedding": [null, "textvectorization"]
+}
+
+export const WARNING_MESSAGES = {
+    "dense": "A Dense layer must be the first one, else follow one of the following layers: [" + VALID_PREV_LAYERS["dense"].slice(1).join(", ") + "].",
+    "conv2d": "A Conv2D layer must be the first one, else follow one of the following layers: [" + VALID_PREV_LAYERS["conv2d"].slice(1).join(", ") + "].",
+    "maxpool2d": "A MaxPool2D layer must follow one of the following layers: [" + VALID_PREV_LAYERS["maxpool2d"].slice(1).join(", ") + "].",
+    "dropout": "A Dropout layer must follow one of the following layers: [" + VALID_PREV_LAYERS["dropout"].slice(1).join(", ") + "].",
+    "flatten": "Invalid previous layer.",
+    "rescaling": "Must be the first layer or follow another preprocessing layer.",
+    "randomflip": "Must be the first layer or follow another preprocessing layer.",
+    "resizing": "Must be the first layer.",
+    "textvectorization": "Must be the first layer.",
+    "embedding": "Must be the first layer, else follow one of the following layers: [" + VALID_PREV_LAYERS["embedding"].slice(1).join(", ") + "].",
+}
+
+export function getLayerName(layer) {
+    let type = layer.layer_type
+    if (type == "dense") {
+        return "Dense - " + layer.nodes_count + (layer.input_x ? " (" + layer.input_x + ")" : "")
+    } else if (type == "conv2d") {
+        return "Conv2D - (" + layer.filters + ", " + layer.kernel_size + ")"
+    } else if (type == "maxpool2d") {
+        return "MaxPool2D - " + layer.pool_size
+    } else if (type == "flatten") {
+        return "Flatten" + (layer.input_x ? " - (" + layer.input_x + ", " + layer.input_y + ")" : "")
+    } else if (type == "dropout") {
+        return "Dropout (" + layer.rate + ")"
+    } else if (type == "rescaling") {
+        return "Rescale (" + layer.scale + ", " + layer.offset + ")"
+    } else if (type == "randomflip") {
+        return "RandomFlip (" + layer.mode + ")"
+    } else if (type == "resizing") {
+        return "Resizing (" + layer.input_x + ", " + layer.input_y + ")"
+    } else if (type == "textvectorization") {
+        return "TextVectorization (" + layer.max_tokens + ")"
+    } else if (type == "embedding") {
+        return "Embedding (" + layer.max_tokens + ", " + layer.output_dim + ")"
+    }
+}

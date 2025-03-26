@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
+import {LAYERS, WARNING_MESSAGES, VALID_PREV_LAYERS} from "../layers"
 
 function LayerElement({layer, hoveredLayer, deleteLayer, 
                         BACKEND_URL, setLayers, layers, notification, 
@@ -10,24 +11,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
     const [type, setType] = useState(null)  // Workaround to stop warning when reordering layers.
 
-    const [nodes, setNodes] = useState(layer.nodes_count)   // Used by ["dense"]
-    const [filters, setFilters] = useState(layer.filters)   // Used by ["conv2d"]
-    const [kernelSize, setKernelSize] = useState(layer.kernel_size) // USed by ["conv2d"]
-    const [inputX, setInputX] = useState(layer.input_x || "") // Used by ["dense", "conv2d", "flatten", "rescaling", "resizing"]
-    const [inputY, setInputY] = useState(layer.input_y || "") // Used by ["conv2d", "flatten", "rescaling", "resizing"]
-    const [inputZ, setInputZ] = useState(layer.input_z || "") // Used by ["conv2d", "resizing"]
-    const [poolSize, setPoolSize] = useState(layer.pool_size)
-    const [rate, setRate] = useState(layer.rate)   // Used by ["dropout"]
-    const [scale, setScale] = useState(layer.scale) // Used by ["rescaling"]
-    const [offset, setOffset] = useState(layer.offset)  // Used by ["rescaling"]
-    const [mode, setMode] = useState(layer.mode)    // Used by ["randomflip"]
-    const [outputX, setOutputX] = useState(layer.output_x)  // Used by ["resizing"]
-    const [outputY, setOutputY] = useState(layer.output_y)  // Used by ["resizing"]
-    const [maxTokens, setMaxTokens] = useState(layer.max_tokens)    // Used by ["textvectorization", "embedding"]
-    const [standardize, setStandardize] = useState(layer.standardize)   // Used by ["textvectorization"]
-    const [outputDim, setOutputDim] = useState(layer.output_dim)    // Used by ["embedding"]
-
-    const [activation, setActivation] = useState(layer.activation_function) // Used by ["dense", "conv2d"]
+    const [params, setParams] = useState({})
 
     const [updated, setUpdated] = useState(false)
     const [revertChanges, setRevertChanges] = useState(false)
@@ -39,24 +23,20 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     const elementRef = useRef(null)
 
     useEffect(() => {
-        setNodes(layer.nodes_count)
-        setFilters(layer.filters)
-        setKernelSize(layer.kernel_size)
-        setInputX(layer.input_x || "")
-        setInputY(layer.input_y || "")
-        setInputZ(layer.input_z || "")
-        setPoolSize(layer.pool_size)
-        setRate(layer.rate)
-        setScale(layer.scale)
-        setOffset(layer.offset)
-        setMode(layer.mode)
-        setOutputX(layer.output_x)
-        setOutputY(layer.output_y)
-        setMaxTokens(layer.max_tokens)
-        setStandardize(layer.standardize)
-        setOutputDim(layer.output_dim)
-
-        setActivation(layer.activation_function)
+        
+        let temp = {}
+        Object.keys(LAYERS).forEach((key) => {
+            let current_layer = LAYERS[key]
+            for (let i=0; i < current_layer.params.length; i++) {
+                let param = current_layer.params[i]
+                temp[param.name] = layer[param.name]
+            }
+        })
+        temp["input_x"] = layer.input_x || ""
+        temp["input_y"] = layer.input_y || ""
+        temp["input_z"] = layer.input_z || ""
+        temp["activation"] = layer.activation_function || ""
+        setParams(temp)
 
         setType(layer.layer_type)
 
@@ -66,172 +46,92 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         getErrorMessage()
     }, [updateWarnings])
 
-    function dimensions_updated(include_z) {
-        if (inputX != (layer.input_x || "")) {
-            return true
-        } else if (inputY != (layer.input_y || "")) {
-            return true
-        } else if (include_z && inputZ != (layer.input_z || "")) {
-            return true
-        } else {
-            return false
-        }
-    }
-
     useEffect(() => {
         setUpdated(false)
 
-        if (type == "dense") {
-            if (nodes != layer.nodes_count) {
-                setUpdated(true)
-            } else if (inputX != layer.input_x) {
-                setUpdated(true)
-            }
-        } 
-        else if (type == "conv2d") {
-            if (filters != layer.filters) {
-                setUpdated(true)
-            } else if (kernelSize != layer.kernel_size) {
-                setUpdated(true)
-            } else if (dimensions_updated(true)) {
+        if (!type) {return}
+        let current_layer = LAYERS[type]
+        for (let i=0; i < current_layer.params.length; i++) {
+            let param = current_layer.params[i]
+            if (params[param.name] != layer[param.name]) {
                 setUpdated(true)
             }
         }
-        else if (type == "maxpool2d") {
-            if (poolSize != layer.pool_size) {
-                setUpdated(true)
+        if (current_layer.dimensions) {
+            for (let i=0; i < current_layer.dimensions.length; i++) {
+                let dim = current_layer.dimensions[i]
+                for (let j=0; j < dim.params.length; i++) {
+                    let param = dim.params[j]
+                    if (params[param.name] != layer[param.name]) {
+                        setUpdated(true)
+                    }
+                }
             }
         }
-        else if (type == "flatten") {
-            if (dimensions_updated(false)) {
-                setUpdated(true)
-            }
+        if (current_layer.activation && params["activation"] != (layer.activation_function || "")) {
+            setUpdated(true)
         }
-        else if (type == "dropout") {
-            if (rate != layer.rate) {
-                setUpdated(true)
-            }
+        if (current_layer.input_x && params["input_x"] != (layer.input_x || "")) {
+            setUpdated(true)
         }
-        else if (type == "rescaling") {
-            if (scale != layer.scale) {
-                setUpdated(true)
-            } else if (offset != layer.offset) {
-                setUpdated(true)
-            } else if (dimensions_updated(true)) {
-                setUpdated(true)
-            }
+        if (current_layer.input_y && params["input_y"] != (layer.input_y || "")) {
+            setUpdated(true)
         }
-        else if (type == "randomflip") {
-            if (mode != layer.mode) {
-                setUpdated(true)
-            }
-        }
-        else if (type == "resizing") {
-            if (dimensions_updated(true)) {
-                setUpdated(true)
-            } else if (outputX != layer.output_x) {
-                setUpdated(true)
-            } else if (outputY != layer.output_y) {
-                setUpdated(true)
-            }
-        } else if (type == "textvectorization") {
-            if (maxTokens != layer.max_tokens) {
-                setUpdated(true)
-            } else if (standardize != layer.standardize) {
-                setUpdated(true)
-            }
-        } else if (type == "embedding") {
-            if (maxTokens != layer.max_tokens) {
-                setUpdated(true)
-            } else if (outputDim != layer.output_dim) {
-                setUpdated(true)
-            }
+        if (current_layer.input_z && params["input_z"] != (layer.input_z || "")) {
+            setUpdated(true)
         }
 
-        const NO_ACTIVATION = new Set(["flatten", "dropout", "randomflip", "maxpool2d", "resizing", "textvectorization", "embedding"])
-        if (!NO_ACTIVATION.has(type)) { // Do not have activation functions
-            if (activation != layer.activation_function) {  
-                setUpdated(true)
-            }
-        }
-
-    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, poolSize, rate, scale, offset, mode, outputX, outputY, maxTokens, standardize, outputDim])   // All layer states
+    }, [params])   // All layer states
 
 
-    function checkInputDimensions(include_z) {  // Adds dimensions, returns true if valid else false
-        if (!(inputX && inputY && (include_z ? inputZ : true)) && (inputX || inputY || (include_z ? inputZ : false))) {
-            notification("All dimensions must be specified or all left empty.", "failure")
-            return false;
-        }
+    function checkInputDimensions(current_layer) {  // Adds dimensions, returns true if valid else false
+        let numDims = 0
+        if (current_layer.input_x) numDims += 1
+        if (current_layer.input_y) numDims += 1
+        if (current_layer.input_z) numDims += 1
 
-        if (inputX && inputX <= 0) {
-            notification("Input width must be positive.", "failure")
-            return false;
-        }
-
-        if (inputY && inputY <= 0) {
-            notification("Input height must be positive.", "failure")
-            return false;
-        }
-        if (include_z) {
-            if (inputZ && inputZ <= 0) {
-                notification("Input depth must be positive.", "failure")
-                return false;
-            }
-        }
+        let notSpecifiedDims = numDims
+        if (current_layer.input_x && params.input_x) notSpecifiedDims -= 1
+        if (current_layer.input_y && params.input_y) notSpecifiedDims -= 1
+        if (current_layer.input_z && params.input_z) notSpecifiedDims -= 1
         
-        return true;
+        if (notSpecifiedDims == numDims || notSpecifiedDims == 0) {
+            return true;
+        } else {
+            notification("You must either specify all input dimensions or none.", "failure")
+            return
+        }
     }
 
     function checkValidity() {
-        if (type == "dense") {
-            if (inputX && inputX <= 0) {
-                notification("Input size must be positive or unspecified.", "failure")
-                return false;
+        let current_layer = LAYERS[type]
+        for (let i=0; i < current_layer.params.length; i++) {
+            let param = current_layer.params[i]
+            if (param.validator) {
+                let message = param.validator(params[param.name])
+                if (message.length > 0) {
+                    notification(message, "failure")
+                    return
+                } 
             }
         }
-        if (type == "flatten") {
-            return checkInputDimensions(false)
-        }
-        if (type == "conv2d") {
-            return checkInputDimensions(true)
-        }
-        if (type == "rescaling") {
-            let dimensionsValid = checkInputDimensions(true)
-            if (!dimensionsValid) {
-                return false
-            }
-            try {
-                const result = eval(scale); 
-            } catch {
-                notification("Scale must be a valid number.", "failure")
-                return false;
+        if (current_layer.dimensions) {
+            for (let i=0; i < current_layer.dimensions.length; i++) {
+                let dim = current_layer.dimensions[j]
+                for (let i=0; i < dim.params.length; i++) {
+                    let param = dim.params[i]
+                    if (param.validator) {
+                        let message = param.validator(params[param.name])
+                        if (message.length > 0) {
+                            notification(message, "failure")
+                            return
+                        } 
+                    }
+                }
             }
         }
-        if (type == "resizing") {
-            if (!checkInputDimensions(true)) {
-                return false
-            }
-            if (outputX <= 0 || outputY <= 0) {
-                notification("Output dimensions must be positive.", "failure")
-                return
-            }
-        }
-        if (type == "textvectorization") {
-            if (maxTokens <= 0 || maxTokens > 20000) {
-                notification("Max tokens must be between 0 and 20000", "failure")
-                return
-            }
-        }
-        if (type == "embedding") {
-            if (maxTokens <= 0 || maxTokens > 20000) {
-                notification("Max tokens must be between 0 and 20000", "failure")
-                return
-            }
-            if (outputDim <= 0 || outputDim > 100) {
-                notification("Output dim must be between 0 and 20000", "failure")
-                return
-            }
+        if (current_layer.input_x || current_layer.input_y || current_layer.input_z) {
+            return checkInputDimensions(current_layer);
         }
 
         return true;
@@ -245,26 +145,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         const data = {
             "id": layer.id,
             "type": layer.layer_type,
-
-            "nodes_count": nodes,
-            "filters": filters,
-            "kernel_size": kernelSize,
-            "input_x": inputX,
-            "input_y": inputY,
-            "input_z": inputZ,
-            "pool_size": poolSize,
-            "rate": rate,
-            "scale": scale,
-            "offset": offset,
-            "mode": mode,
-            "output_x": outputX,
-            "output_y": outputY,
-            "max_tokens": maxTokens,
-            "standardize": standardize,
-            "output_dim": outputDim,
-
-            "activation_function": activation
+            "activation_function": params.activation
         }
+
+        Object.keys(params).forEach((key) => {
+            data[key] = params[key]
+        })
         
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -298,32 +184,6 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         })
     }
 
-    const VALID_PREV_LAYERS = { // null means that it can be the first layer
-        "dense": [null, "dense", "flatten", "dropout", "textvectorization"],
-        "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "resizing"],
-        "maxpool2d": ["conv2d", "maxpool2d", "rescaling", "resizing"],
-        "dropout": ["dense", "dropout", "flatten"],
-        "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling", "resizing"],
-        "rescaling": [null, "randomflip", "resizing"],
-        "randomflip": [null, "rescaling", "resizing"],
-        "resizing": [null],
-        "textvectorization": [null],
-        "embedding": [null, "textvectorization"]
-    }
-
-    const WARNING_MESSAGES = {
-        "dense": "A Dense layer must be the first one, else follow one of the following layers: [" + VALID_PREV_LAYERS["dense"].slice(1).join(", ") + "].",
-        "conv2d": "A Conv2D layer must be the first one, else follow one of the following layers: [" + VALID_PREV_LAYERS["conv2d"].slice(1).join(", ") + "].",
-        "maxpool2d": "A MaxPool2D layer must follow one of the following layers: [" + VALID_PREV_LAYERS["maxpool2d"].slice(1).join(", ") + "].",
-        "dropout": "A Dropout layer must follow one of the following layers: [" + VALID_PREV_LAYERS["dropout"].slice(1).join(", ") + "].",
-        "flatten": "Invalid previous layer.",
-        "rescaling": "Must be the first layer or follow another preprocessing layer.",
-        "randomflip": "Must be the first layer or follow another preprocessing layer.",
-        "resizing": "Must be the first layer.",
-        "textvectorization": "Must be the first layer.",
-        "embedding": "Must be the first layer, else follow one of the following layers: [" + VALID_PREV_LAYERS["embedding"].slice(1).join(", ") + "].",
-    }
-
     function getErrorMessage() {
         setWarnings(false || warnings)
 
@@ -344,65 +204,115 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
     }
 
-    function dimensionsX(isFlatten=false) {
-        if (!isPublic || inputX) {
-            return (<div className="layer-element-stat">
-                <span className={"layer-element-stat-color layer-element-stat-" + (!isFlatten ? "gray2" : "pink")}></span>
-                <label className="layer-element-label" htmlFor={"dimensionX" + layer.id}>Input width</label>
-                {!isPublic && <input type="number" className="layer-element-input" id={"dimensionX" + layer.id} value={inputX} onChange={(e) => {
-                    setInputX(e.target.value)
-                }}></input>}
-                {isPublic && <div className="layer-element-input">{inputX}</div>}
-            </div>)
-        } else {
-            if (isFlatten) {
-                return (<div className="layer-element-stat">
-                    <span className="layer-element-stat-color layer-element-stat-pink"></span>
-                    <label className="layer-element-label">Input width</label>
-                    <div className="layer-element-input">-</div>
-                </div>)
+    function dimensionsX(current_layer) {
+        return (<div className="layer-element-stat">
+            <span className={"layer-element-stat-color layer-element-stat-" + (current_layer.name == "Flatten" ? "pink" : "gray2")}></span>
+            <label className="layer-element-label" htmlFor={"dimensionX" + layer.id}>Input width</label>
+            {!isPublic && <input type="number" className="layer-element-input" id={"dimensionX" + layer.id} value={params.input_x} onChange={(e) => {
+                let temp = {...params}
+                temp["input_x"] = e.target.value
+                setParams(temp)
+            }}></input>}
+            {isPublic && <div className="layer-element-input">{params.input_x || "-"}</div>}
+        </div>)
+    }
+
+    function dimensionsY(current_layer) {
+        return (<div className="layer-element-stat">
+            <span className={"layer-element-stat-color layer-element-stat-" + (current_layer.name == "Flatten" ? "pink" : "gray2")}></span>
+            <label className="layer-element-label" htmlFor={"dimensionY" + layer.id}>Input height</label>
+            {!isPublic && <input type="number" className="layer-element-input" id={"dimensionY" + layer.id} value={params.input_y} onChange={(e) => {
+                let temp = {...params}
+                temp["input_y"] = e.target.value
+                setParams(temp)
+            }}></input>}
+            {isPublic && <div className="layer-element-input">{params.input_y || "-"}</div>}
+        </div>)
+    }
+
+    function dimensionsZ(current_layer) {
+        return (<div className="layer-element-stat">
+            <span className={"layer-element-stat-color layer-element-stat-" + (current_layer.name == "Flatten" ? "pink" : "gray2")}></span>
+            <label className="layer-element-label" htmlFor={"dimensionX" + layer.id}>Input depth</label>
+            {!isPublic && <input type="number" className="layer-element-input" id={"dimensionZ" + layer.id} value={params.input_z} onChange={(e) => {
+                let temp = {...params}
+                temp["input_z"] = e.target.value
+                setParams(temp)
+            }}></input>}
+            {isPublic && <div className="layer-element-input">{params.input_z || "-"}</div>}
+        </div>)
+    }
+
+
+    function getLayerElement(type) {
+        let current_layer = LAYERS[type]
+        let dimensionParams = []
+        let current_dims = (current_layer.dimensions || [])
+        for (let i=0; i < current_dims.length; i++) {
+            let dim = current_dims[i]
+            for (let j=0; j < dim.params.length; j++) {
+                dimensionParams.push(dim.params[j])
             }
-            return null
         }
+
+        return (
+            <form className="layer-element-inner">
+                <h1 className="layer-element-title">
+                    <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/" + current_layer.image} />
+                    <span className="layer-element-title-text">{current_layer.name}</span>
+                    {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
+                    {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                        deleteLayer(layer.id)
+                    }}/>}
+                </h1>
+                {current_layer.params.map((param, idx) => (
+                    <div className="layer-element-stat" key={idx}>
+                        <span className={"layer-element-stat-color layer-element-stat-" + current_layer.color}></span>
+                        <label className="layer-element-label" htmlFor={param.name + current_layer.id}>{param.name_readable}</label>
+                        {!isPublic && <input type={param.type} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
+                            let temp = {...params}
+                            temp[param.name] = e.target.value
+                            setParams(temp)
+                        }}></input>}
+                        {isPublic && <div className="layer-element-input">{params[param.name]}</div>}
+                    </div>
+                ))}
+                {dimensionParams.map((param, idx) => (
+                    <div className="layer-element-stat" key={idx}>
+                        <span className={"layer-element-stat-color layer-element-stat-" + current_layer.color}></span>
+                        <label className="layer-element-label" htmlFor={param.name + current_layer.id}>{param.name_readable}</label>
+                        {!isPublic && <input type={param.type} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
+                            let temp = {...params}
+                            temp[param.name] = e.target.value
+                            setParams(temp)
+                        }}></input>}
+                        {isPublic && <div className="layer-element-input">{params[param.name]}</div>}
+                    </div>
+                ))}
+                {current_layer.input_x && dimensionsX(current_layer)}
+                {current_layer.input_y && dimensionsY(current_layer)}
+                {current_layer.input_z && dimensionsZ(current_layer)}
+                {current_layer.activation && <div className="layer-element-stat layer-element-activation">
+                    <span className="layer-element-stat-color layer-element-stat-gray"></span>
+                    <label className="layer-element-label" htmlFor={"activation" + layer.id}>Activation function</label>
+                    {!isPublic && <select className="layer-element-input layer-element-activation-input" id={"activation" + layer.id} value={params["activation"]} onChange={(e) => {
+                            let temp = {...params}
+                            temp["activation"] = e.target.value
+                            setParams(temp)
+                        }}>
+                            <option value="">-</option>
+                            <option value="relu">ReLU</option>
+                            <option value="softmax">Softmax</option>
+                    </select>}
+                    {isPublic && <div className="layer-element-input layer-element-activation-input">{params["activation"] || "-"}</div>}
+                </div>}
+            </form>
+        )
     }
 
-    function dimensionsY(isFlatten=false) {
-        if (!isPublic || inputY) {
-            return (<div className="layer-element-stat">
-                <span className={"layer-element-stat-color layer-element-stat-" + (!isFlatten ? "gray2" : "pink")}></span>
-                <label className="layer-element-label" htmlFor={"dimensionY" + layer.id}>Input height</label>
-                {!isPublic && <input type="number" className="layer-element-input" id={"dimensionY" + layer.id} value={inputY} onChange={(e) => {
-                    setInputY(e.target.value)
-                }}></input>}
-                {isPublic && <div className="layer-element-input">{inputY}</div>}
-            </div>)
-        } else {
-            if (isFlatten) {
-                return (<div className="layer-element-stat">
-                    <span className="layer-element-stat-color layer-element-stat-pink"></span>
-                    <label className="layer-element-label">Input height</label>
-                    <div className="layer-element-input">-</div>
-                </div>)
-            }
-            return null
-        }
+    function isEmptyObject(obj) {
+        return obj && Object.keys(obj).length === 0 && obj.constructor === Object;
     }
-
-    function dimensionsZ() {
-        if (!isPublic || inputZ) {
-            return (<div className="layer-element-stat">
-                <span className="layer-element-stat-color layer-element-stat-gray2"></span>
-                <label className="layer-element-label" htmlFor={"dimensionZ" + layer.id}>Input depth</label>
-                {!isPublic && <input type="number" className="layer-element-input" id={"dimensionZ" + layer.id} value={inputZ} onChange={(e) => {
-                    setInputZ(e.target.value)
-                }}></input>}
-                {isPublic && <div className="layer-element-input">{inputZ}</div>}
-            </div>)
-        } else {
-            return null
-        }
-    }
-
     
     if (type) {
         return (<div className="layer-element-outer" 
@@ -419,315 +329,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         <span className="layer-element-warning-text">{errorMessage}</span>
                     </p>}
     
-                    {type == "dense" && <form className="layer-element-inner">
-                        <h1 className="layer-element-title">
-                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/dense.svg"} />
-                            <span className="layer-element-title-text">Dense</span>
-                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
-                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                                deleteLayer(layer.id)
-                            }}/>}
-                        </h1>
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-purple"></span>
-                            <label className="layer-element-label" htmlFor={"denseNodes" + layer.id}>Nodes</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"denseNodes" + layer.id} value={nodes} onChange={(e) => {
-                                setNodes(Math.max(0, Math.min(e.target.value, 512)))
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{nodes}</div>}
-                        </div>
-
-                        {(!isPublic || inputX) && <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-purple"></span>
-                            <label className="layer-element-label" htmlFor={"denseSize" + layer.id}>Input size</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"denseSize" + layer.id} value={inputX} onChange={(e) => {
-                                setInputX(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{inputX}</div>}
-                        </div>}
-    
-                        <div className="layer-element-stat layer-element-activation">
-                        <span className="layer-element-stat-color layer-element-stat-gray"></span>
-                            <label className="layer-element-label" htmlFor={"activation" + layer.id}>Activation function</label>
-                            {!isPublic && <select className="layer-element-input layer-element-activation-input" id={"activation" + layer.id} value={activation} onChange={(e) => {
-                                    setActivation(e.target.value)
-                                }}>
-                                    <option value="">-</option>
-                                    <option value="relu">ReLU</option>
-                                    <option value="softmax">Softmax</option>
-                            </select>}
-                            {isPublic && <div className="layer-element-input layer-element-activation-input">{activation || "-"}</div>}
-                        </div>
-                    </form>}
-    
-                    {type == "conv2d" && <form className="layer-element-inner">
-                        <h1 className="layer-element-title">
-                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
-                            <span className="layer-element-title-text">Conv2D</span>
-                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
-                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                                deleteLayer(layer.id)
-                            }}/>}
-                        </h1>
-    
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
-                            <label className="layer-element-label" htmlFor={"filters" + layer.id}>Filters</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"filters" + layer.id} value={filters} onChange={(e) => {
-                                setFilters(Math.max(0, Math.min(e.target.value, 100)))
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{filters}</div>}
-                        </div>
-    
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-lightblue"></span>
-                            <label className="layer-element-label" htmlFor={"kernelSize" + layer.id}>Kernel size</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"kernelSize" + layer.id} value={kernelSize} onChange={(e) => {
-                                setKernelSize(Math.max(0, Math.min(100, e.target.value)))
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{kernelSize}</div>}
-                        </div>
-
-                        {dimensionsX()}
-    
-                        {dimensionsY()}
-
-                        {dimensionsZ()}
-    
-                        <div className="layer-element-stat layer-element-activation">
-                        <span className="layer-element-stat-color layer-element-stat-gray"></span>
-                            <label className="layer-element-label" htmlFor={"activation" + layer.id}>Activation function</label>
-                            {!isPublic && <select className="layer-element-input layer-element-activation-input" id={"activation" + layer.id} value={activation} onChange={(e) => {
-                                    setActivation(e.target.value)
-                                }}>
-                                    <option value="">-</option>
-                                    <option value="relu">ReLU</option>
-                                    <option value="softmax">Softmax</option>
-                            </select>}
-                            {isPublic && <div className="layer-element-input layer-element-activation-input">{activation || "-"}</div>}
-                        </div>
-                    </form>}
-
-                    {type == "maxpool2d" && <form className="layer-element-inner">
-                        <h1 className="layer-element-title">
-                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
-                            <span className="layer-element-title-text">MaxPool2D</span>
-                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
-                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                                deleteLayer(layer.id)
-                            }}/>}
-                        </h1>
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-pink2"></span>
-                            <label className="layer-element-label" htmlFor={"pool-size" + layer.id}>Pool size</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"pool-size" + layer.id} value={poolSize} onChange={(e) => {
-                                setPoolSize(Math.max(0, Math.min(e.target.value, 99)))
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{poolSize}</div>}
-                        </div> 
-                    </form>}
-    
-                    {type == "flatten" && <form className="layer-element-inner">
-                        <h1 className="layer-element-title">
-                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/area.svg"} />
-                            <span className="layer-element-title-text">Flatten</span>
-                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
-                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                                deleteLayer(layer.id)
-                            }}/>}
-                        </h1>
-    
-                        {dimensionsX(true)}
-    
-                        {dimensionsY(true)}
-
-                    </form>}
-    
-                    {type == "dropout" && <form className="layer-element-inner">
-                        <h1 className="layer-element-title">
-                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/dropout.svg"} />
-                            <span className="layer-element-title-text">Dropout</span>
-                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
-                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                                deleteLayer(layer.id)
-                            }}/>}
-                        </h1>
-    
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-blue"></span>
-                            <label className="layer-element-label" htmlFor={"rate" + layer.id}>Rate</label>
-                            {!isPublic && <input type="number" step="0.05" className="layer-element-input" id={"rate" + layer.id} value={rate} onChange={(e) => {
-                                setRate(Math.max(0, Math.min(1, e.target.value)))
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{rate}</div>}
-                        </div>
-    
-                    </form>}
-
-                    {type == "rescaling" && <form className="layer-element-inner">
-                        <h1 className="layer-element-title">
-                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/area.svg"} />
-                            <span className="layer-element-title-text">Rescale</span>
-                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
-                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                                deleteLayer(layer.id)
-                            }}/>}
-                        </h1>
-    
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-darkblue"></span>
-                            <label className="layer-element-label" htmlFor={"scale" + layer.id}>Scale</label>
-                            {!isPublic && <input type="text" className="layer-element-input" id={"scale" + layer.id} value={scale} onChange={(e) => {
-                                setScale(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{scale}</div>}
-                        </div>
-
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-darkblue"></span>
-                            <label className="layer-element-label" htmlFor={"offset" + layer.id}>Offset</label>
-                            {!isPublic && <input type="number" step="0.01" className="layer-element-input" id={"offset" + layer.id} value={offset} onChange={(e) => {
-                                setOffset(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{offset}</div>}
-                        </div>
-
-                        {dimensionsX()}
-    
-                        {dimensionsY()}
-
-                        {dimensionsZ()}
-    
-                    </form>}
-
-                    {type == "randomflip" && <form className="layer-element-inner">
-                        <h1 className="layer-element-title">
-                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
-                            <span className="layer-element-title-text">RandomFlip</span>
-                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
-                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                                deleteLayer(layer.id)
-                            }}/>}
-                        </h1>
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-cyan"></span>
-                            <label className="layer-element-label" htmlFor={"mode" + layer.id}>Mode</label>
-                            {!isPublic && <select className="layer-element-input layer-element-mode-input" id={"mode" + layer.id} value={mode} onChange={(e) => {
-                                    setMode(e.target.value)
-                                }}>
-                                    <option value="horizontal_and_vertical">horizontal_and_vertical</option>
-                                    <option value="horizontal">horizontal</option>
-                                    <option value="vertical">vertical</option>
-                            </select>}
-                            {isPublic && <div title={mode} className="layer-element-input layer-element-mode-input">{mode}</div>}
-                        </div> 
-
-                        {dimensionsX()}
-    
-                        {dimensionsY()}
-
-                        {dimensionsZ()}
-                    </form>}
-
-                    {type == "resizing" && <form className="layer-element-inner">
-                        <h1 className="layer-element-title">
-                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/image.png"} />
-                            <span className="layer-element-title-text">Resizing</span>
-                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
-                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                                deleteLayer(layer.id)
-                            }}/>}
-                        </h1>
-
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-green"></span>
-                            <label className="layer-element-label" htmlFor={"resizingOutX" + layer.id}>Output width</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"resizingOutX" + layer.id} value={outputX} onChange={(e) => {
-                                setOutputX(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{outputX}</div>}
-                        </div>
-    
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-green"></span>
-                            <label className="layer-element-label" htmlFor={"resizingOutY" + layer.id}>Output height</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"resizingOutY" + layer.id} value={outputY} onChange={(e) => {
-                                setOutputY(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{outputY}</div>}
-                        </div>
-
-                        {dimensionsX()}
-    
-                        {dimensionsY()}
-
-                        {dimensionsZ()}
-                    </form>}
-
-                    {type == "textvectorization" && <form className="layer-element-inner">
-                        <h1 className="layer-element-title">
-                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/text.png"} />
-                            <span className="layer-element-title-text">TextVectorization</span>
-                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
-                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                                deleteLayer(layer.id)
-                            }}/>}
-                        </h1>
-
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-cyan"></span>
-                            <label className="layer-element-label" htmlFor={"max-tokens" + layer.id}>Max tokens</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"max-tokens" + layer.id} value={maxTokens} onChange={(e) => {
-                                setMaxTokens(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{maxTokens}</div>}
-                        </div>
-    
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-cyan"></span>
-                            <label className="layer-element-label" htmlFor={"standardize" + layer.id}>Standardize</label>
-                            {!isPublic && <select className="layer-element-input layer-element-mode-input" id={"standardize" + layer.id} value={standardize} onChange={(e) => {
-                                    setStandardize(e.target.value)
-                                }}>
-                                    <option value="">(none)</option>
-                                    <option value="lower_and_strip_punctuation">lower_and_strip_punctuation</option>
-                                    <option value="lower">lower</option>
-                                    <option value="strip_punctuation">strip_punctuation</option>
-                            </select>}
-                            {isPublic && <div title={mode} className="layer-element-input layer-element-mode-input">{standardize}</div>}
-                        </div> 
-
-                    </form>}
-
-                    {type == "embedding" && <form className="layer-element-inner">
-                        <h1 className="layer-element-title">
-                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/text.png"} />
-                            <span className="layer-element-title-text">Embedding</span>
-                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
-                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
-                                deleteLayer(layer.id)
-                            }}/>}
-                        </h1>
-
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-green"></span>
-                            <label className="layer-element-label" htmlFor={"max-tokens" + layer.id}>Max tokens</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"max-tokens" + layer.id} value={maxTokens} onChange={(e) => {
-                                setMaxTokens(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{maxTokens}</div>}
-                        </div>
-    
-                        <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-green"></span>
-                            <label className="layer-element-label" htmlFor={"output-dim" + layer.id}>Output dim</label>
-                            {!isPublic && <input type="number" className="layer-element-input" id={"output-dim" + layer.id} value={outputDim} onChange={(e) => {
-                                setOutputDim(e.target.value)
-                            }}></input>}
-                            {isPublic && <div className="layer-element-input">{outputDim}</div>}
-                        </div>
-
-                    </form>}
+                    {!isEmptyObject(params) && getLayerElement(type)}
     
                     {!isPublic && <button type="button" 
                         className={"layer-element-save " + (!updated ? "layer-element-save-disabled" : "")}
