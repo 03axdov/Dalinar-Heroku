@@ -139,7 +139,7 @@ def load_and_preprocess_text(file_path, file_key):
     text_bytes = download_s3_file(bucket_name, file_key)
     
     # Decode the text bytes into a string
-    text = tf.io.decode_utf8(text_bytes)  # Assuming UTF-8 encoded text
+    text = text_bytes.decode("utf-8")  # Assuming UTF-8 encoded text
     
     return text
 
@@ -232,6 +232,10 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     return dataset, len(file_paths)
 
 
+def adaptTextVectorization(text_vectorization_layer, train_ds):
+    pass
+
+
 class TrainingProgressCallback(tf.keras.callbacks.Callback):
     def __init__(self, profile, total_epochs):
         super().__init__()
@@ -281,6 +285,9 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     
                         profile.training_progress = 0
                         profile.save()
+                        
+                        if model_instance.layers.first().layer_type == "textvectorization": # Must be initialized
+                            adaptTextVectorization(model.layers[0], train_dataset)  # Don't involve validation for accurate validation
                     
                         history = model.fit(train_dataset, 
                                             epochs=epochs, 
@@ -289,6 +296,9 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     else:
                         profile.training_progress = 0
                         profile.save()
+                        
+                        if model_instance.layers.first().layer_type == "textvectorization": # Must be initialized
+                            adaptTextVectorization(model.layers[0], dataset)
                         
                         history = model.fit(dataset, 
                                             epochs=epochs,

@@ -255,9 +255,15 @@ class AbstractLayer(models.Model):
         ("conv2d", "Conv2D"),
         ("maxpool2d", "MaxPool2d"),
         ("flatten", "Flatten"),
-        ("dropout", "Dropout")
+        ("dropout", "Dropout"),
+        ("rescaling", "Rescaling"),
+        ("randomflip", "RandomFlip"),
+        ("resizing", "Resizing"),
+        ("textvectorization", "TextVectorization"),
+        ("embedding", "Embedding"),
+        ("globalaveragepooling1d", "GlobalAveragePooling1D"),
     ]
-    layer_type = models.CharField(max_length=100, choices=LAYER_CHOICES, default="dense")
+    layer_type = models.CharField(max_length=100, choices=LAYER_CHOICES)
     
     ACTIVATION_CHOICES = [
         ("relu", "ReLU"),

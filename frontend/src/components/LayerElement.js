@@ -267,7 +267,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 {current_layer.params.map((param, idx) => (
                     <div className="layer-element-stat" key={idx}>
                         <span className={"layer-element-stat-color layer-element-stat-" + current_layer.color}></span>
-                        <label className="layer-element-label" htmlFor={param.name + current_layer.id}>{param.name_readable}</label>
+                        <label className="layer-element-label" htmlFor={param.name + layer.id}>{param.name_readable}</label>
                         {!isPublic && <input type={param.type} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value
@@ -279,7 +279,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 {dimensionParams.map((param, idx) => (
                     <div className="layer-element-stat" key={idx}>
                         <span className={"layer-element-stat-color layer-element-stat-" + current_layer.color}></span>
-                        <label className="layer-element-label" htmlFor={param.name + current_layer.id}>{param.name_readable}</label>
+                        <label className="layer-element-label" htmlFor={param.name + layer.id}>{param.name_readable}</label>
                         {!isPublic && <input type={param.type} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value
