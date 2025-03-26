@@ -208,13 +208,14 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
         return element
 
 
+    elements = []
     if dataset_instance.dataset_type == "image":
-        input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
-        
-        file_paths = list(map(imageMapFunc, file_paths))
+        input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z) 
+        elements = list(map(imageMapFunc, file_paths))
         
     elif dataset_instance.dataset_type == "text":
-        file_paths = list(map(textMapFunc, file_paths))
+        elements = list(map(textMapFunc, file_paths))
+
     else:
         print("Invalid dataset type.")
         return None
@@ -222,18 +223,34 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     labels = list(map(lambda label: one_hot_encode(map_labels(label), num_labels), labels))
 
     # Create TensorFlow Dataset
-    dataset = tf.data.Dataset.from_tensor_slices((file_paths, labels))
+    dataset = tf.data.Dataset.from_tensor_slices((elements, labels))
 
     dataset = dataset.batch(32)
 
     # Prefetch for performance (optional)
     # dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
     
-    return dataset, len(file_paths)
+    return dataset, len(elements)
 
 
-def adaptTextVectorization(text_vectorization_layer, train_ds):
-    pass
+def preprocess_text(model_instance, train_ds, val_ds):
+    if model_instance.layers.first().layer_type.lower() == "textvectorization":
+        pass
+    else:
+        vectorize_layer = layers.TextVectorization(
+            standardize="lower_and_strip_punctuation",
+            max_tokens=10000,
+        )
+        train_text = train_ds.map(lambda x, y: x)
+        vectorize_layer.adapt(train_text)
+        def vectorize_text(text, label):
+            text = tf.expand_dims(text, -1)
+            return vectorize_layer(text), label
+        
+        if val_ds:
+            return train_ds.map(vectorize_text), val_ds.map(vectorize_text)
+        else:
+            return train_ds.map(vectorize_text)
 
 
 class TrainingProgressCallback(tf.keras.callbacks.Callback):
@@ -286,8 +303,8 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                         profile.training_progress = 0
                         profile.save()
                         
-                        if model_instance.layers.first().layer_type == "textvectorization": # Must be initialized
-                            adaptTextVectorization(model.layers[0], train_dataset)  # Don't involve validation for accurate validation
+                        if model_instance.model_type.lower() == "text": # Must be initialized
+                            preprocess_text(train_dataset)  # Don't involve validation for accurate validation
                     
                         history = model.fit(train_dataset, 
                                             epochs=epochs, 
@@ -297,8 +314,8 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                         profile.training_progress = 0
                         profile.save()
                         
-                        if model_instance.layers.first().layer_type == "textvectorization": # Must be initialized
-                            adaptTextVectorization(model.layers[0], dataset)
+                        if model_instance.model_type.lower() == "text": # Must be initialized
+                            preprocess_text(train_dataset)  # Don't involve validation for accurate validation
                         
                         history = model.fit(dataset, 
                                             epochs=epochs,
