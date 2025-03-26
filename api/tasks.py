@@ -103,6 +103,8 @@ def get_tf_layer(layer):    # From a Layer instance
         return layers.TextVectorization(max_tokens=layer.max_tokens, standardize=layer.standardize)
     elif layer_type == "embedding":
         return layers.Embedding(layer.max_tokens, layer.output_dim)
+    elif layer_type == "globalaveragepooling1d":
+        return layers.GlobalAveragePooling1D()
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         raise Exception("Invalid layer: " + layer_type)
@@ -767,6 +769,8 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
         data["type"] = "embedding"
         data["max_tokens"] = config["input_dim"]
         data["output_dim"] = config["output_dim"]
+    elif isinstance(tf_layer, layers.GlobalAveragePooling1D):
+        data["type"] = "globalaveragepooling1d"
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         return # Continue instantiating model

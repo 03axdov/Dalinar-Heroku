@@ -4,7 +4,5 @@
 4. Update CreateLayer view
 5. Update EditLayer view
 6. Update get_tf_layer() and layer_model_from_tf_layer()
-7. Update CreateLayerPopup
-8. Update LayerElement
-9. Update Model and PublicModel (only typeToColor and getLayerName)
-10. Update CURRENT_LAYERS in Landing.js
+7. Update layers.js
+8. Add as option in CreateLayerPopup.js

@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from "react"
 import {LAYERS} from "../layers"
 
-function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, processingCreateLayer, notification}) {
+function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, processingCreateLayer, notification, modelType}) {
 
     // Data fields for different layers
     const [type, setType] = useState("dense")
@@ -32,9 +32,9 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
         if (layer.input_z) numDims += 1
 
         let notSpecifiedDims = numDims
-        if (layer.input_x && param.input_x) notSpecifiedDims -= 1
-        if (layer.input_y && param.input_y) notSpecifiedDims -= 1
-        if (layer.input_z && param.input_z) notSpecifiedDims -= 1
+        if (layer.input_x && params.input_x) notSpecifiedDims -= 1
+        if (layer.input_y && params.input_y) notSpecifiedDims -= 1
+        if (layer.input_z && params.input_z) notSpecifiedDims -= 1
         
         return (notSpecifiedDims == numDims || notSpecifiedDims == 0);
     }
@@ -183,22 +183,23 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                 <option value="dense">Dense</option>
                                 <option value="flatten">Flatten</option>
                                 <option value="dropout">Dropout</option>
+                                <option value="globalaveragepooling1d">GlobalAveragePooling1D</option>
                             </optgroup>
-                            <optgroup label="Image Preprocessing">
+                            {modelType.toLowerCase() == "image" && <optgroup label="Image Preprocessing">
                                 <option value="resizing">Resizing</option>
                                 <option value="rescaling">Rescaling</option>
                                 <option value="randomflip">RandomFlip</option>
-                            </optgroup>
-                            <optgroup label="Computer Vision">
+                            </optgroup>}
+                            {modelType.toLowerCase() == "image" && <optgroup label="Computer Vision">
                                 <option value="conv2d">Conv2D</option>
                                 <option value="maxpool2d">MaxPool2D</option>
-                            </optgroup>
-                            <optgroup label="Text Preprocessing">
+                            </optgroup>}
+                            {modelType.toLowerCase() == "text" && <optgroup label="Text Preprocessing">
                                 <option value="textvectorization">TextVectorization</option>
-                            </optgroup>
-                            <optgroup label="Text">
+                            </optgroup>}
+                            {modelType.toLowerCase() == "text" && <optgroup label="Text">
                                 <option value="embedding">Embedding</option>
-                            </optgroup>
+                            </optgroup>}
                             
                         </select>
                     </div>

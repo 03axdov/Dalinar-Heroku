@@ -1378,7 +1378,7 @@ class CreateLayer(APIView):
         ALLOWED_TYPES = set(["dense", "conv2d", "flatten",
                              "dropout", "maxpool2d", "rescaling",
                              "randomflip", "resizing", "textvectorization",
-                             "embedding"])
+                             "embedding", "globalaveragepooling1d"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1404,6 +1404,8 @@ class CreateLayer(APIView):
             serializer = TextVectorizationLayerSerializer(data=data)
         elif layer_type == "embedding":
             serializer = EmbeddingLayerSerializer(data=data)
+        elif layer_type == "globalaveragepooling1d":
+            serializer = GlobalAveragePooling1DLayerSerializer(data=data)
         
         if serializer and serializer.is_valid():
             
@@ -1514,6 +1516,7 @@ class EditLayer(APIView):
                     elif layer_type == "embedding":
                         layer.max_tokens = request.data["max_tokens"]
                         layer.output_dim = request.data["output_dim"]
+                    # Can't edit GlobalAveragePooling1DLayer
                         
                     layer.activation_function = request.data["activation_function"]
                     layer.save()

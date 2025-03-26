@@ -408,3 +408,12 @@ class EmbeddingLayer(Layer):
         res = f"Embedding ({self.max_tokens}, {self.output_dim})"
         if self.model: res += " - " + self.model.name
         return res
+    
+
+class GlobalAveragePooling1DLayer(Layer):
+    def __str__(self):
+        res = "GlobalAveragePooling1D"
+        if self.model:
+            res += " - " + self.model.name
+            
+        return res

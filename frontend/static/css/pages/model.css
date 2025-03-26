@@ -142,6 +142,7 @@
 .layer-element {
     background: var(--toolbar);
     min-width: 150px;
+    max-width: 325px;
     padding: 10px;
     box-sizing: border-box;
     margin-right: 50px;
@@ -501,6 +502,10 @@ div.layer-element-mode-input {
 
 .layer-element-title-text {
     margin-right: 20px;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .no-layers-container {

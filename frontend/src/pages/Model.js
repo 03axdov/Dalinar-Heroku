@@ -525,7 +525,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                                     onSubmit={createLayer} 
                                                     setShowCreateLayerPopup={setShowCreateLayerPopup}
                                                     processingCreateLayer={processingCreateLayer}
-                                                    notification={notification}></CreateLayerPopup>}
+                                                    notification={notification}
+                                                    modelType={model.model_type}></CreateLayerPopup>}
 
             <div className="dataset-toolbar-left" style={{width: toolbarLeftWidth + "px"}}>
                 <div className="model-toolbar-left-inner">

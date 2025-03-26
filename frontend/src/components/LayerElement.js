@@ -196,8 +196,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             setErrorMessage(WARNING_MESSAGES[type])
         }
 
-        let NO_INPUT_DIMS = new Set(["textvectorization"])
-        if (!prevLayer && (!layer.input_x && !layer.input_y && !layer.input_z) && !NO_INPUT_DIMS.has(type)) {
+        if (!prevLayer && (!layer.input_x && !layer.input_y && !layer.input_z) && !LAYERS[type].no_dimensions) {
             setWarnings(true)
             setErrorMessage("Input dimensions must be specified on the first layer.")
         }
@@ -259,7 +258,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             <form className="layer-element-inner">
                 <h1 className="layer-element-title">
                     <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/" + current_layer.image} />
-                    <span className="layer-element-title-text">{current_layer.name}</span>
+                    <span className="layer-element-title-text" title={current_layer.name}>{current_layer.name}</span>
                     {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
                     {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                         deleteLayer(layer.id)

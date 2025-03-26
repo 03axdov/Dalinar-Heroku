@@ -212,7 +212,8 @@ export const LAYERS = {
             }
         ],
         "image": "text.png",
-        "color": "cyan"
+        "color": "cyan",
+        "no_dimensions": true
     },
     embedding: {
         "name": "Embedding",
@@ -233,7 +234,14 @@ export const LAYERS = {
             }
         ],
         "image": "text.png",
-        "color": "green"
+        "color": "green",
+        "no_dimensions": true
+    },
+    globalaveragepooling1d: {
+        "name": "GlobalAveragePooling1D",
+        "params": [],
+        "image": "global.svg",
+        "color": "lightblue"
     }
 }
 
@@ -242,13 +250,14 @@ export const VALID_PREV_LAYERS = { // null means that it can be the first layer
     "dense": [null, "dense", "flatten", "dropout", "textvectorization"],
     "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "resizing"],
     "maxpool2d": ["conv2d", "maxpool2d", "rescaling", "resizing"],
-    "dropout": ["dense", "dropout", "flatten"],
+    "dropout": ["dense", "dropout", "flatten", "embedding", "globalaveragepooling1d"],
     "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling", "resizing"],
     "rescaling": [null, "randomflip", "resizing"],
     "randomflip": [null, "rescaling", "resizing"],
     "resizing": [null],
     "textvectorization": [null],
-    "embedding": [null, "textvectorization"]
+    "embedding": [null, "textvectorization"],
+    "globalaveragepooling1d": ["embedding", "dense", "dropout"]
 }
 
 export const WARNING_MESSAGES = {
@@ -262,6 +271,7 @@ export const WARNING_MESSAGES = {
     "resizing": "Must be the first layer.",
     "textvectorization": "Must be the first layer.",
     "embedding": "Must be the first layer, else follow one of the following layers: [" + VALID_PREV_LAYERS["embedding"].slice(1).join(", ") + "].",
+    "globalaveragepooling1d": "A GlobalAveragePooling1D layer must follow one of the following layers: [" + VALID_PREV_LAYERS["globalaveragepooling1d"].slice(1).join(", ") + "].",
 }
 
 export function getLayerName(layer) {
@@ -286,5 +296,7 @@ export function getLayerName(layer) {
         return "TextVectorization (" + layer.max_tokens + ")"
     } else if (type == "embedding") {
         return "Embedding (" + layer.max_tokens + ", " + layer.output_dim + ")"
+    } else if (type == "globalaveragepooling1d") {
+        return "GlobalAveragePooling1D"
     }
 }

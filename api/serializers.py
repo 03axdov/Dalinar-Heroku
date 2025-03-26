@@ -94,6 +94,8 @@ class LayerSerializer(serializers.BaseSerializer):
             return TextVectorizationLayerSerializer(instance).data
         elif isinstance(instance, EmbeddingLayer):
             return EmbeddingLayerSerializer(instance).data
+        elif isinstance(instance, GlobalAveragePooling1DLayer):
+            return GlobalAveragePooling1DLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     
@@ -119,6 +121,8 @@ class CreateLayerSerializer(serializers.BaseSerializer):
             return CreateTextVectorizationLayerSerializer(instance).data
         elif isinstance(instance, EmbeddingLayer):
             return CreateEmbeddingLayerSerializer(instance).data
+        elif isinstance(instance, GlobalAveragePooling1DLayer):
+            return CreateGlobalAveragePooling1DLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
 
@@ -212,14 +216,24 @@ class CreateTextVectorizationLayer(serializers.ModelSerializer):
         fields = ["max_tokens", "standardize"]
 
 
-class EmbeddingLayer(serializers.ModelSerializer):
+class EmbeddingLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmbeddingLayer
         fields = "__all__"
-class CreateEmbeddingLayer(serializers.ModelSerializer):
+class CreateEmbeddingLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmbeddingLayer
         fields = ["max_tokens", "output_dim"]
+
+
+class GlobalAveragePooling1DLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GlobalAveragePooling1DLayer
+        fields = "__all__"
+class CreateGlobalAveragePooling1DLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GlobalAveragePooling1DLayer
+        fields = []
 
         
 # MODEL HANDLING

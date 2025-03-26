@@ -1,5 +1,6 @@
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom";
+import { LAYERS } from "../layers";
 
 // The default page. Login not required.
 function Landing({BACKEND_URL}) {
@@ -41,18 +42,7 @@ function Landing({BACKEND_URL}) {
         }
     };
 
-    const SUPPORTED_LAYERS = [  // "Layer name, layer color"
-        ["Dense", "purple"],
-        ["Conv2D", "lightblue"],
-        ["MaxPool2D", "pink2"],
-        ["Flatten", "pink"],
-        ["Dropout", "blue"],
-        ["Rescaling", "darkblue"],
-        ["RandomFlip", "cyan"],
-        ["Resizing", "green"],
-        ["TextVectorization", "cyan"],
-        ["Embedding", "green"]
-    ]
+    const SUPPORTED_LAYERS = Object.values(LAYERS).map(layer => [layer.name, layer.color]);
 
     return (
         <div className="landing-container">
