@@ -90,7 +90,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         "rescaling": "darkblue",
         "randomflip": "cyan",
         "resizing": "green",
-        "textvectorization": "green"
+        "textvectorization": "cyan",
+        "embedding": "green",
     }
 
     useEffect(() => {
@@ -332,6 +333,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             return "Resizing (" + layer.input_x + ", " + layer.input_y + ")"
         } else if (type == "textvectorization") {
             return "TextVectorization (" + layer.max_tokens + ")"
+        } else if (type == "embedding") {
+            return "Embedding (" + layer.max_tokens + ", " + layer.output_dim + ")"
         }
     }
 

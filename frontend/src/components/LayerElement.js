@@ -23,8 +23,9 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     const [mode, setMode] = useState(layer.mode)    // Used by ["randomflip"]
     const [outputX, setOutputX] = useState(layer.output_x)  // Used by ["resizing"]
     const [outputY, setOutputY] = useState(layer.output_y)  // Used by ["resizing"]
-    const [maxTokens, setMaxTokens] = useState(layer.max_tokens)    // Used by ["textvectorization"]
+    const [maxTokens, setMaxTokens] = useState(layer.max_tokens)    // Used by ["textvectorization", "embedding"]
     const [standardize, setStandardize] = useState(layer.standardize)   // Used by ["textvectorization"]
+    const [outputDim, setOutputDim] = useState(layer.output_dim)    // Used by ["embedding"]
 
     const [activation, setActivation] = useState(layer.activation_function) // Used by ["dense", "conv2d"]
 
@@ -53,6 +54,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         setOutputY(layer.output_y)
         setMaxTokens(layer.max_tokens)
         setStandardize(layer.standardize)
+        setOutputDim(layer.output_dim)
 
         setActivation(layer.activation_function)
 
@@ -138,16 +140,22 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             } else if (standardize != layer.standardize) {
                 setUpdated(true)
             }
+        } else if (type == "embedding") {
+            if (maxTokens != layer.max_tokens) {
+                setUpdated(true)
+            } else if (outputDim != layer.output_dim) {
+                setUpdated(true)
+            }
         }
 
-        const NO_ACTIVATION = new Set(["flatten", "dropout", "randomflip", "maxpool2d", "resizing", "textvectorization"])
+        const NO_ACTIVATION = new Set(["flatten", "dropout", "randomflip", "maxpool2d", "resizing", "textvectorization", "embedding"])
         if (!NO_ACTIVATION.has(type)) { // Do not have activation functions
             if (activation != layer.activation_function) {  
                 setUpdated(true)
             }
         }
 
-    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, poolSize, rate, scale, offset, mode, outputX, outputY, maxTokens, standardize])   // All layer states
+    }, [nodes, filters, kernelSize, activation, inputX, inputY, inputZ, poolSize, rate, scale, offset, mode, outputX, outputY, maxTokens, standardize, outputDim])   // All layer states
 
 
     function checkInputDimensions(include_z) {  // Adds dimensions, returns true if valid else false
@@ -215,6 +223,16 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 return
             }
         }
+        if (type == "embedding") {
+            if (maxTokens <= 0 || maxTokens > 20000) {
+                notification("Max tokens must be between 0 and 20000", "failure")
+                return
+            }
+            if (outputDim <= 0 || outputDim > 100) {
+                notification("Output dim must be between 0 and 20000", "failure")
+                return
+            }
+        }
 
         return true;
     }
@@ -243,6 +261,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             "output_y": outputY,
             "max_tokens": maxTokens,
             "standardize": standardize,
+            "output_dim": outputDim,
 
             "activation_function": activation
         }
@@ -288,7 +307,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         "rescaling": [null, "randomflip", "resizing"],
         "randomflip": [null, "rescaling", "resizing"],
         "resizing": [null],
-        "textvectorization": [null]
+        "textvectorization": [null],
+        "embedding": [null, "textvectorization"]
     }
 
     const WARNING_MESSAGES = {
@@ -300,7 +320,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         "rescaling": "Must be the first layer or follow another preprocessing layer.",
         "randomflip": "Must be the first layer or follow another preprocessing layer.",
         "resizing": "Must be the first layer.",
-        "textvectorization": "Must be the first layer."
+        "textvectorization": "Must be the first layer.",
+        "embedding": "Must be the first layer, else follow one of the following layers: [" + VALID_PREV_LAYERS["embedding"].slice(1).join(", ") + "].",
     }
 
     function getErrorMessage() {
@@ -654,7 +675,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         </h1>
 
                         <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-green"></span>
+                            <span className="layer-element-stat-color layer-element-stat-cyan"></span>
                             <label className="layer-element-label" htmlFor={"max-tokens" + layer.id}>Max tokens</label>
                             {!isPublic && <input type="number" className="layer-element-input" id={"max-tokens" + layer.id} value={maxTokens} onChange={(e) => {
                                 setMaxTokens(e.target.value)
@@ -663,7 +684,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         </div>
     
                         <div className="layer-element-stat">
-                            <span className="layer-element-stat-color layer-element-stat-green"></span>
+                            <span className="layer-element-stat-color layer-element-stat-cyan"></span>
                             <label className="layer-element-label" htmlFor={"standardize" + layer.id}>Standardize</label>
                             {!isPublic && <select className="layer-element-input layer-element-mode-input" id={"standardize" + layer.id} value={standardize} onChange={(e) => {
                                     setStandardize(e.target.value)
@@ -675,6 +696,36 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             </select>}
                             {isPublic && <div title={mode} className="layer-element-input layer-element-mode-input">{standardize}</div>}
                         </div> 
+
+                    </form>}
+
+                    {type == "textvectorization" && <form className="layer-element-inner">
+                        <h1 className="layer-element-title">
+                            <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/text.png"} />
+                            <span className="layer-element-title-text">Embedding</span>
+                            {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
+                            {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                                deleteLayer(layer.id)
+                            }}/>}
+                        </h1>
+
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-green"></span>
+                            <label className="layer-element-label" htmlFor={"max-tokens" + layer.id}>Max tokens</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"max-tokens" + layer.id} value={maxTokens} onChange={(e) => {
+                                setMaxTokens(e.target.value)
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{maxTokens}</div>}
+                        </div>
+    
+                        <div className="layer-element-stat">
+                            <span className="layer-element-stat-color layer-element-stat-green"></span>
+                            <label className="layer-element-label" htmlFor={"output-dim" + layer.id}>Output dim</label>
+                            {!isPublic && <input type="number" className="layer-element-input" id={"output-dim" + layer.id} value={outputDim} onChange={(e) => {
+                                setOutputDim(e.target.value)
+                            }}></input>}
+                            {isPublic && <div className="layer-element-input">{outputDim}</div>}
+                        </div>
 
                     </form>}
     

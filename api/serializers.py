@@ -92,6 +92,8 @@ class LayerSerializer(serializers.BaseSerializer):
             return ResizingLayerSerializer(instance).data
         elif isinstance(instance, TextVectorizationLayer):
             return TextVectorizationLayerSerializer(instance).data
+        elif isinstance(instance, EmbeddingLayer):
+            return EmbeddingLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     
@@ -115,6 +117,8 @@ class CreateLayerSerializer(serializers.BaseSerializer):
             return CreateResizingLayerSerializer(instance).data
         elif isinstance(instance, TextVectorizationLayer):
             return CreateTextVectorizationLayerSerializer(instance).data
+        elif isinstance(instance, EmbeddingLayer):
+            return CreateEmbeddingLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
 
@@ -206,6 +210,16 @@ class CreateTextVectorizationLayer(serializers.ModelSerializer):
     class Meta:
         model = TextVectorizationLayer
         fields = ["max_tokens", "standardize"]
+
+
+class EmbeddingLayer(serializers.ModelSerializer):
+    class Meta:
+        model = EmbeddingLayer
+        fields = "__all__"
+class CreateEmbeddingLayer(serializers.ModelSerializer):
+    class Meta:
+        model = EmbeddingLayer
+        fields = ["max_tokens", "output_dim"]
 
         
 # MODEL HANDLING

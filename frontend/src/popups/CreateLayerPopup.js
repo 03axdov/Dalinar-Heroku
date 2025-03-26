@@ -18,8 +18,9 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
     const [mode, setMode] = useState("horizontal_and_vertical") // Used for layers of type ["randomflip"]
     const [outputX, setOutputX] = useState(256) // Used for layers of type ["resizing"]
     const [outputY, setOutputY] = useState(256) // Used for layers of type ["resizing"]
-    const [maxTokens, setMaxTokens] = useState(10000)
-    const [standardize, setStandardize] = useState("lower_and_strip_punctuation")
+    const [maxTokens, setMaxTokens] = useState(10000)   // Used for layers of type ["textvectorization", "embedding"]
+    const [standardize, setStandardize] = useState("lower_and_strip_punctuation")   // Used for layers of type ["textvectorization"]
+    const [outputDim, setOutputDim] = useState(16)  // Used for layers of type ["embedding"]
 
 
     const [activation, setActivation] = useState("")
@@ -28,6 +29,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
         setInputX("")
         setInputY("")
         setActivation("")
+        setMaxTokens(10000)
     }, [type])
 
     function checkInputDimensions(data, include_z) {  // Adds dimensions, returns true if valid else false
@@ -156,9 +158,12 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     } else if (type == "textvectorization") {
                         data["max_tokens"] = maxTokens
                         data["standardize"] = standardize
+                    } else if (type == "embedding") {
+                        data["max_tokens"] = maxTokens
+                        data["output_dim"] = outputDim
                     }
 
-                    const NO_ACTIVATION = new Set(["flatten", "dropout", "rescaling", "randomflip", "maxpool2d", "resizing", "textvectorization"])
+                    const NO_ACTIVATION = new Set(["flatten", "dropout", "rescaling", "randomflip", "maxpool2d", "resizing", "textvectorization", "embedding"])
                     if (NO_ACTIVATION.has(type)) {    // These layers cannot have activation functions
                         data["activation_function"] = ""
                     }
@@ -184,8 +189,11 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                 <option value="conv2d">Conv2D</option>
                                 <option value="maxpool2d">MaxPool2D</option>
                             </optgroup>
-                            <optgroup label="Text">
+                            <optgroup label="Text Preprocessing">
                                 <option value="textvectorization">TextVectorization</option>
+                            </optgroup>
+                            <optgroup label="Text">
+                                <option value="embedding">Embedding</option>
                             </optgroup>
                             
                         </select>
@@ -407,6 +415,22 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                 <option value="lower">lower</option>
                                 <option value="strip_punctuation">strip_punctuation</option>
                             </select>
+                        </div>
+                    </div>}
+
+                    {type == "embedding" && <div className="create-layer-type-fields">
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label" htmlFor="layer-max-tokens">Max tokens</label>
+                            <input className="create-dataset-inp" id="layer-max-tokens" type="number" required value={maxTokens} onChange={(e) => {
+                                setMaxTokens(Math.max(0, Math.min(20000, e.target.value)))
+                            }} />
+                        </div>
+
+                        <div className="create-layer-label-inp">
+                            <label className="create-dataset-label" htmlFor="layer-output-dim">Output dim</label>
+                            <input className="create-dataset-inp" id="layer-output-dim" type="number" required value={outputDim} onChange={(e) => {
+                                setOutputDim(Math.max(0, Math.min(100, e.target.value)))
+                            }} />
                         </div>
                     </div>}
 

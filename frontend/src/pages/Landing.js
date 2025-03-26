@@ -49,7 +49,9 @@ function Landing({BACKEND_URL}) {
         ["Dropout", "blue"],
         ["Rescaling", "darkblue"],
         ["RandomFlip", "cyan"],
-        ["Resizing", "green"]
+        ["Resizing", "green"],
+        ["TextVectorization", "cyan"],
+        ["Embedding", "green"]
     ]
 
     return (

@@ -101,6 +101,8 @@ def get_tf_layer(layer):    # From a Layer instance
             return layers.Resizing(layer.output_y, layer.output_x)
     elif layer_type == "textvectorization":
         return layers.TextVectorization(max_tokens=layer.max_tokens, standardize=layer.standardize)
+    elif layer_type == "embedding":
+        return layers.Embedding(layer.max_tokens, layer.output_dim)
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         raise Exception("Invalid layer: " + layer_type)
@@ -761,6 +763,10 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
         data["type"] = "textvectorization"
         data["max_tokens"] = config["max_tokens"]
         data["standardize"] = config["standardize"]
+    elif isinstance(tf_layer, layers.Embedding):
+        data["type"] = "embedding"
+        data["max_tokens"] = config["input_dim"]
+        data["output_dim"] = config["output_dim"]
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         return # Continue instantiating model

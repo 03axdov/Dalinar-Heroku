@@ -398,3 +398,13 @@ class TextVectorizationLayer(Layer):
         res = f"TextVectorization ({self.max_tokens}, {self.standardize})"
         if self.model: res += " - " + self.model.name
         return res
+    
+    
+class EmbeddingLayer(Layer):
+    max_tokens = models.PositiveIntegerField(default=10000)
+    output_dim = models.PositiveIntegerField(default=16)
+    
+    def __str__(self):
+        res = f"Embedding ({self.max_tokens}, {self.output_dim})"
+        if self.model: res += " - " + self.model.name
+        return res
