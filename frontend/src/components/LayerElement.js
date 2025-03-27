@@ -35,7 +35,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         temp["input_x"] = layer.input_x || ""
         temp["input_y"] = layer.input_y || ""
         temp["input_z"] = layer.input_z || ""
-        temp["activation"] = layer.activation_function || ""
+        temp["activation_function"] = layer.activation_function || ""
         setParams(temp)
 
         setType(layer.layer_type)
@@ -68,7 +68,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 }
             }
         }
-        if (current_layer.activation && params["activation"] != (layer.activation_function || "")) {
+        if (current_layer.activation_function && params["activation_function"] != (layer.activation_function || "")) {
             setUpdated(true)
         }
         if (current_layer.input_x && params["input_x"] != (layer.input_x || "")) {
@@ -145,7 +145,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         const data = {
             "id": layer.id,
             "type": layer.layer_type,
-            "activation_function": params.activation
+            "activation_function": params.activation_function
         }
 
         Object.keys(params).forEach((key) => {
@@ -291,19 +291,20 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 {current_layer.input_x && dimensionsX(current_layer)}
                 {current_layer.input_y && dimensionsY(current_layer)}
                 {current_layer.input_z && dimensionsZ(current_layer)}
-                {current_layer.activation && <div className="layer-element-stat layer-element-activation">
+                {current_layer.activation_function && <div className="layer-element-stat layer-element-activation">
                     <span className="layer-element-stat-color layer-element-stat-gray"></span>
                     <label className="layer-element-label" htmlFor={"activation" + layer.id}>Activation function</label>
-                    {!isPublic && <select className="layer-element-input layer-element-activation-input" id={"activation" + layer.id} value={params["activation"]} onChange={(e) => {
+                    {!isPublic && <select className="layer-element-input layer-element-activation-input" id={"activation" + layer.id} value={params["activation_function"]} onChange={(e) => {
                             let temp = {...params}
-                            temp["activation"] = e.target.value
+                            temp["activation_function"] = e.target.value
                             setParams(temp)
                         }}>
                             <option value="">-</option>
                             <option value="relu">ReLU</option>
                             <option value="softmax">Softmax</option>
+                            <option value="sigmoid">Sigmoid</option>
                     </select>}
-                    {isPublic && <div className="layer-element-input layer-element-activation-input">{params["activation"] || "-"}</div>}
+                    {isPublic && <div className="layer-element-input layer-element-activation-input">{params["activation_function"] || "-"}</div>}
                 </div>}
             </form>
         )

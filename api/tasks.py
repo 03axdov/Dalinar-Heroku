@@ -1,6 +1,7 @@
 from celery import shared_task
 import tensorflow as tf
 from tensorflow.keras import layers
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
 import os
 import time
@@ -141,7 +142,7 @@ def load_and_preprocess_text(file_path, file_key):
     # Decode the text bytes into a string
     text = text_bytes.decode("utf-8")  # Assuming UTF-8 encoded text
     
-    return text
+    return tf.convert_to_tensor(text, dtype=tf.string)
 
 
 # Convert labels to numeric form (for classification, example with 2 labels)
@@ -232,8 +233,8 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
 
     # Create TensorFlow Dataset
     dataset = tf.data.Dataset.from_tensor_slices((elements, labels))
-
-    dataset = dataset.batch(32)
+    print(f"elements: {elements}")
+    print(f"labels: {labels}")
 
     # Prefetch for performance (optional)
     # dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
@@ -248,11 +249,11 @@ def preprocess_text(model_instance, train_ds, val_ds=None):
         vectorize_layer = layers.TextVectorization(
             standardize="lower_and_strip_punctuation",
             max_tokens=10000,
+            output_sequence_length=256  # or whatever fixed length you want
         )
         train_text = train_ds.map(lambda x, y: x)
         vectorize_layer.adapt(train_text)
         def vectorize_text(text, label):
-            text = tf.expand_dims(text, -1)
             return vectorize_layer(text), label
         
         if val_ds:
@@ -298,21 +299,22 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     validation_size = int(dataset_length * validation_split)
                     train_size = dataset_length - validation_size
                     
-                    model.summary() # For debugging
+                    # model.summary() # For debugging
                     
                     progress_callback = TrainingProgressCallback(profile=profile, total_epochs=epochs)
 
                     if validation_size >= 1: # Some dataset are too small for validation
-                        train_dataset, validation_dataset = tf.keras.utils.split_dataset(dataset, train_size, validation_size, shuffle=True)
-                        
-                        train_dataset = train_dataset.prefetch(tf.data.experimental.AUTOTUNE)
-                        validation_dataset = validation_dataset.prefetch(tf.data.experimental.AUTOTUNE)
+                        train_dataset = dataset.take(train_size)
+                        validation_dataset = dataset.skip(train_size)
                     
                         profile.training_progress = 0
                         profile.save()
                         
                         if model_instance.model_type.lower() == "text": # Must be initialized
                             train_dataset, validation_dataset = preprocess_text(model_instance, train_dataset, validation_dataset)  # Don't involve validation for accurate validation
+                            
+                        train_dataset = train_dataset.batch(32).prefetch(tf.data.experimental.AUTOTUNE)
+                        validation_dataset = validation_dataset.batch(32).prefetch(tf.data.experimental.AUTOTUNE)
                     
                         history = model.fit(train_dataset, 
                                             epochs=epochs, 
@@ -324,6 +326,8 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                         
                         if model_instance.model_type.lower() == "text": # Must be initialized
                             dataset = preprocess_text(model_instance, dataset)
+                            
+                        dataset = dataset.batch(32)
                         
                         history = model.fit(dataset, 
                                             epochs=epochs,
@@ -345,12 +349,15 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     # Delete the temporary file after saving
                     remove_temp_tf_model(model_instance, timestamp)
                     
-                    accuracy = history.history["accuracy"]
+                    metric = "accuracy"
+                    if model_instance.loss_function == "binary_crossentropy":
+                        metric = "binary_accuracy"
+                    accuracy = history.history[metric]
                     loss = history.history["loss"]
                     val_accuracy = []
                     val_loss = []
                     if validation_size >= 1:
-                        val_accuracy = history.history["val_accuracy"]
+                        val_accuracy = history.history["val_" + metric]
                         val_loss = history.history["val_loss"]
                     
                     # UPDATING MODEL TRAINED_ON
@@ -412,7 +419,11 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
     try:
         model_instance = Model.objects.get(id=model_id)
         
-        dataset = getTensorflowPrebuiltDataset(tensorflowDataset=tensorflowDataset)
+        (x_train, y_train), (x_test, y_test) = getTensorflowPrebuiltDataset(tensorflowDataset=tensorflowDataset)
+        x_train = pad_sequences(x_train, maxlen=256)
+        dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+        if model_instance.model_type.lower() == "text": # Must be initialized
+            dataset = preprocess_text(model_instance, dataset)
         
         if model_instance.owner == profile:
             
@@ -660,6 +671,8 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id):
                 
                 for layer in instance.layers.all():
                     model.add(get_tf_layer(layer))
+                    
+                model.summary()
 
                 metrics = get_metrics(loss_function)
                 model.compile(optimizer=optimizer, loss=loss_function, metrics=[metrics])

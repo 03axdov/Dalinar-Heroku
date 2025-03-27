@@ -635,6 +635,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             let key = getUserPressKeycode(event)
             
             if (key === "ArrowDown" || key === "ArrowRight") {    
+                event.preventDefault()
                 if (loading) {
                     notification("Cannot switch element while loading.", "failure")
                     return;
@@ -642,6 +643,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
    
             } else if (key === "ArrowUp" || key === "ArrowLeft") {
+                event.preventDefault()
                 if (loading) {
                     notification("Cannot switch element while loading.", "failure")
                     return;

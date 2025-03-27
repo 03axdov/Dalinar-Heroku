@@ -283,7 +283,8 @@ class AbstractLayer(models.Model):
     
     ACTIVATION_CHOICES = [
         ("relu", "ReLU"),
-        ("softmax", "Softmax")
+        ("softmax", "Softmax"),
+        ("sigmoid", "Sigmoid")
     ]
     activation_function = models.CharField(max_length=100, choices=ACTIVATION_CHOICES, default="", blank=True)
     

@@ -3,6 +3,7 @@ TO-DO:
 - .png files not working?
 - Text layers.
 - Links in buttons
+- Look into Area datasets
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

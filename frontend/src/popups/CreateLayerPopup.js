@@ -13,7 +13,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
             "input_x": "",
             "input_y": "",
             "input_z": "",
-            "activation": ""
+            "activation_function": ""
         }
         Object.keys(LAYERS).forEach((key) => {
             let layer = LAYERS[key]
@@ -102,16 +102,17 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     }} />}
                 </div>
             </div>}
-            {layer.activation && <div className="create-layer-label-inp">
+            {layer.activation_function && <div className="create-layer-label-inp">
                 <label className="create-dataset-label" htmlFor="activation-function">Activation function</label>
-                <select className="create-dataset-inp" id="activation-function" value={params["activation"]} onChange={(e) => {
+                <select className="create-dataset-inp" id="activation-function" value={params["activation_function"]} onChange={(e) => {
                     let temp = {...params}
-                    temp["activation"] = e.target.value
+                    temp["activation_function"] = e.target.value
                     setParams(temp)
                 }}>
                     <option value="">-</option>
                     <option value="relu">ReLU</option>
                     <option value="softmax">Softmax</option>
+                    <option value="sigmoid">Sigmoid</option>
                 </select>
             </div>}
         </div>
@@ -137,7 +138,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
                     let data = {
                         "type": type,
-                        "activation_function": params["activation"],
+                        "activation_function": params["activation_function"],
                         "input_x": params["input_x"],
                         "input_y": params["input_y"],
                         "input_z": params["input_z"]
@@ -168,7 +169,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         }
                     }
  
-                    if (!layer.activation) {
+                    if (!layer.activation_function) {
                         data["activation_function"] = ""
                     }
 

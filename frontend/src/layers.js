@@ -11,7 +11,7 @@ export const LAYERS = {
             }
         ],
         "image": "dense.svg",
-        "has_activation": true,
+        "activation_function": true,
         "input_x": true,
         "color": "purple"
     },
@@ -160,7 +160,7 @@ export const LAYERS = {
             }
         ],
         "image": "image.png",
-        "has_activation": true,
+        "activation_function": true,
         "input_x": true,
         "input_y": true,
         "input_z": true,
