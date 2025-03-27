@@ -20,11 +20,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [dataset, setDataset] = useState(null)
     const [elements, setElements] = useState([])    // Label points to label id
     const [labels, setLabels] = useState([])
-
-    const [idToText, setIdToText] = useState({})
-
     const [elementsIndex, setElementsIndex] = useState(0)
     const currentElementRef = useRef(null);
+
+    const [currentText, setCurrentText] = useState("")
+    const [textChanged, setTextChanged] = useState(false)
 
     const [showElementPreview, setShowElementPreview] = useState(false)
     const [showElementPreviewTimeout, setShowElementPreviewTimeout] = useState(null);
@@ -74,8 +74,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [isDownloading, setIsDownloading] = useState(false)
     const [downloadingPercentage, setDownloadingPercentage] = useState(false)
 
-    const [updatePage, setUpdatePage] = useState(false) // change when page needs updating
-
     const hiddenFolderInputRef = useRef(null);
     const hiddenFileInputRef = useRef(null);
 
@@ -110,6 +108,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             
             if (currentElement.imageHeight) {setCurrentImageHeight(currentElement.imageHeight)}
             else {setCurrentImageHeight("")}
+        } else if (dataset && dataset.dataset_type.toLowerCase() == "text") {
+            setTextChanged(false)
+            setCurrentText(currentElement.text)
         }
     }, [elements, elementsIndex])
 
@@ -622,6 +623,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     useEffect(() => {
         if (!currentElementRef.current) return;
         currentElementRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+        
     }, [elementsIndex])
 
     // Handles user button presses
@@ -675,39 +677,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
             setALLOWED_FILE_EXTENSIONS(res.data.dataset_type.toLowerCase() == "image" ? new Set(["png", "jpg", "jpeg", "webp", "avif"]) : new Set(["txt", "doc", "docx"]))
 
-            if (res.data.dataset_type.toLowerCase() == "text") {
-
-                let AJAX_OUTSTANDING = res.data.elements.length
-                let temp = {}
-                for (let i=0; i < res.data.elements.length; i++) {
-                    let element = res.data.elements[i]
-                    fetch(element.file, {
-                        headers: {
-                            'pragma': 'no-cache',
-                            'cache-control': 'no-cache'
-                        }
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.text()
-                    })
-                    .then(text => {
-                        temp[element.id] = text
-                    })
-                    .catch(error => {
-                        console.error('There was a problem with the fetch operation:', error);
-                    }).finally(() => {
-                        AJAX_OUTSTANDING -= 1
-                        if (AJAX_OUTSTANDING == 0) {
-                            setIdToText(temp)
-                            setUpdatePage(!updatePage)
-                        }
-                    })
-                }
-
-            }
             setElements(res.data.elements)
 
             setLabels(res.data.labels)
@@ -760,7 +729,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     };
 
     function getPreviewElement(element) {
-        const extension = element.file.split(".").pop().split("?")[0]
+        const extension = (element.file ? element.file.split(".").pop().split("?")[0] : "")
         
         if (ALLOWED_FILE_EXTENSIONS.has(extension) && dataset.dataset_type.toLowerCase() == "image") {
             if (dataset.datatype == "classification") {
@@ -837,8 +806,24 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             }
             
 
-        } else if (ALLOWED_FILE_EXTENSIONS.has(extension) && dataset.dataset_type.toLowerCase() == "text") {
-            return <p className="dataset-element-view-text" style={{display: (idToText[element.id] ? "block" : "none")}}>{idToText[element.id]}</p> // Process the text content
+        } else if (dataset.dataset_type.toLowerCase() == "text") {
+            return <div className="dataset-element-view-text-container">
+                {element.label && idToLabel[element.label] && <div className="dataset-element-view-label" style={{background: "var(--toolbar)", border: "none"}}>
+                    <span className="text-label-color" style={{background: idToLabel[element.label].color}}></span>
+                    {idToLabel[element.label].name}
+                </div>}
+                <div className="dataset-text-save-button-container">
+                    <button className={"dataset-text-save-button " + (!textChanged ? "dataset-text-save-button-disabled" : "")} type="button" onClick={(e) => {
+                        updateElement(e, true)
+                    }}>Save changes</button>
+                </div>
+                
+                <textarea className="dataset-element-view-text" style={{display: (currentText ? "block" : "none")}} value={currentText} onChange={(e) => {
+                    if (e.target.value != element.text) setTextChanged(true)
+                    else setTextChanged(false)
+                    setCurrentText(e.target.value)
+                }}>
+                </textarea></div> // Process the text content
             
         } else {
             return <div className="extension-not-found">File of type .{extension} could not be rendered.</div>
@@ -858,8 +843,18 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         }
     }
 
+    function getTextFromFile(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+      
+          reader.onload = (e) => resolve(e.target.result);
+          reader.onerror = (e) => reject(e);
+      
+          reader.readAsText(file);
+        });
+    }
 
-    function elementFilesUploaded(e) {
+    async function elementFilesUploaded(e) {
         let files = e.target.files
 
         axios.defaults.withCredentials = true;
@@ -910,7 +905,20 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
             let formData = new FormData()
 
+            // For text datasets include text in addition to file
             formData.append('file', file)
+            if (dataset.dataset_type.toLowerCase() == "text") {
+                try {
+                    const text = await getTextFromFile(file);
+                    formData.append("text", text);
+                } catch (err) {
+                    console.error("Failed to read text from file " + file.name + ":", err);
+                    notification("Failed to read text from file " + file.name, "failure");
+                    formData.append("text", "");
+                }
+                formData.append("name", file.name)
+            }
+            
             formData.append('dataset', dataset.id)
             if (elements.length > 0) {  // So it's added to the bottom of the list
                 formData.append("index", elements.length)
@@ -950,7 +958,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }
 
 
-    function updateElement(e) {
+    // isText used when updating text
+    function updateElement(e, isText=false) {
         e.preventDefault()
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -960,19 +969,25 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         const config = {headers: {'Content-Type': 'application/json'}}
 
         const data = {
-            "name": editingElementName,
-            "id": editingElement
+            "name": (isText ? elements[elementsIndex].name : editingElementName),
+            "id": (isText ? elements[elementsIndex].id : editingElement),
+            "text": currentText
         }
 
         if (loadingElementEdit) {return}
 
         setLoading(true)
-        setLoadingElementEdit(true)
+        if (!isText) {
+            setLoadingElementEdit(true)
+        }
+
 
         axios.post(URL, data, config)
         .then((res) => {
             if (res.data) {
-                elements[editingElementIdx] = res.data
+                if (!isText) {
+                    elements[editingElementIdx] = res.data
+                }
             }
             notification("Successfully updated element.", "success")
             setEditingElementIdx(null)
@@ -983,7 +998,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             console.log(err)
         }).finally(() => {
             setLoading(false)
-            setLoadingElementEdit(false)
+            if (!isText) {
+                setLoadingElementEdit(false)
+            } else {
+                setTextChanged(false)
+            }
         })
     }
 
@@ -1558,7 +1577,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         for (let i=0; i < elements.length; i++) {
             let labelName = (elements[i].label ? idToLabel[elements[i].label].name : "no_label")
-            let parsedText = '"' + idToText[elements[i].id].replaceAll('"', '""') + '"'
+            let parsedText = '"' + elements[i].text.replaceAll('"', '""') + '"'
             csvRows.push(labelName + "," + parsedText)
 
             setDownloadingPercentage(Math.round(100 * ((i+1) / elements.length)))

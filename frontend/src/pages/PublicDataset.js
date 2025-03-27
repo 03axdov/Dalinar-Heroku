@@ -23,6 +23,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
     const [labels, setLabels] = useState([])
     
     const [currentText, setCurrentText] = useState("") // Used to display text files
+    const [textChanged, setTextChanged] = useState(false)
 
     const [elementsIndex, setElementsIndex] = useState(0)
     const currentElementRef = useRef(null);
@@ -79,6 +80,8 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
             
             if (currentElement.imageHeight) {setCurrentImageHeight(currentElement.imageHeight)}
             else {setCurrentImageHeight("")}
+        } else if (dataset && dataset.dataset_type.toLowerCase() == "text") {
+            setCurrentText(currentElement.text)
         }
     }, [elements, elementsIndex])
 
@@ -451,28 +454,17 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                 </div>
             }
 
-        } else if (ALLOWED_FILE_EXTENSIONS.has(extension) && dataset.dataset_type.toLowerCase() == "text") {
-            
-            fetch(element.file, {
-                headers: {
-                    'pragma': 'no-cache',
-                    'cache-control': 'no-cache'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.text()
-            })
-            .then(text => {
-                setCurrentText(text)
-            })
-            .catch(error => {
-                console.error('There was a problem with the fetch operation:', error);
-            });
-
-            return <p className="dataset-element-view-text">{currentText}</p> // Process the text content
+        } else if (dataset.dataset_type.toLowerCase() == "text") {
+            return <div className="dataset-element-view-text-container">
+                {element.label && idToLabel[element.label] && <div className="dataset-element-view-label" style={{background: "var(--toolbar)", border: "none"}}>
+                    <span className="text-label-color" style={{background: idToLabel[element.label].color}}></span>
+                    {idToLabel[element.label].name}
+                </div>}
+                
+                <p className="dataset-element-view-text" style={{display: (currentText ? "block" : "none")}}>
+                    {currentText}
+                </p>
+            </div> // Process the text content
             
         } else {
             return <div className="extension-not-found">File of type .{extension} could not be rendered for dataset of type {dataset.dataset_type}.</div>

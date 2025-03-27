@@ -233,7 +233,7 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     return dataset, len(elements)
 
 
-def preprocess_text(model_instance, train_ds, val_ds):
+def preprocess_text(model_instance, train_ds, val_ds=None):
     if model_instance.layers.first().layer_type.lower() == "textvectorization":
         pass
     else:
@@ -304,7 +304,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                         profile.save()
                         
                         if model_instance.model_type.lower() == "text": # Must be initialized
-                            preprocess_text(train_dataset)  # Don't involve validation for accurate validation
+                            train_dataset, validation_dataset = preprocess_text(model_instance, train_dataset, validation_dataset)  # Don't involve validation for accurate validation
                     
                         history = model.fit(train_dataset, 
                                             epochs=epochs, 
@@ -315,7 +315,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                         profile.save()
                         
                         if model_instance.model_type.lower() == "text": # Must be initialized
-                            preprocess_text(train_dataset)  # Don't involve validation for accurate validation
+                            dataset = preprocess_text(model_instance, dataset)
                         
                         history = model.fit(dataset, 
                                             epochs=epochs,

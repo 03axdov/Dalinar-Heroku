@@ -674,7 +674,7 @@
     position: relative;
 }
 
-.dataset-element-view-image-container {
+.dataset-element-view-image-container, .dataset-element-view-text-container {
     width: 100%;
     height: 100%;
     display: flex;
@@ -687,12 +687,21 @@
     position: absolute;
     top: 20px;
     right: 20px;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     padding: 5px 10px;
     border-radius: 3px;
     background: rgb(0,0,0,0.5);
     border: 1px solid var(--border);
     z-index: 1;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+.text-label-color {
+    width: 18px;
+    height: 18px;
+    margin-right: 10px;
+    border-radius: 9px;
 }
 
 .dataset-element-view-image-container-area {
@@ -967,6 +976,25 @@
     box-sizing: border-box;
     font-size: 1.1rem;
     border-radius: 5px;
+    resize: none;
+    border: none;
+    outline: none;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+    font-weight: 500;
+}
+
+.dataset-text-save-button-container {
+    width: 800px;
+    max-width: 95%;
+    position: absolute;
+    top: calc(100px - 38px - 10px);
+    display: flex;
+    flex-direction: row;
+    justify-content: end;
+}
+.dataset-text-save-button-disabled {
+    background: rgb(50,50,50, 0.7);
+    pointer-events: none;
 }
 
 .element-type-img {

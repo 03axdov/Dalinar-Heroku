@@ -24,13 +24,13 @@ class ElementSerializer(serializers.ModelSerializer):
 class CreateElementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Element
-        fields = ("dataset", "file", "index")
+        fields = ("dataset", "file", "index", "text")
         
         
 class EditElementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Element
-        fields = ("label",)
+        fields = ("label","text")
         
 # LABEL HANDLING
 

@@ -567,10 +567,14 @@ class CreateElement(APIView):
                     if user.profile == dataset.owner:
                         instance = serializer.save(owner=request.user.profile)
                         
-                        fileExtension = instance.file.name.split("/")[-1].split(".")[-1]
-                        # Resize images if dataset has specified dimensions
-                        if dataset.imageHeight and dataset.imageWidth and fileExtension in ALLOWED_IMAGE_FILE_EXTENSIONS:
-                            resize_element_image(instance, dataset.imageWidth, dataset.imageHeight)
+                        if (instance.dataset.dataset_type.lower() == "image"):
+                            fileExtension = instance.file.name.split("/")[-1].split(".")[-1]
+                            # Resize images if dataset has specified dimensions
+                            if dataset.imageHeight and dataset.imageWidth and fileExtension in ALLOWED_IMAGE_FILE_EXTENSIONS:
+                                resize_element_image(instance, dataset.imageWidth, dataset.imageHeight)
+                        else:   # Text does not have file, so name must be manually set
+                            instance.name = data["name"]
+                            instance.save()
                             
                         return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
                     
@@ -624,6 +628,7 @@ class EditElement(APIView):
     def post(self, request, format=None):   # A put request may fit better, post for now
         name = request.data["name"]
         element_id = request.data["id"]
+        text = request.data["text"]
         
         user = self.request.user
         
@@ -634,6 +639,8 @@ class EditElement(APIView):
                 if element.owner == user.profile:
                     if name:
                         element.name = name
+                    if text:
+                        element.text = text
                         
                     element.save()
                 
