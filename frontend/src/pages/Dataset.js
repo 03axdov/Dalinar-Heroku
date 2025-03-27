@@ -728,6 +728,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     
     };
 
+    function autoResize(el) {
+        el.style.height = 'auto'; // Reset
+        el.style.height = el.scrollHeight + 'px'; // Adjust to content height
+    }
+
     function getPreviewElement(element) {
         const extension = (element.file ? element.file.split(".").pop().split("?")[0] : "")
         
@@ -738,7 +743,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     onWheel={handleElementScroll}
                     onMouseMove={handleElementMouseMove}
                     style={{overflow: "hidden"}}>
-                        {element.label && idToLabel[element.label] && <div className="dataset-element-view-label">{idToLabel[element.label].name}</div>}
+                        {element.label && idToLabel[element.label] && <div className="dataset-element-view-label" style={{background: "var(--toolbar)", border: "none"}}>
+                            <span className="text-label-color" style={{background: idToLabel[element.label].color}}></span>
+                            {idToLabel[element.label].name}
+                        </div>}
                         <img ref={elementRef} 
                         className="dataset-element-view-image" 
                         src={element.file} 
@@ -819,8 +827,12 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 </div>
                 
                 <textarea className="dataset-element-view-text" style={{display: (currentText ? "block" : "none")}} value={currentText} onChange={(e) => {
+                    if (!e.target.value) {
+                        notification("Cannot remove all text.", "failure")
+                        return;
+                    };
                     if (e.target.value != element.text) setTextChanged(true)
-                    else setTextChanged(false)
+                    else {setTextChanged(false)}
                     setCurrentText(e.target.value)
                 }}>
                 </textarea></div> // Process the text content

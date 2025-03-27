@@ -417,7 +417,10 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                     onWheel={handleElementScroll}
                     onMouseMove={handleElementMouseMove}
                     style={{overflow: "hidden"}}>
-                        {element.label && idToLabel[element.label] && <div className="dataset-element-view-label">{idToLabel[element.label].name}</div>}
+                        {element.label && idToLabel[element.label] && <div className="dataset-element-view-label" style={{background: "var(--toolbar)", border: "none"}}>
+                            <span className="text-label-color" style={{background: idToLabel[element.label].color}}></span>
+                            {idToLabel[element.label].name}
+                        </div>}
                         <img ref={elementRef} 
                             className="dataset-element-view-image" 
                             src={element.file} 

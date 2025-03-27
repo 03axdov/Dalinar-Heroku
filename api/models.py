@@ -230,8 +230,23 @@ class Model(models.Model):
     visibility = models.CharField(max_length=10, choices=VISIBILITY_CHOICES, default="private")
     
     model_file = models.FileField(upload_to="models/", null=True)
-    optimizer = models.CharField(max_length=100, blank=True, null=True)
-    loss_function = models.CharField(max_length=100, blank=True, null=True)
+    
+    OPTIMIZER_CHOICES = [
+        ("adam", "adam"),
+        ("adagrad", "adagrad"),
+        ("adadelta", "adadelta"),
+        ("adamax", "adamax"),
+        ("sgd", "sgd"),
+        ("rmsprop", "rmsprop")
+    ]
+    optimizer = models.CharField(max_length=100, blank=True, null=True, choices=OPTIMIZER_CHOICES)
+    
+    LOSS_CHOICES = [
+        ("binary_crossentropy", "binary_crossentropy"),
+        ("categorical_crossentropy", "categorical_crossentropy"),
+        ("sparse_categorical_crossentropy", "sparse_categorical_crossentropy")
+    ]
+    loss_function = models.CharField(max_length=100, blank=True, null=True, choices=LOSS_CHOICES)
     
     def __str__(self):
         return self.name + " - " + self.owner.name

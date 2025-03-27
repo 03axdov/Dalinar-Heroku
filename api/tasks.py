@@ -161,6 +161,9 @@ def one_hot_encode(label, nbr_labels):
     # Convert to one-hot encoded format
     return tf.keras.utils.to_categorical(label, num_classes=nbr_labels)
 
+def label_to_tensor(label):
+    return tf.constant(label, dtype=tf.int32)
+
 
 def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns tensorflow dataset, number of elements in the dataset
     global label_map
@@ -220,7 +223,12 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
         print("Invalid dataset type.")
         return None
     
-    labels = list(map(lambda label: one_hot_encode(map_labels(label), num_labels), labels))
+    loss_function = model_instance.loss_function
+    print(loss_function)
+    if loss_function == "binary_crossentropy":
+        labels = list(map(lambda label: label_to_tensor(map_labels(label)), labels))
+    elif loss_function == "categorical_crossentropy":
+        labels = list(map(lambda label: one_hot_encode(map_labels(label), num_labels), labels))
 
     # Create TensorFlow Dataset
     dataset = tf.data.Dataset.from_tensor_slices((elements, labels))
@@ -349,6 +357,9 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     model_instance.trained_on = dataset_instance
                     model_instance.trained_accuracy = accuracy[-1]
                     model_instance.save()
+                    
+                    profile.training_progress = -1 # To Show Preprocessing
+                    profile.save()
             
                     return {"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss, "status": 200}
                 
@@ -626,6 +637,12 @@ def predict_model_task(self, model_id, encoded_images, text):
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
     
     
+def get_metrics(loss_function):
+    metrics = ["accuracy"]
+    if loss_function == "binary_crossentropy":
+        metrics = tf.metrics.BinaryAccuracy(threshold=0.5)
+    return metrics
+    
 @shared_task(bind=True)
 def build_model_task(self, model_id, optimizer, loss_function, user_id):
     
@@ -644,7 +661,8 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id):
                 for layer in instance.layers.all():
                     model.add(get_tf_layer(layer))
 
-                model.compile(optimizer=optimizer, loss=loss_function, metrics=['accuracy'])
+                metrics = get_metrics(loss_function)
+                model.compile(optimizer=optimizer, loss=loss_function, metrics=[metrics])
                 
                 # Create a temporary file
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".keras") as temp_file:
@@ -698,7 +716,8 @@ def recompile_model_task(self, model_id, optimizer, loss_function, user_id):
                 extension = str(model_instance.model_file).split(".")[-1]
                 model, timestamp = get_tf_model(model_instance)
 
-                model.compile(optimizer=optimizer, loss=loss_function, metrics=['accuracy'])
+                metrics = get_metrics(loss_function)
+                model.compile(optimizer=optimizer, loss=loss_function, metrics=[metrics])
                 
                 # UPDATING MODEL_FILE
                 # Create a temporary file
