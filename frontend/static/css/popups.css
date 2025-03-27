@@ -544,7 +544,10 @@
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: center;
     margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 3px;
 }
 
 .trained-model-epochs {
@@ -590,8 +593,8 @@
 .train-model-successful-row {
     display: flex;
     flex-direction: row;
-    justify-content: start;
-    margin-bottom: 10px;
+    justify-content: center;
+    margin-bottom: 15px;
     width: 100%;
 }
 

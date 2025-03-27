@@ -4,6 +4,7 @@ TO-DO:
 - Text layers.
 - Links in buttons
 - Look into Area datasets
+- Store training data
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

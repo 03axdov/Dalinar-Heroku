@@ -592,6 +592,39 @@ div.layer-element-mode-input {
     user-select: none;
 }
 
+.training-graph {
+    margin-bottom: 20px;
+    min-height: 400px;
+}
+  
+.training-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    padding: 5px 15px;
+    border: 1px solid var(--border);
+    box-sizing: border-box;
+    overflow: hidden;
+}
+  
+.training-table th,
+.training-table td {
+    border: 1px solid var(--border);;
+    padding: 12px;
+    width: 200px;
+}
+
+.training-table th {
+    background: var(--background-light);
+    font-weight: 550;
+    font-size: 1.2rem;
+}
+
+.train-model-after-container {
+    width: auto;
+    height: auto;
+}
+
 
 @media all and (max-width: 1400px) {
     .model-evaluate-button {

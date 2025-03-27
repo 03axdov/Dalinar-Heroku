@@ -273,6 +273,19 @@ class TrainingProgressCallback(tf.keras.callbacks.Callback):
         self.profile.save()
 
 
+def get_accuracy_loss(history, model_instance, validation_size):
+    metric = "accuracy"
+    if model_instance.loss_function == "binary_crossentropy":
+        metric = "binary_accuracy"
+    accuracy = history.history[metric]
+    loss = history.history["loss"]
+    val_accuracy = []
+    val_loss = []
+    if validation_size >= 1:
+        val_accuracy = history.history["val_" + metric]
+        val_loss = history.history["val_loss"]
+    return accuracy, val_accuracy, loss, val_loss
+
 @shared_task(bind=True)
 def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_id):
     
@@ -327,7 +340,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                         if model_instance.model_type.lower() == "text": # Must be initialized
                             dataset = preprocess_text(model_instance, dataset)
                             
-                        dataset = dataset.batch(32)
+                        dataset = dataset.batch(32).prefetch(tf.data.experimental.AUTOTUNE)
                         
                         history = model.fit(dataset, 
                                             epochs=epochs,
@@ -349,16 +362,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     # Delete the temporary file after saving
                     remove_temp_tf_model(model_instance, timestamp)
                     
-                    metric = "accuracy"
-                    if model_instance.loss_function == "binary_crossentropy":
-                        metric = "binary_accuracy"
-                    accuracy = history.history[metric]
-                    loss = history.history["loss"]
-                    val_accuracy = []
-                    val_loss = []
-                    if validation_size >= 1:
-                        val_accuracy = history.history["val_" + metric]
-                        val_loss = history.history["val_loss"]
+                    accuracy, val_accuracy, loss, val_loss = get_accuracy_loss(history, model_instance, validation_size)
                     
                     # UPDATING MODEL TRAINED_ON
                     model_instance.trained_on = dataset_instance
@@ -402,11 +406,11 @@ def getTensorflowPrebuiltDataset(tensorflowDataset):
     elif tensorflowDataset == "fashion_mnist":
         return tf.keras.datasets.fashion_mnist.load_data()
     elif tensorflowDataset == "imdb":
-        return tf.keras.datasets.imdb.load_data()
+        return tf.keras.datasets.imdb.load_data(num_words=10000)
     elif tensorflowDataset == "mnist":
         return tf.keras.datasets.mnist.load_data()
     elif tensorflowDataset == "reuters":
-        return tf.keras.datasets.reuters.load_data()
+        return tf.keras.datasets.reuters.load_data(num_words=10000)
     else:
         raise Exception("Invalid dataset.")
 
@@ -422,8 +426,6 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
         (x_train, y_train), (x_test, y_test) = getTensorflowPrebuiltDataset(tensorflowDataset=tensorflowDataset)
         x_train = pad_sequences(x_train, maxlen=256)
         dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
-        if model_instance.model_type.lower() == "text": # Must be initialized
-            dataset = preprocess_text(model_instance, dataset)
         
         if model_instance.owner == profile:
             
@@ -436,7 +438,7 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     
                     model, timestamp = get_tf_model(model_instance)
                     
-                    dataset_length = len(dataset)
+                    dataset_length = dataset.cardinality().numpy()
                     validation_size = int(dataset_length * validation_split)
                     train_size = dataset_length - validation_size
                     
@@ -446,14 +448,15 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     profile.save()
 
                     if validation_size >= 1: # Some dataset are too small for validation
-                        train_dataset = dataset[:train_size]
-                        validation_dataset = data[train_size:]
+                        train_dataset = dataset.take(train_size).batch(32).prefetch(tf.data.experimental.AUTOTUNE)
+                        validation_dataset = dataset.skip(train_size).batch(32).prefetch(tf.data.experimental.AUTOTUNE)
                     
                         history = model.fit(train_dataset, 
                                             epochs=epochs, 
                                             validation_data=validation_dataset,
                                             callbacks=[progress_callback])
                     else:
+                        dataset = dataset.batch(32).prefetch(tf.data.experimental.AUTOTUNE)
                         history = model.fit(dataset, 
                                             epochs=epochs,
                                             callbacks=[progress_callback])
@@ -474,17 +477,14 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     # Delete the temporary file after saving
                     remove_temp_tf_model(model_instance, timestamp)
                     
-                    accuracy = history.history["accuracy"]
-                    loss = history.history["loss"]
-                    val_accuracy = []
-                    val_loss = []
-                    if validation_size >= 1:
-                        val_accuracy = history.history["val_accuracy"]
-                        val_loss = history.history["val_loss"]
+                    accuracy, val_accuracy, loss, val_loss = get_accuracy_loss(history, model_instance, validation_size)
                         
                     model_instance.trained_on_tensorflow = tensorflowDataset
                     model_instance.trained_accuracy = accuracy[-1]
                     model_instance.save()
+                    
+                    profile.training_progress = -1 # To Show Preprocessing
+                    profile.save()
             
                     return{"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss, "status": 200}
                 
