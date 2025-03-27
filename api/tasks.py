@@ -366,7 +366,11 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     
                     # UPDATING MODEL TRAINED_ON
                     model_instance.trained_on = dataset_instance
-                    model_instance.trained_accuracy = accuracy[-1]
+                    model_instance.accuracy = accuracy
+                    model_instance.val_accuracy = val_accuracy
+                    model_instance.loss = loss
+                    model_instance.val_loss = val_loss
+                    
                     model_instance.save()
                     
                     profile.training_progress = -1 # To Show Preprocessing
@@ -480,7 +484,12 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     accuracy, val_accuracy, loss, val_loss = get_accuracy_loss(history, model_instance, validation_size)
                         
                     model_instance.trained_on_tensorflow = tensorflowDataset
-                    model_instance.trained_accuracy = accuracy[-1]
+                    
+                    model_instance.accuracy = accuracy
+                    model_instance.val_accuracy = val_accuracy
+                    model_instance.loss = loss
+                    model_instance.val_loss = val_loss
+                    
                     model_instance.save()
                     
                     profile.training_progress = -1 # To Show Preprocessing
@@ -696,7 +705,11 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id):
                 
                 instance.trained_on = None
                 instance.trained_on_tensorflow = None
-                instance.trained_accuracy = None
+                
+                instance.accuracy = []
+                instance.val_accuracy = []
+                instance.loss = []
+                instance.val_loss = []
                 
                 instance.evaluated_on = None
                 instance.evaluated_on_tensorflow = None

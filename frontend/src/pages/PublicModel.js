@@ -6,6 +6,7 @@ import LayerElement from "../components/LayerElement";
 import ModelDownloadPopup from "../popups/ModelDownloadPopup";
 import PredictionPopup from "../popups/PredictionPopup";
 import EvaluateModelPopup from "../popups/EvaluateModelPopup";
+import ModelMetrics from "../components/ModelMetrics";
 import { LAYERS, getLayerName } from "../layers";
 
 
@@ -26,6 +27,9 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
     const [isDownloaded, setIsDownloaded] = useState(false)
 
     const [showModelDescription, setShowModelDescription] = useState(true)
+    const [showModelMetrics, setShowModelMetrics] = useState(false)
+    const [trainingMetrics, setTrainingMetrics] = useState([])
+
     const pageRef = useRef(null)
     const [descriptionWidth, setDescriptionWidth] = useState(45)    // As percentage
 
@@ -90,6 +94,18 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
         })
         .then((res) => {
             setModel(res.data)
+
+            let accuracy = res.data.accuracy
+            let val_accuracy = res.data.val_accuracy
+            let loss = res.data.loss
+            let val_loss = res.data.val_loss
+            setTrainingMetrics(accuracy.map((acc, i) => ({
+                epoch: i + 1,
+                accuracy: acc.toFixed(4),
+                val_accuracy: (val_accuracy.length > 0 ? val_accuracy[i].toFixed(4) : -1),
+                loss: loss[i].toFixed(4),
+                val_loss: (val_loss.length > 0 ? val_loss[i].toFixed(4) : -1),
+            })))
 
             setLayers(res.data.layers)
 
@@ -435,6 +451,11 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                 </div>
 
                 <div className="dataset-main-display" style={{overflow: "hidden"}}>
+                    {trainingMetrics.length > 0 && <button className="toggle-model-metrics" type="button" onClick={() => setShowModelMetrics(!showModelMetrics)}>
+                        {showModelMetrics ? "- Hide training metrics" : "+ Show training metrics"}
+                    </button>}
+
+
                     {showModelDescription && model &&<div className="dataset-description-display-container" ref={descriptionContainerRef}>
                         <div className="dataset-description-image-container" style={{width: "calc(100% - " + descriptionWidth + "%)"}}>
                             <img className="dataset-description-image" src={model.image} />
@@ -467,7 +488,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                                         var win = window.open(URL, '_blank');
                                         win.focus();
                                     }}>
-                                        {model.trained_on.name} - {Math.round(10**6 * model.trained_accuracy) / 10**4 + "%"} accuracy
+                                        {model.trained_on.name} - {Math.round(10**6 * model.accuracy[model.accuracy.length - 1]) / 10**4 + "%"} accuracy
                                         <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
                                     </div>}
 
@@ -477,7 +498,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                                         win.focus();
                                     }}>
                                         <img className="trained-on-tensorflow-icon" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} />
-                                        {model.trained_on_tensorflow} - {Math.round(10**6 * model.trained_accuracy) / 10**4 + "%"} accuracy
+                                        {model.trained_on_tensorflow} - {Math.round(10**6 * model.accuracy[model.accuracy.length - 1]) / 10**4 + "%"} accuracy
                                         <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
                                     </div>}
                                 </div>
@@ -528,7 +549,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
 
                     </div>}
 
-                    {!showModelDescription && <div className="model-layers-container"
+                    {!showModelDescription && !showModelMetrics && <div className="model-layers-container"
                     ref={scrollRef}
                     onMouseDown={handleMouseDown}
                     onMouseMove={handleMouseMove}
@@ -559,6 +580,8 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                             </div>}
                         </div>
                     }
+
+                    {model && showModelMetrics && !showModelDescription && <ModelMetrics data={trainingMetrics} show_validation={model.val_accuracy && model.val_accuracy.length > 0}/>}
                 </div>
             </div>
         </div>

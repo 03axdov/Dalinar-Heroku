@@ -10,6 +10,7 @@ import ModelDownloadPopup from "../popups/ModelDownloadPopup";
 import TrainModelPopup from "../popups/TrainModelPopup"
 import EvaluateModelPopup from "../popups/EvaluateModelPopup";
 import PredictionPopup from "../popups/PredictionPopup";
+import ModelMetrics from "../components/ModelMetrics";
 
 import { LAYERS, getLayerName } from "../layers";
 
@@ -36,9 +37,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [downloading, setDownloading] = useState(false)
     const [isDownloaded, setIsDownloaded] = useState(false)
 
-    
-
     const [showModelDescription, setShowModelDescription] = useState(false)
+    const [showModelMetrics, setShowModelMetrics] = useState(false)
+    const [trainingMetrics, setTrainingMetrics] = useState([])
+
     const pageRef = useRef(null)
     const [descriptionWidth, setDescriptionWidth] = useState(45)    // As percentage
 
@@ -105,7 +107,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         }
     }, [currentProfile, model])
 
-    function getModel() {
+    function getModel(after_training=false) {
 
         setLoading(true)
         axios({
@@ -115,9 +117,25 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         .then((res) => {
             setModel(res.data)
 
-            setLayers(res.data.layers)
+            let accuracy = res.data.accuracy
+            let val_accuracy = res.data.val_accuracy
+            let loss = res.data.loss
+            let val_loss = res.data.val_loss
+            setTrainingMetrics(accuracy.map((acc, i) => ({
+                epoch: i + 1,
+                accuracy: acc.toFixed(4),
+                val_accuracy: (val_accuracy.length > 0 ? val_accuracy[i].toFixed(4) : -1),
+                loss: loss[i].toFixed(4),
+                val_loss: (val_loss.length > 0 ? val_loss[i].toFixed(4) : -1),
+            })))
 
-            // preloadImages(res.data.elements) // Now handled by .hidden-preload
+            setLayers(res.data.layers)
+            
+            if (after_training) {
+                setShowModelMetrics(true)
+                setShowModelDescription(false)
+                setShowTrainModelPopup(false)
+            }
         }).catch((err) => {
             navigate("/")
             notification("An error occured when loading model with id " + id + ".", "failure")
@@ -490,7 +508,9 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             model_type={model.model_type.toLowerCase()}
             notification={notification}
             activateConfirmPopup={activateConfirmPopup}
-            getModel={getModel}>
+            getModel={getModel}
+            setShowModelDescription={setShowModelDescription}
+            setShowModelMetrics={setShowModelMetrics}>
             </TrainModelPopup>}
 
             {showEvaluateModelPopup && <EvaluateModelPopup setShowEvaluateModelPopup={setShowEvaluateModelPopup} 
@@ -690,7 +710,12 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                 </div>
 
                 <div className="dataset-main-display" style={{overflow: "hidden"}}>
-                    {showModelDescription && model &&<div className="dataset-description-display-container" ref={descriptionContainerRef}>
+
+                    {trainingMetrics.length > 0 && <button className="toggle-model-metrics" type="button" onClick={() => setShowModelMetrics(!showModelMetrics)}>
+                        {showModelMetrics ? "- Hide training metrics" : "+ Show training metrics"}
+                    </button>}
+
+                    {showModelDescription && model && <div className="dataset-description-display-container" ref={descriptionContainerRef}>
                         <div className="dataset-description-image-container" style={{width: "calc(100% - " + descriptionWidth + "%)"}}>
                             <img className="dataset-description-image" src={model.image} />
                         </div>
@@ -722,7 +747,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                         var win = window.open(URL, '_blank');
                                         win.focus();
                                     }}>
-                                        {model.trained_on.name} - {Math.round(10**6 * model.trained_accuracy) / 10**4 + "%"} accuracy
+                                        {model.trained_on.name} - {Math.round(10**6 * model.accuracy[model.accuracy.length - 1]) / 10**4 + "%"} accuracy
                                         <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
                                     </div>}
 
@@ -732,7 +757,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                         win.focus();
                                     }}>
                                         <img className="trained-on-tensorflow-icon" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} />
-                                        {model.trained_on_tensorflow} - {Math.round(10**6 * model.trained_accuracy) / 10**4 + "%"} accuracy
+                                        {model.trained_on_tensorflow} - {Math.round(10**6 * model.accuracy[model.accuracy.length - 1]) / 10**4 + "%"} accuracy
                                         <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
                                     </div>}
                                 </div>
@@ -783,7 +808,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
                     </div>}
 
-                    {!showModelDescription && <DragDropContext className="model-layers-container-outer" onDragEnd={layersHandleDragEnd}>
+                    {!showModelDescription && !showModelMetrics && <DragDropContext className="model-layers-container-outer" onDragEnd={layersHandleDragEnd}>
                         <Droppable droppableId="models-droppable" direction="horizontal">
                         {(provided) => (<div className="model-layers-container"
                         {...provided.droppableProps}
@@ -832,7 +857,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         </Droppable>
                     </DragDropContext>}
 
-                    
+                    {model && showModelMetrics && !showModelDescription && <ModelMetrics data={trainingMetrics} show_validation={model.val_accuracy && model.val_accuracy.length > 0}/>}
                     
                 </div>
             </div>

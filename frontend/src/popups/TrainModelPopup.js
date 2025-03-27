@@ -3,10 +3,8 @@ import axios from 'axios'
 import DatasetElement from "../components/DatasetElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import ProgressBar from "../components/ProgressBar"
-import TrainingTable from "../components/TrainingTable"
-import TrainingGraph from "../components/TrainingGraph"
 
-function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentProfile, BACKEND_URL, notification, activateConfirmPopup, setModelTrained, getModel}) {
+function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentProfile, BACKEND_URL, notification, activateConfirmPopup, getModel}) {
 
     const [datasets, setDatasets] = useState([])
     const [savedDatasets, setSavedDatasets] = useState([])
@@ -27,12 +25,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
     
     const [datasetTypeShown, setDatasetTypeShown] = useState("my")  // "my" or "saved"
 
-    const [wasTrained, setWasTrained] = useState(false)
-    const [epochTypeShown, setEpochTypeShown] = useState("training")    // "training" or "validation"
-
     const [tensorflowDataset, setTensorflowDataset] = useState("cifar10")
-
-    const [trainingRes, setTrainingRes] = useState([])
 
     useEffect(() => {
         getDatasets()
@@ -134,28 +127,10 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                     setTrainingProgress(-1)
 
                     if (res.data["status"] != "failed") {   // Training success
-                        notification("Successfully trained dataset.", "success")
-    
-                        let accuracy = res.data["accuracy"]
-                        let loss = res.data["loss"]
-                        let val_accuracy = res.data["val_accuracy"]
-                        let val_loss = res.data["val_loss"]
-                        let temp = []
-                        for (let i=0; i < accuracy.length; i++) {
-                            let row = {
-                                "accuracy": accuracy[i].toFixed(5),
-                                "loss": loss[i].toFixed(5)
-                            }
-                            if (val_accuracy.length > 0) {
-                                row["val_accuracy"] = val_accuracy[i].toFixed(5)
-                                row["val_loss"] = val_loss[i].toFixed(5)
-                            }
-                            temp.push(row)
-                        }
-                        console.log(temp)
-                        setTrainingRes(temp)
-    
-                        setWasTrained(true)
+                        notification("Successfully trained model.", "success")
+
+                        getModel(true)
+
                     } else {
                         notification("Training failed.", "failure")
                     }
@@ -316,14 +291,11 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
     return (
         <div className="popup train-model-popup" onClick={() => {
             setShowTrainModelPopup(false)
-            if (wasTrained) {
-                getModel();
-            }
         }}>
 
             {isTraining && <ProgressBar progress={trainingProgress} message={(trainingProgress >= 0 ? (Math.round(trainingProgress * epochs / 100) + " / " + epochs + " epochs") : "Processing...")} BACKEND_URL={BACKEND_URL}></ProgressBar>}
 
-            {!wasTrained && <div className="train-model-popup-container" onClick={(e) => {
+            <div className="train-model-popup-container" onClick={(e) => {
                 e.stopPropagation()
             }}>
                 <div className="explore-datasets-title-container">
@@ -499,26 +471,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                     ))}
                 </div>}
                 
-            </div>}
+            </div>
 
-            {wasTrained && <div className="train-model-popup-container train-model-after-container" onClick={(e) => {
-                e.stopPropagation()
-            }}>
-                <div className="explore-datasets-title-container">
-                    <h1 className="create-layer-popup-title successfully-trained-title">Successfully trained model <img className="trained-successfully-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/></h1>
-                </div>
-
-                {trainingRes[0].val_accuracy && <div className="train-model-successful-row">
-                    <div className="train-model-dataset-type-container">
-                        <div className={"train-model-dataset-type-left train-model-dataset-type " + (epochTypeShown == "training" ? "train-model-dataset-type-selected" : "")}
-                        onClick={() => setEpochTypeShown("training")}>Training</div>
-                        <div className={"train-model-dataset-type-right train-model-dataset-type " + (epochTypeShown == "validation" ? "train-model-dataset-type-selected" : "")}
-                        onClick={() => setEpochTypeShown("validation")}>Validation</div>
-                    </div>
-                </div>}
-                <TrainingGraph data={trainingRes} is_validation={epochTypeShown == "validation"}/>
-                <TrainingTable data={trainingRes} show_validation={epochTypeShown == "validation"} />
-            </div>}
         </div>
     )
 }
