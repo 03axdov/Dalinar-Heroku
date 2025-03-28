@@ -590,6 +590,13 @@
     margin-right: 20px;
 }
 
+.model-metrics-title {
+    margin: 20px 0;
+    margin-top: 10px;
+    font-size: 2rem;
+    text-align: center;
+}
+
 .train-model-successful-row {
     display: flex;
     flex-direction: row;

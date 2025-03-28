@@ -304,6 +304,8 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
             profile.save()
             
             if model_instance.model_file:
+                
+                timestamp = ""
                 try:
                     extension = str(model_instance.model_file).split(".")[-1]
                     model, timestamp = get_tf_model(model_instance)
@@ -379,14 +381,14 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     return {"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss, "status": 200}
                 
                 except ValueError as e: # In case of invalid layer combination
+                    remove_temp_tf_model(model_instance, timestamp)
                     message = str(e)
                     if len(message) > 50 and len(list(dataset)) * validation_split > 1:
                         message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
-                    
-                    raise ValueError(e)
 
                     return {"Bad request": str(message), "status": 400}
                 except Exception as e:
+                    remove_temp_tf_model(model_instance, timestamp)
                     return {"Bad request": str(e), "status": 400}
             else:
                 return {"Bad request": "Model has not been built.", "status": 400}
@@ -437,6 +439,7 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
             profile.save()
             
             if model_instance.model_file:
+                timestamp = ""
                 try:
                     extension = str(model_instance.model_file).split(".")[-1]
                     
@@ -498,14 +501,14 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     return{"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss, "status": 200}
                 
                 except ValueError as e: # In case of invalid layer combination
+                    remove_temp_tf_model(model_instance, timestamp)
                     message = str(e)
                     if len(message) > 50 and len(list(dataset)) * validation_split > 1:
                         message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
-                    
-                    raise ValueError(e)
 
                     return {"Bad request": str(message), "status": 400}
                 except Exception as e:
+                    remove_temp_tf_model(model_instance, timestamp)
                     return {"Bad request": str(e), "status": 400}
             else:
                 return {"Bad request": "Model has not been built.", "status": 400}

@@ -632,6 +632,15 @@ div.layer-element-mode-input {
     background: var(--sidebar-button);
     z-index: 1;
     top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.metrics-icon {
+    height: 20px;
+    width: 20px;
+    margin-right: 10px;
 }
 
 .model-metrics-container {

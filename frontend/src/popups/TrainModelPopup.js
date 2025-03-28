@@ -132,7 +132,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         getModel(true)
 
                     } else {
-                        notification("Training failed.", "failure")
+                        notification("Training failed: " + res.data["message"], "failure")
                     }
                 }, 200)
             } else if (res.data["status"] == "in progress") {

@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import TrainingGraph from "../components/TrainingGraph";
 import TrainingTable from "../components/TrainingTable";
 
-const ModelMetrics = ({ data, show_validation }) => {
+const ModelMetrics = ({ data, show_validation, trained_on_name }) => {
     const [epochTypeShown, setEpochTypeShown] = useState("training")    // "training" or "validation"
 
     return (
     <div className="model-metrics-container">
+        {trained_on_name && <p className="model-metrics-title">{trained_on_name}</p>}
         {show_validation && <div className="train-model-successful-row">
             <div className="train-model-dataset-type-container">
                 <div className={"train-model-dataset-type-left train-model-dataset-type " + (epochTypeShown == "training" ? "train-model-dataset-type-selected" : "")}

@@ -121,6 +121,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             let val_accuracy = res.data.val_accuracy
             let loss = res.data.loss
             let val_loss = res.data.val_loss
+            console.log(val_accuracy)
+            console.log(val_loss)
             setTrainingMetrics(accuracy.map((acc, i) => ({
                 epoch: i + 1,
                 accuracy: acc.toFixed(4),
@@ -712,7 +714,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                 <div className="dataset-main-display" style={{overflow: "hidden"}}>
 
                     {trainingMetrics.length > 0 && <button className="toggle-model-metrics" type="button" onClick={() => setShowModelMetrics(!showModelMetrics)}>
-                        {showModelMetrics ? "- Hide training metrics" : "+ Show training metrics"}
+                        <img className="metrics-icon" src={BACKEND_URL + "/static/images/metrics.png"}/>
+                        {showModelMetrics ? "Hide training metrics" : "Show training metrics"}
                     </button>}
 
                     {showModelDescription && model && <div className="dataset-description-display-container" ref={descriptionContainerRef}>
@@ -857,7 +860,9 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         </Droppable>
                     </DragDropContext>}
 
-                    {model && showModelMetrics && !showModelDescription && <ModelMetrics data={trainingMetrics} show_validation={model.val_accuracy && model.val_accuracy.length > 0}/>}
+                    {model && showModelMetrics && !showModelDescription && <ModelMetrics data={trainingMetrics} 
+                        show_validation={model.val_accuracy && model.val_accuracy.length > 0} 
+                        trained_on_name={(model.trained_on ? model.trained_on.name : (model.trained_on_tensorflow ? model.trained_on_tensorflow : ""))}/>}
                     
                 </div>
             </div>

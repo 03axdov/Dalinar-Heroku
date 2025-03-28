@@ -452,7 +452,8 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
 
                 <div className="dataset-main-display" style={{overflow: "hidden"}}>
                     {trainingMetrics.length > 0 && <button className="toggle-model-metrics" type="button" onClick={() => setShowModelMetrics(!showModelMetrics)}>
-                        {showModelMetrics ? "- Hide training metrics" : "+ Show training metrics"}
+                        <img className="metrics-icon" src={BACKEND_URL + "/static/images/metrics.png"}/>
+                        {showModelMetrics ? "Hide training metrics" : "Show training metrics"}
                     </button>}
 
 
@@ -581,7 +582,9 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                         </div>
                     }
 
-                    {model && showModelMetrics && !showModelDescription && <ModelMetrics data={trainingMetrics} show_validation={model.val_accuracy && model.val_accuracy.length > 0}/>}
+                    {model && showModelMetrics && !showModelDescription && <ModelMetrics data={trainingMetrics} 
+                    show_validation={model.val_accuracy && model.val_accuracy.length > 0} 
+                    trained_on_name={(model.trained_on ? model.trained_on.name : (model.trained_on_tensorflow ? model.trained_on_tensorflow : ""))}/>}
                 </div>
             </div>
         </div>
