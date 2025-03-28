@@ -4,6 +4,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
 import os
+import re
 import time
 import boto3
 import base64
@@ -136,6 +137,9 @@ def load_and_preprocess_image(file_path,input_dims,file_key):
 
 
 # Function to load and preprocess the text
+def remove_non_ascii(s):
+    return re.sub(r'[^\x00-\x7F]', '', s)
+
 def load_and_preprocess_text(file_path, file_key):
     
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
@@ -143,6 +147,7 @@ def load_and_preprocess_text(file_path, file_key):
     
     # Decode the text bytes into a string
     text = text_bytes.decode("utf-8")  # Assuming UTF-8 encoded text
+    text = remove_non_ascii(text)
     
     return tf.convert_to_tensor(text, dtype=tf.string)
 
@@ -227,27 +232,20 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
         return None
     
     loss_function = model_instance.loss_function
-    print(loss_function)
     if loss_function == "binary_crossentropy":
         labels = list(map(lambda label: label_to_tensor(map_labels(label)), labels))
     elif loss_function == "categorical_crossentropy":
         labels = list(map(lambda label: one_hot_encode(map_labels(label), num_labels), labels))
 
-    # Create TensorFlow Dataset
     dataset = tf.data.Dataset.from_tensor_slices((elements, labels))
-    print(f"elements: {elements}")
-    print(f"labels: {labels}")
-
-    # Prefetch for performance (optional)
-    # dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
     
     return dataset, len(elements)
 
 
-def preprocess_text(model_instance, train_ds, val_ds=None):
+def get_vectorize_layer(model_instance, model, train_ds):
     vectorize_layer = None
-    if model_instance.layers.first().layer_type.lower() == "textvectorization": # Text vectorization no longer supported so shouldn't happen
-        pass
+    if model_instance.layers.first().layer_type.lower() == "textvectorization": # Text vectorization no longer supported so only happens if already trained.
+        vectorize_layer = model.layers[0]
     else:
         max_tokens = 10000
         if model_instance.layers.first().layer_type.lower() == "embedding":
@@ -258,15 +256,20 @@ def preprocess_text(model_instance, train_ds, val_ds=None):
             output_sequence_length=model_instance.input_sequence_length 
         )
     train_text = train_ds.map(lambda x, y: x)
+    print("BEFORE ADAPT")
     vectorize_layer.adapt(train_text)
-    def vectorize_text(text, label):
-        return vectorize_layer(text), label
-    
-    if val_ds:
-        return train_ds.map(vectorize_text), val_ds.map(vectorize_text)
-    else:
-        return train_ds.map(vectorize_text)
+    print("AFTER ADAPT")
 
+    model_with_preprocessing = tf.keras.Sequential([
+        vectorize_layer,
+        model
+    ])
+    
+    metrics = get_metrics(model_instance.loss_function)
+    model_with_preprocessing.compile(optimizer=model_instance.optimizer, loss=model_instance.loss_function, metrics=[metrics])
+    
+    return model_with_preprocessing
+    
 
 class TrainingProgressCallback(tf.keras.callbacks.Callback):
     def __init__(self, profile, total_epochs):
@@ -316,7 +319,9 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     extension = str(model_instance.model_file).split(".")[-1]
                     model, timestamp = get_tf_model(model_instance)
                     
+                    print("BEFORE 1")
                     dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
+                    print("AFTER 1")
                     validation_size = int(dataset_length * validation_split)
                     train_size = dataset_length - validation_size
                     
@@ -331,9 +336,10 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                         profile.training_progress = 0
                         profile.save()
                         
+                        
                         if model_instance.model_type.lower() == "text": # Must be initialized
-                            train_dataset, validation_dataset = preprocess_text(model_instance, train_dataset, validation_dataset)  # Don't involve validation for accurate validation
-                            
+                            model = get_vectorize_layer(model_instance, model, train_dataset)
+
                         train_dataset = train_dataset.batch(32).prefetch(tf.data.experimental.AUTOTUNE)
                         validation_dataset = validation_dataset.batch(32).prefetch(tf.data.experimental.AUTOTUNE)
                     
@@ -346,7 +352,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                         profile.save()
                         
                         if model_instance.model_type.lower() == "text": # Must be initialized
-                            dataset = preprocess_text(model_instance, dataset)
+                            model = get_vectorize_layer(model_instance, model, dataset)
                             
                         dataset = dataset.batch(32).prefetch(tf.data.experimental.AUTOTUNE)
                         
@@ -391,7 +397,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                 except ValueError as e: # In case of invalid layer combination
                     remove_temp_tf_model(model_instance, timestamp)
                     message = str(e)
-                    if len(message) > 50 and len(list(dataset)) * validation_split > 1:
+                    if len(message) > 50:
                         message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
 
                     return {"Bad request": str(message), "status": 400}
@@ -453,6 +459,8 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     
                     model, timestamp = get_tf_model(model_instance)
                     
+                    model.summary()
+                    
                     dataset_length = dataset.cardinality().numpy()
                     validation_size = int(dataset_length * validation_split)
                     train_size = dataset_length - validation_size
@@ -512,7 +520,7 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                 except ValueError as e: # In case of invalid layer combination
                     remove_temp_tf_model(model_instance, timestamp)
                     message = str(e)
-                    if len(message) > 50 and len(list(dataset)) * validation_split > 1:
+                    if len(message) > 50:
                         message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
 
                     return {"Bad request": str(message), "status": 400}
@@ -572,7 +580,7 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
             except ValueError as e: # In case of invalid layer combination
                 message = str(e)
                 remove_temp_tf_model(model_instance, timestamp)
-                if len(message) > 50 and len(list(dataset)) * validation_split > 1:
+                if len(message) > 50:
                     message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
                 
                 raise ValueError(e)
@@ -669,16 +677,28 @@ def predict_model_task(self, model_id, encoded_images, text):
                     
                 elif model_instance.model_type.lower() == "text":
                     model, timestamp = get_tf_model(model_instance)
+                    model.summary()
                     
-                    prediction_arr = model.predict(image_tensor)
+                    text = tf.convert_to_tensor([text], dtype=tf.string)
+
+                    prediction_arr = model.predict(text)
                     print(f"prediction_arr: {prediction_arr}")
                     prediction_idx = int(np.argmax(prediction_arr))
                     predicted_label = None
-                    predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
-                    
                     predicted_label = tf_dataset_to_labels[model_instance.trained_on_tensorflow][prediction_idx]
+                    
+                    remove_temp_tf_model(model_instance, timestamp)
+                    
+                    return {"predictions": [predicted_label.name], "colors": [predicted_label.color], "status": 200}
             
                 return {"status": 200}
+            except ValueError as e: # In case of invalid layer combination
+                remove_temp_tf_model(model_instance, timestamp)
+                message = str(e)
+                if len(message) > 50:
+                    message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
+
+                return {"Bad request": str(message), "status": 400}
             except Exception as e:
                 remove_temp_tf_model(model_instance, timestamp)
                 return {"Bad request": str(e), "status": 400}

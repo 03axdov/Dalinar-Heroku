@@ -29,6 +29,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
     const [showModelDescription, setShowModelDescription] = useState(true)
     const [showModelMetrics, setShowModelMetrics] = useState(false)
     const [trainingMetrics, setTrainingMetrics] = useState([])
+    const [isTrained, setIsTrained] = useState(false)
 
     const pageRef = useRef(null)
     const [descriptionWidth, setDescriptionWidth] = useState(45)    // As percentage
@@ -106,6 +107,8 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                 loss: loss[i].toFixed(4),
                 val_loss: (val_loss.length > 0 ? val_loss[i].toFixed(4) : -1),
             })))
+
+            setIsTrained(res.data.trained_on || res.data.trained_on_tensorflow)
 
             setLayers(res.data.layers)
 
@@ -394,10 +397,10 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                         </button>}
 
                         {model && <button type="button" 
-                        title={model.model_file ? (model.trained_on ? "Predict" : "Model not yet trained or trained on unknown dataset") : "Model not yet built."}
-                        className={"model-evaluate-button no-margin-right " + ((model.model_file && model.trained_on) ? "" : "model-button-disabled")}
+                        title={model.model_file ? (isTrained ? "Predict" : "Model not yet trained or trained on unknown dataset") : "Model not yet built."}
+                        className={"model-evaluate-button no-margin-right " + ((model.model_file && isTrained) ? "" : "model-button-disabled")}
                         onClick={() => {
-                            if (model.model_file && model.trained_on) {
+                            if (model.model_file && isTrained) {
                                 setShowPredictionPopup(true)
                             }
                         }}>
@@ -406,14 +409,14 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                         </button>}
 
                         {model && <button type="button" 
-                        title={model.model_file ? (model.trained_on ? "Evaluate model" : "Model not yet trained or trained on unknown dataset") : "Model not yet built."}
-                        className={"model-evaluate-button " + ((model.model_file && model.trained_on) ? "" : "model-button-disabled")}
+                        title={model.model_file ? (isTrained ? "Evaluate model" : "Model not yet trained or trained on unknown dataset") : "Model not yet built."}
+                        className={"model-evaluate-button " + ((model.model_file && isTrained) ? "" : "model-button-disabled")}
                         onClick={() => {
                             if (!currentProfile.user) {
                                 checkLoggedIn("")
                                 return;
                             }
-                            if (model.model_file && model.trained_on) {
+                            if (model.model_file && isTrained) {
                                 setShowEvaluateModelPopup(true)
                             }
                         }}>
