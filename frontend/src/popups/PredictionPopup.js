@@ -117,6 +117,7 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
                 } else {
                     notification("Successfully predicted data.", "success")
                 }
+                console.log(data)
 
                 clearInterval(resInterval)
                 setPredictionProgress(100)
@@ -157,6 +158,7 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
         }
     }
 
+    console.log(predictions)
 
     return (
         <div className="popup train-model-popup" onClick={() => setShowPredictionPopup(false)}>
@@ -214,12 +216,18 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
                 {model.model_type.toLowerCase() == "text" && <div className="model-prediction-container">
                     <textarea className="predict-text-container" value={text} onChange={(e) => {
                         setText(e.target.value)
-                    }}>
+                    }} placeholder="Write some text...">
 
                     </textarea>
 
                     <div className="model-prediction">
-                        <span className="gray-text">Press predict to make a prediction</span>
+                        {predictions.length == 0 && <span className="gray-text unselectable">Press predict to make a prediction</span>}
+                            
+                        {predictions.length > 0 && <span className="prediction-circle" style={{background: predictionColors[currentIndex]}}></span>}
+
+                        {predictions.length > 0 && <span>
+                            {predictions[currentIndex]}
+                        </span>} 
                     </div>
                 </div>}
 

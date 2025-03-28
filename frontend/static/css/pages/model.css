@@ -595,6 +595,9 @@ div.layer-element-mode-input {
 .training-graph {
     margin-bottom: 20px;
     min-height: 400px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    box-sizing: border-box;
 }
   
 .training-table {
@@ -625,6 +628,8 @@ div.layer-element-mode-input {
     height: auto;
 }
 
+
+
 .toggle-model-metrics {
     position: absolute;
     left: 20px;
@@ -652,14 +657,24 @@ div.layer-element-mode-input {
     overflow-y: auto;
 }
 
+.train-model-successful-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    margin-top: 25px;
+    border: 1px solid var(--border);
+    box-sizing: border-box;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
 .model-metrics-title {
-    margin: 20px 0;
-    margin-top: 10px;
     font-size: 2rem;
     text-align: center;
-    padding: 0 15px;
-    background: var(--toolbar-light);
     border-radius: 3px;
+    padding: 0 10px;
     width: auto;
     display: flex;
     align-items: center;
@@ -668,7 +683,7 @@ div.layer-element-mode-input {
 }
 .model-metrics-title:hover {
     cursor: pointer;
-    background: var(--toolbar-lighter);
+    background: var(--background-lighter);
 }
 
 .model-metrics-dataset-icon {

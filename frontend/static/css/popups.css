@@ -590,14 +590,6 @@
     margin-right: 20px;
 }
 
-.train-model-successful-row {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    margin-bottom: 15px;
-    width: 100%;
-}
-
 .tensorflow-dataset-container {
     margin-top: 10px;
     width: 100%;

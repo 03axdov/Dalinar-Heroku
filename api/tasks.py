@@ -266,6 +266,7 @@ def get_vectorize_layer(model_instance, model, train_ds, vocabulary=None):
             max_tokens=max_tokens,
             output_sequence_length=model_instance.input_sequence_length 
         )
+        
     if not vocabulary:
         train_text = train_ds.map(lambda x, y: x)
         vectorize_layer.adapt(train_text)
@@ -766,12 +767,15 @@ def predict_model_task(self, model_id, encoded_images, text):
                         prediction_idx = int(prediction_arr[0][0] >= 0.5)
                     print(f"prediction_idx: {prediction_idx}")
                     
-                    predicted_label = None
-                    predicted_label = tf_dataset_to_labels[model_instance.trained_on_tensorflow][prediction_idx]
-                    
                     remove_temp_tf_model(model_instance, timestamp)
                     
-                    return {"predictions": [predicted_label["name"]], "colors": [predicted_label["color"]], "status": 200}
+                    predicted_label = None
+                    if model_instance.trained_on:
+                        predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
+                        return {"predictions": [predicted_label.name], "colors": [predicted_label.color], "status": 200}
+                    else:
+                        predicted_label = tf_dataset_to_labels[model_instance.trained_on_tensorflow][prediction_idx]
+                        return {"predictions": [predicted_label["name"]], "colors": [predicted_label["color"]], "status": 200}
             
                 return {"status": 200}
             except ValueError as e: # In case of invalid layer combination

@@ -122,8 +122,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             let val_accuracy = res.data.val_accuracy
             let loss = res.data.loss
             let val_loss = res.data.val_loss
-            console.log(val_accuracy)
-            console.log(val_loss)
+
             setTrainingMetrics(accuracy.map((acc, i) => ({
                 epoch: i + 1,
                 accuracy: acc.toFixed(4),
