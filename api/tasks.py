@@ -59,7 +59,9 @@ def get_tf_model(model_instance):     # Gets a Tensorflow model from a built Mod
     
 def remove_temp_tf_model(model_instance, timestamp):
     extension = str(model_instance.model_file).split(".")[-1]
-    os.remove(get_temp_model_name(model_instance.id, timestamp, extension)) 
+    file_path = get_temp_model_name(model_instance.id, timestamp, extension)
+    if os.path.exists(file_path):
+        os.remove(file_path) 
 
 
 def get_tf_layer(layer):    # From a Layer instance
@@ -372,6 +374,8 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     
                     # UPDATING MODEL TRAINED_ON
                     model_instance.trained_on = dataset_instance
+                    model_instance.trained_on_tensorflow = None
+                    
                     model_instance.accuracy = accuracy
                     model_instance.val_accuracy = val_accuracy
                     model_instance.loss = loss
@@ -490,6 +494,7 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     
                     accuracy, val_accuracy, loss, val_loss = get_accuracy_loss(history, model_instance, validation_size)
                         
+                    model_instance.trained_on = None
                     model_instance.trained_on_tensorflow = tensorflowDataset
                     
                     model_instance.accuracy = accuracy
@@ -533,6 +538,7 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
         profile.save()
 
         if model_instance.model_file:
+            timestamp = ""
             try:
                 model, timestamp = get_tf_model(model_instance)
                 
@@ -565,6 +571,7 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
             
             except ValueError as e: # In case of invalid layer combination
                 message = str(e)
+                remove_temp_tf_model(model_instance, timestamp)
                 if len(message) > 50 and len(list(dataset)) * validation_split > 1:
                     message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
                 
@@ -572,6 +579,7 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
 
                 return {"Bad request": str(message), "status": 400}
             except Exception as e:
+                remove_temp_tf_model(model_instance, timestamp)
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Bad request": "Model has not been built.", "status": 400}
@@ -618,6 +626,9 @@ def decode_image(encoded_image):    # Used for prediction, creates a BytesIO obj
     file_like_object = BytesIO(img_data)
     return file_like_object
 
+tf_dataset_to_labels = {
+    "imdb": ["negative", "positive"]
+}
     
 @shared_task(bind=True)
 def predict_model_task(self, model_id, encoded_images, text):
@@ -626,7 +637,8 @@ def predict_model_task(self, model_id, encoded_images, text):
     try:
         model_instance = Model.objects.get(id=model_id)
         
-        if model_instance.trained_on:
+        if model_instance.trained_on or model_instance.trained_on_tensorflow:
+            timestamp = ""
             try:
                 if model_instance.model_type.lower() == "image":
                     first_layer = model_instance.layers.all().first()
@@ -645,8 +657,9 @@ def predict_model_task(self, model_id, encoded_images, text):
                         prediction_arr = model.predict(image_tensor)
                         print(f"prediction_arr: {prediction_arr}")
                         prediction_idx = int(np.argmax(prediction_arr))
+                        predicted_label = None
                         predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
-                        
+                            
                         prediction_names.append(predicted_label.name)
                         prediction_colors.append(predicted_label.color)
                     
@@ -655,13 +668,20 @@ def predict_model_task(self, model_id, encoded_images, text):
                     return {"predictions": prediction_names, "colors": prediction_colors, "status": 200}
                     
                 elif model_instance.model_type.lower() == "text":
-                    pass    # TO IMPLEMENT
+                    model, timestamp = get_tf_model(model_instance)
+                    
+                    prediction_arr = model.predict(image_tensor)
+                    print(f"prediction_arr: {prediction_arr}")
+                    prediction_idx = int(np.argmax(prediction_arr))
+                    predicted_label = None
+                    predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
+                    
+                    predicted_label = tf_dataset_to_labels[model_instance.trained_on_tensorflow][prediction_idx]
             
                 return {"status": 200}
             except Exception as e:
                 remove_temp_tf_model(model_instance, timestamp)
                 return {"Bad request": str(e), "status": 400}
-        
         else:
             return {"Bad request": "Model has not been trained.", "status": 400}
     except Model.DoesNotExist:
@@ -683,6 +703,7 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
         instance = Model.objects.get(id=model_id)
         
         if instance.owner == profile:
+            temp_path = ""
             try:
                 model = tf.keras.Sequential()
                 
@@ -735,8 +756,12 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
         
             except ValueError as e: # In case of invalid layer combination
                 print("Error: ", e)
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
                 return {"Bad request": str(e), "status": 400}
             except Exception as e:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Unauthorized": "You can only build your own models.", "status": 401}
@@ -754,6 +779,7 @@ def recompile_model_task(self, model_id, optimizer, loss_function, user_id, inpu
         if not model_instance.model_file: return Response({"Bad request": "Model has not been built."}, status=status.HTTP_200_OK)
         
         if model_instance.owner == profile:
+            timestamp = ""
             try:
                 extension = str(model_instance.model_file).split(".")[-1]
                 model, timestamp = get_tf_model(model_instance)
@@ -789,8 +815,10 @@ def recompile_model_task(self, model_id, optimizer, loss_function, user_id, inpu
         
             except ValueError as e: # In case of invalid layer combination
                 print("Error: ", e)
+                remove_temp_tf_model(model_instance, timestamp)
                 return {"Bad request": str(e), "status": 400}
             except Exception as e:
+                remove_temp_tf_model(model_instance, timestamp)
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Unauthorized": "You can only recompile your own models.", "status": 401}
@@ -891,6 +919,7 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
     
 # Not currently a task
 def create_model_file(request, model_instance):
+    backend_temp_model_path = ""
     try:
         model_file = request.data["model"]
         extension = model_file.name.split(".")[-1]
@@ -926,5 +955,6 @@ def create_model_file(request, model_instance):
         
         return {"status": 200}
     except Exception as e:
-        remove_temp_tf_model(model_instance, timestamp)
+        if os.path.exists(backend_temp_model_path):
+            os.remove(backend_temp_model_path)
         return {"Bad request": str(e), "status": 400}

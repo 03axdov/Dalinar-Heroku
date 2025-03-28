@@ -56,7 +56,7 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
             notification("Please enter text to make a prediction.", "failure")
             return;
         }
-        if (!model.trained_on) {
+        if (!model.trained_on && !model.trained_on_tensorflow) {
             notification("Model must be trained to support prediction.", "failure")
             return
         }
