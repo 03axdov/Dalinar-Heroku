@@ -481,30 +481,6 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                                 </div>}
                             </div>
 
-                            {model.trained_on && <div className="model-description-trained">
-                                <p className="dataset-description-text trained-on-text dataset-description-start">Last trained on:</p>
-                                <div className="trained-on-container">
-                                    {model.trained_on && <div className="trained-on-element" onClick={() => {
-                                        const URL = window.location.origin + "/datasets/" + (model.trained_on.visibility == "public" ? "public/" : "") + model.trained_on.id
-                                        var win = window.open(URL, '_blank');
-                                        win.focus();
-                                    }}>
-                                        {model.trained_on.name} - {Math.round(10**6 * model.accuracy[model.accuracy.length - 1]) / 10**4 + "%"} accuracy
-                                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
-                                    </div>}
-
-                                    {model.trained_on_tensorflow && <div className="trained-on-element" onClick={() => {
-                                        const URL = "https://www.tensorflow.org/api_docs/python/tf/keras/datasets/" + model.trained_on_tensorflow + "/load_data"
-                                        var win = window.open(URL, '_blank');
-                                        win.focus();
-                                    }}>
-                                        <img className="trained-on-tensorflow-icon" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} />
-                                        {model.trained_on_tensorflow} - {Math.round(10**6 * model.accuracy[model.accuracy.length - 1]) / 10**4 + "%"} accuracy
-                                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
-                                    </div>}
-                                </div>
-                            </div>}
-
                             {model.evaluated_on && <div className="model-description-trained">
                                 <p className="dataset-description-text trained-on-text dataset-description-start">Evaluated on:</p>
                                 <div className="trained-on-container">
@@ -584,6 +560,8 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
 
                     {model && showModelMetrics && !showModelDescription && <ModelMetrics data={trainingMetrics} 
                     show_validation={model.val_accuracy && model.val_accuracy.length > 0} 
+                    BACKEND_URL={BACKEND_URL}
+                    model={model}
                     trained_on_name={(model.trained_on ? model.trained_on.name : (model.trained_on_tensorflow ? model.trained_on_tensorflow : ""))}/>}
                 </div>
             </div>

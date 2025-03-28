@@ -1087,7 +1087,9 @@ class CreateModel(APIView):
                 createSmallImage(model_instance, 230, 190)    # Create a smaller image for displaying model elements
                 
                 if "model" in request.data.keys() and request.data["model"]:   # Uploaded model
-                    create_model_file(request, model_instance)
+                    res = create_model_file(request, model_instance)
+                    if res["status"] != 200:
+                        return Response({'Bad Request': res["Bad request"]}, status=status.HTTP_400_BAD_REQUEST)
                        
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -1199,11 +1201,14 @@ class BuildModel(APIView):
         model_id = request.data["id"]
         optimizer = request.data["optimizer"]
         loss_function = request.data["loss"]
+        input_sequence_length = None
+        if "input_sequence_length" in request.data.keys():
+            input_sequence_length = request.data["input_sequence_length"]
         
         user = self.request.user
         
         if user.is_authenticated:
-            task = build_model_task.delay(model_id, optimizer, loss_function, user.id)
+            task = build_model_task.delay(model_id, optimizer, loss_function, user.id, input_sequence_length)
 
             # Optionally, you could return a task ID to the client if you plan to track progress
             return Response({
@@ -1221,11 +1226,14 @@ class RecompileModel(APIView):
         model_id = request.data["id"]
         optimizer = request.data["optimizer"]
         loss_function = request.data["loss"]
+        input_sequence_length = None
+        if "input_sequence_length" in request.data.keys():
+            input_sequence_length = request.data["input_sequence_length"]
         
         user = self.request.user
         
         if user.is_authenticated:
-            task = recompile_model_task.delay(model_id, optimizer, loss_function, user.id)
+            task = recompile_model_task.delay(model_id, optimizer, loss_function, user.id, input_sequence_length)
 
             # Optionally, you could return a task ID to the client if you plan to track progress
             return Response({
@@ -1408,11 +1416,11 @@ class CreateLayer(APIView):
         elif layer_type == "resizing":
             serializer = CreateResizingLayerSerializer(data=data)
         elif layer_type == "textvectorization":
-            serializer = TextVectorizationLayerSerializer(data=data)
+            serializer = CreateTextVectorizationLayerSerializer(data=data)
         elif layer_type == "embedding":
-            serializer = EmbeddingLayerSerializer(data=data)
+            serializer = CreateEmbeddingLayerSerializer(data=data)
         elif layer_type == "globalaveragepooling1d":
-            serializer = GlobalAveragePooling1DLayerSerializer(data=data)
+            serializer = CreateGlobalAveragePooling1DLayerSerializer(data=data)
         
         if serializer and serializer.is_valid():
             
@@ -1520,6 +1528,7 @@ class EditLayer(APIView):
                     elif layer_type == "textvectorization":
                         layer.max_tokens = request.data["max_tokens"]
                         layer.standardize = request.data["standardize"]
+                        layer.output_sequence_length = request.data["output_sequence_length"]
                     elif layer_type == "embedding":
                         layer.max_tokens = request.data["max_tokens"]
                         layer.output_dim = request.data["output_dim"]

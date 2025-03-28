@@ -214,6 +214,7 @@ class Model(models.Model):
         ("text", "Text")
     ]
     model_type = models.CharField(max_length=20, choices=MODEL_TYPE_CHOICES, default="Image")
+    input_sequence_length = models.PositiveIntegerField(default=256)  # Only used for text datasets
     
     trained_on = models.ForeignKey(Dataset, on_delete=models.SET_NULL, related_name="trained_with", blank=True, null=True)   # Last trained on
     trained_on_tensorflow = models.CharField(max_length=100, blank=True, null=True)  # Used when training on TensorFlow datasets
@@ -420,6 +421,8 @@ class TextVectorizationLayer(Layer):
         ("strip_punctuation", "strip_punctuation"),
     ]
     standardize = models.CharField(max_length=100, choices=STANDARDIZE_CHOICES, default="lower_and_strip_punctuation")
+    
+    output_sequence_length = models.PositiveIntegerField(default=256)
     
     def __str__(self):
         res = f"TextVectorization ({self.max_tokens}, {self.standardize})"

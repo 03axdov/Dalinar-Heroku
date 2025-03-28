@@ -180,7 +180,7 @@ export const LAYERS = {
         "image": "image.png",
         "color": "pink2"
     },
-    textvectorization: {
+    /* textvectorization: {
         "name": "TextVectorization",
         "params": [
             {
@@ -209,12 +209,19 @@ export const LAYERS = {
                     }
                 ],
                 "default": "lower_and_strip_punctuation"
+            },
+            {
+                "name": "output_sequence_length",
+                "name_readable": "Output length",
+                "type": "number",
+                "default": 256,
+                "required": true
             }
         ],
         "image": "text.png",
         "color": "cyan",
         "no_dimensions": true
-    },
+    }, */
     embedding: {
         "name": "Embedding",
         "params": [

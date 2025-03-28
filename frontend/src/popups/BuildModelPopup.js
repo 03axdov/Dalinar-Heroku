@@ -1,9 +1,10 @@
 import React, {useState} from "react"
 
-function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildModel, BACKEND_URL, isBuilt, recompileModel, processingRecompile, activateConfirmPopup}) {
+function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildModel, BACKEND_URL, isBuilt, recompileModel, processingRecompile, activateConfirmPopup, model_type}) {
 
     const [optimizer, setOptimizer] = useState("adam")
     const [loss, setLoss] = useState("categorical_crossentropy")
+    const [inputSequenceLength, setInputSequenceLength] = useState(256)
 
     return (
         <div className="popup build-model-popup" onClick={() => setShowBuildModelPopup(false)}>
@@ -20,9 +21,9 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
                 <form className="build-model-form" onSubmit={(e) => {
                     e.preventDefault()
                     if (isBuilt) {
-                        activateConfirmPopup("Are you sure you want to rebuild the model? This will reset all parameters, and should only be used over recompile if you've changed the model.", () => buildModel(optimizer, loss))
+                        activateConfirmPopup("Are you sure you want to rebuild the model? This will reset all parameters, and should only be used over recompile if you've changed the model.", () => buildModel(optimizer, loss, inputSequenceLength))
                     } else {
-                        buildModel(optimizer, loss)
+                        buildModel(optimizer, loss, inputSequenceLength)
                     }
                     
                 }}>
@@ -52,6 +53,14 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
 
                         </select>
                     </div>
+                    
+                    {model_type.toLowerCase() == "text" && <div className="create-dataset-label-inp">
+                        <label className="create-dataset-label" htmlFor="inputSequenceLength">Input sequence length</label>
+                        <input className="create-dataset-inp" type="number" id="inputSequenceLength" required value={inputSequenceLength} onChange={(e) => {
+                            setInputSequenceLength(e.target.value)
+                        }}></input>
+                    </div>}
+
                     <p className="create-layer-popup-description">
                         Note that the difference between categorical crossentropy and sparse categorical crossentropy 
                         will only matter if the model is downloaded and loaded externally.
@@ -60,7 +69,7 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
                     <div className="create-layer-popup-buttons">
                         <button type="button" className="create-layer-popup-cancel" onClick={() => setShowBuildModelPopup(false)}>Cancel</button>
                         {isBuilt && <button type="button" className="create-layer-popup-submit build-model-recompile" onClick={() => {
-                            recompileModel(optimizer, loss)
+                            recompileModel(optimizer, loss, inputSequenceLength)
                         }}>
                             {processingRecompile && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
                             {(!processingRecompile ? "Recompile" : "Compiling...")}

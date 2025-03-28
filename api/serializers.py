@@ -210,10 +210,10 @@ class TextVectorizationLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextVectorizationLayer
         fields = "__all__"
-class CreateTextVectorizationLayer(serializers.ModelSerializer):
+class CreateTextVectorizationLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = TextVectorizationLayer
-        fields = ["max_tokens", "standardize"]
+        fields = ["max_tokens", "standardize", "output_sequence_length"]
 
 
 class EmbeddingLayerSerializer(serializers.ModelSerializer):

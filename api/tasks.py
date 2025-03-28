@@ -101,7 +101,7 @@ def get_tf_layer(layer):    # From a Layer instance
         else:
             return layers.Resizing(layer.output_y, layer.output_x)
     elif layer_type == "textvectorization":
-        return layers.TextVectorization(max_tokens=layer.max_tokens, standardize=layer.standardize)
+        return layers.TextVectorization(max_tokens=layer.max_tokens, standardize=layer.standardize, output_sequence_length=layer.output_sequence_length)
     elif layer_type == "embedding":
         return layers.Embedding(layer.max_tokens, layer.output_dim)
     elif layer_type == "globalaveragepooling1d":
@@ -243,23 +243,27 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
 
 
 def preprocess_text(model_instance, train_ds, val_ds=None):
-    if model_instance.layers.first().layer_type.lower() == "textvectorization":
+    vectorize_layer = None
+    if model_instance.layers.first().layer_type.lower() == "textvectorization": # Text vectorization no longer supported so shouldn't happen
         pass
     else:
+        max_tokens = 10000
+        if model_instance.layers.first().layer_type.lower() == "embedding":
+            max_tokens = model_instance.layers.first().max_tokens
         vectorize_layer = layers.TextVectorization(
             standardize="lower_and_strip_punctuation",
-            max_tokens=10000,
-            output_sequence_length=256  # or whatever fixed length you want
+            max_tokens=max_tokens,
+            output_sequence_length=model_instance.input_sequence_length 
         )
-        train_text = train_ds.map(lambda x, y: x)
-        vectorize_layer.adapt(train_text)
-        def vectorize_text(text, label):
-            return vectorize_layer(text), label
-        
-        if val_ds:
-            return train_ds.map(vectorize_text), val_ds.map(vectorize_text)
-        else:
-            return train_ds.map(vectorize_text)
+    train_text = train_ds.map(lambda x, y: x)
+    vectorize_layer.adapt(train_text)
+    def vectorize_text(text, label):
+        return vectorize_layer(text), label
+    
+    if val_ds:
+        return train_ds.map(vectorize_text), val_ds.map(vectorize_text)
+    else:
+        return train_ds.map(vectorize_text)
 
 
 class TrainingProgressCallback(tf.keras.callbacks.Callback):
@@ -430,7 +434,7 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
         model_instance = Model.objects.get(id=model_id)
         
         (x_train, y_train), (x_test, y_test) = getTensorflowPrebuiltDataset(tensorflowDataset=tensorflowDataset)
-        x_train = pad_sequences(x_train, maxlen=256)
+        x_train = pad_sequences(x_train, maxlen=model_instance.input_sequence_length)
         dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
         
         if model_instance.owner == profile:
@@ -623,36 +627,40 @@ def predict_model_task(self, model_id, encoded_images, text):
         model_instance = Model.objects.get(id=model_id)
         
         if model_instance.trained_on:
-            if model_instance.model_type.lower() == "image":
-                first_layer = model_instance.layers.all().first()
-                
-                target_size = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
-                
-                model, timestamp = get_tf_model(model_instance)
-                
-                prediction_names = []
-                prediction_colors = []
-                
-                for image in images:
-                    #print(image)
-                    image_tensor = preprocess_uploaded_image(image, target_size)
+            try:
+                if model_instance.model_type.lower() == "image":
+                    first_layer = model_instance.layers.all().first()
                     
-                    prediction_arr = model.predict(image_tensor)
-                    print(f"prediction_arr: {prediction_arr}")
-                    prediction_idx = int(np.argmax(prediction_arr))
-                    predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
+                    target_size = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
                     
-                    prediction_names.append(predicted_label.name)
-                    prediction_colors.append(predicted_label.color)
-                
+                    model, timestamp = get_tf_model(model_instance)
+                    
+                    prediction_names = []
+                    prediction_colors = []
+                    
+                    for image in images:
+                        #print(image)
+                        image_tensor = preprocess_uploaded_image(image, target_size)
+                        
+                        prediction_arr = model.predict(image_tensor)
+                        print(f"prediction_arr: {prediction_arr}")
+                        prediction_idx = int(np.argmax(prediction_arr))
+                        predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
+                        
+                        prediction_names.append(predicted_label.name)
+                        prediction_colors.append(predicted_label.color)
+                    
+                    remove_temp_tf_model(model_instance, timestamp)
+                    
+                    return {"predictions": prediction_names, "colors": prediction_colors, "status": 200}
+                    
+                elif model_instance.model_type.lower() == "text":
+                    pass    # TO IMPLEMENT
+            
+                return {"status": 200}
+            except Exception as e:
                 remove_temp_tf_model(model_instance, timestamp)
-                
-                return {"predictions": prediction_names, "colors": prediction_colors, "status": 200}
-                
-            elif model_instance.model_type.lower() == "text":
-                pass    # TO IMPLEMENT
-        
-            return {"status": 200}
+                return {"Bad request": str(e), "status": 400}
         
         else:
             return {"Bad request": "Model has not been trained.", "status": 400}
@@ -667,7 +675,7 @@ def get_metrics(loss_function):
     return metrics
     
 @shared_task(bind=True)
-def build_model_task(self, model_id, optimizer, loss_function, user_id):
+def build_model_task(self, model_id, optimizer, loss_function, user_id, input_sequence_length):
     
     profile = Profile.objects.get(user_id=user_id)
     
@@ -683,11 +691,11 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id):
                 
                 for layer in instance.layers.all():
                     model.add(get_tf_layer(layer))
-                    
-                model.summary()
 
                 metrics = get_metrics(loss_function)
                 model.compile(optimizer=optimizer, loss=loss_function, metrics=[metrics])
+                
+                model.summary()
                 
                 # Create a temporary file
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".keras") as temp_file:
@@ -718,12 +726,17 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id):
                 instance.evaluated_on_tensorflow = None
                 instance.evaluated_accuracy = None
                 
+                if input_sequence_length:
+                    instance.input_sequence_length = input_sequence_length
+                
                 instance.save()
                 
                 return {"status": 200}
         
             except ValueError as e: # In case of invalid layer combination
                 print("Error: ", e)
+                return {"Bad request": str(e), "status": 400}
+            except Exception as e:
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Unauthorized": "You can only build your own models.", "status": 401}
@@ -732,7 +745,7 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id):
     
     
 @shared_task(bind=True)
-def recompile_model_task(self, model_id, optimizer, loss_function, user_id):
+def recompile_model_task(self, model_id, optimizer, loss_function, user_id, input_sequence_length):
     
     profile = Profile.objects.get(user_id=user_id)
     
@@ -767,12 +780,17 @@ def recompile_model_task(self, model_id, optimizer, loss_function, user_id):
                 model_instance.optimizer = optimizer
                 model_instance.loss_function = loss_function
                 
+                if input_sequence_length:
+                    instance.input_sequence_length = input_sequence_length
+                
                 model_instance.save()
                 
                 return {"status": 200}
         
             except ValueError as e: # In case of invalid layer combination
                 print("Error: ", e)
+                return {"Bad request": str(e), "status": 400}
+            except Exception as e:
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Unauthorized": "You can only recompile your own models.", "status": 401}
@@ -873,34 +891,40 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
     
 # Not currently a task
 def create_model_file(request, model_instance):
-    model_file = request.data["model"]
-    extension = model_file.name.split(".")[-1]
-    temp_path = "temp_models/" + model_file.name
-    file_path = default_storage.save(temp_path, model_file.file)
-    
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    temp_model_file_path = "media/" + file_path
-    print(f"Model file saved at: {temp_model_file_path}")
-            
-    s3_client = get_s3_client()
-    
-    # Download the model file from S3 to a local temporary file
-    timestamp = time.time()
-    backend_temp_model_path = get_temp_model_name(model_instance.id, timestamp, extension)
-    with open(backend_temp_model_path, 'wb') as f:
-        s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
-
-    model = tf.keras.models.load_model(backend_temp_model_path)
-    
-    default_storage.delete(file_path)
-    
-    os.remove(backend_temp_model_path)
-    
-    for t, layer in enumerate(model.layers):
-        layer_model_from_tf_layer(layer, model_instance.id, request, t)
+    try:
+        model_file = request.data["model"]
+        extension = model_file.name.split(".")[-1]
+        temp_path = "temp_models/" + model_file.name
+        file_path = default_storage.save(temp_path, model_file.file)
         
-    model_instance.model_file = model_file
-    model_instance.optimizer = model.optimizer.__class__.__name__.lower()
-    model_instance.loss_function = model.loss.__name__
-    
-    model_instance.save()
+        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+        temp_model_file_path = "media/" + file_path
+        print(f"Model file saved at: {temp_model_file_path}")
+                
+        s3_client = get_s3_client()
+        
+        # Download the model file from S3 to a local temporary file
+        timestamp = time.time()
+        backend_temp_model_path = get_temp_model_name(model_instance.id, timestamp, extension)
+        with open(backend_temp_model_path, 'wb') as f:
+            s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
+
+        model = tf.keras.models.load_model(backend_temp_model_path)
+        
+        default_storage.delete(file_path)
+        
+        os.remove(backend_temp_model_path)
+        
+        for t, layer in enumerate(model.layers):
+            layer_model_from_tf_layer(layer, model_instance.id, request, t)
+            
+        model_instance.model_file = model_file
+        model_instance.optimizer = model.optimizer.__class__.__name__.lower()
+        model_instance.loss_function = model.loss.__name__
+        
+        model_instance.save()
+        
+        return {"status": 200}
+    except Exception as e:
+        remove_temp_tf_model(model_instance, timestamp)
+        return {"Bad request": str(e), "status": 400}

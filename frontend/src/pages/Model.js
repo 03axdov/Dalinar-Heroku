@@ -150,7 +150,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }
 
     let buildResInterval = null;
-    function buildModel(optimizer, loss) {
+    function buildModel(optimizer, loss, input_sequence_length=256) {
 
         if (processingBuildModel) {return}
         setProcessingBuildModel(true)
@@ -162,6 +162,9 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             "id": model.id,
             "optimizer": optimizer,
             "loss": loss,
+        }
+        if (model.model_type.toLowerCase() == "text") {
+            data["input_sequence_length"] = input_sequence_length
         }
 
         axios.defaults.withCredentials = true;
@@ -214,7 +217,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }
 
     let recompileResInterval = null;
-    function recompileModel(optimizer, loss) {
+    function recompileModel(optimizer, loss, input_sequence_length) {
 
         if (processingRecompile) {return}
         setProcessingRecompile(true)
@@ -226,6 +229,9 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             "id": model.id,
             "optimizer": optimizer,
             "loss": loss,
+        }
+        if (model.model_type.toLowerCase() == "text") {
+            data["input_sequence_length"] = input_sequence_length
         }
 
         axios.defaults.withCredentials = true;
@@ -541,7 +547,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                 isBuilt={model.model_file != null}
                 recompileModel={recompileModel}
                 processingRecompile={processingRecompile}
-                activateConfirmPopup={activateConfirmPopup}></BuildModelPopup>}
+                activateConfirmPopup={activateConfirmPopup}
+                model_type={model ? model.model_type : ""}></BuildModelPopup>}
 
             {showCreateLayerPopup && <CreateLayerPopup BACKEND_URL={BACKEND_URL}
                                                     onSubmit={createLayer} 
@@ -742,30 +749,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                 </div>}
                             </div>
 
-                            {(model.trained_on || model.trained_on_tensorflow) && <div className="model-description-trained">
-                                <p className="dataset-description-text trained-on-text dataset-description-start">Last trained on:</p>
-                                <div className="trained-on-container">
-                                    {model.trained_on && <div className="trained-on-element" onClick={() => {
-                                        const URL = window.location.origin + "/datasets/" + (model.trained_on.visibility == "public" ? "public/" : "") + model.trained_on.id
-                                        var win = window.open(URL, '_blank');
-                                        win.focus();
-                                    }}>
-                                        {model.trained_on.name} - {Math.round(10**6 * model.accuracy[model.accuracy.length - 1]) / 10**4 + "%"} accuracy
-                                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
-                                    </div>}
-
-                                    {model.trained_on_tensorflow && <div className="trained-on-element" onClick={() => {
-                                        const URL = "https://www.tensorflow.org/api_docs/python/tf/keras/datasets/" + model.trained_on_tensorflow + "/load_data"
-                                        var win = window.open(URL, '_blank');
-                                        win.focus();
-                                    }}>
-                                        <img className="trained-on-tensorflow-icon" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} />
-                                        {model.trained_on_tensorflow} - {Math.round(10**6 * model.accuracy[model.accuracy.length - 1]) / 10**4 + "%"} accuracy
-                                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
-                                    </div>}
-                                </div>
-                            </div>}
-
                             {(model.evaluated_on || model.evaluated_on_tensorflow) && <div className="model-description-trained">
                                 <p className="dataset-description-text trained-on-text dataset-description-start">Evaluated on:</p>
                                 <div className="trained-on-container">
@@ -793,6 +776,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             </div>}
 
                             <p className="dataset-description-text"><span className="dataset-description-start">Type: </span>{model.model_type}</p>
+                            {model.model_type.toLowerCase() == "text" && <p className="dataset-description-text"><span className="dataset-description-start">Input sequence length: </span>{model.input_sequence_length}</p>}
 
                             {model.optimizer && <p className="dataset-description-text"><span className="dataset-description-start">Optimizer: </span>{model.optimizer}</p>}
                             {model.loss_function && <p className="dataset-description-text"><span className="dataset-description-start">Loss function: </span>{model.loss_function}</p>}
@@ -862,6 +846,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
                     {model && showModelMetrics && !showModelDescription && <ModelMetrics data={trainingMetrics} 
                         show_validation={model.val_accuracy && model.val_accuracy.length > 0} 
+                        BACKEND_URL={BACKEND_URL}
+                        model={model}
                         trained_on_name={(model.trained_on ? model.trained_on.name : (model.trained_on_tensorflow ? model.trained_on_tensorflow : ""))}/>}
                     
                 </div>
