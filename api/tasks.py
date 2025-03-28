@@ -575,7 +575,6 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     return{"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss, "status": 200}
                 
                 except ValueError as e: # In case of invalid layer combination
-                    raise Exception(e)
                     remove_temp_tf_model(model_instance, timestamp)
                     message = str(e)
 
@@ -584,7 +583,6 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
 
                     return {"Bad request": str(message), "status": 400}
                 except Exception as e:
-                    raise Exception(e)
                     remove_temp_tf_model(model_instance, timestamp)
                     return {"Bad request": str(e), "status": 400}
             else:
@@ -594,7 +592,6 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
     except Model.DoesNotExist:
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
     except Exception as e:
-        raise Exception(e)
         return {"Bad request": str(e), "status": 400}
     
     
