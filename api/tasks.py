@@ -241,10 +241,21 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     
     return dataset, len(elements)
 
+def clean_vocab(vocab):
+    seen = set()
+    cleaned = []
+    for word in vocab:
+        clean_word = remove_non_ascii(word).strip()
+        if clean_word and clean_word not in seen:
+            cleaned.append(clean_word)
+            seen.add(clean_word)
+    return cleaned
 
-def get_vectorize_layer(model_instance, model, train_ds):
+def get_vectorize_layer(model_instance, model, train_ds, vocabulary=None):
     vectorize_layer = None
-    if model_instance.layers.first().layer_type.lower() == "textvectorization": # Text vectorization no longer supported so only happens if already trained.
+    first_layer = model.layers[0]
+
+    if isinstance(first_layer, layers.TextVectorization): # Text vectorization no longer supported so only happens if already trained.
         vectorize_layer = model.layers[0]
     else:
         max_tokens = 10000
@@ -255,20 +266,27 @@ def get_vectorize_layer(model_instance, model, train_ds):
             max_tokens=max_tokens,
             output_sequence_length=model_instance.input_sequence_length 
         )
-    train_text = train_ds.map(lambda x, y: x)
-    print("BEFORE ADAPT")
-    vectorize_layer.adapt(train_text)
-    print("AFTER ADAPT")
+    if not vocabulary:
+        train_text = train_ds.map(lambda x, y: x)
+        vectorize_layer.adapt(train_text)
+    else:
+        max_tokens = vectorize_layer.get_config().get("max_tokens", 10000)
+        num_reserved_tokens = 2  # adjust based on your setup
+        vectorize_layer.set_vocabulary(clean_vocab(vocabulary[:max_tokens - num_reserved_tokens]))
 
-    model_with_preprocessing = tf.keras.Sequential([
-        vectorize_layer,
-        model
-    ])
+    if not isinstance(first_layer, layers.TextVectorization):
+        model_with_preprocessing = tf.keras.Sequential([
+            vectorize_layer,
+            model
+        ])
     
-    metrics = get_metrics(model_instance.loss_function)
-    model_with_preprocessing.compile(optimizer=model_instance.optimizer, loss=model_instance.loss_function, metrics=[metrics])
+        metrics = get_metrics(model_instance.loss_function)
+        model_with_preprocessing.compile(optimizer=model_instance.optimizer, loss=model_instance.loss_function, metrics=[metrics])
     
-    return model_with_preprocessing
+        return model_with_preprocessing
+    
+    else:
+        return model
     
 
 class TrainingProgressCallback(tf.keras.callbacks.Callback):
@@ -319,9 +337,8 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     extension = str(model_instance.model_file).split(".")[-1]
                     model, timestamp = get_tf_model(model_instance)
                     
-                    print("BEFORE 1")
                     dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
-                    print("AFTER 1")
+
                     validation_size = int(dataset_length * validation_split)
                     train_size = dataset_length - validation_size
                     
@@ -412,6 +429,8 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
     except Dataset.DoesNotExist:
         return {"Not found": "Could not find dataset with the id " + str(dataset_id) + ".", "status": 404}
+    except Exception as e:
+        return {"Bad request": str(e), "status": 400}
     
 
 def getTensorflowPrebuiltDataset(tensorflowDataset):
@@ -433,6 +452,21 @@ def getTensorflowPrebuiltDataset(tensorflowDataset):
         return tf.keras.datasets.reuters.load_data(num_words=10000)
     else:
         raise Exception("Invalid dataset.")
+    
+def getTensorflowDatasetVocabulary(tensorflowDataset):
+    word_index = {}
+    if tensorflowDataset == "imdb":
+        word_index = tf.keras.datasets.imdb.get_word_index()
+    elif tensorflowDataset == "reuters":
+        word_index = tf.keras.datasets.reuters.get_word_index()
+    
+    index_to_word = [None] * (max(word_index.values()) + 1)
+    for word, index in word_index.items():
+        index_to_word[index] = word
+
+    # Remove None entries if any
+    vocab = [word for word in index_to_word if word is not None]
+    return vocab
 
 
 @shared_task(bind=True)
@@ -444,6 +478,7 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
         model_instance = Model.objects.get(id=model_id)
         
         (x_train, y_train), (x_test, y_test) = getTensorflowPrebuiltDataset(tensorflowDataset=tensorflowDataset)
+
         x_train = pad_sequences(x_train, maxlen=model_instance.input_sequence_length)
         dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
         
@@ -459,7 +494,21 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     
                     model, timestamp = get_tf_model(model_instance)
                     
-                    model.summary()
+                    vectorize_layer = None
+                    metrics = get_metrics(model_instance.loss_function)
+                    if model_instance.model_type.lower() == "text": # Must be initialized
+                        print("A")
+                        vocab = getTensorflowDatasetVocabulary(tensorflowDataset)
+                        print("B")
+
+                        model = get_vectorize_layer(model_instance, model, dataset, vocab)
+                        
+                        vectorize_layer = model.layers[0]
+                        newModel = tf.keras.Sequential([])
+                        for layer in model.layers[1:]:
+                            newModel.add(layer)
+                        model = newModel
+                        model.compile(optimizer=model_instance.optimizer, loss=model_instance.loss_function, metrics=[metrics])
                     
                     dataset_length = dataset.cardinality().numpy()
                     validation_size = int(dataset_length * validation_split)
@@ -483,6 +532,14 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                         history = model.fit(dataset, 
                                             epochs=epochs,
                                             callbacks=[progress_callback])
+                        
+                    if model_instance.model_type.lower() == "text": # Add back the now-updated vectorize layer
+                        model = tf.keras.Sequential([
+                            vectorize_layer,
+                            model
+                        ])
+                        model.compile(optimizer=model_instance.optimizer, loss=model_instance.loss_function, metrics=[metrics])
+                        _ = model(tf.constant([["this is a test"]], dtype=tf.string))
                     
                     # UPDATING MODEL_FILE
                     # Create a temporary file
@@ -518,13 +575,16 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     return{"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss, "status": 200}
                 
                 except ValueError as e: # In case of invalid layer combination
+                    raise Exception(e)
                     remove_temp_tf_model(model_instance, timestamp)
                     message = str(e)
+
                     if len(message) > 50:
                         message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
 
                     return {"Bad request": str(message), "status": 400}
                 except Exception as e:
+                    raise Exception(e)
                     remove_temp_tf_model(model_instance, timestamp)
                     return {"Bad request": str(e), "status": 400}
             else:
@@ -533,6 +593,9 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
             {"Unauthorized": "You can only train your own models.", "status": 401}
     except Model.DoesNotExist:
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    except Exception as e:
+        raise Exception(e)
+        return {"Bad request": str(e), "status": 400}
     
     
 @shared_task(bind=True)
@@ -596,6 +659,8 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
     except Dataset.DoesNotExist:
         return {"Not found": "Could not find dataset with the id " + str(dataset_id) + ".", "status": 404}
+    except Exception as e:
+        return {"Bad request": str(e), "status": 400}
     
     
 def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Convert uploaded files to tensors for TensorFlow processing
@@ -635,7 +700,17 @@ def decode_image(encoded_image):    # Used for prediction, creates a BytesIO obj
     return file_like_object
 
 tf_dataset_to_labels = {
-    "imdb": ["negative", "positive"]
+    "imdb": [
+        {
+            "name": "positive",
+            "color": "blue"
+        },
+        {
+            "name": "negative",
+            "color": "red"
+        }
+        
+    ]
 }
     
 @shared_task(bind=True)
@@ -679,17 +754,27 @@ def predict_model_task(self, model_id, encoded_images, text):
                     model, timestamp = get_tf_model(model_instance)
                     model.summary()
                     
-                    text = tf.convert_to_tensor([text], dtype=tf.string)
+                    if isinstance(text, str):
+                        text = [[text]]  # shape (1, 1)
+                    elif isinstance(text, list):
+                        text = [[t] for t in text]  # shape (batch_size, 1)
+
+                    text = tf.convert_to_tensor(text, dtype=tf.string)
 
                     prediction_arr = model.predict(text)
                     print(f"prediction_arr: {prediction_arr}")
+                    
                     prediction_idx = int(np.argmax(prediction_arr))
+                    if model_instance.loss_function == "binary_crossentropy":
+                        prediction_idx = int(prediction_arr[0][0] >= 0.5)
+                    print(f"prediction_idx: {prediction_idx}")
+                    
                     predicted_label = None
                     predicted_label = tf_dataset_to_labels[model_instance.trained_on_tensorflow][prediction_idx]
                     
                     remove_temp_tf_model(model_instance, timestamp)
                     
-                    return {"predictions": [predicted_label.name], "colors": [predicted_label.color], "status": 200}
+                    return {"predictions": [predicted_label["name"]], "colors": [predicted_label["color"]], "status": 200}
             
                 return {"status": 200}
             except ValueError as e: # In case of invalid layer combination

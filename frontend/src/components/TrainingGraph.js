@@ -15,17 +15,17 @@ const TrainingGraph = ({ data, is_validation }) => {
     <div style={{ width: '100%', height: 400 }} className="training-graph">
       <ResponsiveContainer>
         <LineChart data={data}>
-          <CartesianGrid stroke="#ccc" strokeDasharray="5 5" />
+          <CartesianGrid stroke="#fff" strokeDasharray="5 5" />
           <XAxis dataKey="epoch" label={{ value: 'Epoch', position: 'insideBottomRight', offset: -5 }} />
           <YAxis label={{ value: 'Value', angle: -90, position: 'insideLeft' }} />
           <Tooltip 
             contentStyle={{
-                backgroundColor: 'var(--background-lighter)',
+                backgroundColor: 'var(--background-dark)',
                 border: '1px solid var(--border)',
                 color: '#fff',
                 borderRadius: '8px'
             }}
-            labelStyle={{ color: '#bbb' }}
+
             />
           <Legend />
           <Line type="monotone" dataKey={is_validation ? "val_accuracy" : "accuracy"} stroke="rgb(9, 239, 255)" name={(is_validation ? "Validation Accuracy" : "Accuracy")} />
