@@ -1,10 +1,8 @@
 TO-DO:
-- Python security measures for dataset_types
-- .png files not working?
-- Text layers.
-- Links in buttons
+- Freezing layers
 - Look into Area datasets
 - Track multiple datasets used
+- Improve guide
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

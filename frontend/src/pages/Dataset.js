@@ -353,9 +353,12 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             const startXPercent = Math.round((startX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
             const startYPercent = Math.round((startY / boundingRect.height) * 100 * 10) / 10
 
+            setRectanglePreviewDimensions([0, 0])
+            setRectanglePreviewOffset([0, 0])
             setImageMouseDown(true)
         
             const handleMouseMove = (e) => {
+                console.log("MOVED")
                 const newX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
                 const newY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
 
@@ -394,6 +397,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             };
         
             document.addEventListener("mousemove", handleMouseMove);
+
             document.addEventListener("mouseup", handleMouseUp);
         }
     
@@ -422,6 +426,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             temp[elementsIndex].areas.push(res.data)
 
             setLabelSelected(null)
+            setPointSelected([-1,-1])
             setSelectedAreaIdx(temp[elementsIndex].areas.length - 1)
             setSelectedArea(res.data)
 
@@ -459,6 +464,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 temp[elementsIndex].areas.push(res.data)
 
                 setLabelSelected(null)
+                setPointSelected([-1,-1])
                 setSelectedAreaIdx(temp[elementsIndex].areas.length - 1)
                 setSelectedArea(res.data)
 
@@ -786,7 +792,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             e.stopPropagation()
                         }}
                         onMouseDown={(e) => {
-                            if ((pointSelected[0] == -1 && pointSelected[1] == -1) && (labelSelected != null || selectedArea != null)) {
+                            if ((pointSelected[0] == -1 && pointSelected[1] == -1) && (labelSelected != null || selectedArea != null) && (e.button === 0)) {    // Only left click
                                 handleImageMouseDown(e)
                             }
                         }}
@@ -796,7 +802,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             getPoints(area, idx)
                         ))}
 
-                        {imageMouseDown && labelSelected && <div 
+                        {imageMouseDown && labelSelected && rectanglePreviewDimensions[0] > 0 && rectanglePreviewDimensions[1] > 0 && <div 
                         className="dataset-rectangle-preview"
                         style={{
                             width: "calc(" + rectanglePreviewDimensions[0] + "% + " + Math.round(10 / (1 + (zoom - 1)* 3)) + "px)",
@@ -1244,6 +1250,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 setSelectedAreaIdx(null)
                 setSelectedArea(null)
                 setSelectedAreaIdx(null)
+                setPointSelected([-1, -1])
                 setLabelSelected(label.id)
             } else {
                 setLabelSelected(null)
@@ -2355,6 +2362,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                     onClick={() => {
                                         if (areaIdx === null || areaIdx != selectedAreaIdx) {
                                             setLabelSelected(null)
+                                            setPointSelected([-1,-1])
                                             setSelectedArea(area)
                                             setSelectedAreaIdx(areaIdx)
                                         } else {

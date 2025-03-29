@@ -14,19 +14,25 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
     return (
         <nav id="toolbar">
             <img id="toolbar-logo" src={BACKEND_URL + "/static/images/logoWhite.svg"} onClick={() => navigate("/")}/>
-            <p className="toolbar-text toolbar-title" onClick={() => navigate("/")}>Dalinar</p>
+            <a href="/" className="toolbar-text toolbar-title" onClick={(e) => {
+                e.preventDefault()
+                navigate("/")
+            }}>Dalinar</a>
 
-            <p className={"toolbar-text " + (window.location.pathname.replaceAll("/", "") == "home" ? "toolbar-text-activated" : "")} onClick={() => {
+            <a href="/home" className={"toolbar-text " + (window.location.pathname.replaceAll("/", "") == "home" ? "toolbar-text-activated" : "")} onClick={(e) => {
+                e.preventDefault()
                 checkLoggedIn("/home")
-            }}>Home</p>
+            }}>Home</a>
 
-            <p className={"toolbar-text " + (window.location.pathname.replaceAll("/", "") == "explore" ? "toolbar-text-activated" : "")} onClick={() => {
+            <a href="/explore" className={"toolbar-text " + (window.location.pathname.replaceAll("/", "") == "explore" ? "toolbar-text-activated" : "")} onClick={(e) => {
+                e.preventDefault()
                 navigate("/explore") 
-            }}>Explore</p>
+            }}>Explore</a>
 
-            <p className={"toolbar-text " + (window.location.pathname.replaceAll("/", "") == "guide" ? "toolbar-text-activated" : "")} onClick={() => {
+            <a href="/guide" className={"toolbar-text " + (window.location.pathname.replaceAll("/", "") == "guide" ? "toolbar-text-activated" : "")} onClick={(e) => {
+                e.preventDefault()
                 externalLink("/guide")
-            }}>Guide <img className="toolbar-icon" src={BACKEND_URL + "/static/images/external.png"}/></p>
+            }}>Guide <img className="toolbar-icon" src={BACKEND_URL + "/static/images/external.png"}/></a>
 
             {!loadingCurrentProfile && currentProfile.user === "" &&
                 <div className="toolbar-auth">

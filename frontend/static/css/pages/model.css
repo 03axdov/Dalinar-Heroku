@@ -708,8 +708,6 @@ div.layer-element-mode-input {
     margin-right: 15px;
 }
 
-
-
 @media all and (max-width: 1400px) {
     .model-evaluate-button {
         font-size: 0rem;
