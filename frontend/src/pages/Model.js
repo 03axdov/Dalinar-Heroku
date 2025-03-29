@@ -510,6 +510,30 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         if (model.optimizer) data.push(["Optimizer", model.optimizer])
         if (model.loss_function) data.push(["Loss function", model.loss_function])
         if (model.model_type.toLowerCase() == "text") data.push(["Input sequence length", model.input_sequence_length])
+        if (isTrained) {
+            data.push(["Evaluated on", <div className="trained-on-container">
+
+                {model.evaluated_on && <div className="trained-on-element" onClick={() => {
+                    const URL = window.location.origin + "/datasets/" + (model.evaluated_on.visibility == "public" ? "public/" : "") + model.evaluated_on.id
+                    var win = window.open(URL, '_blank');
+                    win.focus();
+                }}>
+                    {model.evaluated_on.name} - {Math.round(10**6 * model.evaluated_accuracy) / 10**4 + "%"} accuracy
+                    <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                </div>}
+
+                {model.evaluated_on_tensorflow && <div className="trained-on-element" onClick={() => {
+                    const URL = "https://www.tensorflow.org/api_docs/python/tf/keras/datasets/" + model.evaluated_on_tensorflow + "/load_data"
+                    var win = window.open(URL, '_blank');
+                    win.focus();
+                }}>
+                    <img className="trained-on-tensorflow-icon" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} />
+                    {model.evaluated_on_tensorflow} - {Math.round(10**6 * model.evaluated_accuracy) / 10**4 + "%"} accuracy
+                    <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                </div>}
+
+            </div>])
+        }
         return data
     }
 

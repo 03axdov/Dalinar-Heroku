@@ -1819,6 +1819,21 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         let data = [["Owner", dataset.ownername]]
         if (dataset.dataset_type.toLowerCase() == "image" && dataset.imageWidth) data.push(["Image dimensions", "(" + dataset.imageWidth + ", " + dataset.imageHeight + ")"])
         if (dataset.dataset_type.toLowerCase() == "image") data.push(["Type of data", dataset.datatype])
+        if (dataset.trained_with && dataset.trained_with.length > 0) {
+            data.push(["Trained with by", <div className="trained-on-container">
+                {dataset.trained_with.slice(0, 10).map((model, idx) => (
+                    <div key={idx} className="trained-on-element" onClick={() => {
+                        const URL = window.location.origin + "/models/" + model[0]
+                        var win = window.open(URL, '_blank');
+                        win.focus();
+                    }}>
+                        {model[1]}
+                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                    </div>
+                ))}
+                {dataset.trained_with.length > 10 && <p>and {dataset.trained_with.length - 10} others</p>}
+            </div>])
+        }
         return data
     }
 
