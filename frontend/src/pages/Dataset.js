@@ -9,6 +9,7 @@ import DownloadCode from "../components/DownloadCode";
 
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import ProgressBar from "../components/ProgressBar";
+import DescriptionTable from "../components/DescriptionTable"
 
 
 const TOOLBAR_HEIGHT = 60
@@ -729,11 +730,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         setPosition({ x, y });
     
     };
-
-    function autoResize(el) {
-        el.style.height = 'auto'; // Reset
-        el.style.height = el.scrollHeight + 'px'; // Adjust to content height
-    }
 
     function getPreviewElement(element) {
         const extension = (element.file ? element.file.split(".").pop().split("?")[0] : "")
@@ -1819,6 +1815,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         document.addEventListener("mouseup", handleMouseUp);
     };
 
+    function getDescriptionTableData() {
+        let data = [["Owner", dataset.ownername]]
+        if (dataset.dataset_type.toLowerCase() == "image" && dataset.imageWidth) data.push(["Image dimensions", "(" + dataset.imageWidth + ", " + dataset.imageHeight + ")"])
+        if (dataset.dataset_type.toLowerCase() == "image") data.push(["Type of data", dataset.datatype])
+        return data
+    }
+
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
@@ -2229,32 +2232,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 </div>}
                             </div>
 
-                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{dataset.ownername}</p>
-
-                            {dataset.dataset_type.toLowerCase() == "image" && dataset.imageWidth && <p className="dataset-description-text"><span className="dataset-description-start">Image Dimensions: </span>({dataset.imageWidth}, {dataset.imageHeight})</p>}
-
-                            {dataset.dataset_type.toLowerCase() == "image" && <p className="dataset-description-text dataset-description-text-flex" style={{textTransform: "capitalize"}}>
-                                <span className="dataset-description-start">Type of data: </span>
-                                <img className="dataset-description-icon" src={BACKEND_URL + "/static/images/" + (dataset.datatype == "area" ? "area.svg" : "classification.png")}/>
-                                {dataset.datatype}
-                            </p>}
-
-                            {dataset.trained_with && dataset.trained_with.length > 0 && <div className="model-description-trained">
-                                <p className="dataset-description-text trained-on-text dataset-description-start">Trained with by:</p>
-                                <div className="trained-on-container">
-                                    {dataset.trained_with.slice(0, 10).map((model, idx) => (
-                                        <div key={idx} className="trained-on-element" onClick={() => {
-                                            const URL = window.location.origin + "/models/" + model[0]
-                                            var win = window.open(URL, '_blank');
-                                            win.focus();
-                                        }}>
-                                            {model[1]}
-                                            <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
-                                        </div>
-                                    ))}
-                                    {dataset.trained_with.length > 10 && <p>and {dataset.trained_with.length - 10} others</p>}
-                                </div>
-                            </div>}
+                            <DescriptionTable data={getDescriptionTableData()} />
 
                             <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{(dataset.description || "This dataset does not have a description.")}</p>
 

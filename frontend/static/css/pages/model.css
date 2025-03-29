@@ -601,7 +601,7 @@ div.layer-element-mode-input {
     background: var(--background-dark);
 }
   
-.training-table {
+.training-table, .description-table {
     width: 100%;
     border-collapse: collapse;
     text-align: left;
@@ -628,9 +628,22 @@ div.layer-element-mode-input {
     background: var(--background-dark);
 }
 
+.description-table td {
+    background: var(--background);
+}
+
+.description-table-container {
+    margin-bottom: 20px;
+}
+
 .train-model-after-container {
     width: auto;
     height: auto;
+}
+
+.train-model-epochs-label {
+    margin-left: 20px;
+    margin-right: 5px;
 }
 
 .toggle-model-metrics {
@@ -694,6 +707,8 @@ div.layer-element-mode-input {
     width: 24px;
     margin-right: 15px;
 }
+
+
 
 @media all and (max-width: 1400px) {
     .model-evaluate-button {

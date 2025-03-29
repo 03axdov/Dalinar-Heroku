@@ -23,10 +23,10 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
 
     const [datasetTypeShown, setDatasetTypeShown] = useState("my")  // "my" or "saved"
 
-    const [accuracy, setAccuracy] = useState(1)
-    const [loss, setLoss] = useState(1)
+    const [accuracy, setAccuracy] = useState(0)
+    const [loss, setLoss] = useState(0)
 
-    const [wasEvaluated, setWasEvaluated] = useState(true)
+    const [wasEvaluated, setWasEvaluated] = useState(false)
 
 
     useEffect(() => {
@@ -116,8 +116,8 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                     if (res.data["status"] != "failed") {
                         notification("Successfully evaluated dataset.", "success")
     
-                        setAccuracy(res.data["accuracy"])
-                        setLoss(res.data["loss"])
+                        setAccuracy(res.data["accuracy"].toFixed(4))
+                        setLoss(res.data["loss"].toFixed(4))
     
                         setWasEvaluated(true)
                     } else {

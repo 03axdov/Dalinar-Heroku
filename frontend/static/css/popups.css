@@ -477,7 +477,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: start;
-
+    margin-right: auto;
 }
 
 .train-model-dataset-type {

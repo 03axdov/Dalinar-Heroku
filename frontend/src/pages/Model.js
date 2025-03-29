@@ -13,6 +13,7 @@ import PredictionPopup from "../popups/PredictionPopup";
 import ModelMetrics from "../components/ModelMetrics";
 
 import { LAYERS, getLayerName } from "../layers";
+import DescriptionTable from "../components/DescriptionTable";
 
 
 // The default page. Login not required.
@@ -502,6 +503,16 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         document.addEventListener("mouseup", handleMouseUp);
     };
 
+    function getDescriptionTableData() {
+        let data = [["Owner", model.ownername]]
+        if (model.evaluated_on) data.push(["Evaluated on", model.evaluated_on.name])
+        data.push(["Type", model.model_type])
+        if (model.optimizer) data.push(["Optimizer", model.optimizer])
+        if (model.loss_function) data.push(["Loss function", model.loss_function])
+        if (model.model_type.toLowerCase() == "text") data.push(["Input sequence length", model.input_sequence_length])
+        return data
+    }
+
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
@@ -751,39 +762,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                 </div>}
                             </div>
 
-                            {(model.evaluated_on || model.evaluated_on_tensorflow) && <div className="model-description-trained">
-                                <p className="dataset-description-text trained-on-text dataset-description-start">Evaluated on:</p>
-                                <div className="trained-on-container">
-
-                                    {model.evaluated_on && <div className="trained-on-element" onClick={() => {
-                                        const URL = window.location.origin + "/datasets/" + (model.evaluated_on.visibility == "public" ? "public/" : "") + model.evaluated_on.id
-                                        var win = window.open(URL, '_blank');
-                                        win.focus();
-                                    }}>
-                                        {model.evaluated_on.name} - {Math.round(10**6 * model.evaluated_accuracy) / 10**4 + "%"} accuracy
-                                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
-                                    </div>}
-
-                                    {model.evaluated_on_tensorflow && <div className="trained-on-element" onClick={() => {
-                                        const URL = "https://www.tensorflow.org/api_docs/python/tf/keras/datasets/" + model.evaluated_on_tensorflow + "/load_data"
-                                        var win = window.open(URL, '_blank');
-                                        win.focus();
-                                    }}>
-                                        <img className="trained-on-tensorflow-icon" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} />
-                                        {model.evaluated_on_tensorflow} - {Math.round(10**6 * model.evaluated_accuracy) / 10**4 + "%"} accuracy
-                                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
-                                    </div>}
-
-                                </div>
-                            </div>}
-
-                            <p className="dataset-description-text"><span className="dataset-description-start">Type: </span>{model.model_type}</p>
-                            {model.model_type.toLowerCase() == "text" && <p className="dataset-description-text"><span className="dataset-description-start">Input sequence length: </span>{model.input_sequence_length}</p>}
-
-                            {model.optimizer && <p className="dataset-description-text"><span className="dataset-description-start">Optimizer: </span>{model.optimizer}</p>}
-                            {model.loss_function && <p className="dataset-description-text"><span className="dataset-description-start">Loss function: </span>{model.loss_function}</p>}
-
-                            <p className="dataset-description-text"><span className="dataset-description-start">Owner: </span>{model.ownername}</p>
+                            <DescriptionTable data={getDescriptionTableData()} />
 
                             <p className="dataset-description-text dataset-description-description dataset-description-text-margin">{(model.description || "This model does not have a description.")}</p>
 

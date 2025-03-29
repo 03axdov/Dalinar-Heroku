@@ -24,7 +24,7 @@ const ModelMetrics = ({ data, show_validation, trained_on_name, model, BACKEND_U
                 {trained_on_name}
             </div>
 
-            {show_validation && <div className="train-model-dataset-type-container">
+            {show_validation && <div className="train-model-dataset-type-container" style={{marginRight: 0}}>
                 <div className={"train-model-dataset-type-left train-model-dataset-type " + (epochTypeShown == "training" ? "train-model-dataset-type-selected" : "")}
                 onClick={() => setEpochTypeShown("training")}>Training</div>
                 <div className={"train-model-dataset-type-right train-model-dataset-type " + (epochTypeShown == "validation" ? "train-model-dataset-type-selected" : "")}

@@ -44,6 +44,7 @@ function DatasetElement({model, BACKEND_URL, isPublic=false}) {
             {model.downloaders && <p className="dataset-element-date">{model.downloaders.length + " download" + (model.downloaders.length != 1 ? "s" : "")}</p>}
             {model.layers && <p className="dataset-element-count">{model.layers.length + " layer" + (model.layers.length != 1 ? "s" : "")}</p>}
             {model.model_file && <p className="dataset-element-datatype">Built</p>}
+            <p className="dataset-element-shape">{model.model_type.charAt(0).toUpperCase() + model.model_type.slice(1)}</p>
 
         </div>
     )
