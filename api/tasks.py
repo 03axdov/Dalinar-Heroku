@@ -613,13 +613,15 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
                 
                 profile.evaluation_progress = 0.25
                 profile.save()
-                
+
                 dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance) 
                 
                 profile.evaluation_progress = 0.5
                 profile.save()
                 
-                dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+                dataset = dataset.batch(32).prefetch(tf.data.experimental.AUTOTUNE)
+                
+                model.summary()
                 
                 res = model.evaluate(dataset, return_dict=True)
                 
@@ -629,12 +631,15 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
                 profile.evaluation_progress = 0.8
                 profile.save()
                 
+                metric = "accuracy"
+                if model_instance.loss_function == "binary_crossentropy": metric = "binary_accuracy"
                 if model_instance.owner == profile:
                     model_instance.evaluated_on = dataset_instance
-                    model_instance.evaluated_accuracy = res["accuracy"]
+                    model_instance.evaluated_accuracy = res[metric]
                     model_instance.save()
                     
                 res["status"] = 200
+                res["accuracy"] = res[metric]
                 
                 return res
             
@@ -738,6 +743,9 @@ def predict_model_task(self, model_id, encoded_images, text):
                         prediction_arr = model.predict(image_tensor)
                         print(f"prediction_arr: {prediction_arr}")
                         prediction_idx = int(np.argmax(prediction_arr))
+                        if model_instance.loss_function == "binary_crossentropy":
+                            prediction_idx = int(prediction_arr[0][0] >= 0.5)
+                        
                         predicted_label = None
                         predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
                             

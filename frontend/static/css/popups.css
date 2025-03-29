@@ -477,23 +477,24 @@
     flex-direction: row;
     align-items: center;
     justify-content: start;
+
 }
 
 .train-model-dataset-type {
     padding: 5px 10px;
     box-sizing: border-box;
     font-size: 1.1rem;
-    background: var(--background-light);
+    background: var(--toolbar-dark);
 }
 .train-model-dataset-type:hover {
     cursor: pointer;
 }
 
 .train-model-dataset-type-selected {
-    background: var(--background-lighter);
+    background: var(--toolbar-lighter);
 }
 .train-model-dataset-type-selected:hover {
-    background: var(--background-lighter);
+    background: var(--toolbar-lighter);
 }
 
 .train-model-dataset-type-left {

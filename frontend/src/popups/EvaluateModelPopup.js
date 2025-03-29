@@ -120,7 +120,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
     
                         setWasEvaluated(true)
                     } else {
-                        notification("Evaluation failed.", "failure")
+                        notification("Evaluation failed: " + res.data["message"], "failure")
                     }
                 }, 200)
             } else {

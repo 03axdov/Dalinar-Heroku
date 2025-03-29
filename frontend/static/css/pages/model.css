@@ -598,6 +598,7 @@ div.layer-element-mode-input {
     padding: 20px;
     border: 1px solid var(--border);
     box-sizing: border-box;
+    background: var(--background-dark);
 }
   
 .training-table {
@@ -618,17 +619,19 @@ div.layer-element-mode-input {
 }
 
 .training-table th {
-    background: var(--background-light);
+    background: var(--toolbar);
     font-weight: 550;
     font-size: 1.2rem;
+}
+
+.training-table td {
+    background: var(--background-dark);
 }
 
 .train-model-after-container {
     width: auto;
     height: auto;
 }
-
-
 
 .toggle-model-metrics {
     position: absolute;
@@ -668,6 +671,7 @@ div.layer-element-mode-input {
     box-sizing: border-box;
     margin-bottom: 20px;
     width: 100%;
+    background: var(--toolbar);
 }
 
 .model-metrics-title {
@@ -683,7 +687,7 @@ div.layer-element-mode-input {
 }
 .model-metrics-title:hover {
     cursor: pointer;
-    background: var(--background-lighter);
+    background: var(--toolbar-lighter);
 }
 
 .model-metrics-dataset-icon {
