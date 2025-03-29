@@ -1571,6 +1571,6 @@ class GetTaskResult(APIView):
                 return Response({'status': 'in progress'}, status=status.HTTP_200_OK)
         else:
             message = task.result["Bad request"]
-            if len(message) > 50:
-                message = "An error occured."
+            if len(message) > 400:
+                message = message[:400] + "..."
             return Response({'status': 'failed', "message": message}, status=status.HTTP_200_OK)

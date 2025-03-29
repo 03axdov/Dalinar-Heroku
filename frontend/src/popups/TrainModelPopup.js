@@ -134,6 +134,10 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                     } else {
                         notification("Training failed: " + res.data["message"], "failure")
                     }
+
+                    if (document.visibilityState !== "visible") {
+                        alert("Training finished.")
+                    }
                 }, 200)
             } else if (res.data["status"] == "in progress") {
                 setTrainingProgress(res.data["training_progress"] * 100)
@@ -402,20 +406,13 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                             <select className="tensorflow-dataset-select" value={tensorflowDataset} onChange={(e) => {
                                 setTensorflowDataset(e.target.value)
                             }}>
-                                <optgroup label="Miscellaneous">
-                                    <option value="boston_housing">boston_housing</option>
-                                    <option value="california_housing">california_housing</option>
-                                </optgroup>
-                                {model_type.toLowerCase() == "image" && <optgroup label="Image">
-                                    <option value="cifar10">cifar10</option>
-                                    <option value="cifar100">cifar100</option>
-                                    <option value="mnist">mnist</option>
-                                    <option value="fashion_mnist">fashion_mnist</option>
-                                </optgroup>}
-                                {model_type.toLowerCase() == "text" && <optgroup label="Text">
-                                    <option value="imdb">imdb</option>
-                                    <option value="reuters">reuters</option>
-                                </optgroup>}
+                                
+                                {model_type.toLowerCase() == "image" && <option value="cifar10">cifar10</option>}
+                                {model_type.toLowerCase() == "image" && <option value="cifar100">cifar100</option>}
+                                {model_type.toLowerCase() == "image" && <option value="mnist">mnist</option>}
+                                {model_type.toLowerCase() == "image" && <option value="fashion_mnist">fashion_mnist</option>}
+
+                                {model_type.toLowerCase() == "text" && <option value="imdb">imdb</option>}
                             </select>
 
                             <button className="tensorflow-dataset-train-button" onClick={() => {

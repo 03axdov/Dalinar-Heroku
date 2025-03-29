@@ -31,6 +31,11 @@ def get_s3_client():
     return s3_client
 
 
+def set_training_progress(profile, progress):
+    profile.training_progress = progress
+    profile.save()
+
+
 def get_temp_model_name(id, timestamp, extension):
     return 'temp_model' + str(id) + "-" + str(timestamp) + '.' + extension
     
@@ -183,11 +188,11 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     # Initiate label_map
     label_map = {}
     num_labels = dataset_instance.labels.count()
-    for t, label in enumerate(dataset_instance.labels.all()):
+    for t, label in enumerate(dataset_instance.labels.all().order_by('id')):    # Order by ID so reordering / renaming doesn't impact order
         label_map[label.name] = t
     
     first_layer = model_instance.layers.all().first()
-    input_dims = (512,512,3)    # Just placeholder
+    input_dims = (512,512,3)    # Just placeholder, updated later
 
     currentLabel = 0
 
@@ -297,8 +302,7 @@ class TrainingProgressCallback(tf.keras.callbacks.Callback):
         self.total_epochs = total_epochs
 
     def on_epoch_end(self, epoch, logs=None):
-        self.profile.training_progress = round((epoch + 1) / self.total_epochs, 4)
-        self.profile.save()
+        set_training_progress(self.profile, round((epoch + 1) / self.total_epochs, 4))
 
 
 def get_accuracy_loss(history, model_instance, validation_size):
@@ -328,8 +332,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
         
         if model_instance.owner == profile:
             
-            profile.training_progress = -1 # To Show Preprocessing
-            profile.save()
+            set_training_progress(profile, -1)
             
             if model_instance.model_file:
                 
@@ -351,8 +354,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                         train_dataset = dataset.take(train_size)
                         validation_dataset = dataset.skip(train_size)
                     
-                        profile.training_progress = 0
-                        profile.save()
+                        set_training_progress(profile, 0)
                         
                         
                         if model_instance.model_type.lower() == "text": # Must be initialized
@@ -366,8 +368,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                                             validation_data=validation_dataset,
                                             callbacks=[progress_callback])
                     else:
-                        profile.training_progress = 0
-                        profile.save()
+                        set_training_progress(profile, 0)
                         
                         if model_instance.model_type.lower() == "text": # Must be initialized
                             model = get_vectorize_layer(model_instance, model, dataset)
@@ -407,12 +408,13 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     
                     model_instance.save()
                     
-                    profile.training_progress = -1 # To Show Preprocessing
-                    profile.save()
+                    set_training_progress(profile, -1)
             
                     return {"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss, "status": 200}
                 
                 except ValueError as e: # In case of invalid layer combination
+                    set_training_progress(profile, -1)
+                    
                     remove_temp_tf_model(model_instance, timestamp)
                     message = str(e)
                     if len(message) > 50:
@@ -420,6 +422,8 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
 
                     return {"Bad request": str(message), "status": 400}
                 except Exception as e:
+                    set_training_progress(profile, -1)
+                    
                     remove_temp_tf_model(model_instance, timestamp)
                     return {"Bad request": str(e), "status": 400}
             else:
@@ -431,6 +435,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
     except Dataset.DoesNotExist:
         return {"Not found": "Could not find dataset with the id " + str(dataset_id) + ".", "status": 404}
     except Exception as e:
+        set_training_progress(profile, -1)
         return {"Bad request": str(e), "status": 400}
     
 
@@ -469,6 +474,14 @@ def getTensorflowDatasetVocabulary(tensorflowDataset):
     vocab = [word for word in index_to_word if word is not None]
     return vocab
 
+from tensorflow.keras.utils import to_categorical
+
+tf_dataset_num_classes = {
+    "cifar10": 10,
+    "cifar100": 100,
+    "fashion_mnist": 10,
+    "mnist": 10
+}
 
 @shared_task(bind=True)
 def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epochs, validation_split, user_id):
@@ -477,16 +490,20 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
     
     try:
         model_instance = Model.objects.get(id=model_id)
+        last_layer = model_instance.layers.last()
         
         (x_train, y_train), (x_test, y_test) = getTensorflowPrebuiltDataset(tensorflowDataset=tensorflowDataset)
 
-        x_train = pad_sequences(x_train, maxlen=model_instance.input_sequence_length)
+        if model_instance.model_type.lower() == "text":
+            x_train = pad_sequences(x_train, maxlen=model_instance.input_sequence_length)
+        if last_layer.layer_type == "dense" and last_layer.nodes_count > 1:
+            y_train = to_categorical(y_train, num_classes=tf_dataset_num_classes[tensorflowDataset])
+
         dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
         
         if model_instance.owner == profile:
             
-            profile.training_progress = -1
-            profile.save()
+            set_training_progress(profile, -1)
             
             if model_instance.model_file:
                 timestamp = ""
@@ -494,6 +511,8 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     extension = str(model_instance.model_file).split(".")[-1]
                     
                     model, timestamp = get_tf_model(model_instance)
+                    
+                    model.summary()
                     
                     vectorize_layer = None
                     metrics = get_metrics(model_instance.loss_function)
@@ -516,8 +535,7 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     
                     progress_callback = TrainingProgressCallback(profile=profile, total_epochs=epochs)
 
-                    profile.training_progress = 0
-                    profile.save()
+                    set_training_progress(profile, 0)
 
                     if validation_size >= 1: # Some dataset are too small for validation
                         train_dataset = dataset.take(train_size).batch(32).prefetch(tf.data.experimental.AUTOTUNE)
@@ -569,12 +587,13 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     
                     model_instance.save()
                     
-                    profile.training_progress = -1 # To Show Preprocessing
-                    profile.save()
+                    set_training_progress(profile, -1)
             
                     return{"accuracy": accuracy, "loss": loss, "val_accuracy": val_accuracy, "val_loss": val_loss, "status": 200}
                 
                 except ValueError as e: # In case of invalid layer combination
+                    set_training_progress(profile, -1)
+                    
                     remove_temp_tf_model(model_instance, timestamp)
                     message = str(e)
 
@@ -583,6 +602,8 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
 
                     return {"Bad request": str(message), "status": 400}
                 except Exception as e:
+                    set_training_progress(profile, -1)
+                    
                     remove_temp_tf_model(model_instance, timestamp)
                     return {"Bad request": str(e), "status": 400}
             else:
@@ -592,8 +613,13 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
     except Model.DoesNotExist:
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
     except Exception as e:
+        set_training_progress(profile, -1)
         return {"Bad request": str(e), "status": 400}
     
+    
+def set_evaluation_progress(profile, progress):
+    profile.evaluation_progress = progress
+    profile.save()
     
 @shared_task(bind=True)
 def evaluate_model_task(self, model_id, dataset_id, user_id):
@@ -602,21 +628,18 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
         dataset_instance = Dataset.objects.get(id=dataset_id)
         profile = Profile.objects.get(user_id=user_id)
         
-        profile.evaluation_progress = 0
-        profile.save()
+        set_evaluation_progress(profile, 0)
 
         if model_instance.model_file:
             timestamp = ""
             try:
                 model, timestamp = get_tf_model(model_instance)
                 
-                profile.evaluation_progress = 0.25
-                profile.save()
+                set_evaluation_progress(profile, 0.25)
 
                 dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance) 
                 
-                profile.evaluation_progress = 0.5
-                profile.save()
+                set_evaluation_progress(profile, 0.5)
                 
                 dataset = dataset.batch(32).prefetch(tf.data.experimental.AUTOTUNE)
                 
@@ -627,8 +650,7 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
                 # Delete the temporary file after saving
                 remove_temp_tf_model(model_instance, timestamp)
                 
-                profile.evaluation_progress = 0.8
-                profile.save()
+                set_evaluation_progress(profile, 0.8)
                 
                 metric = "accuracy"
                 if model_instance.loss_function == "binary_crossentropy": metric = "binary_accuracy"
@@ -640,9 +662,13 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
                 res["status"] = 200
                 res["accuracy"] = res[metric]
                 
+                set_evaluation_progress(profile, 0)
+                
                 return res
             
             except ValueError as e: # In case of invalid layer combination
+                set_evaluation_progress(profile, 0)
+                
                 message = str(e)
                 remove_temp_tf_model(model_instance, timestamp)
                 if len(message) > 50:
@@ -652,6 +678,8 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
 
                 return {"Bad request": str(message), "status": 400}
             except Exception as e:
+                set_evaluation_progress(profile, 0)
+                
                 remove_temp_tf_model(model_instance, timestamp)
                 return {"Bad request": str(e), "status": 400}
         else:
@@ -662,6 +690,7 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
     except Dataset.DoesNotExist:
         return {"Not found": "Could not find dataset with the id " + str(dataset_id) + ".", "status": 404}
     except Exception as e:
+        set_evaluation_progress(profile, 0)
         return {"Bad request": str(e), "status": 400}
     
     
@@ -701,6 +730,17 @@ def decode_image(encoded_image):    # Used for prediction, creates a BytesIO obj
     file_like_object = BytesIO(img_data)
     return file_like_object
 
+def get_tensorflow_labels(num_labels):
+    li = []
+    for i in range(num_labels):
+        hue = int(360 * i / num_labels)  # Divide the full hue spectrum by 10
+        color = f"hsl({hue}, 100%, 50%)"
+        li.append({
+            "name": str(i),
+            "color": color
+        })
+    return li
+
 tf_dataset_to_labels = {
     "imdb": [
         {
@@ -711,8 +751,11 @@ tf_dataset_to_labels = {
             "name": "negative",
             "color": "red"
         }
-        
-    ]
+    ],
+    "mnist": get_tensorflow_labels(10),
+    "fashion_mnist": get_tensorflow_labels(10),
+    "cifar10": get_tensorflow_labels(10),
+    "cifar100": get_tensorflow_labels(100)
 }
     
 @shared_task(bind=True)
@@ -739,6 +782,8 @@ def predict_model_task(self, model_id, encoded_images, text):
                         #print(image)
                         image_tensor = preprocess_uploaded_image(image, target_size)
                         
+                        print(image_tensor)
+                        
                         prediction_arr = model.predict(image_tensor)
                         print(f"prediction_arr: {prediction_arr}")
                         prediction_idx = int(np.argmax(prediction_arr))
@@ -746,10 +791,16 @@ def predict_model_task(self, model_id, encoded_images, text):
                             prediction_idx = int(prediction_arr[0][0] >= 0.5)
                         
                         predicted_label = None
-                        predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
-                            
-                        prediction_names.append(predicted_label.name)
-                        prediction_colors.append(predicted_label.color)
+                        
+                        predicted_label = None
+                        if model_instance.trained_on:
+                            predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
+                            prediction_names.append(predicted_label.name)
+                            prediction_colors.append(predicted_label.color)
+                        else:
+                            predicted_label = tf_dataset_to_labels[model_instance.trained_on_tensorflow][prediction_idx]
+                            prediction_names.append(predicted_label["name"])
+                            prediction_colors.append(predicted_label["color"])
                     
                     remove_temp_tf_model(model_instance, timestamp)
                     

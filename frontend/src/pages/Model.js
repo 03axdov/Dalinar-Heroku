@@ -208,6 +208,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                     notification("Building failed.", "failure")
                 }
 
+                setShowModelMetrics(false)
                 setProcessingBuildModel(false)
                 setShowBuildModelPopup(false)
 

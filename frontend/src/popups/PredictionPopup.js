@@ -108,16 +108,16 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
         })
         .then((res) => {
             if (res.data["status"] != "in progress") {
-                let data = res.data
-                setPredictions(data["predictions"])
-                setPredictionColors(data["colors"])
-
                 if (res.data["status"] == "failed") {
                     notification("Error: " + res.data["message"], "failure")
                 } else {
-                    notification("Successfully predicted data.", "success")
+
+                    let data = res.data
+                    setPredictions(data["predictions"])
+                    setPredictionColors(data["colors"])
+
+                    notification("Successfully predicted data.", "success")  
                 }
-                console.log(data)
 
                 clearInterval(resInterval)
                 setPredictionProgress(100)

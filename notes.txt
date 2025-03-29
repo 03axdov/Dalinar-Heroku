@@ -3,6 +3,8 @@ TO-DO:
 - Look into Area datasets
 - Track multiple datasets used
 - Improve guide
+- Validators for layers.js
+- Paste images for prediction
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py
