@@ -226,6 +226,13 @@ class GetDatasetPublic(APIView):
             return Response({'Bad Request': 'Id parameter not found in call to GetDataset.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
+def get_element_text(element, dataset_type):
+    if dataset_type.lower() == "text":
+        return element.read().decode('utf-8')
+    else:
+        return ""
+
+
 class CreateDataset(APIView):
     serializer_class = CreateDatasetSerializer
     parser_classes = [MultiPartParser, FormParser]
@@ -273,6 +280,7 @@ class CreateDataset(APIView):
                             element_request = factory.post("/create-element/", data={
                                 "file": element,
                                 "dataset": dataset_instance.id,
+
                             }, format="multipart")
                             element_request.user = request.user
                             
@@ -551,6 +559,7 @@ class CreateElement(APIView):
     
     def post(self, request, format=None):
         data = self.request.data
+        print(f"data: {data}")
         serializer = self.serializer_class(data=data)
         
         if serializer.is_valid():
@@ -572,9 +581,6 @@ class CreateElement(APIView):
                             # Resize images if dataset has specified dimensions
                             if dataset.imageHeight and dataset.imageWidth and fileExtension in ALLOWED_IMAGE_FILE_EXTENSIONS:
                                 resize_element_image(instance, dataset.imageWidth, dataset.imageHeight)
-                        else:   # Text does not have file, so name must be manually set
-                            instance.name = data["name"]
-                            instance.save()
                             
                         return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
                     

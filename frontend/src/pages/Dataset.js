@@ -923,17 +923,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
             // For text datasets include text in addition to file
             formData.append('file', file)
-            if (dataset.dataset_type.toLowerCase() == "text") {
-                try {
-                    const text = await getTextFromFile(file);
-                    formData.append("text", text);
-                } catch (err) {
-                    console.error("Failed to read text from file " + file.name + ":", err);
-                    notification("Failed to read text from file " + file.name, "failure");
-                    formData.append("text", "");
-                }
-                formData.append("name", file.name)
-            }
             
             formData.append('dataset', dataset.id)
             if (elements.length > 0) {  // So it's added to the bottom of the list

@@ -122,7 +122,7 @@ class Element(models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="elements", null=True)
     name = models.CharField(max_length=100)
     file = models.FileField(upload_to=element_file_path, null=True, validators=[FileExtensionValidator(allowed_extensions=ALLOWED_IMAGE_FILE_EXTENSIONS + ALLOWED_TEXT_FILE_EXTENSIONS)])
-    text = models.CharField(max_length=10000, null=True, blank=True)    # Only used for text datasets
+    text = models.CharField(max_length=100000, null=True, blank=True)    # Only used for text datasets
     
     label = models.ForeignKey(Label, on_delete=models.SET_NULL, related_name="labels", blank=True, null=True)
     

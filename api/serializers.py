@@ -24,7 +24,32 @@ class ElementSerializer(serializers.ModelSerializer):
 class CreateElementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Element
-        fields = ("dataset", "file", "index", "text")
+        fields = ("dataset", "file", "index")
+        
+    def validate(self, data):
+        text = data.get("text")
+        file = data.get("file")
+
+        if not text and not file:
+            raise serializers.ValidationError("You must provide either a file or text.")
+
+        return data
+    
+    def create(self, validated_data):
+        file = validated_data.get("file")
+        text = validated_data.get("text")
+        dataset = validated_data.get("dataset")
+
+        if file and not text:
+            if dataset.dataset_type.lower() == "text":
+                try:
+                    content = file.read().decode("utf-8")
+                    validated_data["text"] = content
+                    file.seek(0)  # Reset so the file can still be saved if needed
+                except UnicodeDecodeError:
+                    raise serializers.ValidationError("File must be UTF-8 encoded text.")
+
+        return super().create(validated_data)
         
         
 class EditElementSerializer(serializers.ModelSerializer):
