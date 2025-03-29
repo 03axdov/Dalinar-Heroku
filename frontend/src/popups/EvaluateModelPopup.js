@@ -3,6 +3,7 @@ import axios from 'axios'
 import DatasetElement from "../components/DatasetElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import ProgressBar from "../components/ProgressBar"
+import TrainingTable from "../components/TrainingTable"
 
 function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, currentProfile, BACKEND_URL, notification, activateConfirmPopup}) {
 
@@ -22,10 +23,10 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
 
     const [datasetTypeShown, setDatasetTypeShown] = useState("my")  // "my" or "saved"
 
-    const [accuracy, setAccuracy] = useState([])  // List over accuracy for trained epochs
-    const [loss, setLoss] = useState([])  // Same as above but for loss
+    const [accuracy, setAccuracy] = useState(1)
+    const [loss, setLoss] = useState(1)
 
-    const [wasEvaluated, setWasEvaluated] = useState(false)
+    const [wasEvaluated, setWasEvaluated] = useState(true)
 
 
     useEffect(() => {
@@ -378,18 +379,15 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                 
             </div>}
 
-            {wasEvaluated && <div className="train-model-popup-container" onClick={(e) => {
+            {wasEvaluated && <div className="train-model-popup-container" style={{width: "auto", height: "auto", overflow: "hidden"}} onClick={(e) => {
                 e.stopPropagation()
             }}>
                 <div className="explore-datasets-title-container">
-                    <h1 className="create-layer-popup-title successfully-trained-title">Successfully evaluated model <img className="trained-successfully-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/></h1>
+                    <h1 className="create-layer-popup-title successfully-trained-title">Successfully evaluated model<img className="trained-successfully-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/></h1>
                 </div>
 
-                <div className="trained-model-epochs">
-                    <div className="trained-model-epoch">
-                        <span className="epoch-accuracy">Accuracy: {accuracy * 100 + "%"}</span>Loss: {loss}
-                    </div>
-                </div>
+                <TrainingTable data={[{accuracy: accuracy, loss: loss}]} skip_epoch={true}/>
+
             </div>}
         </div>
     )

@@ -497,10 +497,9 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     
                     vectorize_layer = None
                     metrics = get_metrics(model_instance.loss_function)
+                    
                     if model_instance.model_type.lower() == "text": # Must be initialized
-                        print("A")
                         vocab = getTensorflowDatasetVocabulary(tensorflowDataset)
-                        print("B")
 
                         model = get_vectorize_layer(model_instance, model, dataset, vocab)
                         
@@ -540,7 +539,7 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                             model
                         ])
                         model.compile(optimizer=model_instance.optimizer, loss=model_instance.loss_function, metrics=[metrics])
-                        _ = model(tf.constant([["this is a test"]], dtype=tf.string))
+                        _ = model(tf.constant([["for building the model"]], dtype=tf.string))
                     
                     # UPDATING MODEL_FILE
                     # Create a temporary file

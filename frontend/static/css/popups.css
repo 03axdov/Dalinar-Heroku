@@ -504,25 +504,6 @@
     border-radius: 0 5px 5px 0;
 }
 
-.train-model-epochs-container, .train-model-validation-container {
-    margin-left: 40px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.train-model-epochs-container {
-    margin-left: auto;
-}
-
-.train-model-epochs-label {
-    font-size: 1.1rem;
-    margin-right: 10px;
-}
-
-.train-model-epochs {
-    margin: 0!important;
-}
 
 .train-model-inp {
     background: var(--background-dark);
@@ -549,46 +530,6 @@
     margin-bottom: 20px;
     border-bottom: 1px solid var(--border);
     padding-bottom: 3px;
-}
-
-.trained-model-epochs {
-    width: 100%;
-    height: 100%;
-    border-radius: 5px;
-    display: flex;
-    flex-direction: column;
-    background: var(--background-dark);
-    overflow: auto;
-    box-sizing: border-box;
-    padding: 10px 20px;
-}
-
-.trained-model-epochs::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
-}
-
-.trained-model-epoch {
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    font-size: 1rem;
-    margin-bottom: 7px;
-}
-
-.epoch-index {
-    min-width: 150px;
-    margin-right: 20px;
-}
-
-.epoch-accuracy {
-    min-width: 250px;
-    max-width: 250px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    margin-right: 20px;
 }
 
 .tensorflow-dataset-container {
@@ -685,6 +626,14 @@
     width: 20px;
     border-radius: 10px;
     margin-right: 10px;
+}
+
+.evaluation-stat {
+    font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+    width: 100%;
+    text-align: left;
 }
 
 @media all and (max-width: 1000px) {
