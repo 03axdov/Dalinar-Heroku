@@ -3,7 +3,6 @@
     height: 100%;
     display: flex;
     flex-direction: row;
-    align-items: center;
     justify-content: center;
     background: var(--background-dark);
 }
@@ -100,13 +99,14 @@ button {
 }
 
 .accounts-form-container {
+    align-self: flex-start;  /* key fix */
     width: var(--form-width);
     max-width: 550px;
-    overflow-y: auto;
-    max-height: 100%;
+    margin-top: 50px;
+    height: auto;
     box-sizing: border-box;
     padding: 20px;
-    background: var(--background-light);
+    background: var(--background);
     border-radius: 5px;
 }
 

@@ -36,13 +36,14 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
 
             {!loadingCurrentProfile && currentProfile.user === "" &&
                 <div className="toolbar-auth">
-                    <a href="/accounts/login" className="toolbar-text" onClick={(e) => {
+                    <a className="toolbar-text"  onClick={() => {
+                        window.location.href = window.location.origin + "/accounts/signup/"
+                    }}>Register</a>
+                    <button href="/accounts/login" className="toolbar-button toolbar-register" onClick={(e) => {
                         e.preventDefault()
                         window.location.href = window.location.origin + "/accounts/login/"
-                    }}>Sign in</a>
-                    <button className="toolbar-button toolbar-register" onClick={() => {
-                        window.location.href = window.location.origin + "/accounts/signup/"
-                    }}>Register</button>
+                    }}>Sign in</button>
+
                 </div>
             }
             {!loadingCurrentProfile && currentProfile.user !== "" &&

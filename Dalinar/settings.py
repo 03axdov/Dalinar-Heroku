@@ -31,6 +31,8 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    "allauth.socialaccount.providers.facebook",
     
     "api.apps.ApiConfig",
     'corsheaders',
@@ -38,7 +40,24 @@ INSTALLED_APPS = [
     "frontend.apps.FrontendConfig",
     "storages"
 ]
+SITE_ID = 1
 
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+
+# Get back to these
+SOCIALACCOUNT_PROVIDERS = {
+    "github": {
+        "APP": {
+            "client_id": 123,
+            "secret": 456,
+            "key": 7
+        }
+    }
+}
+ 
 CORS_ALLOW_ALL_ORIGINS = True # If this is used then `CORS_ALLOWED_ORIGINS` will not have any effect
 CORS_ALLOW_CREDENTIALS = True
 
