@@ -34,14 +34,8 @@ function Home({currentProfile, notification, BACKEND_URL}) {
     const [searchSaved, setSearchSaved] = useState("")
     const [searchSavedModels, setSearchSavedModels] = useState("")
 
-    const [showImage, setShowImage] = useState(true)
-    const [showText, setShowText] = useState(true)
-
-    const [showBuilt, setShowBuilt] = useState(true)
-    const [showNotBuilt, setShowNotBuilt] = useState(true)
-    
-    const [showDatasetType, setShowDatasetType] = useState(false)
-    const [showModelType, setShowModelType] = useState(false)
+    const [datasetShow, setDatasetShow] = useState("all")
+    const [modelShow, setModelShow] = useState("all")
 
     useEffect(() => {
         getDatasets()
@@ -347,10 +341,21 @@ function Home({currentProfile, notification, BACKEND_URL}) {
         };
     }, [searchSavedModels]);
 
-    return <div className="home-container" onClick={(e) => {
-        setShowDatasetType(false)
-        setShowModelType(false)
-    }}>
+    function datasetShouldShow(dataset_type) {
+        console.log(dataset_type)
+        if (datasetShow == "all" || datasetShow == dataset_type.toLowerCase()) {
+            return true;
+        }
+        return false
+    }
+
+    function modelShouldShow(model) {
+        if (modelShow == "all") return true
+        if (modelShow == "built") return model.model_file != null
+        if (modelShow == "not-built") return model.model_file == null
+    }
+
+    return <div className="home-container">
         
         <div className="home-sidebar">
             <button className="sidebar-button" onClick={() => {
@@ -390,32 +395,13 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                     <h2 className="my-datasets-title">My Datasets</h2>
 
                     <div className="title-forms">
-                        <div className="dataset-type-options-container" onClick={(e) => {
-                            e.stopPropagation()
-                        }}>
-                            <button className="dataset-type-options-button" onClick={(e) => {
-                                
-                                setShowDatasetType(!showDatasetType)
+                        <select title="Show which types" className="explore-datasets-sort" value={datasetShow} onChange={(e) => {
+                                setDatasetShow(e.target.value)
                             }}>
-                                Types<img className="dataset-type-options-icon" src={BACKEND_URL + "/static/images/down.svg"}/>
-                            </button>
-                            
-                            {showDatasetType && <div className="dataset-type-options">
-                                <div className="explore-datasets-type">
-                                    <input className="explore-datasets-checkbox" type="checkbox" id="image" checked={showImage} onChange={() => {
-                                        setShowImage(!showImage)
-                                    }}/>
-                                    <label htmlFor="image" className="explore-label">Image</label>
-                                </div>
-                                
-                                <div className="explore-datasets-type no-margin"> 
-                                    <input className="explore-datasets-checkbox" type="checkbox" id="text" checked={showText} onChange={() => {
-                                        setShowText(!showText)
-                                    }}/> 
-                                    <label htmlFor="text" className="explore-label">Text</label>
-                                </div>
-                            </div>}
-                        </div>
+                            <option value="all">All</option>
+                            <option value="image">Image</option>
+                            <option value="text">Text</option>
+                        </select>
 
                         <select title="Sort by" className="explore-datasets-sort" value={sortDatasets} onChange={(e) => {
                                 setSortDatasets(e.target.value)
@@ -439,7 +425,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 
                 <div className="my-datasets-container">
                     {datasets.map((dataset) => (
-                        ((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText) ? <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL}/> : "")
+                        ((datasetShouldShow(dataset.dataset_type)) ? <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL}/> : "")
                     ))}
                     {!loading && datasets.length == 0 && search.length == 0 && <p>You don't have any datasets. Click <span className="link" onClick={() => {
                         navigate("/create-dataset")
@@ -458,32 +444,13 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
                     <div className="title-forms">
 
-                        <div className="dataset-type-options-container" onClick={(e) => {
-                            e.stopPropagation()
-                        }}>
-                            <button className="dataset-type-options-button" onClick={(e) => {
-                                
-                                setShowModelType(!showModelType)
+                        <select title="Sort by" className="explore-datasets-sort" value={modelShow} onChange={(e) => {
+                                setModelShow(e.target.value)
                             }}>
-                                Types<img className="dataset-type-options-icon" src={BACKEND_URL + "/static/images/down.svg"}/>
-                            </button>
-                            
-                            {showModelType && <div className="model-type-options">
-                                <div className="explore-datasets-type">
-                                    <input className="explore-datasets-checkbox" type="checkbox" id="built" checked={showBuilt} onChange={() => {
-                                        setShowBuilt(!showBuilt)
-                                    }}/>
-                                    <label htmlFor="built" className="explore-label">Built</label>
-                                </div>
-                                
-                                <div className="explore-datasets-type no-margin"> 
-                                    <input className="explore-datasets-checkbox" type="checkbox" id="not-built" checked={showNotBuilt} onChange={() => {
-                                        setShowNotBuilt(!showNotBuilt)
-                                    }}/> 
-                                    <label htmlFor="not-built" className="explore-label">Not built</label>
-                                </div>
-                            </div>}
-                        </div>
+                            <option value="all">All</option>
+                            <option value="built">Built</option>
+                            <option value="not-built">Not built</option>
+                        </select>
 
                         <select title="Sort by" className="explore-datasets-sort" value={sortModels} onChange={(e) => {
                                 setSortModels(e.target.value)
@@ -505,7 +472,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 
                 <div className="my-datasets-container">
                     {models.map((model) => (
-                       ((model.model_file ? showBuilt : showNotBuilt) ? <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL}/> : "")
+                       (modelShouldShow(model) ? <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL}/> : "")
                     ))}
                     {!loadingModels && models.length == 0 && searchModels.length == 0 && <p>You don't have any models. Click <span className="link" onClick={() => {
                         navigate("/create-model")
@@ -536,59 +503,21 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
                         </select>
 
-                        {savedTypeShown == "datasets" && <div className="dataset-type-options-container" onClick={(e) => {
-                            e.stopPropagation()
-                        }}>
-                            <button className="dataset-type-options-button" onClick={(e) => {
-                                
-                                setShowDatasetType(!showDatasetType)
+                        {savedTypeShown == "dataset" && <select title="Sort by" className="explore-datasets-sort" value={datasetShow} onChange={(e) => {
+                                setDatasetShow(e.target.value)
                             }}>
-                                Types<img className="dataset-type-options-icon" src={BACKEND_URL + "/static/images/down.svg"}/>
-                            </button>
-                            
-                            {showDatasetType && <div className="dataset-type-options">
-                                <div className="explore-datasets-type">
-                                    <input className="explore-datasets-checkbox" type="checkbox" id="image" checked={showImage} onChange={() => {
-                                        setShowImage(!showImage)
-                                    }}/>
-                                    <label htmlFor="image" className="explore-label">Image</label>
-                                </div>
-                                
-                                <div className="explore-datasets-type no-margin"> 
-                                    <input className="explore-datasets-checkbox" type="checkbox" id="text" checked={showText} onChange={() => {
-                                        setShowText(!showText)
-                                    }}/> 
-                                    <label htmlFor="text" className="explore-label">Text</label>
-                                </div>
-                            </div>}
-                        </div>}
+                            <option value="all">All</option>
+                            <option value="image">Image</option>
+                            <option value="text">Text</option>
+                        </select>}
 
-                        {savedTypeShown == "models" && <div className="dataset-type-options-container" onClick={(e) => {
-                            e.stopPropagation()
-                        }}>
-                            <button className="dataset-type-options-button" onClick={(e) => {
-                                
-                                setShowModelType(!showModelType)
+                        {savedTypeShown == "models" && <select title="Sort by" className="explore-datasets-sort" value={modelShow} onChange={(e) => {
+                                setModelShow(e.target.value)
                             }}>
-                                Types<img className="dataset-type-options-icon" src={BACKEND_URL + "/static/images/down.svg"}/>
-                            </button>
-                            
-                            {showModelType && <div className="model-type-options">
-                                <div className="explore-datasets-type">
-                                    <input className="explore-datasets-checkbox" type="checkbox" id="built" checked={showBuilt} onChange={() => {
-                                        setShowBuilt(!showBuilt)
-                                    }}/>
-                                    <label htmlFor="built" className="explore-label">Built</label>
-                                </div>
-                                
-                                <div className="explore-datasets-type no-margin"> 
-                                    <input className="explore-datasets-checkbox" type="checkbox" id="not-built" checked={showNotBuilt} onChange={() => {
-                                        setShowNotBuilt(!showNotBuilt)
-                                    }}/> 
-                                    <label htmlFor="not-built" className="explore-label">Not built</label>
-                                </div>
-                            </div>}
-                        </div>}
+                            <option value="all">All</option>
+                            <option value="built">Built</option>
+                            <option value="not-built">Not built</option>
+                        </select>}
 
                         {savedTypeShown == "datasets" && <select title="Sort by" className="explore-datasets-sort" value={sortSavedDatasets} onChange={(e) => {
                                 setSortSavedDatasets(e.target.value)
@@ -628,7 +557,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 
                 {savedTypeShown == "datasets" && savedDatasets && <div className="my-datasets-container">
                     {savedDatasets.map((dataset) => (
-                        (((dataset.dataset_type.toLowerCase() == "image" ? showImage : showText)) ? <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL} isPublic={true}/> : "")
+                        ((datasetShouldShow(dataset.dataset_type)) ? <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL} isPublic={true}/> : "")
                     ))}
                     {!loadingSaved && currentProfile && savedDatasets.length == 0 && searchSaved.length == 0 && <p className="gray-text">You don't have any saved datasets.</p>}
                     {!loadingSaved && currentProfile && savedDatasets.length == 0 && searchSaved.length > 0 && <p className="gray-text">No such saved datasets found.</p>}
@@ -639,7 +568,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
                 {savedTypeShown == "models" && savedModels && <div className="my-datasets-container">
                     {savedModels.map((model) => (
-                       ((model.model_file ? showBuilt : showNotBuilt) ? <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL} isPublic={true}/> : "")
+                       (modelShouldShow(model) ? <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL} isPublic={true}/> : "")
                     ))}
                     {!loadingSaved && savedModels.length == 0 && searchSavedModels.length == 0 && <p className="gray-text">You don't have any saved models.</p>}
                     {!loadingSaved && savedModels.length == 0 && searchSavedModels.length > 0 && <p className="gray-text">No such saved models found.</p>}
