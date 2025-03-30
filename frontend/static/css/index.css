@@ -350,6 +350,10 @@ input {
     padding: 10px 20px;
     z-index: 2;
 }
+.progress-bar-long {
+    width: 750px;
+    max-width: 80%;
+}
 
 .progress-bar-spinner {
     height: 20px;

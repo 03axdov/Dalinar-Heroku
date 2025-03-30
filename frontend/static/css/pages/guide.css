@@ -6,7 +6,8 @@
 }
 
 .guide-toolbar {
-    width: var(--home-sidebar-width);
+    width: var(--guide-sidebar-width);
+    min-width: var(--guide-sidebar-width);
     height: 100%;
     background: var(--sidebar);
     padding-right: 10px;
@@ -31,9 +32,6 @@
     cursor: pointer;
     user-select: none;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 .guide-toolbar-subelement {
     font-size: 1rem;
@@ -54,7 +52,7 @@
 
 .guide-main {
     height: 100%;
-    width: calc(100% - var(--home-sidebar-width));
+    width: calc(100% - var(--guide-sidebar-width));
     overflow-y: auto;
 }
 

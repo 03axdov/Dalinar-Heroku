@@ -1,10 +1,10 @@
 import React, {useState, useEffect} from "react"
 import {useNavigate} from "react-router-dom"
 
-function ProgressBar({progress, message, BACKEND_URL}) {
+function ProgressBar({progress, message, BACKEND_URL, longer}) {
     
     return (<div className="progress-bar-outer" onClick={(e) => e.stopPropagation()}>
-        <div className="progress-bar-container">
+        <div className={"progress-bar-container " + (longer ? "progress-bar-long" : "")}>
             <img className="progress-bar-spinner" src={BACKEND_URL + "/static/images/loading.gif"} />
             <p className="progress-bar-text">{message}</p>
             <div className="progress-bar">

@@ -125,7 +125,10 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                     }
                 }, 200)
             } else {
-                setEvaluationProgress(res.data["evaluation_progress"] * 100)
+                if (res.data["evaluation_progress"]) {  // No progress for unauthenticated users
+                    setEvaluationProgress(res.data["evaluation_progress"] * 100)
+                }
+                
             }
         })
         .catch(error => console.error("Error fetching result:", error))

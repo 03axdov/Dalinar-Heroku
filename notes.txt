@@ -5,6 +5,7 @@ TO-DO:
 - Improve guide
 - Validators for layers.js
 - Paste images for prediction
+- Show which layers not included in build
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

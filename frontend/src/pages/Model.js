@@ -506,12 +506,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     function getDescriptionTableData() {
         let data = [["Owner", model.ownername]]
-        if (model.evaluated_on) data.push(["Evaluated on", model.evaluated_on.name])
         data.push(["Type", model.model_type])
         if (model.optimizer) data.push(["Optimizer", model.optimizer])
         if (model.loss_function) data.push(["Loss function", model.loss_function])
         if (model.model_type.toLowerCase() == "text") data.push(["Input sequence length", model.input_sequence_length])
-        if (isTrained) {
+        if (model.evaluated_on) {
             data.push(["Evaluated on", <div className="trained-on-container">
 
                 {model.evaluated_on && <div className="trained-on-element" onClick={() => {

@@ -26,17 +26,33 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
     }, [type])
 
     function checkInputDimensions(layer) {  // Adds dimensions, returns true if valid else false
+        let input_x = params["input_x"]
+        let input_y = params["input_y"]
+        let input_z = params["input_z"]
         let numDims = 0
-        if (layer.input_x) numDims += 1
-        if (layer.input_y) numDims += 1
-        if (layer.input_z) numDims += 1
+        if (layer.input_x) {
+            numDims += 1
+            if (input_x <= 0 || input_x > 1024) return "Input dimensions must be between 0 and 1024."
+        }
+        if (layer.input_y) {
+            numDims += 1
+            if (input_y <= 0  || input_y > 1024) return "Input dimensions must be between 0 and 1024."
+        }
+        if (layer.input_z) {
+            numDims += 1
+            if (input_z <= 0 || input_z > 1024) return "Input dimensions must be between 0 and 1024."
+        }
 
         let notSpecifiedDims = numDims
         if (layer.input_x && params.input_x) notSpecifiedDims -= 1
         if (layer.input_y && params.input_y) notSpecifiedDims -= 1
         if (layer.input_z && params.input_z) notSpecifiedDims -= 1
         
-        return (notSpecifiedDims == numDims || notSpecifiedDims == 0);
+        if (notSpecifiedDims == numDims || notSpecifiedDims == 0) {
+            return ""
+        } else {
+            return "You must specify all dimensions or none of them."
+        }
     }
 
     function getInputs(type) {
@@ -153,7 +169,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         }
                         
                         if (param.validator) {
-                            let message = param.validator(params[param.name].length > 0)
+                            let message = param.validator(params[param.name])
                             if (message.length > 0) {
                                 notification(message, "failure")
                                 return
@@ -163,8 +179,9 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                         data[param.name] = params[param.name]
                     }
                     if (layer.input_x || layer.input_y || layer.input_y) {
-                        if (!checkInputDimensions(layer)) {
-                            notification("You must specify all dimensions or none of them.", "failure")
+                        let message = checkInputDimensions(layer)
+                        if (message.length > 0) {
+                            notification(message, "failure")
                             return
                         }
                     }

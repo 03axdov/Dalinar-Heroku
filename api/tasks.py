@@ -33,6 +33,8 @@ def get_s3_client():
 
 def set_training_progress(profile, progress):
     profile.training_progress = progress
+    if progress == -1:
+        profile.training_accuracy = -1
     profile.save()
 
 
@@ -302,6 +304,8 @@ class TrainingProgressCallback(tf.keras.callbacks.Callback):
         self.total_epochs = total_epochs
 
     def on_epoch_end(self, epoch, logs=None):
+        if logs:
+            self.profile.training_accuracy = logs["accuracy"]  # set_training_progress saves
         set_training_progress(self.profile, round((epoch + 1) / self.total_epochs, 4))
 
 

@@ -11,6 +11,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
 
     const [isTraining, setIsTraining] = useState(false)
     const [trainingProgress, setTrainingProgress] = useState(-1)    // Negative means processing
+    const [trainingAccuracy, setTrainingAccuracy] = useState(-1)
 
     const [loading, setLoading] = useState(false)
 
@@ -125,6 +126,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                 setTimeout(() => {
                     setIsTraining(false)
                     setTrainingProgress(-1)
+                    setTrainingAccuracy(-1)
 
                     if (res.data["status"] != "failed") {   // Training success
                         notification("Successfully trained model.", "success")
@@ -141,6 +143,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                 }, 200)
             } else if (res.data["status"] == "in progress") {
                 setTrainingProgress(res.data["training_progress"] * 100)
+                setTrainingAccuracy(res.data["training_accuracy"].toFixed(4))
             }
         })
         .catch(error => console.error("Error fetching result:", error))
@@ -291,13 +294,23 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         }, "blue")
     }
 
+    function getProgressMessage() {
+        let message = "Processing..."
+        if (trainingProgress >= 0) {
+            message = Math.round(trainingProgress * epochs / 100) + " / " + epochs + " epochs"
+            if (trainingAccuracy != -1) {
+                message += ", accuracy: " + trainingAccuracy
+            }
+        }
+        return message
+    }
 
     return (
         <div className="popup train-model-popup" onClick={() => {
             setShowTrainModelPopup(false)
         }}>
 
-            {isTraining && <ProgressBar progress={trainingProgress} message={(trainingProgress >= 0 ? (Math.round(trainingProgress * epochs / 100) + " / " + epochs + " epochs") : "Processing...")} BACKEND_URL={BACKEND_URL}></ProgressBar>}
+            {isTraining && <ProgressBar progress={trainingProgress} message={getProgressMessage()} BACKEND_URL={BACKEND_URL} longer={true}></ProgressBar>}
 
             <div className="train-model-popup-container" onClick={(e) => {
                 e.stopPropagation()

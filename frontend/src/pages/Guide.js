@@ -104,6 +104,20 @@ function Guide({BACKEND_URL}) {
                 </div>
             </div>}
 
+            {currentInstructions == "dataset-classification" && <div className="instructions-header">
+                <h1 className="instructions-title">Classification Datasets</h1>
+                <p className="instructions-text">Downloaded datasets can easily be loaded into different machine learning frameworks. See below for examples for TensorFlow and Pytorch.
+                    Note that the code provided applies to image datasets, and that the method used (folders as labels or filenames as labels) must be taken into account.
+                </p>
+            </div>}
+
+            {currentInstructions == "dataset-area" && <div className="instructions-header">
+                <h1 className="instructions-title">Area Datasets</h1>
+                <p className="instructions-text">Downloaded datasets can easily be loaded into different machine learning frameworks. See below for examples for TensorFlow and Pytorch.
+                    Note that the code provided applies to image datasets, and that the method used (folders as labels or filenames as labels) must be taken into account.
+                </p>
+            </div>}
+
         </div>
     )
 }

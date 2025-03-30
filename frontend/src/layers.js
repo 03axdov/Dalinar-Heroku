@@ -7,7 +7,13 @@ export const LAYERS = {
                 "name_readable": "Number of nodes",
                 "default": 8,
                 "type": "number",
-                "required": true
+                "required": true,
+                "validator": (val) => {
+                    if (val <= 0 || val > 1000) {
+                        return "Number of nodes must be between 0 and 1000."
+                    }
+                    return ""
+                }
             }
         ],
         "image": "dense.svg",
@@ -31,7 +37,13 @@ export const LAYERS = {
                 "name_readable": "Rate",
                 "default": 0.2,
                 "type": "number",
-                "required": true
+                "required": true,
+                "validator": (rate) => {
+                    if (rate <= 0 || rate >= 1) {
+                        return "Rate must be between 0 and 1."
+                    }
+                    return ""
+                }
             }
         ],
         "image": "dropout.svg",
@@ -59,7 +71,13 @@ export const LAYERS = {
                 "name": "offset",
                 "name_readable": "Offset",
                 "default": 0,
-                "required": true
+                "required": true,
+                "validator": (offset) => {
+                    if (Math.abs(offset) > 1000) {
+                        return "The absolute of offset cannot be greater than 1000."
+                    }
+                    return ""
+                }
             }
         ],
         "image": "area.svg",
@@ -109,8 +127,8 @@ export const LAYERS = {
                         "type": "number",
                         "required": true,
                         "validator": (output_x) => {
-                            if (output_x <= 0) {
-                                return "Output dimensions must be positive."
+                            if (output_x <= 0 || output_x > 1024) {
+                                return "Output dimensions must be between 0 and 1024."
                             }
                             return ""
                         },
@@ -124,8 +142,8 @@ export const LAYERS = {
                         "type": "number",
                         "required": true,
                         "validator": (output_y) => {
-                            if (output_y <= 0) {
-                                return "Output dimensions must be positive."
+                            if (output_y <= 0 || output_y > 1024) {
+                                return "Output dimensions must be between 0 and 1024."
                             }
                             return ""
                         },
@@ -149,14 +167,26 @@ export const LAYERS = {
                 "name_readable": "Number of filters",
                 "default": 1,
                 "type": "number",
-                "required": true
+                "required": true,
+                "validator": (filters) => {
+                    if (filters <= 0 || filters > 256) {
+                        return "Number of filters must be between 0 and 256."
+                    }
+                    return ""
+                }
             },
             {
                 "name": "kernel_size",
                 "name_readable": "Kernel size",
                 "default": 3,
                 "type": "number",
-                "required": true
+                "required": true,
+                "validator": (kernel_size) => {
+                    if (kernel_size <= 0 || kernel_size > 100) {
+                        return "Kernel size must be between 0 and 100."
+                    }
+                    return ""
+                }
             }
         ],
         "image": "image.png",
@@ -174,7 +204,13 @@ export const LAYERS = {
                 "name_readable": "Pool size",
                 "default": 2,
                 "type": "number",
-                "required": true
+                "required": true,
+                "validator": (pool_size) => {
+                    if (pool_size <= 0 || pool_size > 64) {
+                        return "Number of filters must be between 0 and 64."
+                    }
+                    return ""
+                }
             }
         ],
         "image": "image.png",
@@ -230,14 +266,26 @@ export const LAYERS = {
                 "name_readable": "Max tokens",
                 "default": 10000,
                 "type": "number",
-                "required": true
+                "required": true,
+                "validator": (max_tokens) => {
+                    if (max_tokens <= 0 || max_tokens > 50000) {
+                        return "Max tokens must be between 0 and 50000."
+                    }
+                    return ""
+                }
             },
             {
                 "name": "output_dim",
                 "name_readable": "Output size",
-                "default": 16,
+                "default": 32,
                 "type": "number",
-                "required": true
+                "required": true,
+                "validator": (output_dim) => {
+                    if (output_dim <= 0 || output_dim > 256) {
+                        return "Output size must be between 0 and 256."
+                    }
+                    return ""
+                }
             }
         ],
         "image": "text.png",

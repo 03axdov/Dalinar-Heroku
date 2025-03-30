@@ -610,12 +610,16 @@ div.layer-element-mode-input {
     box-sizing: border-box;
     overflow: hidden;
 }
+
+.training-table {
+    table-layout: auto;
+    width: 100%; /* or whatever you want */
+}
   
 .training-table th,
 .training-table td {
     border: 1px solid var(--border);;
     padding: 12px;
-    width: 200px;
 }
 
 .training-table th {
@@ -624,8 +628,10 @@ div.layer-element-mode-input {
     font-size: 1.2rem;
 }
 
-.training-table td {
-    background: var(--background-dark);
+.description-row-1 {
+    white-space: nowrap;
+    width: 1px; /* prevents it from stretching unnecessarily */
+    padding-right: 25px!important;
 }
 
 .description-table td {

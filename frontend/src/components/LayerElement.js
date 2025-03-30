@@ -84,22 +84,33 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     }, [params])   // All layer states
 
 
-    function checkInputDimensions(current_layer) {  // Adds dimensions, returns true if valid else false
+    function checkInputDimensions(layer) {  // Adds dimensions, returns true if valid else false
+        let input_x = params["input_x"]
+        let input_y = params["input_y"]
+        let input_z = params["input_z"]
         let numDims = 0
-        if (current_layer.input_x) numDims += 1
-        if (current_layer.input_y) numDims += 1
-        if (current_layer.input_z) numDims += 1
+        if (layer.input_x) {
+            numDims += 1
+            if (input_x <= 0 || input_x > 1024) return "Input dimensions must be between 0 and 1024."
+        }
+        if (layer.input_y) {
+            numDims += 1
+            if (input_y <= 0  || input_y > 1024) return "Input dimensions must be between 0 and 1024."
+        }
+        if (layer.input_z) {
+            numDims += 1
+            if (input_z <= 0 || input_z > 1024) return "Input dimensions must be between 0 and 1024."
+        }
 
         let notSpecifiedDims = numDims
-        if (current_layer.input_x && params.input_x) notSpecifiedDims -= 1
-        if (current_layer.input_y && params.input_y) notSpecifiedDims -= 1
-        if (current_layer.input_z && params.input_z) notSpecifiedDims -= 1
+        if (layer.input_x && params.input_x) notSpecifiedDims -= 1
+        if (layer.input_y && params.input_y) notSpecifiedDims -= 1
+        if (layer.input_z && params.input_z) notSpecifiedDims -= 1
         
         if (notSpecifiedDims == numDims || notSpecifiedDims == 0) {
-            return true;
+            return ""
         } else {
-            notification("You must either specify all input dimensions or none.", "failure")
-            return
+            return "You must specify all dimensions or none of them."
         }
     }
 
@@ -111,7 +122,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 let message = param.validator(params[param.name])
                 if (message.length > 0) {
                     notification(message, "failure")
-                    return
+                    return false
                 } 
             }
         }
@@ -124,14 +135,18 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         let message = param.validator(params[param.name])
                         if (message.length > 0) {
                             notification(message, "failure")
-                            return
+                            return false
                         } 
                     }
                 }
             }
         }
         if (current_layer.input_x || current_layer.input_y || current_layer.input_z) {
-            return checkInputDimensions(current_layer);
+            let message = checkInputDimensions(current_layer);
+            if (message.length > 0) {
+                notification(message, "failure")
+                return false
+            }
         }
 
         return true;
