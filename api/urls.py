@@ -59,6 +59,7 @@ urlpatterns = [
     path("create-layer/", CreateLayer.as_view(), name="create-layer"),
     path("delete-layer/", DeleteLayer.as_view(), name="delete-layer"),
     path("edit-layer/", EditLayer.as_view(), name="edit-layer"),
+    path("clear-layer-updated/", ClearLayerUpdated.as_view(), name="clear-layer-updated"),
     
     # MISCELLANEOUS
     path("task-result/<str:id>", GetTaskResult.as_view(), name="task-result"),

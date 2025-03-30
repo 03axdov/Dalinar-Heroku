@@ -553,6 +553,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                                         }}   // Just give this object here as not draggable
                                         updateWarnings={updateWarnings}
                                         idx={idx}
+                                        isBuilt={model.model_file != null}
                                         onMouseEnter={() => setMouseOnLayer(true)}
                                         onMouseLeave={() => setMouseOnLayer(false)}
                                         isPublic={true}>

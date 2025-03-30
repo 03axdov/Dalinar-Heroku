@@ -1538,12 +1538,40 @@ class EditLayer(APIView):
                     elif layer_type == "embedding":
                         layer.max_tokens = request.data["max_tokens"]
                         layer.output_dim = request.data["output_dim"]
-                    # Can't edit GlobalAveragePooling1DLayer
-                        
+                    # Can't edit GlobalAveragePooling1DLayer    
+
                     layer.activation_function = request.data["activation_function"]
+                    layer.updated = True
+
                     layer.save()
                 
                     return Response(LayerSerializer(layer).data, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({'Unauthorized': 'You can only edit layers belonging to your own models.'}, status=status.HTTP_401_UNAUTHORIZED)
+            except Layer.DoesNotExist:
+                return Response({'Not found': 'Could not find model with the id ' + str(model_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to edit layers.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class ClearLayerUpdated(APIView):
+    parser_classes = [JSONParser]
+
+    def post(self, request, format=None):   # A put request may fit better, post for now
+        layer_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                layer = Layer.objects.get(id=layer_id)
+                
+                if layer.model.owner == user.profile:
+                    layer.updated = False
+                    layer.save()
+                
+                    return Response(None, status=status.HTTP_200_OK)
                 
                 else:
                     return Response({'Unauthorized': 'You can only edit layers belonging to your own models.'}, status=status.HTTP_401_UNAUTHORIZED)

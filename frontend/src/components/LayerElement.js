@@ -7,7 +7,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         BACKEND_URL, setLayers, layers, notification, 
                         prevLayer, setWarnings, provided, 
                         updateWarnings, idx, onMouseEnter, 
-                        onMouseLeave, warnings=false, isPublic=false}) {
+                        onMouseLeave, isBuilt, warnings=false, isPublic=false}) {
 
     const [type, setType] = useState(null)  // Workaround to stop warning when reordering layers.
 
@@ -19,6 +19,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     const [savingChanges, setSavingChanges] = useState(false)
 
     const [errorMessage, setErrorMessage] = useState("")
+
+    const [updatedWarningHovered, setUpdatedWarningHovered] = useState(false)
 
     const elementRef = useRef(null)
 
@@ -91,15 +93,15 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         let numDims = 0
         if (layer.input_x) {
             numDims += 1
-            if (input_x <= 0 || input_x > 1024) return "Input dimensions must be between 0 and 1024."
+            if (input_x && input_x <= 0 || input_x > 1024) return "Input dimensions must be between 0 and 1024."
         }
         if (layer.input_y) {
             numDims += 1
-            if (input_y <= 0  || input_y > 1024) return "Input dimensions must be between 0 and 1024."
+            if (input_y && input_y <= 0  || input_y > 1024) return "Input dimensions must be between 0 and 1024."
         }
         if (layer.input_z) {
             numDims += 1
-            if (input_z <= 0 || input_z > 1024) return "Input dimensions must be between 0 and 1024."
+            if (input_z && input_z <= 0 || input_z > 1024) return "Input dimensions must be between 0 and 1024."
         }
 
         let notSpecifiedDims = numDims
@@ -196,6 +198,34 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             notification("Error: " + error + ".", "failure")
         }).finally(() => {
             setSavingChanges(false)
+        })
+    }
+
+    function clearLayerUpdated(e) {
+
+        const data = {
+            "id": layer.id,
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+        
+        const URL = window.location.origin + '/api/clear-layer-updated/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        axios.post(URL, data, config)
+        .then((res) => {
+            let temp = [...layers]
+            for (let i=0; i < temp.length; i++) {
+                if (temp[i].id == layer.id) {
+                    temp[i].updated = false
+                }
+            }
+            setLayers(temp)
+
+        }).catch((error) => {
+            notification("Error: " + error + ".", "failure")
         })
     }
 
@@ -328,6 +358,13 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     function isEmptyObject(obj) {
         return obj && Object.keys(obj).length === 0 && obj.constructor === Object;
     }
+
+    function get_error_message() {
+        if (errorMessage.length > 100) {
+            return errorMessage.substring(0, 100) + "..."
+        }
+        return errorMessage
+    }
     
     if (type) {
         return (<div className="layer-element-outer" 
@@ -338,10 +375,22 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             onMouseLeave={onMouseLeave}>
     
                 {type && layer && <div className={"layer-element " + (hoveredLayer == layer.id ? "layer-element-hovered" : "")} ref={elementRef}>
+
+                    {layer.updated && isBuilt && <p className="layer-element-warning layer-element-updated" 
+                    style={{bottom: "calc(100% + 10px)"}}
+                    onMouseEnter={() => setUpdatedWarningHovered(true)}
+                    onMouseLeave={() => setUpdatedWarningHovered(false)}>
+                        <img className="layer-element-warning-icon" src={BACKEND_URL + "/static/images/warning.png"} />
+                        <span className="layer-element-warning-text layer-element-updated-text" title="Updated since last build.">Updated since last build.</span>
+                        {updatedWarningHovered && <img className="layer-element-updated-cross" 
+                                                        src={BACKEND_URL + "/static/images/cross.svg"} 
+                                                        title="Ignore warning"
+                                                        onClick={clearLayerUpdated}/>}
+                    </p>}
     
-                    {errorMessage && <p className="layer-element-warning">
+                    {errorMessage && <p className="layer-element-warning" style={{bottom: (layer.updated ? "calc(100% + 60px)" : "calc(100% + 10px)")}}>
                         <img className="layer-element-warning-icon" src={BACKEND_URL + "/static/images/failure.png"} />
-                        <span className="layer-element-warning-text">{errorMessage}</span>
+                        <span className="layer-element-warning-text" title={errorMessage}>{get_error_message()}</span>
                     </p>}
     
                     {!isEmptyObject(params) && getLayerElement(type)}

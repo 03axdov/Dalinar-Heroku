@@ -141,7 +141,7 @@
 
 .layer-element {
     background: var(--toolbar);
-    min-width: 150px;
+    min-width: 200px;
     max-width: 325px;
     padding: 10px;
     box-sizing: border-box;
@@ -178,7 +178,6 @@
 .layer-element-warning {
     position: absolute;
     left: 0;
-    bottom: calc(100% + 10px);
     width: 100%;
     font-size: 0.9rem;
     padding: 5px 10px;
@@ -714,6 +713,32 @@ div.layer-element-mode-input {
     margin-right: 15px;
 }
 
+.layer-element-updated {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.layer-element-updated-text {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    margin-right: 5px;
+}
+
+.layer-element-updated-cross {
+    height: 18px;
+    width: 18px;
+    border-radius: 9px;
+    padding: 3px;
+    box-sizing: border-box;
+    margin-left: auto;
+}
+.layer-element-updated-cross:hover {
+    cursor: pointer;
+    background: rgb(90,90,90,0.5);
+}
+
 @media all and (max-width: 1400px) {
     .model-evaluate-button {
         font-size: 0rem;
@@ -747,5 +772,13 @@ div.layer-element-mode-input {
         margin: 0;
         height: 20px;
         width: 20px;
+    }
+}
+
+@media all and (max-height: 800px) {
+    .layer-element-warning-text {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }

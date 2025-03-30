@@ -827,6 +827,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                         provided={provided}
                                         updateWarnings={updateWarnings}
                                         idx={idx}
+                                        isBuilt={model.model_file != null}
                                         onMouseEnter={() => setMouseOnLayer(true)}
                                         onMouseLeave={() => setMouseOnLayer(false)}>
 

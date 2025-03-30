@@ -879,6 +879,8 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
                     instance.model_file.delete(save=False)
                 
                 for layer in instance.layers.all():
+                    layer.updated = False
+                    layer.save()
                     model.add(get_tf_layer(layer))
 
                 metrics = get_metrics(loss_function)

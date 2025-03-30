@@ -271,6 +271,7 @@ def delete_model_files(sender, instance, **kwargs):
 class AbstractLayer(models.Model):
     model = models.ForeignKey(Model, on_delete=models.CASCADE, related_name="layers", null=True, blank=True)
     index = models.PositiveIntegerField(default=0)
+    updated = models.BooleanField(default=True) # Keeps track of whether a layer has been updated since last build
     
     LAYER_CHOICES = [
         ("dense", "Dense"),
