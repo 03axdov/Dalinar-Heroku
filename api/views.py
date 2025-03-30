@@ -1542,6 +1542,7 @@ class EditLayer(APIView):
 
                     layer.activation_function = request.data["activation_function"]
                     layer.updated = True
+                    if ("trainable" in request.data.keys()): layer.trainable = request.data["trainable"] == "true"
 
                     layer.save()
                 

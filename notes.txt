@@ -1,11 +1,9 @@
 TO-DO:
-- Freezing layers
 - Look into Area datasets
 - Track multiple datasets used
 - Improve guide
-- Validators for layers.js
 - Paste images for prediction
-- Show which layers not included in build
+- Social media authentication
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

@@ -21,6 +21,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     const [errorMessage, setErrorMessage] = useState("")
 
     const [updatedWarningHovered, setUpdatedWarningHovered] = useState(false)
+    const updatedRef = useRef(null)
 
     const elementRef = useRef(null)
 
@@ -38,6 +39,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         temp["input_y"] = layer.input_y || ""
         temp["input_z"] = layer.input_z || ""
         temp["activation_function"] = layer.activation_function || ""
+        temp["trainable"] = layer.trainable
+
         setParams(temp)
 
         setType(layer.layer_type)
@@ -80,6 +83,9 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             setUpdated(true)
         }
         if (current_layer.input_z && params["input_z"] != (layer.input_z || "")) {
+            setUpdated(true)
+        }
+        if (current_layer.freezable && params["trainable"] != layer.trainable) {
             setUpdated(true)
         }
 
@@ -202,7 +208,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     }
 
     function clearLayerUpdated(e) {
-
+        if (updatedRef.current) {
+            console.log("A")
+            updatedRef.current.blur(); // Important!
+        }
+        setUpdatedWarningHovered(false)
+        
         const data = {
             "id": layer.id,
         }
@@ -223,6 +234,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 }
             }
             setLayers(temp)
+            
 
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
@@ -351,6 +363,18 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                     </select>}
                     {isPublic && <div className="layer-element-input layer-element-activation-input">{params["activation_function"] || "-"}</div>}
                 </div>}
+                {current_layer.freezable && !isPublic && <div className="layer-element-stat">
+                    <span className="layer-element-stat-color layer-element-stat-gray"></span>
+                    <label className="layer-element-label" htmlFor={"trainable" + layer.id}>Trainable</label>
+                    <select className="layer-element-input layer-element-activation-input" id={"trainable" + layer.id} value={params["trainable"]} onChange={(e) => {
+                        let temp = {...params}
+                        temp["trainable"] = e.target.value
+                        setParams(temp)
+                    }}>
+                        <option value={true}>True</option>
+                        <option value={false}>False</option>
+                    </select>
+                </div>}
             </form>
         )
     }
@@ -376,17 +400,18 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     
                 {type && layer && <div className={"layer-element " + (hoveredLayer == layer.id ? "layer-element-hovered" : "")} ref={elementRef}>
 
-                    {layer.updated && isBuilt && <p className="layer-element-warning layer-element-updated" 
+                    <p className={"layer-element-warning layer-element-updated " + ((layer.updated && isBuilt) ? "" : "hidden")}
                     style={{bottom: "calc(100% + 10px)"}}
                     onMouseEnter={() => setUpdatedWarningHovered(true)}
-                    onMouseLeave={() => setUpdatedWarningHovered(false)}>
+                    onMouseLeave={() => setUpdatedWarningHovered(false)}
+                    ref={updatedRef}>
                         <img className="layer-element-warning-icon" src={BACKEND_URL + "/static/images/warning.png"} />
                         <span className="layer-element-warning-text layer-element-updated-text" title="Updated since last build.">Updated since last build.</span>
-                        {updatedWarningHovered && <img className="layer-element-updated-cross" 
+                        {updatedWarningHovered && !isPublic && <img className="layer-element-updated-cross" 
                                                         src={BACKEND_URL + "/static/images/cross.svg"} 
                                                         title="Ignore warning"
                                                         onClick={clearLayerUpdated}/>}
-                    </p>}
+                    </p>
     
                     {errorMessage && <p className="layer-element-warning" style={{bottom: (layer.updated ? "calc(100% + 60px)" : "calc(100% + 10px)")}}>
                         <img className="layer-element-warning-icon" src={BACKEND_URL + "/static/images/failure.png"} />

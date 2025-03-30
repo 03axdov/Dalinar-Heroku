@@ -775,7 +775,7 @@ div.layer-element-mode-input {
     }
 }
 
-@media all and (max-height: 800px) {
+@media all and (max-height: 825px) {
     .layer-element-warning-text {
         overflow: hidden;
         text-overflow: ellipsis;

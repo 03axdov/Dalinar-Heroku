@@ -19,7 +19,8 @@ export const LAYERS = {
         "image": "dense.svg",
         "activation_function": true,
         "input_x": true,
-        "color": "purple"
+        "color": "purple",
+        "freezable": true
     },
     flatten: {
         "name": "Flatten",
@@ -194,7 +195,8 @@ export const LAYERS = {
         "input_x": true,
         "input_y": true,
         "input_z": true,
-        "color": "lightblue"
+        "color": "lightblue",
+        "freezable": true
     },
     maxpool2d: {
         "name": "MaxPool2D",
@@ -290,7 +292,8 @@ export const LAYERS = {
         ],
         "image": "text.png",
         "color": "green",
-        "no_dimensions": true
+        "no_dimensions": true,
+        "freezable": true
     },
     globalaveragepooling1d: {
         "name": "GlobalAveragePooling1D",

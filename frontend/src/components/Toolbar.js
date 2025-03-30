@@ -36,9 +36,10 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
 
             {!loadingCurrentProfile && currentProfile.user === "" &&
                 <div className="toolbar-auth">
-                    <p className="toolbar-text" onClick={() => {
+                    <a href="/accounts/login" className="toolbar-text" onClick={(e) => {
+                        e.preventDefault()
                         window.location.href = window.location.origin + "/accounts/login/"
-                    }}>Sign in</p>
+                    }}>Sign in</a>
                     <button className="toolbar-button toolbar-register" onClick={() => {
                         window.location.href = window.location.origin + "/accounts/signup/"
                     }}>Register</button>

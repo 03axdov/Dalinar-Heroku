@@ -75,47 +75,48 @@ def remove_temp_tf_model(model_instance, timestamp):
 def get_tf_layer(layer):    # From a Layer instance
     layer_type = layer.layer_type
     activation = layer.activation_function or None
+    name = str(layer.id)
     
     if layer_type == "dense":
         if layer.input_x:
-            return layers.Dense(layer.nodes_count, activation=activation, input_shape=(layer.input_x,))
+            return layers.Dense(layer.nodes_count, activation=activation, input_shape=(layer.input_x,), name=name)
         else:
-            return layers.Dense(layer.nodes_count, activation=activation)
+            return layers.Dense(layer.nodes_count, activation=activation, name=name)
     elif layer_type == "conv2d":
         if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
-            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation, input_shape=(layer.input_x, layer.input_y, layer.input_z), name=name)
         else:
-            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation)
+            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation, name=name)
     elif layer_type == "maxpool2d":
-        return layers.MaxPool2D(pool_size=layer.pool_size)
+        return layers.MaxPool2D(pool_size=layer.pool_size, name=name)
     elif layer_type == "flatten":
         if layer.input_x or layer.input_y:   # Dimensions specified
-            return layers.Flatten(input_shape=(layer.input_x, layer.input_y))
+            return layers.Flatten(input_shape=(layer.input_x, layer.input_y), name=name)
         else:
-            return layers.Flatten()
+            return layers.Flatten(name=name)
     elif layer_type == "dropout":
-        return layers.Dropout(rate=layer.rate)
+        return layers.Dropout(rate=layer.rate, name=name)
     elif layer_type == "rescaling":
         if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
-            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset, input_shape=(layer.input_x, layer.input_y, layer.input_z), name=name)
         else:
-            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset)
+            return layers.Rescaling(scale=layer.get_scale_value(), offset=layer.offset, name=name)
     elif layer_type == "randomflip":
         if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
-            return layers.RandomFlip(mode=layer.mode, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+            return layers.RandomFlip(mode=layer.mode, input_shape=(layer.input_x, layer.input_y, layer.input_z), name=name)
         else:
-            return layers.RandomFlip(mode=layer.mode)
+            return layers.RandomFlip(mode=layer.mode, name=name)
     elif layer_type == "resizing":
         if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
-            return layers.Resizing(layer.output_y, layer.output_x, input_shape=(layer.input_x, layer.input_y, layer.input_z))
+            return layers.Resizing(layer.output_y, layer.output_x, input_shape=(layer.input_x, layer.input_y, layer.input_z),name=name)
         else:
             return layers.Resizing(layer.output_y, layer.output_x)
     elif layer_type == "textvectorization":
-        return layers.TextVectorization(max_tokens=layer.max_tokens, standardize=layer.standardize, output_sequence_length=layer.output_sequence_length)
+        return layers.TextVectorization(max_tokens=layer.max_tokens, standardize=layer.standardize, output_sequence_length=layer.output_sequence_length, name=name)
     elif layer_type == "embedding":
-        return layers.Embedding(layer.max_tokens, layer.output_dim)
+        return layers.Embedding(layer.max_tokens, layer.output_dim, name=name)
     elif layer_type == "globalaveragepooling1d":
-        return layers.GlobalAveragePooling1D()
+        return layers.GlobalAveragePooling1D(name=name)
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         raise Exception("Invalid layer: " + layer_type)
@@ -881,7 +882,8 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
                 for layer in instance.layers.all():
                     layer.updated = False
                     layer.save()
-                    model.add(get_tf_layer(layer))
+                    new_layer = get_tf_layer(layer)
+                    model.add(new_layer)
 
                 metrics = get_metrics(loss_function)
                 model.compile(optimizer=optimizer, loss=loss_function, metrics=[metrics])
@@ -953,6 +955,22 @@ def recompile_model_task(self, model_id, optimizer, loss_function, user_id, inpu
             try:
                 extension = str(model_instance.model_file).split(".")[-1]
                 model, timestamp = get_tf_model(model_instance)
+                
+                names_to_freeze = set([])
+                for layer in model_instance.layers.all():
+                    if not layer.trainable:
+                        names_to_freeze.add(str(layer.id))
+                
+                for layer in model.layers:
+                    if layer.name in names_to_freeze:
+                        print(f"froze: {layer.name}")
+                        layer.trainable = False
+                    else:
+                        layer.trainable = True
+                        
+                print(names_to_freeze)
+                        
+                model.summary()
 
                 metrics = get_metrics(loss_function)
                 model.compile(optimizer=optimizer, loss=loss_function, metrics=[metrics])

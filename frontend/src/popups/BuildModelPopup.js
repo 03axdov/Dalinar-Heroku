@@ -16,12 +16,14 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
                     Building a model generates the actual model file. The model can then be trained and downloaded. 
                     Note that rebuilding the model will reset it, i.e. updates from training will be erased. Recompiling will not reset these, but only recompiles the last built model (i.e. not any changes made since). 
                     A model can be rebuilt or recompiled as many times as needed.
+                    <br></br>
+                    Note that recompiling will update which layers are trainable, without resetting weights.
                 </p>
 
                 <form className="build-model-form" onSubmit={(e) => {
                     e.preventDefault()
                     if (isBuilt) {
-                        activateConfirmPopup("Are you sure you want to rebuild the model? This will reset all parameters, and should only be used over recompile if you've changed the model.", () => buildModel(optimizer, loss, inputSequenceLength))
+                        activateConfirmPopup("Are you sure you want to rebuild the model? This will reset all parameters, and should only be used over recompile if you've changed the model.", () => buildModel(optimizer, loss, inputSequenceLength), "blue")
                     } else {
                         buildModel(optimizer, loss, inputSequenceLength)
                     }
@@ -67,7 +69,7 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
                     </p>
 
                     <div className="create-layer-popup-buttons">
-                        <button type="button" className="create-layer-popup-cancel" onClick={() => setShowBuildModelPopup(false)}>Cancel</button>
+                        <button type="button" style={{marginRight: "auto"}} className="create-layer-popup-cancel" onClick={() => setShowBuildModelPopup(false)}>Cancel</button>
                         {isBuilt && <button type="button" className="create-layer-popup-submit build-model-recompile" onClick={() => {
                             recompileModel(optimizer, loss, inputSequenceLength)
                         }}>
