@@ -880,13 +880,16 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
                     instance.model_file.delete(save=False)
                 
                 for layer in instance.layers.all():
-                    layer.updated = False
-                    layer.save()
                     new_layer = get_tf_layer(layer)
                     model.add(new_layer)
 
                 metrics = get_metrics(loss_function)
                 model.compile(optimizer=optimizer, loss=loss_function, metrics=[metrics])
+                
+                # Do this here so it's not set to false if build fails
+                for layer in instance.layers.all():
+                    layer.updated = False
+                    layer.save()
                 
                 model.summary()
                 
@@ -944,9 +947,9 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
 @shared_task(bind=True)
 def recompile_model_task(self, model_id, optimizer, loss_function, user_id, input_sequence_length):
     
-    profile = Profile.objects.get(user_id=user_id)
-    
     try:
+        profile = Profile.objects.get(user_id=user_id)
+        
         model_instance = Model.objects.get(id=model_id)
         if not model_instance.model_file: return Response({"Bad request": "Model has not been built."}, status=status.HTTP_200_OK)
         
@@ -1010,8 +1013,111 @@ def recompile_model_task(self, model_id, optimizer, loss_function, user_id, inpu
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Unauthorized": "You can only recompile your own models.", "status": 401}
+    except Profile.DoesNotExist:
+        return {"Not found": "Could not find profile with the id " + str(profile_id) + ".", "status": 404}
     except Model.DoesNotExist:
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    
+    
+# Sets params of layer_instance to tf_layer
+def set_to_tf_layer(layer_instance, tf_layer):
+    config = tf_layer.get_config()
+    
+    input_shape = False
+    if "batch_input_shape" in config.keys():
+        input_shape = config["batch_input_shape"]
+    
+    if isinstance(tf_layer, layers.Dense):
+        layer_instance.nodes_count = config["units"]
+        if input_shape:
+            layer_instance.input_x = input_shape[-1]
+    elif isinstance(tf_layer, layers.Conv2D):
+        layer_instance.filters = config["filters"]
+        layer_instance.kernel_size = config["kernel_size"][0]
+        if input_shape:
+            layer_instance.input_x = input_shape[1]    # First one is None
+            layer_instance.input_y = input_shape[2]
+            layer_instance.input_z = input_shape[3]
+    elif isinstance(tf_layer, layers.MaxPool2D):
+        layer_instance.pool_size = config["pool_size"][0]
+    elif isinstance(tf_layer, layers.Flatten):
+        if input_shape:
+            layer_instance.input_x = input_shape[1]
+            layer_instance.input_y = input_shape[2]
+    elif isinstance(tf_layer, layers.Dropout):
+        layer_instance.rate = config["rate"]
+    elif isinstance(tf_layer, layers.Rescaling):
+        layer_instance.scale = config["scale"]
+        layer_instance.offset = config["offset"]
+        if input_shape:
+            layer_instance.input_x = input_shape[1]
+            layer_instance.input_y = input_shape[2]
+            layer_instance.input_z = input_shape[3]
+    elif isinstance(tf_layer, layers.RandomFlip):
+        layer_instance.mode = config["mode"]
+        if input_shape:
+            layer_instance.input_x = input_shape[1]
+            layer_instance.input_y = input_shape[2]
+            layer_instance.input_z = input_shape[3]
+    elif isinstance(tf_layer, layers.Resizing):
+        layer_instance.output_x = config["width"]
+        layer_instance.output_y = config["height"]
+        if input_shape:
+            layer_instance.input_x = input_shape[1]
+            layer_instance.input_y = input_shape[2]
+            layer_instance.input_z = input_shape[3]
+    elif isinstance(tf_layer, layers.TextVectorization):
+        layer_instance.max_tokens = config["max_tokens"]
+        layer_instance.standardize = config["standardize"]
+    elif isinstance(tf_layer, layers.Embedding):
+        layer_instance.max_tokens = config["input_dim"]
+        layer_instance.output_dim = config["output_dim"]
+    elif isinstance(tf_layer, layers.GlobalAveragePooling1D):
+        pass
+    else:
+        print("UNKNOWN LAYER OF TYPE: ", layer_instance.layer_type)
+        return # Continue instantiating model
+    
+    layer_instance.save()
+    return layer_instance
+    
+
+@shared_task(bind=True)
+def reset_to_build_task(self, layer_id):
+    try:
+        layer_instance = Layer.objects.get(id=layer_id)
+        model_instance = layer_instance.model
+        
+        if not model_instance.model_file: return Response({"Bad request": "Model has not been built."}, status=status.HTTP_200_OK)
+        
+        if model_instance.owner == profile:
+            timestamp = ""
+            try:
+                extension = str(model_instance.model_file).split(".")[-1]
+                model, timestamp = get_tf_model(model_instance)
+                
+                for layer in model.layers:
+                    if layer.name == str(layer_id):
+                        print(f"found: {layer.name}")
+                        layer_instance = set_to_tf_layer(layer_instance, layer)
+                        
+                remove_temp_tf_model(model_instance, timestamp)
+                
+                return {"data": LayerSerializer(layer_instance).data,"status": 200}
+        
+            except ValueError as e: # In case of invalid layer combination
+                print("Error: ", e)
+                remove_temp_tf_model(model_instance, timestamp)
+                return {"Bad request": str(e), "status": 400}
+            except Exception as e:
+                remove_temp_tf_model(model_instance, timestamp)
+                return {"Bad request": str(e), "status": 400}
+        else:
+            return {"Unauthorized": "You can only recompile your own models.", "status": 401}
+        
+    except Layer.DoesNotExist:
+        return {"Not found": "Could not find layer with the id " + str(layer_id) + ".", "status": 404}
+    
     
     
 def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
@@ -1081,7 +1187,7 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
     elif isinstance(tf_layer, layers.GlobalAveragePooling1D):
         data["type"] = "globalaveragepooling1d"
     else:
-        print("UNKNOWN LAYER OF TYPE: ", layer_type)
+        print("UNKNOWN LAYER OF TYPE: ", layer_instance.layer_type)
         return # Continue instantiating model
     
     factory = APIRequestFactory()
@@ -1104,7 +1210,7 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
             status=layer_response.status_code
         )
     else:
-        layer_id = layer_response.data.get('id')
+        layer_id = str(layer_response.data.get('id'))
         tf_layer.name = layer_id
     
     

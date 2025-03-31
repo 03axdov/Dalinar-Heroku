@@ -3,8 +3,10 @@ import axios from 'axios'
 import DatasetElement from "../components/DatasetElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import ProgressBar from "../components/ProgressBar"
+import { useTask } from "../contexts/TaskContext"
 
 function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notification}) {
+    const { getTaskResult } = useTask();
 
     const [isPredicting, setIsPredicting] = useState(false)
     const [predictionProgress, setPredictionProgress] = useState(0)
@@ -82,9 +84,26 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
 
         axios.post(URL, data, config)
         .then((res) => {
-            data = res.data
 
-            resInterval = setInterval(() => getPredictionResult(data["task_id"]), 2500)
+            resInterval = setInterval(() => getTaskResult(
+                "prediction",
+                resInterval,
+                res.data["task_id"],
+                (data) => {
+                    setPredictions(data["predictions"])
+                    setPredictionColors(data["colors"])
+                    notification("Successfully predicted data.", "success")  
+                },
+                () => notification("Error: " + res.data["message"], "failure"),
+                () => {},
+                () => {
+                    setPredictionProgress(100)
+                    setTimeout(() => {
+                        setIsPredicting(false)
+                        setPredictionProgress(0)
+                    }, 200)
+                }
+            ), 2500)
 
         }).catch((error) => {
             console.log(error)
@@ -96,42 +115,6 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
 
             
         })
-    }
-
-    let predictionResOutstanding = 0;
-    function getPredictionResult(id) {
-        if (predictionResOutstanding > 0) return;
-        predictionResOutstanding += 1
-        axios({
-            method: 'GET',
-            url: window.location.origin + '/api/task-result/' + id,
-        })
-        .then((res) => {
-            if (res.data["status"] != "in progress") {
-                if (res.data["status"] == "failed") {
-                    notification("Error: " + res.data["message"], "failure")
-                } else {
-
-                    let data = res.data
-                    setPredictions(data["predictions"])
-                    setPredictionColors(data["colors"])
-
-                    notification("Successfully predicted data.", "success")  
-                }
-
-                clearInterval(resInterval)
-                setPredictionProgress(100)
-    
-                setTimeout(() => {
-                    setIsPredicting(false)
-                    setPredictionProgress(0)
-                }, 200)
-            }
-        })
-        .catch(error => console.error("Error fetching predictions:", error))
-        .finally(() => {
-            predictionResOutstanding -= 1
-        });
     }
 
     function imageOnClick() {

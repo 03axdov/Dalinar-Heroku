@@ -3,8 +3,10 @@ import axios from 'axios'
 import DatasetElement from "../components/DatasetElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import ProgressBar from "../components/ProgressBar"
+import { useTask } from "../contexts/TaskContext"
 
 function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentProfile, BACKEND_URL, notification, activateConfirmPopup, getModel}) {
+    const { getTaskResult } = useTask();
 
     const [datasets, setDatasets] = useState([])
     const [savedDatasets, setSavedDatasets] = useState([])
@@ -91,10 +93,36 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
 
         axios.post(URL, data, config)
         .then((res) => {
-            data = res.data
-            if (!data) {return}
 
-            resInterval = setInterval(() => getTrainingResult(data["task_id"]), 2500)
+            resInterval = setInterval(() => getTaskResult(
+                "training",
+                resInterval,
+                res.data["task_id"],
+                () => {
+                    notification("Successfully trained model.", "success")
+                    getModel(true)
+                },
+                (data) => {
+                    notification("Training failed: " + data["message"], "failure")
+                },
+                (data) => {
+                    setTrainingProgress(data["training_progress"] * 100)
+                    setTrainingAccuracy(data["training_accuracy"].toFixed(4))
+                },
+                () => {
+                    setTrainingProgress(100)
+    
+                    setTimeout(() => {
+                        setIsTraining(false)
+                        setTrainingProgress(-1)
+                        setTrainingAccuracy(-1)
+
+                        if (document.visibilityState !== "visible") {
+                            alert("Training finished.")
+                        }
+                    }, 200)
+                }
+            ), 2500)
 
         }).catch((error) => {
             console.log(error)
@@ -107,49 +135,6 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
             
         })
 
-    }
-
-    let trainingResOutstanding = 0;
-    function getTrainingResult(id) {
-        if (trainingResOutstanding > 0) return;
-        trainingResOutstanding += 1
-        axios({
-            method: 'GET',
-            url: window.location.origin + '/api/task-result/' + id,
-        })
-        .then((res) => {
-            if (res.data["status"] != "in progress") {
-                console.log(res.data)
-                clearInterval(resInterval)
-                setTrainingProgress(100)
-    
-                setTimeout(() => {
-                    setIsTraining(false)
-                    setTrainingProgress(-1)
-                    setTrainingAccuracy(-1)
-
-                    if (res.data["status"] != "failed") {   // Training success
-                        notification("Successfully trained model.", "success")
-
-                        getModel(true)
-
-                    } else {
-                        notification("Training failed: " + res.data["message"], "failure")
-                    }
-
-                    if (document.visibilityState !== "visible") {
-                        alert("Training finished.")
-                    }
-                }, 200)
-            } else if (res.data["status"] == "in progress") {
-                setTrainingProgress(res.data["training_progress"] * 100)
-                setTrainingAccuracy(res.data["training_accuracy"].toFixed(4))
-            }
-        })
-        .catch(error => console.error("Error fetching result:", error))
-        .finally(() => {
-            trainingResOutstanding -= 1
-        });
     }
 
     function sort_datasets(ds) {

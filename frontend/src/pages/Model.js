@@ -11,6 +11,7 @@ import TrainModelPopup from "../popups/TrainModelPopup"
 import EvaluateModelPopup from "../popups/EvaluateModelPopup";
 import PredictionPopup from "../popups/PredictionPopup";
 import ModelMetrics from "../components/ModelMetrics";
+import { useTask } from "../contexts/TaskContext";
 
 import { LAYERS, getLayerName } from "../layers";
 import DescriptionTable from "../components/DescriptionTable";
@@ -18,6 +19,7 @@ import DescriptionTable from "../components/DescriptionTable";
 
 // The default page. Login not required.
 function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}) {
+    const { getTaskResult } = useTask();
 
     const { id } = useParams();
     const [model, setModel] = useState(null)
@@ -176,7 +178,22 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
         axios.post(URL, data, config)
         .then((res) => {
-            buildResInterval = setInterval(() => getBuildRes(res.data["task_id"]), 2000)
+            buildResInterval = setInterval(() => getTaskResult(
+                "build",
+                buildResInterval,
+                res.data["task_id"],
+                () => {
+                    notification("Successfully built model.", "success")
+                    getModel()
+                },
+                () => notification("Building failed.", "failure"),
+                () => {},
+                () => {
+                    setShowModelMetrics(false)
+                    setProcessingBuildModel(false)
+                    setShowBuildModelPopup(false)
+                }
+            ), 2000)
         }).catch((error) => {
             console.log(error)
             if (error.status == 400) {
@@ -187,37 +204,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
             
         })
-    }
-
-    let buildResOutstanding = 0;
-    function getBuildRes(id) {
-        if (buildResOutstanding > 0) return;
-        buildResOutstanding += 1
-        axios({
-            method: 'GET',
-            url: window.location.origin + '/api/task-result/' + id,
-        })
-        .then((res) => {
-            if (res.data["status"] != "in progress") {
-                clearInterval(buildResInterval)
-
-                if (res.data["status"] != "failed") {
-                    notification("Successfully built model.", "success")
-                    getModel()
-                } else {
-                    notification("Building failed.", "failure")
-                }
-
-                setShowModelMetrics(false)
-                setProcessingBuildModel(false)
-                setShowBuildModelPopup(false)
-
-            }
-        })
-        .catch(error => console.error("Error fetching result:", error))
-        .finally(() => {
-            buildResOutstanding -= 1
-        });
     }
 
     let recompileResInterval = null;
@@ -244,7 +230,21 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
         axios.post(URL, data, config)
         .then((res) => {
-            recompileResInterval = setInterval(() => getRecompileRes(res.data["task_id"]), 2000)
+            recompileResInterval = setInterval(() => getTaskResult(
+                "recompile",
+                recompileResInterval,
+                res.data["task_id"],
+                () => {
+                    notification("Successfully recompiled model.", "success")
+                    getModel()
+                },
+                () => notification("Recompilation failed.", "failure"),
+                () => {},
+                () => {
+                    setProcessingRecompile(false)
+                    setShowBuildModelPopup(false)
+                }
+            ), 2000)
         }).catch((error) => {
             console.log(error)
             if (error.status == 400) {
@@ -255,36 +255,6 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
             
         })
-    }
-
-    let recompileResOutstanding = 0;
-    function getRecompileRes(id) {
-        if (recompileResOutstanding > 0) return;
-        recompileResOutstanding += 1
-        axios({
-            method: 'GET',
-            url: window.location.origin + '/api/task-result/' + id,
-        })
-        .then((res) => {
-            if (res.data["status"] != "in progress") {
-                clearInterval(recompileResInterval)
-
-                if (res.data["status"] != "failed") {
-                    notification("Successfully recompiled model.", "success")
-                    getModel()
-                } else {
-                    notification("Recompilation failed.", "failure")
-                }
-
-                setProcessingRecompile(false)
-                setShowBuildModelPopup(false)
-
-            }
-        })
-        .catch(error => console.error("Error fetching result:", error))
-        .finally(() => {
-            recompileResOutstanding -= 1
-        });
     }
 
     function downloadModel(e, format, filename) {

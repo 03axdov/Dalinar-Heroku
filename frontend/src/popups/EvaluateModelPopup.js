@@ -4,8 +4,10 @@ import DatasetElement from "../components/DatasetElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import ProgressBar from "../components/ProgressBar"
 import TrainingTable from "../components/TrainingTable"
+import { useTask } from "../contexts/TaskContext"
 
 function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, currentProfile, BACKEND_URL, notification, activateConfirmPopup}) {
+    const { getTaskResult } = useTask();
 
     const [datasets, setDatasets] = useState([])
     const [savedDatasets, setSavedDatasets] = useState([])
@@ -80,9 +82,34 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
 
         axios.post(URL, data, config)
         .then((res) => {
-            data = res.data
 
-            resInterval = setInterval(() => getEvaluationResult(data["task_id"]), 2500)
+            resInterval = setInterval(() => getTaskResult(
+                "evaluation",
+                resInterval,
+                res.data["task_id"],
+                (data) => {
+                    notification("Successfully evaluated dataset.", "success")
+    
+                    setAccuracy(data["accuracy"].toFixed(4))
+                    setLoss(data["loss"].toFixed(4))
+                },
+                (data) => {
+                    notification("Evaluation failed: " + data["message"], "failure")
+                },
+                (data) => {
+                    if (data["evaluation_progress"]) {  // No progress for unauthenticated users
+                        setEvaluationProgress(data["evaluation_progress"] * 100)
+                    }
+                },
+                () => {
+                    setEvaluationProgress(100)
+                    setTimeout(() => {
+                        setIsEvaluating(false)
+                        setEvaluationProgress(0)
+                        setWasEvaluated(true)
+                    }, 200)
+                }
+            ), 2500)
 
         }).catch((error) => {
             console.log(error)
@@ -94,47 +121,6 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
 
             
         })
-    }
-
-    let evaluationResOutstanding = 0;
-    function getEvaluationResult(id) {
-        if (evaluationResOutstanding > 0) return;
-        evaluationResOutstanding += 1
-        axios({
-            method: 'GET',
-            url: window.location.origin + '/api/task-result/' + id,
-        })
-        .then((res) => {
-            if (res.data["status"] != "in progress") {
-                clearInterval(resInterval)
-                setEvaluationProgress(100)
-    
-                setTimeout(() => {
-                    setIsEvaluating(false)
-                    setEvaluationProgress(0)
-
-                    if (res.data["status"] != "failed") {
-                        notification("Successfully evaluated dataset.", "success")
-    
-                        setAccuracy(res.data["accuracy"].toFixed(4))
-                        setLoss(res.data["loss"].toFixed(4))
-    
-                        setWasEvaluated(true)
-                    } else {
-                        notification("Evaluation failed: " + res.data["message"], "failure")
-                    }
-                }, 200)
-            } else {
-                if (res.data["evaluation_progress"]) {  // No progress for unauthenticated users
-                    setEvaluationProgress(res.data["evaluation_progress"] * 100)
-                }
-                
-            }
-        })
-        .catch(error => console.error("Error fetching result:", error))
-        .finally(() => {
-            evaluationResOutstanding -= 1
-        });
     }
 
     function sort_datasets(ds) {

@@ -485,6 +485,7 @@
     box-sizing: border-box;
     font-size: 1.1rem;
     background: var(--toolbar-dark);
+    user-select: none;
 }
 .train-model-dataset-type:hover {
     cursor: pointer;

@@ -3,6 +3,6 @@
 3. Add these to LayerSerializer and CreateLayerSerializer respectively.
 4. Update CreateLayer view
 5. Update EditLayer view
-6. Update get_tf_layer() and layer_model_from_tf_layer()
+6. Update get_tf_layer() and layer_model_from_tf_layer(), set_to_tf_layer()
 7. Update layers.js
 8. Add as option in CreateLayerPopup.js

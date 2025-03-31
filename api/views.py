@@ -33,6 +33,12 @@ import base64
 
 ALLOWED_IMAGE_FILE_EXTENSIONS = set(["png", "jpg", "jpeg", "webp", "avif"])
 
+STATUS_TO_MESSAGE = {
+    400: "Bad request",
+    401: "Unauthorized",
+    404: "Not found",
+}
+
 
 # HELPER FUNCTIONS
 
@@ -1590,9 +1596,14 @@ class ResetLayerToBuild(APIView):
         
         user = self.request.user
         if user.is_authenticated:
-            pass
+            task = predict_model_task.delay(model_id, encoded_images, text)
+
+            return Response({
+                "message": "Prediction started",
+                "task_id": task.id
+            }, status=status.HTTP_200_OK)
         else:
-            return Response({"Unauthorized": "Must be logged in to edit layers."})
+            return Response({"Unauthorized": "Must be logged in to reset layers to build."})
         
         
 # TASK HANDLING (USED TO TRACK RESULTS FROM CELERY TASKS)
@@ -1622,7 +1633,7 @@ class GetTaskResult(APIView):
             else:
                 return Response({'status': 'in progress'}, status=status.HTTP_200_OK)
         else:
-            message = task.result["Bad request"]
+            message = task.result[STATUS_TO_MESSAGE[task.result["status"]]]
             if len(message) > 400:
                 message = message[:400] + "..."
             return Response({'status': 'failed', "message": message}, status=status.HTTP_200_OK)

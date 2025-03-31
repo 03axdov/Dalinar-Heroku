@@ -18,6 +18,7 @@ import CreateModel from "./pages/CreateModel"
 import Model from "./pages/Model"
 import PublicModel from "./pages/PublicModel"
 import EditModel from "./pages/EditModel"
+import { TaskProvider } from "./contexts/TaskContext"
 
 
 // Local: "http://127.0.0.1:8000"
@@ -106,7 +107,7 @@ export default function App() {
 
     return (
         <div id="main">
-
+            <TaskProvider>
             <Notification show={showNotification} message={notificationMessage} type={notificationType} notificationHover={notificationHover} BACKEND_URL={BACKEND_URL}/>
 
             {showAccountPopup && <AccountPopup setShowAccountPopup={setShowAccountPopup} message={"Please sign in to access this functionality."}/>}
@@ -130,7 +131,7 @@ export default function App() {
                 </Routes>
             </div>
             
-
+            </TaskProvider>
         </div>
     )
 }
