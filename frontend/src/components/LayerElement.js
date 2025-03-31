@@ -40,6 +40,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         temp["input_z"] = layer.input_z || ""
         temp["activation_function"] = layer.activation_function || ""
         temp["trainable"] = layer.trainable
+        temp["update_build"] = layer.update_build
 
         setParams(temp)
 
@@ -375,6 +376,18 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         <option value={false}>False</option>
                     </select>
                 </div>}
+                {current_layer.freezable && !isPublic && <div className="layer-element-stat">
+                    <span className="layer-element-stat-color layer-element-stat-gray"></span>
+                    <label className="layer-element-label" htmlFor={"update_build" + layer.id}>Update on build</label>
+                    <select className="layer-element-input layer-element-activation-input" id={"update_build" + layer.id} value={params["update_build"]} onChange={(e) => {
+                        let temp = {...params}
+                        temp["update_build"] = e.target.value
+                        setParams(temp)
+                    }}>
+                        <option value={true}>True</option>
+                        <option value={false}>False</option>
+                    </select>
+                </div>}
             </form>
         )
     }
@@ -432,6 +445,13 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         title="Revert changes"
                         onClick={() => setRevertChanges(!revertChanges)}>
                         Revert changes
+                    </button>}
+                    {!isPublic && <button type="button" 
+                        className="layer-element-revert"
+                        title="Reset to build"
+                        onClick={() => console.log("A")}>
+                        <img className="layer-element-button-icon" src={BACKEND_URL + "/static/images/reset.svg"} />
+                        Reset to build
                     </button>}
 
                     <div className="layer-element-index" title={"Layer #" + (idx+1)}>{idx+1}</div>

@@ -4,6 +4,8 @@ TO-DO:
 - Improve guide
 - Social media authentication
 - Transfer layer weights
+- Revert layer to build
+    - Then allow freezing layers (don't update weights on build)
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

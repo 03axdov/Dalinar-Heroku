@@ -1582,6 +1582,19 @@ class ClearLayerUpdated(APIView):
             return Response({'Unauthorized': 'Must be logged in to edit layers.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         
+class ResetLayerToBuild(APIView):
+    parser_classes = [JSONParser]
+
+    def post(self, request, format=None):   # A put request may fit better, post for now
+        layer_id = request.data["id"]
+        
+        user = self.request.user
+        if user.is_authenticated:
+            pass
+        else:
+            return Response({"Unauthorized": "Must be logged in to edit layers."})
+        
+        
 # TASK HANDLING (USED TO TRACK RESULTS FROM CELERY TASKS)
           
 from celery.result import AsyncResult
