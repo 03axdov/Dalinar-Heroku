@@ -392,8 +392,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         })
     }
 
-    function deleteLayer(id) {
-        activateConfirmPopup("Are you sure you want to delete this layer? This action cannot be undone.", () => deleteLayerInner(id))
+    function deleteLayer(id, message) {
+        activateConfirmPopup((message || "Are you sure you want to delete this layer? This action cannot be undone."), () => deleteLayerInner(id))
     }
 
     // FRONTEND FUNCTIONALITY

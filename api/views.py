@@ -25,7 +25,7 @@ from django.core.files.storage import default_storage
 
 from .serializers import *
 from .models import *
-from .tasks import train_model_task, train_model_tensorflow_dataset_task, evaluate_model_task, predict_model_task, recompile_model_task, build_model_task, create_model_file
+from .tasks import *
 import base64
 
 
@@ -1596,7 +1596,7 @@ class ResetLayerToBuild(APIView):
         
         user = self.request.user
         if user.is_authenticated:
-            task = predict_model_task.delay(model_id, encoded_images, text)
+            task = reset_to_build_task.delay(layer_id, user.id)
 
             return Response({
                 "message": "Prediction started",

@@ -2,12 +2,14 @@ import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 import {LAYERS, WARNING_MESSAGES, VALID_PREV_LAYERS} from "../layers"
+import { useTask } from "../contexts/TaskContext"
 
 function LayerElement({layer, hoveredLayer, deleteLayer, 
                         BACKEND_URL, setLayers, layers, notification, 
                         prevLayer, setWarnings, provided, 
                         updateWarnings, idx, onMouseEnter, 
                         onMouseLeave, isBuilt, warnings=false, isPublic=false}) {
+    const { getTaskResult } = useTask();
 
     const [type, setType] = useState(null)  // Workaround to stop warning when reordering layers.
 
@@ -19,6 +21,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     const [savingChanges, setSavingChanges] = useState(false)
 
     const [errorMessage, setErrorMessage] = useState("")
+
+    const [resettingToBuild, setResettingToBuild] = useState(false)
 
     const [updatedWarningHovered, setUpdatedWarningHovered] = useState(false)
     const updatedRef = useRef(null)
@@ -189,13 +193,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         axios.post(URL, data, config)
         .then((res) => {
             
-            
             let temp = [...layers]
-            for (let i=0; i < temp.length; i++) {
-                if (temp[i].id == layer.id) {
-                    temp[i] = res.data
-                }
-            }
+            temp[idx] = res.data
             setLayers(temp)
 
             notification("Successfully updated layer.", "success")
@@ -229,16 +228,62 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         axios.post(URL, data, config)
         .then((res) => {
             let temp = [...layers]
-            for (let i=0; i < temp.length; i++) {
-                if (temp[i].id == layer.id) {
-                    temp[i].updated = false
-                }
-            }
+
+            temp[idx].updated = false
+
             setLayers(temp)
             
 
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
+        })
+    }
+
+    let resInterval = null;
+    function resetToBuild(e) {
+        const data = {
+            "id": layer.id,
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+        
+        const URL = window.location.origin + '/api/reset-to-build/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        if (resettingToBuild) return;
+        setResettingToBuild(true)
+
+        axios.post(URL, data, config)
+        .then((res) => {
+            
+            resInterval = setInterval(() => getTaskResult(
+                "build",
+                resInterval,
+                res.data["task_id"],
+                (data) => {
+                    if (!data["data"]) {
+                        deleteLayer(layer.id, "This will delete the layer, as it was not in the last build. Are you sure you want to proceed?")
+                    } else {
+                        let updated_layer = data["data"]
+                        let temp = [...layers]
+                        temp[idx] = updated_layer
+                        setLayers(temp)
+                        notification("Successfully reset layer to last build.", "success")
+                    }
+                },
+                (data) => notification("Resetting layer failed: " + data["message"], "failure"),
+                () => {},
+                () => {
+                    setResettingToBuild(false)
+                }
+            ), 2000)
+            
+
+        }).catch((error) => {
+            notification("Error: " + error + ".", "failure")
+            setResettingToBuild(false)
         })
     }
 
@@ -449,9 +494,9 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                     {!isPublic && <button type="button" 
                         className="layer-element-revert"
                         title="Reset to build"
-                        onClick={() => console.log("A")}>
-                        <img className="layer-element-button-icon" src={BACKEND_URL + "/static/images/reset.svg"} />
-                        Reset to build
+                        onClick={resetToBuild}>
+                        <img className="layer-element-button-icon" src={BACKEND_URL + "/static/images/" + (resettingToBuild ? "loading.gif" : "reset.svg")} />
+                        {(resettingToBuild ? "Processing..." : "Reset to build")}
                     </button>}
 
                     <div className="layer-element-index" title={"Layer #" + (idx+1)}>{idx+1}</div>

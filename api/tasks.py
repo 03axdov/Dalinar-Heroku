@@ -855,6 +855,8 @@ def predict_model_task(self, model_id, encoded_images, text):
             return {"Bad request": "Model has not been trained.", "status": 400}
     except Model.DoesNotExist:
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    except Exception as e:
+        return {"Bad request": str(e), "status": 400}
     
     
 def get_metrics(loss_function):
@@ -942,6 +944,8 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
             return {"Unauthorized": "You can only build your own models.", "status": 401}
     except Model.DoesNotExist:
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    except Exception as e:
+        return {"Bad request": str(e), "status": 400}
     
     
 @shared_task(bind=True)
@@ -1017,6 +1021,8 @@ def recompile_model_task(self, model_id, optimizer, loss_function, user_id, inpu
         return {"Not found": "Could not find profile with the id " + str(profile_id) + ".", "status": 404}
     except Model.DoesNotExist:
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    except Exception as e:
+        return {"Bad request": str(e), "status": 400}
     
     
 # Sets params of layer_instance to tf_layer
@@ -1078,15 +1084,21 @@ def set_to_tf_layer(layer_instance, tf_layer):
         print("UNKNOWN LAYER OF TYPE: ", layer_instance.layer_type)
         return # Continue instantiating model
     
+    if "activation" in config.keys():
+        layer_instance.activation_function = config["activation"]
+    
+    layer_instance.updated = False
     layer_instance.save()
     return layer_instance
     
 
 @shared_task(bind=True)
-def reset_to_build_task(self, layer_id):
+def reset_to_build_task(self, layer_id, user_id):
     try:
+        profile = Profile.objects.get(user_id=user_id)
         layer_instance = Layer.objects.get(id=layer_id)
         model_instance = layer_instance.model
+        
         
         if not model_instance.model_file: return Response({"Bad request": "Model has not been built."}, status=status.HTTP_200_OK)
         
@@ -1096,12 +1108,15 @@ def reset_to_build_task(self, layer_id):
                 extension = str(model_instance.model_file).split(".")[-1]
                 model, timestamp = get_tf_model(model_instance)
                 
+                found = False
                 for layer in model.layers:
                     if layer.name == str(layer_id):
-                        print(f"found: {layer.name}")
+                        found = True
                         layer_instance = set_to_tf_layer(layer_instance, layer)
                         
                 remove_temp_tf_model(model_instance, timestamp)
+                
+                if not found: return {"data": None, "status": 200}
                 
                 return {"data": LayerSerializer(layer_instance).data,"status": 200}
         
@@ -1115,8 +1130,12 @@ def reset_to_build_task(self, layer_id):
         else:
             return {"Unauthorized": "You can only recompile your own models.", "status": 401}
         
+    except Profile.DoesNotExist:
+        return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
     except Layer.DoesNotExist:
         return {"Not found": "Could not find layer with the id " + str(layer_id) + ".", "status": 404}
+    except Exception as e:
+        return {"Bad request": str(e), "status": 400}
     
     
     
