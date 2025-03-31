@@ -396,6 +396,17 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         activateConfirmPopup((message || "Are you sure you want to delete this layer? This action cannot be undone."), () => deleteLayerInner(id))
     }
 
+    function updateLayers(updated_layer) {
+        let temp = [...layers]
+        for (let i=0; i < temp.length; i++) {
+            if (temp[i].id == updated_layer.id) {
+                temp[i] = updated_layer
+                break
+            }
+        }
+        setLayers(temp)
+    }
+
     // FRONTEND FUNCTIONALITY
 
     const resizeLeftToolbarHandleMouseDown = (e) => {
@@ -555,7 +566,9 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                 recompileModel={recompileModel}
                 processingRecompile={processingRecompile}
                 activateConfirmPopup={activateConfirmPopup}
-                model_type={model ? model.model_type : ""}></BuildModelPopup>}
+                model_type={model ? model.model_type : ""}
+                instance_optimizer={model.optimizer}
+                instance_loss_function={model.loss_function}></BuildModelPopup>}
 
             {showCreateLayerPopup && <CreateLayerPopup BACKEND_URL={BACKEND_URL}
                                                     onSubmit={createLayer} 
@@ -789,7 +802,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                         hoveredLayer={hoveredLayer} 
                                         deleteLayer={deleteLayer}
                                         layers={layers}
-                                        setLayers={setLayers}
+                                        updateLayers={updateLayers}
                                         notification={notification}
                                         prevLayer={(idx > 0 ? layers[idx - 1] : null)}
                                         warnings={warnings}

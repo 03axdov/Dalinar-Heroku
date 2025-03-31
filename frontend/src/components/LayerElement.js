@@ -5,7 +5,7 @@ import {LAYERS, WARNING_MESSAGES, VALID_PREV_LAYERS} from "../layers"
 import { useTask } from "../contexts/TaskContext"
 
 function LayerElement({layer, hoveredLayer, deleteLayer, 
-                        BACKEND_URL, setLayers, layers, notification, 
+                        BACKEND_URL, updateLayers, layers, notification, 
                         prevLayer, setWarnings, provided, 
                         updateWarnings, idx, onMouseEnter, 
                         onMouseLeave, isBuilt, warnings=false, isPublic=false}) {
@@ -43,7 +43,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         temp["input_y"] = layer.input_y || ""
         temp["input_z"] = layer.input_z || ""
         temp["activation_function"] = layer.activation_function || ""
-        temp["trainable"] = layer.trainable
+        temp["trainable"] = layer.trainable 
         temp["update_build"] = layer.update_build
 
         setParams(temp)
@@ -91,6 +91,9 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             setUpdated(true)
         }
         if (current_layer.freezable && params["trainable"] != layer.trainable) {
+            setUpdated(true)
+        }
+        if (current_layer.freezable && params["update_build"] != layer.update_build) {
             setUpdated(true)
         }
 
@@ -193,9 +196,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         axios.post(URL, data, config)
         .then((res) => {
             
-            let temp = [...layers]
-            temp[idx] = res.data
-            setLayers(temp)
+            updateLayers(res.data)
 
             notification("Successfully updated layer.", "success")
             setUpdated(false)
@@ -227,11 +228,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
         axios.post(URL, data, config)
         .then((res) => {
-            let temp = [...layers]
-
-            temp[idx].updated = false
-
-            setLayers(temp)
+            updateLayers(res.data)
             
 
         }).catch((error) => {
@@ -267,9 +264,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         deleteLayer(layer.id, "This will delete the layer, as it was not in the last build. Are you sure you want to proceed?")
                     } else {
                         let updated_layer = data["data"]
-                        let temp = [...layers]
-                        temp[idx] = updated_layer
-                        setLayers(temp)
+                        updateLayers(updated_layer)
                         notification("Successfully reset layer to last build.", "success")
                     }
                 },

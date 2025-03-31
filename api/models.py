@@ -273,7 +273,7 @@ class AbstractLayer(models.Model):
     index = models.PositiveIntegerField(default=0)
     updated = models.BooleanField(default=True) # Keeps track of whether a layer has been updated since last build
     trainable = models.BooleanField(default=True)
-    update_build = models.BooleanField(default=True)    # Whether or not to update layer when building. Cannot be False on a layer with updated True
+    update_build = models.BooleanField(default=True)    # Whether or not to update layer when building.
     
     LAYER_CHOICES = [
         ("dense", "Dense"),

@@ -244,6 +244,8 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
         labels = list(map(lambda label: label_to_tensor(map_labels(label)), labels))
     elif loss_function == "categorical_crossentropy":
         labels = list(map(lambda label: one_hot_encode(map_labels(label), num_labels), labels))
+    elif loss_function == "sparse_categorical_crossentropy":
+        labels = list(map(lambda label: map_labels(label), labels))
 
     dataset = tf.data.Dataset.from_tensor_slices((elements, labels))
     
@@ -501,7 +503,7 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
 
         if model_instance.model_type.lower() == "text":
             x_train = pad_sequences(x_train, maxlen=model_instance.input_sequence_length)
-        if last_layer.layer_type == "dense" and last_layer.nodes_count > 1:
+        if last_layer.layer_type == "dense" and last_layer.nodes_count > 1 and model_instance.loss_function != "sparse_categorical_crossentropy":
             y_train = to_categorical(y_train, num_classes=tf_dataset_num_classes[tensorflowDataset])
 
         dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
@@ -875,15 +877,27 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
         
         if instance.owner == profile:
             temp_path = ""
+            timestamp = ""
             try:
                 model = tf.keras.Sequential()
+                
+                old_model = None
                 
                 if instance.model_file:
                     instance.model_file.delete(save=False)
                 
                 for layer in instance.layers.all():
-                    new_layer = get_tf_layer(layer)
-                    model.add(new_layer)
+                    if not layer.update_build:
+                        if not old_model:
+                            old_model, timestamp = get_tf_model(instance)
+                        
+                        for old_layer in old_model.layers:
+                            if old_layer.name == str(layer.id):
+                                model.add(old_layer)
+                                break
+                    else:
+                        new_layer = get_tf_layer(layer)
+                        model.add(new_layer)
 
                 metrics = get_metrics(loss_function)
                 model.compile(optimizer=optimizer, loss=loss_function, metrics=[metrics])
@@ -905,6 +919,8 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
                 # Open the file and save it to Django's FileField
                 with open(temp_path, 'rb') as model_file:
                     instance.model_file.save(instance.name + ".keras", File(model_file))
+                    
+                remove_temp_tf_model(model_instance, timestamp)
 
                 # Delete the temporary file after saving
                 os.remove(temp_path)
@@ -933,10 +949,12 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
         
             except ValueError as e: # In case of invalid layer combination
                 print("Error: ", e)
+                remove_temp_tf_model(model_instance, timestamp)
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
                 return {"Bad request": str(e), "status": 400}
             except Exception as e:
+                remove_temp_tf_model(model_instance, timestamp)
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
                 return {"Bad request": str(e), "status": 400}

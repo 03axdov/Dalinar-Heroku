@@ -1,11 +1,11 @@
 TO-DO:
-- Look into Area datasets
 - Track multiple datasets used
 - Improve guide
 - Social media authentication
-- Transfer layer weights
 - Revert layer to build
     - Then allow freezing layers (don't update weights on build)
+- Cancel Training
+- Evaluate on TensorFlow datasets?
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py
