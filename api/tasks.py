@@ -1103,6 +1103,9 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
             {'Bad Request': f'Error creating layer {idx}'},
             status=layer_response.status_code
         )
+    else:
+        layer_id = layer_response.data.get('id')
+        tf_layer.name = layer_id
     
     
 # Not currently a task

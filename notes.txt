@@ -3,6 +3,7 @@ TO-DO:
 - Track multiple datasets used
 - Improve guide
 - Social media authentication
+- Transfer layer weights
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py
