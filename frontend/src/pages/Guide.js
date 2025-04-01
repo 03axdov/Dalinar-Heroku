@@ -72,18 +72,21 @@ function Guide({BACKEND_URL}) {
                         </p>
                     </div>
 
-                    <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.jpg"} style={{height: "430px"}} />
-                    <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.jpg"} style={{height: "430px"}} />
+                    <p className="guide-subheader" id="datasets">Datasets</p>
                     <p className="instructions-text">
                         Users are able to create both area and classification datasets. Dalinar currently supports both images and text.
-                        Elements are listed to the left with labels and, if applicable, areas to the right.
+                        Elements are listed to the left with labels and areas, if applicable, to the right.
                     </p>
-                    <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.jpg"} style={{height: "430px"}} />
+                    <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.jpg"} style={{height: "430px"}} />
+                    <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.jpg"} style={{height: "430px"}} />
+                    
+                    <p className="guide-subheader" id="models">Models</p>
                     <p className="instructions-text">
                         Models consist of multiple ordered layers of different types, such as Dense and Conv2D.
                         These all have different parameters that can be tailored to your needs.
                         Once you've construct a model it must be built (i.e. compiled) and can then be trained or exported. 
                     </p>
+                    <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.jpg"} style={{height: "430px"}} />
                     <p className="instructions-text" style={{marginBottom: "50px"}}>
                         Please see the more detailed pages for further explanations.
                     </p>
@@ -192,17 +195,17 @@ function Guide({BACKEND_URL}) {
                 </div>}
             </div>
 
-            <div className="guide-toolbar-right">
+            {currentInstructions == "start" && <div className="guide-toolbar-right">
                 <div className="guide-toolbar-element">
                     On this page
                 </div>
-                <div className="guide-toolbar-subelement-right">
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("datasets").scrollIntoView({behavior: "smooth"});}}>
                     Datasets
                 </div>
-                <div className="guide-toolbar-subelement-right">
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("models").scrollIntoView({behavior: "smooth"});}}>
                     Models
                 </div>
-            </div>
+            </div>}
         </div>
     )
 }
