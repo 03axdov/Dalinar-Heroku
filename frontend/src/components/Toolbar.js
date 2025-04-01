@@ -5,6 +5,8 @@ import {useNavigate} from "react-router-dom"
 function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_URL}) {
     const navigate = useNavigate()
 
+    const isBaseUrl = window.location.pathname === '/'; // Check if we're at the base URL
+
     function externalLink(link) {
         const URL = window.location.origin + link
         var win = window.open(URL, '_blank');
@@ -12,7 +14,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
     }
 
     return (
-        <nav id="toolbar">
+        <nav id="toolbar" className={(isBaseUrl ? "toolbar-landing" : "")}>
             <img id="toolbar-logo" src={BACKEND_URL + "/static/images/logoWhite.svg"} onClick={() => navigate("/")}/>
             <a href="/" className="toolbar-text toolbar-title" onClick={(e) => {
                 e.preventDefault()

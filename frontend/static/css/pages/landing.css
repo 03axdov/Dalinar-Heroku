@@ -1,295 +1,57 @@
 .landing-container {
-    overflow-y: scroll;
+    overflow-y: auto;
     scroll-behavior: smooth;
-    height: calc(100vh - var(--toolbar-height));
+    height: 100%;
+    background: var(--background-dark);
 }
 
-.landing-header, .landing-datasets, .landing-models {
-    scroll-snap-align: start;
-    height: calc(100vh - var(--toolbar-height));
-    min-height: 600px;
+.landing-header {
     width: 100%;
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    overflow-y: visible;
-    border-bottom: 50px solid var(--background);
-}
-
-.landing-header-col {
-    height: 100%;
-    display: flex;
     flex-direction: column;
-    box-sizing: border-box;
-}
-
-.landing-header-left {
-    padding: 50px 40px;
-    width: 600px;
-}
-
-.landing-header-right {
-    width: calc(100% - 600px);
-    background: black;
     align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    padding: 0;
-    box-sizing: border-box;
-    border-left: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
+    height: calc(100vh - var(--toolbar-height));
 }
 
 .landing-title {
-    font-size: 2.5rem;
-    margin: 0;
-    letter-spacing: 1px;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+    font-size: 2.7rem;
     font-weight: 500;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-
-.landing-header-image-container {
-    width: 90%;
-}
-
-.landing-header-image {
-    box-shadow: 0 0 50px rgb(20,20,20);
-    border: 1px solid var(--border);
-    user-select: none;
-}
-
-.landing-logo {
-    margin-right: 15px;
-    height: 50px;
-    width: 50px;
-}
-
-.landing-pitch {
-    color: white;
-    margin-right: 10px;
+    margin: 0;
+    margin-top: 150px;
+    width: 675px;
+    max-width: 80%;
+    text-align: center;
 }
 
 .landing-description {
-    font-size: 1.2rem;
-    text-align: justify;
     color: var(--gray-text);
-    margin: 0;
-    margin-top: 20px;
-}
-
-.landing-description-highlighted {
-    color: white;
-    margin-right: 10px;
+    width: 575px;
+    max-width: 70%;
+    text-align: center;
+    font-size: 1.1rem;
 }
 
 .landing-header-buttons {
     display: flex;
-    width: 100%;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
-    justify-content: space-between;
-    margin-top: 40px;
-}
-
-.landing-header-button-icon {
-    height: 17px;
-    width: 17px;
-    margin-right: 10px;
+    justify-content: center;
+    margin-top: 20px;
 }
 
 .landing-header-button {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    background: var(--sidebar-button);
-    border-radius: 50px;
+    width: 170px;
+    font-size: 1.1rem;
+    padding: 10px 20px;
+    margin: 0 10px;
 }
 
 .landing-header-explore {
-    margin-top: 10px;
+    background: rgb(0,0,0,0);
+    border: 1px solid var(--border-light);
 }
-
-.landing-support-container {
-    margin-top: auto;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.landing-support-text {
-    font-size: 1rem;
-    color: var(--gray-text);
-    margin: 0;
-}
-
-.landing-support-logo {
-    width: 15px;
-    margin-right: 5px;
-    margin-left: 10px;
-}
-
-.tensorflow {
-    color: #ee8f1f;
-    white-space: nowrap;
-}
-
-.pytorch {
-    color: #ef4b28;
-    white-space: nowrap;
-}
-
-.rights-reserved { 
-    margin-top: 20px;
-    font-size: 0.9rem;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    width: 100%;
-    color: var(--gray-text);
-}
-
-.copyright-icon {
-    height: 14px;
-    width: 14px;
-    margin-right: 5px;
-}
-
-.landing-model-layers-title {
-    font-size: 1.5rem;
-    margin-top: 40px;
-    margin: 0;
-}
-
-.landing-model-layers {
-    overflow-y: auto;
-    border-radius: 3px;
-    padding: 20px 10px;
-    background: var(--background-dark);
-    box-sizing: border-box;
-    width: 100%;
-    margin-top: 10px;
-    max-height: 100%;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.landing-model-layers::-webkit-scrollbar {
-    width: 7px;
-}
-
-.landing-model-layer {
-    margin: 0px 5px;
-    border-radius: 3px;
-    background: var(--toolbar);
-    font-size: 1rem;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    padding: 3px 7px;
-    height: 30px;
-}
-
-.landing-datasets .landing-header-right {
-    border: 1px solid var(--border);
-    border-left: none;
-}
-
-.landing-models {
-    border: none;
-}
-
-
-@media all and (max-width: 1350px) {
-    .landing-header-left {
-        padding: 50px 40px;
-        width: 500px;
-        box-sizing: border-box;
-        border-right: 1px solid var(--border);
-    }
-    
-    .landing-header-right {
-        width: calc(100% - 500px);
-        background: black;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        padding: 0;
-    }
-    
-    .landing-description {
-        font-size: 1rem;
-    }
-}
-
-@media all and (max-width: 1150px) {
-    .landing-header-buttons {
-        flex-direction: column;
-    }
-
-    .landing-header-button {
-        margin-bottom: 10px;
-        width: 100%;
-    }
-}
-
-@media all and (max-width: 1050px) {
-    .landing-header-left {
-        padding: 50px 40px;
-        width: 40%;
-        box-sizing: border-box;
-        border-right: 1px solid var(--border);
-    }
-    
-    .landing-header-right {
-        width: 60%;
-        background: black;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        padding: 0;
-    }
-
-    .landing-description {
-        text-align: left;
-    }
-
-    .landing-header-left {
-        padding: 50px 40px;
-        width: 100%;
-        box-sizing: border-box;
-        border: none;
-    }
-    
-    .landing-header-right {
-        width: 100%;
-        background: black;
-        align-items: center;
-        justify-content: center;
-        overflow: hidden;
-        padding: 20px;
-        border: none;
-        border-top: 1px solid var(--border);
-        border-bottom: 1px solid var(--border);
-        order: -1;
-    }
-
-    .landing-header .landing-header-right {
-        border-top: none;
-    }
-    
-    .landing-header, .landing-datasets, .landing-models {
-        height: auto;
-        flex-direction: column;
-    }
+.landing-header-explore:hover {
+    background: rgb(0,0,0,0);
+    border-color: rgb(150,150,150);
 }

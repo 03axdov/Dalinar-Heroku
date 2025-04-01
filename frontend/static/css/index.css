@@ -53,6 +53,11 @@ html, body {
     overflow-x: auto;
 }
 
+.toolbar-landing {
+    border-color: rgb(0,0,0,0)!important;
+    background: var(--background-dark)!important;
+}
+
 #toolbar::-webkit-scrollbar {
     height: 7px;
 }
