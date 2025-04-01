@@ -6,6 +6,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
     const navigate = useNavigate()
 
     const isBaseUrl = window.location.pathname === '/'; // Check if we're at the base URL
+    const isGuideUrl = window.location.pathname.replaceAll("/", "") === "guide"
 
     function externalLink(link) {
         const URL = window.location.origin + link
@@ -14,7 +15,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
     }
 
     return (
-        <nav id="toolbar" className={(isBaseUrl ? "toolbar-landing" : "")}>
+        <nav id="toolbar" className={(isBaseUrl ? "toolbar-landing" : "") + (isGuideUrl ? "toolbar-guide" : "")}>
             <img id="toolbar-logo" src={BACKEND_URL + "/static/images/logoWhite.svg"} onClick={() => navigate("/")}/>
             <a href="/" className="toolbar-text toolbar-title" onClick={(e) => {
                 e.preventDefault()

@@ -58,6 +58,10 @@ html, body {
     background: var(--background-dark)!important;
 }
 
+.toolbar-guide {
+    background: var(--background-dark)!important;
+}
+
 #toolbar::-webkit-scrollbar {
     height: 7px;
 }

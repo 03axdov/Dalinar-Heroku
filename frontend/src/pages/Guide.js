@@ -18,7 +18,13 @@ function Guide({BACKEND_URL}) {
         <div className="guide-container">
             <div className="guide-toolbar">
                 <div className="guide-toolbar-element">
-                    <img className="guide-toolbar-element-icon" src={BACKEND_URL + "/static/images/database.svg"} />
+                    Guide
+                </div>
+                    <div className={"guide-toolbar-subelement " + (currentInstructions == "start" ? "guide-toolbar-element-selected": "")}
+                    onClick={() => setCurrentInstructions("start")}>
+                        Dalinar Overview
+                    </div>
+                <div className="guide-toolbar-element">
                     Datasets
                 </div>
                     <div className={"guide-toolbar-subelement " + (currentInstructions == "dataset-classification" ? "guide-toolbar-element-selected": "")}
@@ -34,7 +40,6 @@ function Guide({BACKEND_URL}) {
                         Loading Datasets
                     </div>
                 <div className="guide-toolbar-element">
-                    <img className="guide-toolbar-element-icon" src={BACKEND_URL + "/static/images/model.svg"} />
                     Models
                 </div>
                     <div className={"guide-toolbar-subelement " + (currentInstructions == "model-layers" ? "guide-toolbar-element-selected": "")}
@@ -60,12 +65,13 @@ function Guide({BACKEND_URL}) {
 
                 {currentInstructions == "start" && <div className="guide-main">
                     <div className="instructions-header">
-                        <h1 className="instructions-title">Dalinar Guide</h1>
+                        <h1 className="instructions-title">Dalinar Overview</h1>
                         <p className="instructions-text">
                             Dalinar is a tool for making machine learning intuitive. It allows users to create datasets as well as machine learning models, all without having to code.
                             Crucially, the visual and intuitive interface makes it easy to experiment with different models, while the datasets provided makes it easier to eventually train these to your needs.
                         </p>
                     </div>
+
                     <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.jpg"} style={{height: "430px"}} />
                     <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.jpg"} style={{height: "430px"}} />
                     <p className="instructions-text">
@@ -184,6 +190,18 @@ function Guide({BACKEND_URL}) {
                         </p>
                     </div>
                 </div>}
+            </div>
+
+            <div className="guide-toolbar-right">
+                <div className="guide-toolbar-element">
+                    On this page
+                </div>
+                <div className="guide-toolbar-subelement-right">
+                    Datasets
+                </div>
+                <div className="guide-toolbar-subelement-right">
+                    Models
+                </div>
             </div>
         </div>
     )
