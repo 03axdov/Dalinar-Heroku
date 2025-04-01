@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom";
 import DownloadCode from "../components/DownloadCode"
 
@@ -14,8 +14,16 @@ function Guide({BACKEND_URL}) {
 
     const [imageIsLoaded, setImageIsLoaded] = useState(false)
 
+    const containerRef = useRef(null)
+
+    useEffect(() => {
+        if (containerRef.current) {
+            containerRef.current.scrollTop = 0
+        }
+    }, [currentInstructions])
+
     return (
-        <div className="guide-container">
+        <div className="guide-container" ref={containerRef}>
             <div className="guide-toolbar">
                 <div className="guide-toolbar-element">
                     Guide
@@ -72,24 +80,26 @@ function Guide({BACKEND_URL}) {
                         </p>
                     </div>
 
-                    <p className="guide-subheader" id="datasets">Datasets</p>
-                    <p className="instructions-text">
-                        Users are able to create both area and classification datasets. Dalinar currently supports both images and text.
-                        Elements are listed to the left with labels and areas, if applicable, to the right.
-                    </p>
-                    <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.jpg"} style={{height: "430px"}} />
-                    <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.jpg"} style={{height: "430px"}} />
-                    
-                    <p className="guide-subheader" id="models">Models</p>
-                    <p className="instructions-text">
-                        Models consist of multiple ordered layers of different types, such as Dense and Conv2D.
-                        These all have different parameters that can be tailored to your needs.
-                        Once you've construct a model it must be built (i.e. compiled) and can then be trained or exported. 
-                    </p>
-                    <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.jpg"} style={{height: "430px"}} />
-                    <p className="instructions-text" style={{marginBottom: "50px"}}>
-                        Please see the more detailed pages for further explanations.
-                    </p>
+                    <div className="instructions-container">
+                        <p className="guide-subheader" id="datasets">Datasets</p>
+                        <p className="instructions-text">
+                            Users are able to create both area and classification datasets. Dalinar currently supports both images and text.
+                            Elements are listed to the left with labels and areas, if applicable, to the right.
+                        </p>
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.jpg"} style={{height: "430px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.jpg"} style={{height: "430px"}} />
+                        
+                        <p className="guide-subheader" id="models">Models</p>
+                        <p className="instructions-text">
+                            Models consist of multiple ordered layers of different types, such as Dense and Conv2D.
+                            These all have different parameters that can be tailored to your needs.
+                            Once you've construct a model it must be built (i.e. compiled) and can then be trained or exported. 
+                        </p>
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.jpg"} style={{height: "430px"}} />
+                        <p className="instructions-text">
+                            Please see the more detailed pages for further explanations.
+                        </p>
+                    </div>
                 </div>}
                 
                 {/* LOADING DATASETS */}
@@ -143,19 +153,45 @@ function Guide({BACKEND_URL}) {
                 {currentInstructions == "dataset-classification" && <div className="guide-main">
                     <div className="instructions-header">
                         <h1 className="instructions-title">Classification Datasets</h1>
-                        <p className="instructions-text">Downloaded datasets can easily be loaded into different machine learning frameworks. See below for examples for TensorFlow and Pytorch.
-                            Note that the code provided applies to image datasets, and that the method used (folders as labels or filenames as labels) must be taken into account.
+                        <p className="instructions-text">
+                            Classification datasets consist of elements and labels. Each element can be assigned to one label, i.e. multiple elements can belong to the same label.
+                            When creating a label, you must specify a name and a color that will identify it, as well as (optionally) a keybind that will be used for labelling.
                         </p>
                     </div>
+
+                    <div className="instructions-container">
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.jpg"} style={{height: "430px"}} />
+
+                        <p className="guide-subheader" id="labelling">Labelling</p>
+                        <p className="instructions-text">
+                            To label an element you must first select it. This can be done by clicking it in the list of elements to the left, or by scrolling through the elements with arrow keys.
+                            The element can then be labelled by clicking on the desired label or pressing the keybind assigned to this label.
+                        </p>
+                    </div>
+                    
                 </div>}
 
                 {currentInstructions == "dataset-area" && <div className="guide-main">
                     <div className="instructions-header">
                         <h1 className="instructions-title">Area Datasets</h1>
-                        <p className="instructions-text">Downloaded datasets can easily be loaded into different machine learning frameworks. See below for examples for TensorFlow and Pytorch.
-                            Note that the code provided applies to image datasets, and that the method used (folders as labels or filenames as labels) must be taken into account.
+                        <p className="instructions-text">
+                            Area datasets consist of elements, labels, and areas. Areas can be added to elements, with each area belonging to (or identifying) one label.
+                            When creating a label, you must specify a name and a color that will identify it, as well as (optionally) a keybind that will be used for labelling.
+                            Areas consist of an arbitrary number of points placed throughout the image, and an element can be assigned multiple areas belonging to the same or different labels.
                         </p>
                     </div>
+
+                    <div className="instructions-container">
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.jpg"} style={{height: "430px"}} />
+
+                        <p className="guide-subheader" id="area-creation">Area Creation</p>
+                        <p className="instructions-text">
+                            To create an area, first select a label by clicking it or pressing its keybind. You can then create points by clicking on the image.
+                            Areas will appear in the list beneath labels, and can then be selected and edited by pressing them.
+                            Added points can be selected by clicking on them, and can then be moved or deleted (by pressing Delete or Backspace).
+                        </p>
+                    </div>
+                    
                 </div>}
 
                 {currentInstructions == "model-layers" && <div className="guide-main">
@@ -204,6 +240,22 @@ function Guide({BACKEND_URL}) {
                 </div>
                 <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("models").scrollIntoView({behavior: "smooth"});}}>
                     Models
+                </div>
+            </div>}
+            {currentInstructions == "dataset-classification" && <div className="guide-toolbar-right">
+                <div className="guide-toolbar-element">
+                    On this page
+                </div>
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("labelling").scrollIntoView({behavior: "smooth"});}}>
+                    Labelling
+                </div>
+            </div>}
+            {currentInstructions == "dataset-area" && <div className="guide-toolbar-right">
+                <div className="guide-toolbar-element">
+                    On this page
+                </div>
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("area-creation").scrollIntoView({behavior: "smooth"});}}>
+                    Area Creation
                 </div>
             </div>}
         </div>
