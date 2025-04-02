@@ -4,7 +4,8 @@
     display: flex;
     flex-direction: row;
     justify-content: center;
-    background: var(--background-dark);
+    align-items: center;
+    background: var(--background-light);
 }
 
 .form-container {
@@ -27,7 +28,6 @@
     margin-top: 50px;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     min-width: 400px;
 }
   
@@ -36,12 +36,13 @@ input {
     padding: 15px 10px;
     margin: 10px 0;
     border: none;
-    border-radius: 4px;
+    border-radius: 10px;
     font-size: 1rem;
     font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
     box-sizing: border-box;
     outline: none;
-    background-color: var(--background-dark);
+    background: rgb(0,0,0,0);
+    border: 1px solid var(--border-light);
     color: white;
 }
 
@@ -95,19 +96,29 @@ button {
 }
 
 .accounts-form-container h1 {
-    display: none;
+    font-weight: 500;
+}
+
+.accounts-form-outer {
+    width: 70%;
+    background: var(--background-darker);
+    box-sizing: border-box;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 0 black;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
 .accounts-form-container {
-    align-self: flex-start;  /* key fix */
     width: var(--form-width);
     max-width: 550px;
-    margin-top: 50px;
     height: auto;
-    box-sizing: border-box;
-    padding: 20px;
-    background: var(--background);
-    border-radius: 5px;
+}
+
+.accounts-form-container p {
+    color: rgb(200,200,200);
 }
 
 a {
@@ -174,9 +185,36 @@ a.button.secondaryAction {
     display: none;
 }
 
+.login-or {
+    text-align: center;
+}
+
+.socialaccount_providers {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    gap: 10px;
+}
+
+.socialaccount_providers li {
+    width: 100%;
+    padding: 15px 10px;
+    box-sizing: border-box;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    width: 100%;
+    text-align: center;
+}
+.socialaccount_provider {
+    color: white;
+    text-align: center;
+}
+
 @media all and (max-width: 900px) {
     .accounts-form-container {
         max-width: none;
         padding: 0 20px;
     }
-  }
+}

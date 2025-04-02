@@ -35,19 +35,19 @@
 
   </head>
   <body class="form-body">
-
-    </div>
     {% block body %}
 
-    <div class="accounts-form-container">
-      <h2 class="accounts-title"><img class="accounts-logo" src="{% static "images/logoWhite.svg" %}"/>Dalinar</h2>
+    <div class="accounts-form-outer">
+      <div class="accounts-form-image"></div>
+      <div class="accounts-form-container">
 
-      {% block content %}
-      {% endblock %}
-      {% endblock %}
-      {% block extra_body %}
-      {% endblock %}
-      <a href="/" class="skip-link">Return to the homepage</a>
+        {% block content %}
+        {% endblock %}
+        {% endblock %}
+        {% block extra_body %}
+        {% endblock %}
+        <a href="/" class="skip-link">Return to the homepage</a>
+      </div>
     </div>
     
   </body>
