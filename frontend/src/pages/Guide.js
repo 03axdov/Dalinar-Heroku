@@ -228,6 +228,7 @@ function Guide({BACKEND_URL}) {
                             Different layer types have different parameters. Dense layers, for example, have a parameter for the Number of nodes.
                             There are some parameters multiple layers have in common, such as the activation function.
                             Furthermore, for most layers the input dimensions can be specified, though it's optional for all but the first layer.
+                            The parameter Trainable can be specified for all layers with weights. If set to false, the layer will not be updated while training.
                         </p>
                         <p className="guide-subheader" id="layer-update">Updating Layers</p>
                         <p className="instructions-text">
@@ -256,7 +257,9 @@ function Guide({BACKEND_URL}) {
                     <div className="instructions-header">
                         <h1 className="instructions-title">Model Compiling</h1>
                         <p className="instructions-text">
-
+                            Built models can be recompiled in the same popup where they can be rebuilt. Recompiling will compile the model file with the specified optimizer and loss function.
+                            Unlike rebuilding this will not reset the weights of any layers.
+                            Furthermore, recompiling will reflect changes in the Trainable parameter which can be specified for all layers with weights.
                         </p>
                     </div>
                 </div>}
@@ -265,7 +268,8 @@ function Guide({BACKEND_URL}) {
                     <div className="instructions-header">
                         <h1 className="instructions-title">Model Training</h1>
                         <p className="instructions-text">
-                            
+                            Built models, see the section on Building, can be trained on any of your own datasets or any datasets you've saved, so long as the type of dataset aligns with that of the model.
+                            Metrics, i.e. loss and accuracy, from the last dataset the model was trained on can be viewed by clicking Show metrics in the main view.
                         </p>
                     </div>
                 </div>}
