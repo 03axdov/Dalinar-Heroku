@@ -2,10 +2,10 @@ TO-DO:
 - Track multiple datasets used
 - Improve guide
 - Social media authentication
-- Revert layer to build
-    - Then allow freezing layers (don't update weights on build)
-- Cancel Training
+- Cancel Training?
 - Evaluate on TensorFlow datasets?
+- More images in Guide
+- Better auth pages styling.
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

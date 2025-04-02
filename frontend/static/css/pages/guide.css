@@ -6,6 +6,7 @@
     width: 100%;
     background: var(--background-dark);
     overflow-y: scroll;
+    line-height: 1.8;
 }
 
 .guide-container::-webkit-scrollbar {
@@ -20,7 +21,6 @@
     box-sizing: border-box;
     flex-direction: column;
     align-items: start;
-    overflow-y: auto;
     padding-top: 20px;
     position: fixed;
 }
@@ -33,7 +33,7 @@
     height: 7px;
 }
 
-.guide-toolbar-element {
+.guide-toolbar-element, .guide-toolbar-element-right {
     width: 100%;
     font-size: 1.4rem;
     padding: 5px 10px;
@@ -43,6 +43,10 @@
     display: flex;
     flex-direction: row;
     align-items: center;
+}
+
+.guide-toolbar-element-right {
+    padding-left: 0;
 }
 
 .guide-toolbar-element-icon {
@@ -64,11 +68,11 @@
 }
 
 .guide-toolbar-subelement-right {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: rgb(200,200,200);
     margin-top: 5px;
     margin-bottom: 10px;
-    padding-left: 30px;
+    padding-left: 0;
     cursor: pointer;
 }
 
@@ -192,4 +196,39 @@
 
 .last-text {
     margin-bottom: 50px;
+}
+
+.supported-layers-container {
+    border-radius: 3px;
+    width: 100%;
+    padding: 15px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.supported-layer {
+    background: var(--background-light);
+    border-radius: 3px;
+    padding: 5px 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+.supported-layer:hover {
+    cursor: pointer;
+    background: var(--background-lighter);
+}
+
+.supported-layer-color {
+    height: 16px;
+    width: 16px;
+    border-radius: 8px;
+    margin-right: 10px;
 }

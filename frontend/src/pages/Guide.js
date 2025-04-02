@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom";
 import DownloadCode from "../components/DownloadCode"
+import { LAYERS } from "../layers";
 
 // The default page. Login not required.
 function Guide({BACKEND_URL}) {
@@ -9,11 +10,6 @@ function Guide({BACKEND_URL}) {
     const [downloadFramework1, setDownloadFramework1] = useState("tensorflow")
     const [downloadFramework2, setDownloadFramework2] = useState("tensorflow")
 
-    const [areaImageIsDark, setAreaImageIsDark] = useState(false)
-    const [classificationImageIsDark, setClassificationImageIsDark] = useState(false)
-
-    const [imageIsLoaded, setImageIsLoaded] = useState(false)
-
     const containerRef = useRef(null)
 
     useEffect(() => {
@@ -21,6 +17,14 @@ function Guide({BACKEND_URL}) {
             containerRef.current.scrollTop = 0
         }
     }, [currentInstructions])
+
+    const SUPPORTED_LAYERS = Object.values(LAYERS).map(layer => [layer.name, layer.color]);
+
+    function externalLink(link) {
+        const URL = link
+        var win = window.open(URL, '_blank');
+        win.focus();
+    }
 
     return (
         <div className="guide-container" ref={containerRef}>
@@ -154,7 +158,7 @@ function Guide({BACKEND_URL}) {
                     <div className="instructions-header">
                         <h1 className="instructions-title">Classification Datasets</h1>
                         <p className="instructions-text">
-                            Classification datasets consist of elements and labels. Each element can be assigned to one label, i.e. multiple elements can belong to the same label.
+                            Classification datasets consist of elements and labels. Elements can be either text or images. Each element can be assigned to one label, i.e. multiple elements can belong to the same label.
                             When creating a label, you must specify a name and a color that will identify it, as well as (optionally) a keybind that will be used for labelling.
                         </p>
                     </div>
@@ -175,7 +179,7 @@ function Guide({BACKEND_URL}) {
                     <div className="instructions-header">
                         <h1 className="instructions-title">Area Datasets</h1>
                         <p className="instructions-text">
-                            Area datasets consist of elements, labels, and areas. Areas can be added to elements, with each area belonging to (or identifying) one label.
+                            Area datasets consist of elements, labels, and areas. Only image elements are supported for Area Datasets. Areas can be added to elements, with each area belonging to (or identifying) one label.
                             When creating a label, you must specify a name and a color that will identify it, as well as (optionally) a keybind that will be used for labelling.
                             Areas consist of an arbitrary number of points placed throughout the image, and an element can be assigned multiple areas belonging to the same or different labels.
                         </p>
@@ -197,8 +201,40 @@ function Guide({BACKEND_URL}) {
                 {currentInstructions == "model-layers" && <div className="guide-main">
                     <div className="instructions-header">
                         <h1 className="instructions-title">Model Layers</h1>
-                        <p className="instructions-text">Downloaded datasets can easily be loaded into different machine learning frameworks. See below for examples for TensorFlow and Pytorch.
-                            Note that the code provided applies to image datasets, and that the method used (folders as labels or filenames as labels) must be taken into account.
+                        <p className="instructions-text">
+                            Models consist of several different layers, all of which have different types of parameters. Dalinar currently supports the following layers (click for more detailed descriptions):
+                        </p>
+                    </div>
+                    <div className="instructions-container">
+                        <div className="supported-layers-container">
+                            {SUPPORTED_LAYERS.map((layer, idx) => (
+                                <div className="supported-layer" key={idx} onClick={() => externalLink("https://www.tensorflow.org/api_docs/python/tf/keras/layers/" + layer[0])}>
+                                    <span className={"supported-layer-color layer-element-stat-" + layer[1]}></span>
+                                    {layer[0]}
+                                </div>
+                            ))}
+                        </div>
+                        <p className="instructions-text">
+                            Note that some of these are exclusive to either Image or Text models.
+                        </p>
+                        <p className="guide-subheader" id="ordering-layers">Ordering Layers</p>
+                        <p className="instructions-text">
+                            The order of layers is of great importance; some layers can only follow certain other layers (or can only be the first layer).
+                            Warnings will appear for invalid layer combinations.
+                            Layers can be reordered either by dragging the elements in the sidebar to the left, or by dragging the layer elements displayed in the main view while clicking the Drag icon.
+                        </p>
+                        <p className="guide-subheader" id="layer-properties">Layer Properties</p>
+                        <p className="instructions-text">
+                            Different layer types have different parameters. Dense layers, for example, have a parameter for the Number of nodes.
+                            There are some parameters multiple layers have in common, such as the activation function.
+                            Furthermore, for most layers the input dimensions can be specified, though it's optional for all but the first layer.
+                        </p>
+                        <p className="guide-subheader" id="layer-update">Updating Layers</p>
+                        <p className="instructions-text">
+                            Created layers can be easily updated by changing parameters and clicking Save changes.
+                            It is important to note that this will not immediately update the model itself. See the section on Building for further information.
+                            If you want to reset changes made to a layer since the last build, press Revert to build. Note that this will (after an additional prompt) delete the layer if it was not in the last build.
+                            All layers have a property called Update on build. If this is set to false, changes to this layer will not be reflected in builds.
                         </p>
                     </div>
                 </div>}
@@ -206,8 +242,12 @@ function Guide({BACKEND_URL}) {
                 {currentInstructions == "model-building" && <div className="guide-main">
                     <div className="instructions-header">
                         <h1 className="instructions-title">Model Building</h1>
-                        <p className="instructions-text">Downloaded datasets can easily be loaded into different machine learning frameworks. See below for examples for TensorFlow and Pytorch.
-                            Note that the code provided applies to image datasets, and that the method used (folders as labels or filenames as labels) must be taken into account.
+                        <p className="instructions-text">
+                            Building the model is necessary in order to unlock functionality such as training, evaluation, predicting, and downloading.
+                            Building the model creates a model file based on the current layers and compiles this file according to specified optimizer and loss function.
+                            Changes made between builds will only be reflected in functionality such as training once the model is rebuilt.
+                            It is important to note that rebuilding a model will reset all weights of layers that have Update on build set to true, i.e. trained layers will become untrained.
+                            If you only want to update the optimizer, loss function, or whether certain layers are trainable see the section on Model Compiling.
                         </p>
                     </div>
                 </div>}
@@ -215,8 +255,8 @@ function Guide({BACKEND_URL}) {
                 {currentInstructions == "model-compiling" && <div className="guide-main">
                     <div className="instructions-header">
                         <h1 className="instructions-title">Model Compiling</h1>
-                        <p className="instructions-text">Downloaded datasets can easily be loaded into different machine learning frameworks. See below for examples for TensorFlow and Pytorch.
-                            Note that the code provided applies to image datasets, and that the method used (folders as labels or filenames as labels) must be taken into account.
+                        <p className="instructions-text">
+
                         </p>
                     </div>
                 </div>}
@@ -224,15 +264,15 @@ function Guide({BACKEND_URL}) {
                 {currentInstructions == "model-training" && <div className="guide-main">
                     <div className="instructions-header">
                         <h1 className="instructions-title">Model Training</h1>
-                        <p className="instructions-text">Downloaded datasets can easily be loaded into different machine learning frameworks. See below for examples for TensorFlow and Pytorch.
-                            Note that the code provided applies to image datasets, and that the method used (folders as labels or filenames as labels) must be taken into account.
+                        <p className="instructions-text">
+                            
                         </p>
                     </div>
                 </div>}
             </div>
 
             {currentInstructions == "start" && <div className="guide-toolbar-right">
-                <div className="guide-toolbar-element">
+                <div className="guide-toolbar-element-right">
                     On this page
                 </div>
                 <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("datasets").scrollIntoView({behavior: "smooth"});}}>
@@ -243,7 +283,7 @@ function Guide({BACKEND_URL}) {
                 </div>
             </div>}
             {currentInstructions == "dataset-classification" && <div className="guide-toolbar-right">
-                <div className="guide-toolbar-element">
+                <div className="guide-toolbar-element-right">
                     On this page
                 </div>
                 <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("labelling").scrollIntoView({behavior: "smooth"});}}>
@@ -251,11 +291,26 @@ function Guide({BACKEND_URL}) {
                 </div>
             </div>}
             {currentInstructions == "dataset-area" && <div className="guide-toolbar-right">
-                <div className="guide-toolbar-element">
+                <div className="guide-toolbar-element-right">
                     On this page
                 </div>
                 <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("area-creation").scrollIntoView({behavior: "smooth"});}}>
                     Area Creation
+                </div>
+            </div>}
+
+            {currentInstructions == "model-layers" && <div className="guide-toolbar-right">
+                <div className="guide-toolbar-element-right">
+                    On this page
+                </div>
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("ordering-layers").scrollIntoView({behavior: "smooth"});}}>
+                    Ordering Layers
+                </div>
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("layer-properties").scrollIntoView({behavior: "smooth"});}}>
+                    Layer Properties
+                </div>
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("layer-update").scrollIntoView({behavior: "smooth"});}}>
+                    Updating Layers
                 </div>
             </div>}
         </div>

@@ -1,12 +1,9 @@
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom";
-import { LAYERS } from "../layers";
 
 // The default page. Login not required.
 function Landing({BACKEND_URL}) {
     const navigate = useNavigate()
-
-    const SUPPORTED_LAYERS = Object.values(LAYERS).map(layer => [layer.name, layer.color]);
 
     return (
         <div className="landing-container">
