@@ -27,13 +27,59 @@
     width: var(--landing-header-right);
     height: 100%;
     display: flex;
+    flex-direction: column;
+    position: relative;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    overflow: visible;
+    padding: 40px 0;
+    background: black;
+}
+
+.landing-right-row {
+    height: calc((100% - 30px * 4) / 5);
+    width: calc(100% - 5px);
+    margin-left: 5px;
+    display: flex;
     flex-direction: row;
     align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.landing-right-row-track {
+    display: flex;
+    height: 100%;
+    width: fit-content;
+    gap: 30px;
+    animation-name: scroll-left;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-play-state: running; /* default */
+}
+  
+@keyframes scroll-left {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+} 
+  
+.landing-rotating-img {
+    width: auto;
+    height: 100%;
 }
 
 .landing-header-cover {
     height: 100%;
     width: 100%;
+    position: absolute;
+    top: 0;
+    z-index: 1;
+    left: -5px;
 }
 
 .landing-title {

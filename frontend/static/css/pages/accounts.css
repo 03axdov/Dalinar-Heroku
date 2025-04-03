@@ -107,9 +107,8 @@ button {
     min-height: 700px;
     background: var(--background);
     box-sizing: border-box;
-    padding: 10px 50px;
-    padding-top: 40px;
-    border-radius: 5px;
+    padding: 40px 50px;
+    border-radius: 15px;
     box-shadow: 0 0 10px 0 black;
     display: flex;
     flex-direction: row;
@@ -216,14 +215,4 @@ a.button.secondaryAction {
 .socialaccount_provider {
     color: white;
     text-align: center;
-}
-
-.accounts-form-image {
-    display: none;
-    width: calc(100% - var(--form-width) - 60px);
-    background: black;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 5px;
-    opacity: 0.8;
 }
