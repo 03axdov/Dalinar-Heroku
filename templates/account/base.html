@@ -37,10 +37,25 @@
   <body class="form-body">
     {% block body %}
 
-    <div class="accounts-form-outer">
-      <div class="accounts-form-image"></div>
-      <div class="accounts-form-container">
+    <nav id="toolbar" class="toolbar-landing">
+      <img id="toolbar-logo" src={% static 'images/logoWhite.svg' %} />
+      <a href="/" class="toolbar-text toolbar-title">Dalinar</a>
 
+      <a href="/home" class="toolbar-text">Home</a>
+
+      <a href="/explore" class="toolbar-text">Explore</a>
+
+      <a href="/guide" target="_blank" class="toolbar-text">Guide <img class="toolbar-icon" src={% static 'images/external.png' %}/></a>
+
+      <div class="toolbar-auth">
+          <a class="toolbar-text" href="/accounts/signup">Register</a>
+          <a href="/accounts/login" class="toolbar-button toolbar-register">Sign in</a>
+      </div>
+        
+    </nav>
+
+    <div class="accounts-form-outer">
+      <div class="accounts-form-container">
         {% block content %}
         {% endblock %}
         {% endblock %}

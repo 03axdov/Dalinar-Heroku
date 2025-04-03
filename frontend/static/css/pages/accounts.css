@@ -41,7 +41,8 @@ input {
     font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
     box-sizing: border-box;
     outline: none;
-    background: var(--accounts-input);
+    background-color: var(--accounts-input);
+    border: 1px solid var(--border);
     color: white;
 }
 
@@ -51,6 +52,7 @@ input:-webkit-autofill:hover,
 input:-webkit-autofill:focus, 
 input:-webkit-autofill:active {
     -webkit-box-shadow: 0 0 0px 1000px var(--accounts-input) inset !important;
+    box-shadow: 0 0 0 1000px var(--accounts-input) inset !important;
     -webkit-text-fill-color: white !important;
     font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif !important;
     transition: background-color 5000s ease-in-out 0s;
@@ -100,17 +102,18 @@ button {
 }
 
 .accounts-form-outer {
-    width: 70%;
-    height: 700px;
+    width: auto;
+    max-width: 80%;
+    min-height: 700px;
     background: var(--background);
     box-sizing: border-box;
-    padding: 20px;
-    padding-right: 60px;
+    padding: 10px 50px;
+    padding-top: 40px;
     border-radius: 5px;
     box-shadow: 0 0 10px 0 black;
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: start;
     justify-content: space-between;
 }
 
@@ -203,9 +206,9 @@ a.button.secondaryAction {
 
 .socialaccount_providers li {
     width: 100%;
-    padding: 15px 10px;
+    padding: 10px 7px;
     box-sizing: border-box;
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--border);
     border-radius: 3px;
     width: 100%;
     text-align: center;
@@ -216,8 +219,11 @@ a.button.secondaryAction {
 }
 
 .accounts-form-image {
+    display: none;
     width: calc(100% - var(--form-width) - 60px);
     background: black;
     height: 100%;
+    object-fit: cover;
     border-radius: 5px;
+    opacity: 0.8;
 }

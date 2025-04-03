@@ -503,7 +503,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
                         </select>
 
-                        {savedTypeShown == "dataset" && <select title="Sort by" className="explore-datasets-sort" value={datasetShow} onChange={(e) => {
+                        {savedTypeShown == "datasets" && <select title="Sort by" className="explore-datasets-sort" value={datasetShow} onChange={(e) => {
                                 setDatasetShow(e.target.value)
                             }}>
                             <option value="all">All</option>

@@ -136,11 +136,16 @@ button:hover {
     color: white;
     border-radius: 3px;
     padding: 7px 15px;
+    font-size: 1.1rem;
+    width: auto;
+    letter-spacing: 0px;
+    text-decoration: none;
 }
 
 .toolbar-button:hover {
     cursor: pointer;
     background: var(--blue-dark);
+    text-decoration: none;
 }
 
 .toolbar-title {

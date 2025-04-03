@@ -7,7 +7,7 @@
     --background-light: #121720;
     --background-lighter: #1d2431;
     --background-shadow: #000000;
-    --accounts-input: #191f2b;
+    --accounts-input: #0d1017;
 
     --toolbar: #181d25;
     --toolbar-light: #212730;
@@ -42,7 +42,7 @@
     --gray-dark: #3b3b3b;
     --gray-darker: #303030;
 
-    --form-width: 40%;
+    --form-width: 425px;
     --toolbar-height: 60px;
 
     --home-sidebar-width: 185px;
@@ -57,6 +57,8 @@
     --delete-red-hover: rgb(146, 43, 43);
 
     --guide-sidebar-width: 175px;
+
+    --landing-header-right: 35%;
 }
 
 ::-webkit-scrollbar {
@@ -95,12 +97,6 @@ input::placeholder {
     -moz-osx-font-smoothing: grayscale; /* For Firefox on macOS */
 }
 
-@media all and (max-width: 1250px) {
-    :root {
-        --form-width: 500px;
-    }
-}
-
 @media all and (max-width: 975px) {
     :root {
         --home-sidebar-width: 155px;
@@ -113,11 +109,5 @@ input::placeholder {
     :root {
         --dataset-elements-width: 135px;
         --dataset-labels-width: 135px;
-    }
-}
-
-@media all and (max-width: 900px) {
-    :root {
-        --form-width: 100%;
     }
 }

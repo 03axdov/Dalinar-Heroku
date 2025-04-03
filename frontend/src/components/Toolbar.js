@@ -43,10 +43,10 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
                         e.preventDefault()
                         window.location.href = window.location.origin + "/accounts/signup/"
                     }}>Register</a>
-                    <button href="/accounts/login" className="toolbar-button toolbar-register" onClick={(e) => {
+                    <a href="/accounts/login" className="toolbar-button toolbar-register" onClick={(e) => {
                         e.preventDefault()
                         window.location.href = window.location.origin + "/accounts/login/"
-                    }}>Sign in</button>
+                    }}>Sign in</a>
 
                 </div>
             }
