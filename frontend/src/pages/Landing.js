@@ -7,28 +7,28 @@ function Landing({BACKEND_URL}) {
     const navigate = useNavigate()
 
     const imageUrlsRow1 = [
-      BACKEND_URL + "/static/images/landing1.png",
-      BACKEND_URL + "/static/images/landing9.png",
-      BACKEND_URL + "/static/images/landing2.png",
-      BACKEND_URL + "/static/images/landing3.png",
+      BACKEND_URL + "/static/images/landing1.webp",
+      BACKEND_URL + "/static/images/landing9.webp",
+      BACKEND_URL + "/static/images/landing6.webp",
+      BACKEND_URL + "/static/images/landing2.webp",
     ];
     const imageUrlsRow2 = [
         BACKEND_URL + "/static/images/landing5.avif",
-        BACKEND_URL + "/static/images/landing8.webp",
-        BACKEND_URL + "/static/images/landing6.png",
         BACKEND_URL + "/static/images/landing7.webp",
+        BACKEND_URL + "/static/images/landing4.webp",
+        BACKEND_URL + "/static/images/landing8.webp",
     ];
     const imageUrlsRow3 = [
         BACKEND_URL + "/static/images/landing5.avif",
+        BACKEND_URL + "/static/images/landing1.webp",
         BACKEND_URL + "/static/images/landing7.webp",
-        BACKEND_URL + "/static/images/landing6.png",
-        BACKEND_URL + "/static/images/landing8.webp",
+        BACKEND_URL + "/static/images/landing6.webp",
     ];
     const imageUrlsRow4 = [
         BACKEND_URL + "/static/images/landing5.avif",
         BACKEND_URL + "/static/images/landing8.webp",
-        BACKEND_URL + "/static/images/landing6.png",
-        BACKEND_URL + "/static/images/landing9.jpg",
+        BACKEND_URL + "/static/images/landing2.webp",
+        BACKEND_URL + "/static/images/landing9.webp",
     ];
 
     return (
