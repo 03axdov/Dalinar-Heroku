@@ -35,6 +35,7 @@ def set_training_progress(profile, progress):
     profile.training_progress = progress
     if progress == -1:
         profile.training_accuracy = -1
+        profile.training_loss = -1
     profile.save()
 
 
@@ -309,6 +310,7 @@ class TrainingProgressCallback(tf.keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs=None):
         if logs:
             self.profile.training_accuracy = logs["accuracy"]  # set_training_progress saves
+            self.profile.training_loss = logs["loss"]
         set_training_progress(self.profile, round((epoch + 1) / self.total_epochs, 4))
 
 
@@ -920,7 +922,7 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
                 with open(temp_path, 'rb') as model_file:
                     instance.model_file.save(instance.name + ".keras", File(model_file))
                     
-                remove_temp_tf_model(model_instance, timestamp)
+                remove_temp_tf_model(instance, timestamp)
 
                 # Delete the temporary file after saving
                 os.remove(temp_path)
@@ -949,12 +951,12 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
         
             except ValueError as e: # In case of invalid layer combination
                 print("Error: ", e)
-                remove_temp_tf_model(model_instance, timestamp)
+                remove_temp_tf_model(instance, timestamp)
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
                 return {"Bad request": str(e), "status": 400}
             except Exception as e:
-                remove_temp_tf_model(model_instance, timestamp)
+                remove_temp_tf_model(instance, timestamp)
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
                 return {"Bad request": str(e), "status": 400}

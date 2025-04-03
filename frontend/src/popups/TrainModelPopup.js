@@ -13,7 +13,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
 
     const [isTraining, setIsTraining] = useState(false)
     const [trainingProgress, setTrainingProgress] = useState(-1)    // Negative means processing
-    const [trainingAccuracy, setTrainingAccuracy] = useState(-1)
+    const [trainingData, setTrainingData] = useState([])
+    const [trainingPingCount, setTrainingPingCount] = useState(0)
 
     const [loading, setLoading] = useState(false)
 
@@ -94,6 +95,9 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         axios.post(URL, data, config)
         .then((res) => {
 
+            let pingCount = 0;
+            let isComplete = false
+
             resInterval = setInterval(() => getTaskResult(
                 "training",
                 resInterval,
@@ -107,7 +111,20 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                 },
                 (data) => {
                     setTrainingProgress(data["training_progress"] * 100)
-                    setTrainingAccuracy(data["training_accuracy"].toFixed(4))
+                    if (data["training_progress"] > 0 && !isComplete) {
+                        isComplete = data["training_progress"] == 1
+                        setTrainingData(prev => [
+                            ...prev,
+                            {
+                                time: pingCount,
+                                accuracy: data["training_accuracy"].toFixed(4),
+                                loss: data["training_loss"].toFixed(4),
+                                loss: 0.5
+                            }
+                        ]);
+                        pingCount += 1
+                    }
+                    
                 },
                 () => {
                     setTrainingProgress(100)
@@ -115,14 +132,15 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                     setTimeout(() => {
                         setIsTraining(false)
                         setTrainingProgress(-1)
-                        setTrainingAccuracy(-1)
+                        setTrainingData([])
+                        setTrainingPingCount(0)
 
                         if (document.visibilityState !== "visible") {
                             alert("Training finished.")
                         }
                     }, 200)
                 }
-            ), 2500)
+            ), 2000)
 
         }).catch((error) => {
             console.log(error)
@@ -136,6 +154,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         })
 
     }
+
+    console.log(trainingData)
 
     function sort_datasets(ds) {
         let tempDatasets = [...ds]
@@ -283,9 +303,6 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         let message = "Processing..."
         if (trainingProgress >= 0) {
             message = Math.round(trainingProgress * epochs / 100) + " / " + epochs + " epochs"
-            if (trainingAccuracy != -1) {
-                message += ", accuracy: " + trainingAccuracy
-            }
         }
         return message
     }
@@ -295,7 +312,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
             setShowTrainModelPopup(false)
         }}>
 
-            {isTraining && <ProgressBar progress={trainingProgress} message={getProgressMessage()} BACKEND_URL={BACKEND_URL} longer={true}></ProgressBar>}
+            {isTraining && <ProgressBar progress={trainingProgress} message={getProgressMessage()} BACKEND_URL={BACKEND_URL} training_data={trainingData}></ProgressBar>}
 
             <div className="train-model-popup-container" onClick={(e) => {
                 e.stopPropagation()

@@ -22,6 +22,7 @@ class Profile(models.Model):    # Extends default User class
     name = models.CharField(max_length=30, blank=True, null=True, unique=True)
     training_progress = models.FloatField(default=0) # Used to track progress when training model.
     training_accuracy = models.FloatField(default=-1) # Used to track accuracy when training
+    training_loss = models.FloatField(default=-1)
     evaluation_progress = models.FloatField(default=0)
     
     def __str__(self):

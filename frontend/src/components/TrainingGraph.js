@@ -10,17 +10,22 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-const TrainingGraph = ({ data, is_validation }) => {
+const TrainingGraph = ({ data, is_validation, is_training=false, border=true }) => {
+
   return (
-    <div style={{ width: '100%', height: 400 }} className="training-graph">
-      <ResponsiveContainer>
+    <div style={{ width: '100%', height: 400 }} className={"training-graph " + (!border ? "no-border" : "")}>
+      {data && data.length > 0 && <ResponsiveContainer>
         <LineChart data={data}>
           <CartesianGrid stroke="rgba(255, 255, 255, 0.1)" strokeDasharray="3 3" />
           
-          <XAxis
+          {!is_training && <XAxis
             dataKey="epoch"
             label={{ value: 'Epoch', position: 'insideBottomRight', offset: -5 }}
-          />
+          />}
+          {is_training && <XAxis
+            dataKey="time"
+            label={{ value: 'Time', position: 'insideBottomRight', offset: -5 }}
+          />}
           
           {/* Y-axis for Accuracy (left) */}
           <YAxis
@@ -42,7 +47,7 @@ const TrainingGraph = ({ data, is_validation }) => {
                 color: '#fff',
                 borderRadius: '8px'
             }}
-            labelFormatter={(label) => `Epoch ${label}`}
+            labelFormatter={(label) => (!is_training ? "Epoch " : "Time ") + label}
           />
 
           <Legend />
@@ -55,6 +60,7 @@ const TrainingGraph = ({ data, is_validation }) => {
             name={is_validation ? "Validation Accuracy" : "Accuracy"}
             dot={{ r: 3, stroke: "rgb(9, 239, 255)", fill: "rgb(9, 239, 255)", opacity: 0.5 }}
             yAxisId="left"
+            isAnimationActive={!is_training}
           />
 
           {/* Loss line on right Y-axis */}
@@ -65,9 +71,10 @@ const TrainingGraph = ({ data, is_validation }) => {
             name={is_validation ? "Validation Loss" : "Loss"}
             dot={{ r: 3, stroke: "rgb(247, 0, 206)", fill: "rgb(247, 0, 206)", opacity: 0.5 }}
             yAxisId="right"
+            isAnimationActive={!is_training}
           />
         </LineChart>
-      </ResponsiveContainer>
+      </ResponsiveContainer>}
     </div>
   );
 };

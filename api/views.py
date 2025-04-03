@@ -1631,10 +1631,12 @@ class GetTaskResult(APIView):
             if user.is_authenticated:
                 training_progress = user.profile.training_progress
                 training_accuracy = user.profile.training_accuracy
+                training_loss = user.profile.training_loss
                 evaluation_progress = user.profile.evaluation_progress
                 return Response({'status': 'in progress', 
                                  "training_progress": training_progress, 
                                  "training_accuracy": training_accuracy,
+                                 "training_loss": training_loss,
                                  "evaluation_progress": evaluation_progress}, status=status.HTTP_200_OK)
             else:
                 return Response({'status': 'in progress'}, status=status.HTTP_200_OK)

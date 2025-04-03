@@ -351,22 +351,29 @@ input {
     align-items: center;
 }
 
-.progress-bar-container {
-    height: 50px;
+.progress-bar-container-outer {
     width: 550px;
     max-width: 70%;
     border-radius: 5px;
     background: var(--toolbar);
     display: flex;
+    flex-direction: column;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    z-index: 2;
+}
+
+.progress-bar-container {
+    width: 100%;
+    display: flex;
     flex-direction: row;
     align-items: center;
-    box-sizing: border-box;
-    padding: 10px 20px;
-    z-index: 2;
+    
 }
 .progress-bar-long {
     width: 750px;
     max-width: 80%;
+    padding-top: 30px;
 }
 
 .progress-bar-spinner {
