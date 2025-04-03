@@ -38,7 +38,7 @@
 }
 
 .landing-right-row {
-    height: calc((100% - 30px * 4) / 5);
+    height: calc((100% - 30px * 4) / 4);
     width: calc(100% - 5px);
     margin-left: 5px;
     display: flex;
@@ -71,6 +71,7 @@
 .landing-rotating-img {
     width: auto;
     height: 100%;
+    border-radius: 10px;
 }
 
 .landing-header-cover {

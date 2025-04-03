@@ -7,11 +7,28 @@ function Landing({BACKEND_URL}) {
     const navigate = useNavigate()
 
     const imageUrlsRow1 = [
-      BACKEND_URL + "/static/images/examplePage.jpg",
-      BACKEND_URL + "/static/images/examplePage.jpg",
-      BACKEND_URL + "/static/images/examplePage.jpg",
-      BACKEND_URL + "/static/images/examplePage.jpg",
-      BACKEND_URL + "/static/images/examplePage.jpg"
+      BACKEND_URL + "/static/images/landing1.png",
+      BACKEND_URL + "/static/images/landing9.png",
+      BACKEND_URL + "/static/images/landing2.png",
+      BACKEND_URL + "/static/images/landing3.png",
+    ];
+    const imageUrlsRow2 = [
+        BACKEND_URL + "/static/images/landing5.avif",
+        BACKEND_URL + "/static/images/landing8.webp",
+        BACKEND_URL + "/static/images/landing6.png",
+        BACKEND_URL + "/static/images/landing7.webp",
+    ];
+    const imageUrlsRow3 = [
+        BACKEND_URL + "/static/images/landing5.avif",
+        BACKEND_URL + "/static/images/landing7.webp",
+        BACKEND_URL + "/static/images/landing6.png",
+        BACKEND_URL + "/static/images/landing8.webp",
+    ];
+    const imageUrlsRow4 = [
+        BACKEND_URL + "/static/images/landing5.avif",
+        BACKEND_URL + "/static/images/landing8.webp",
+        BACKEND_URL + "/static/images/landing6.png",
+        BACKEND_URL + "/static/images/landing9.jpg",
     ];
 
     return (
@@ -30,11 +47,10 @@ function Landing({BACKEND_URL}) {
                 </div>
                 <div className="landing-header-right">
                     <img className="landing-header-cover" src={BACKEND_URL + "/static/images/landing-cover.png"} />
-                    <LandingImageRow imageUrls={imageUrlsRow1} animationDuration={55} offset={10} />
-                    <LandingImageRow imageUrls={imageUrlsRow1} animationDuration={60} offset={7}/>
-                    <LandingImageRow imageUrls={imageUrlsRow1} animationDuration={69} offset={-10}/>
-                    <LandingImageRow imageUrls={imageUrlsRow1} animationDuration={62} offset={5}/>
-                    <LandingImageRow imageUrls={imageUrlsRow1} animationDuration={56} offset={9}/>
+                    <LandingImageRow imageUrls={imageUrlsRow1} animationDuration={70} offset={15}/>
+                    <LandingImageRow imageUrls={imageUrlsRow2} animationDuration={79} offset={30}/>
+                    <LandingImageRow imageUrls={imageUrlsRow3} animationDuration={65} offset={5}/>
+                    <LandingImageRow imageUrls={imageUrlsRow4} animationDuration={75} offset={25}/>
                 </div>
             </div>
 
