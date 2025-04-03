@@ -18,7 +18,7 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: start;
     background: var(--background-dark);
     box-sizing: border-box;
     padding-left: 15%;
@@ -91,14 +91,14 @@
     margin-top: 150px;
     width: 675px;
     max-width: 80%;
-    text-align: center;
+    text-align: start;
 }
 
 .landing-description {
     color: var(--gray-text);
     width: 575px;
     max-width: 70%;
-    text-align: center;
+    text-align: start;
     font-size: 1.1rem;
 }
 

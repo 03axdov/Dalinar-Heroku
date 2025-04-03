@@ -27,12 +27,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    "allauth.socialaccount.providers.facebook",
+    'allauth.socialaccount.providers.facebook',
     
     "api.apps.ApiConfig",
     'corsheaders',
@@ -40,6 +41,7 @@ INSTALLED_APPS = [
     "frontend.apps.FrontendConfig",
     "storages"
 ]
+
 SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
