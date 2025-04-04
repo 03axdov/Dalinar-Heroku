@@ -51,12 +51,13 @@
 .landing-right-row-track {
     display: flex;
     height: 100%;
-    width: fit-content;
+    width: max-content;
     gap: 30px;
     animation-name: scroll-left;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
     animation-play-state: running; /* default */
+    will-change: transform;
 }
   
 @keyframes scroll-left {
@@ -64,7 +65,7 @@
       transform: translateX(0);
     }
     100% {
-      transform: translateX(-50%);
+      transform: translateX(calc(-50% - 15px));
     }
 } 
   

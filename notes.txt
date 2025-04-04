@@ -1,11 +1,9 @@
 TO-DO:
 - Track multiple datasets used
-- Improve guide
-- Social media authentication
-- Cancel Training?
 - Evaluate on TensorFlow datasets?
 - More images in Guide
-- Better auth pages styling.
+- Wonky images in Landing
+- Profile
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

@@ -83,7 +83,7 @@ button {
     margin-bottom: 0;
 }
   
-.form-button:hover, .password_reset input:nth-of-type(2):hover {
+.form-button:hover, .password_reset input:nth-of-type(2):hover, .password_reset input:nth-of-type(2):hover {
     cursor: pointer;
     background-color: var(--blue-dark);
     border-color: transparent;
