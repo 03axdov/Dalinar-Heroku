@@ -6,7 +6,7 @@
     justify-content: center;
     align-items: start;
     box-sizing: border-box;
-    padding-top: 100px;
+    padding-top: 50px;
     background: var(--background-dark);
 }
 
@@ -60,6 +60,10 @@ input:-webkit-autofill:active {
     transition: background-color 5000s ease-in-out 0s;
 }
 
+input:focus {
+    border-color: var(--border-light);
+}
+
   
 button {
     width: 100%;
@@ -74,9 +78,15 @@ button {
     font-family: 'Open Sans', sans-serif; /* 1 */
     cursor: pointer;
 }
+
+.form-button {
+    margin-bottom: 0;
+}
   
-.form-button:hover {
+.form-button:hover, .password_reset input:nth-of-type(2):hover {
+    cursor: pointer;
     background-color: var(--blue-dark);
+    border-color: transparent;
 }
 
 .form-link {
@@ -91,8 +101,8 @@ button {
 .accounts-form-container h1 {
     margin-top: 0;
     text-align: center;
-    margin-bottom: 50px;
-    font-size: 3rem;
+    margin-bottom: 30px;
+    font-size: 2.5rem;
     font-weight: 500; /* Bold */
 }
 
@@ -166,22 +176,11 @@ label {
     display: block;
 }
 
-.accounts-logo {
-    height: 50px;
-    width: 50px;
-    margin-right: 10px;
-}
-
 .accounts-title {
     margin-top: 0;
     display: flex;
     flex-direction: row;
     align-items: center;
-}
-
-/* As the email server is not yet set up */
-a.button.secondaryAction {
-    display: none;
 }
 
 .login-or {
@@ -226,12 +225,13 @@ a.button.secondaryAction {
 }
 
 .provider-logo {
-    height: 20px;
-    width: 20px;
-    margin-right: 7px;
+    height: 24px;
+    width: 24px;
+    margin-right: 10px;
 }
 
 .form-note {
     text-align: center;
     margin: 0;
+    margin-top: 20px;
 }

@@ -9,6 +9,3 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     path("", include("frontend.urls")),
 ]
-
-if settings.DEBUG:  # Only serve media files during development
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

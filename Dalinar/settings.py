@@ -33,7 +33,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.github',
     
     "api.apps.ApiConfig",
     'corsheaders',
@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "storages"
 ]
 
-SITE_ID = 1
+SITE_ID = 2
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -51,11 +51,13 @@ AUTHENTICATION_BACKENDS = [
 
 # Get back to these
 SOCIALACCOUNT_PROVIDERS = {
-    "github": {
-        "APP": {
-            "client_id": 123,
-            "secret": 456,
-            "key": 7
+    "google": {
+        "SCOPE": [
+            "profile",
+            "email"
+        ],
+        "AUTH_PARAMS": {
+            "access_type": "online"
         }
     }
 }

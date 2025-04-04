@@ -4,3 +4,4 @@ AWS_SECRET_KEY.txt
 __pycache__
 db.sqlite3
 node_modules
+google_auth.json

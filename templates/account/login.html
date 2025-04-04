@@ -4,7 +4,7 @@
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
 
 {% block content %}
-  <h1>{% trans "Sign In" %}</h1>
+  <h1>{% trans "Sign In." %}</h1>
 
   {% include "socialaccount/snippets/provider_list.html" with process="login" %}
 
@@ -20,5 +20,7 @@
     <a href="{% url 'account_signup' %}">{% trans "Create one." %}</a>
   </p>
 
-  
+  <p class="form-note">
+    <a href="{% url 'account_reset_password' %}">{% trans "Forgot your password?" %}</a>
+  </p>
 {% endblock %}
