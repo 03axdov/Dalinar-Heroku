@@ -2,8 +2,8 @@ TO-DO:
 - Track multiple datasets used
 - Evaluate on TensorFlow datasets?
 - More images in Guide
-- Wonky images in Landing
 - Profile
+- Models can't be deleted in Admin
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

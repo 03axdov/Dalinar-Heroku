@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "storages"
 ]
 
-SITE_ID = 1
+SITE_ID = 2
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -210,15 +210,28 @@ MEDIA_ROOT =  os.path.join(BASE_DIR, 'frontend/media')
 MEDIA_URL = '/media/'
 
 # Set Redis URL based on the environment
-if os.environ.get('HEROKU') == 'True':
+from kombu.utils.url import safequote
+
+if not DEBUG:
     CELERY_BROKER_URL = os.environ.get('REDIS_URL')  # Redis URL from Heroku Redis add-on
 else:
     CELERY_BROKER_URL = 'redis://127.0.0.1:6379'  # For local development
+    
+if REDIS_URL.startswith("rediss://"):
+    broker_use_ssl = {
+        "ssl_cert_reqs": "CERT_NONE"
+    }
+    result_backend_use_ssl = broker_use_ssl
+else:
+    broker_use_ssl = None
+    result_backend_use_ssl = None
 
-# Result backend for Celery (you can use the same backend or a different one)
-CELERY_RESULT_BACKEND = CELERY_BROKER_URL  # Use Redis for result backend as well
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
 
-# Additional Celery settings
+CELERY_BROKER_USE_SSL = broker_use_ssl
+CELERY_RESULT_BACKEND_USE_SSL = result_backend_use_ssl
+
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
