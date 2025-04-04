@@ -79,7 +79,19 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'Dalinar.urls'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'  # this is the real sender
+
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "optional"
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'dalinar.net@gmail.com'
+
+with open('./EMAIL_PASSWORD.txt') as f:
+    EMAIL_HOST_PASSWORD = f.read().strip() 
 
 TEMPLATES = [
     {

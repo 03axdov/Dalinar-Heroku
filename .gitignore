@@ -1,6 +1,7 @@
 venv
 SECRET_KEY.txt
 AWS_SECRET_KEY.txt
+EMAIL_PASSWORD.txt
 __pycache__
 db.sqlite3
 node_modules
