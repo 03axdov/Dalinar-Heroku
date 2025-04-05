@@ -213,9 +213,9 @@ MEDIA_URL = '/media/'
 from kombu.utils.url import safequote
 
 if not DEBUG:
-    CELERY_BROKER_URL = os.environ.get('REDIS_URL')  # Redis URL from Heroku Redis add-on
+    REDIS_URL = os.environ.get('REDIS_URL')  # Redis URL from Heroku Redis add-on
 else:
-    CELERY_BROKER_URL = 'redis://127.0.0.1:6379'  # For local development
+    REDIS_URL = 'redis://127.0.0.1:6379'  # For local development
     
 if REDIS_URL.startswith("rediss://"):
     broker_use_ssl = {
@@ -229,8 +229,8 @@ else:
 CELERY_BROKER_URL = REDIS_URL
 CELERY_RESULT_BACKEND = REDIS_URL
 
-CELERY_BROKER_USE_SSL = broker_use_ssl
-CELERY_RESULT_BACKEND_USE_SSL = result_backend_use_ssl
+# CELERY_BROKER_USE_SSL = broker_use_ssl
+# CELERY_RESULT_BACKEND_USE_SSL = result_backend_use_ssl
 
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'

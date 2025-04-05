@@ -515,13 +515,18 @@ div.layer-element-mode-input {
 
 .no-layers-container {
     position: absolute;
-    top: 50%;
+    top: calc(50% - 50px);
     left: 50%;
     transform: translate(-50%, -50%);
+    width: 250px;
     display: flex;
     flex-direction: column;
     font-size: 1.1rem;
     align-items: center;
+    padding: 20px;
+    border-radius: 7px;
+    background: var(--background-light);
+    box-shadow: 0 0 5px 0 black;
 }
 
 .predict-image-container {
@@ -637,10 +642,6 @@ div.layer-element-mode-input {
     white-space: nowrap;
     width: 1px; /* prevents it from stretching unnecessarily */
     padding-right: 25px!important;
-}
-
-.description-table td {
-    background: var(--background);
 }
 
 .description-table-container {

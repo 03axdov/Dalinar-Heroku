@@ -4,6 +4,7 @@ TO-DO:
 - More images in Guide
 - Profile
 - Models can't be deleted in Admin
+- Limit model size
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

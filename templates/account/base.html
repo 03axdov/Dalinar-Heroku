@@ -39,7 +39,7 @@
   <body class="form-body">
     {% block body %}
 
-    <nav id="toolbar" class="toolbar-landing">
+    <nav id="toolbar" class="toolbar-landing toolbar-accounts">
       <a class="accounts-logo" href="/"><img id="toolbar-logo" src={% static 'images/logoWhite.svg' %} /></a>
       <a href="/" class="toolbar-text toolbar-title">Dalinar</a>
 
@@ -56,15 +56,17 @@
         
     </nav>
 
-    <div class="accounts-form-outer">
-      <div class="accounts-form-container">
-        {% block content %}
-        {% endblock %}
-        
-        {% block extra_body %}
-        {% endblock %}
+    <div class="accounts-scroll">
+      <div class="accounts-form-outer">
+        <div class="accounts-form-container">
+          {% block content %}
+          {% endblock %}
+          
+          {% block extra_body %}
+          {% endblock %}
+        </div>
       </div>
-    </div>
+    </diV>
     
     {% endblock %}
   </body>

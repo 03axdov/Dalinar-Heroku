@@ -46,7 +46,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [isTrained, setIsTrained] = useState(false)
 
     const pageRef = useRef(null)
-    const [descriptionWidth, setDescriptionWidth] = useState(45)    // As percentage
+    const [descriptionWidth, setDescriptionWidth] = useState(35)    // As percentage
 
     const [toolbarLeftWidth, setToolbarLeftWidth] = useState(185)   // In pixels
     const [toolbarMainHeight, setToolbarMainHeight] = useState(50)
@@ -58,6 +58,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [updateWarnings, setUpdateWarnings] = useState(false)
 
     const [cursor, setCursor] = useState("")
+
+    const [currentTemplate, setCurrentTemplate] = useState("")
 
     // For scrolling by grabbing
     const [mouseOnLayer, setMouseOnLayer] = useState(false)
@@ -120,6 +122,12 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         })
         .then((res) => {
             setModel(res.data)
+
+            if (res.data.model_type.toLowerCase() == "image") {
+                setCurrentTemplate("cv-small")
+            } else {
+                setCurrentTemplate("text-small")
+            }
 
             let accuracy = res.data.accuracy
             let val_accuracy = res.data.val_accuracy
@@ -405,6 +413,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             }
         }
         setLayers(temp)
+    }
+
+    function loadTemplate(e) {
+        console.log(currentTemplate)
     }
 
     // FRONTEND FUNCTIONALITY
@@ -819,14 +831,33 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             ))}
                             {provided.placeholder}
                             {!loading && layers.length == 0 && <div className="no-layers-container">
-                                This model does not have any layers.
                                 <button type="button" 
                                 className="sidebar-button dataset-upload-button"
                                 title="Add layer"
-                                style={{marginTop: "20px"}}
                                 onClick={() => setShowCreateLayerPopup(true)}>
                                     <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/plus.png"} />
                                     <span>Add layer</span>
+                                </button>
+                                
+                                <p className="model-or">or</p>
+
+                                <select className="create-dataset-inp" style={{width: "100%", margin: 0}} value={currentTemplate} onChange={(e) => {
+                                    setCurrentTemplate(e.target.value)
+                                }}>
+                                    {model.model_type.toLowerCase() == "image"  && <option value="cv-small">Computer Vision (small)</option>}
+                                    {model.model_type.toLowerCase() == "image" && <option value="cv-medium">Computer Vision (medium)</option>}
+                                    {model.model_type.toLowerCase() == "image" && <option value="cv-large">Computer Vision (large)</option>}
+
+                                    {model.model_type.toLowerCase() == "text"  && <option value="text-small">Text (small)</option>}
+                                    {model.model_type.toLowerCase() == "text" && <option value="text-medium">Text (medium)</option>}
+                                    {model.model_type.toLowerCase() == "text" && <option value="text-large">Text (large)</option>}
+                                </select>
+                                <button type="button" 
+                                className="sidebar-button dataset-upload-button"
+                                title="Load template"
+                                style={{marginTop: "10px"}}
+                                onClick={loadTemplate}>
+                                    Load template
                                 </button>
                             </div>}
                         </div>)}
