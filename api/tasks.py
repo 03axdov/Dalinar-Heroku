@@ -975,7 +975,7 @@ def recompile_model_task(self, model_id, optimizer, loss_function, user_id, inpu
         profile = Profile.objects.get(user_id=user_id)
         
         model_instance = Model.objects.get(id=model_id)
-        if not model_instance.model_file: return Response({"Bad request": "Model has not been built."}, status=status.HTTP_200_OK)
+        if not model_instance.model_file: return {"Bad request": "Model has not been built."}
         
         if model_instance.owner == profile:
             timestamp = ""

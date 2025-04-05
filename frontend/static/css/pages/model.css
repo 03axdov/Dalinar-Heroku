@@ -526,7 +526,6 @@ div.layer-element-mode-input {
     padding: 20px;
     border-radius: 7px;
     background: var(--background-light);
-    box-shadow: 0 0 5px 0 black;
 }
 
 .predict-image-container {

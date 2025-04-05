@@ -466,7 +466,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                                                         onClick={clearLayerUpdated}/>}
                     </p>
     
-                    {errorMessage && <p className="layer-element-warning" style={{bottom: (layer.updated ? "calc(100% + 60px)" : "calc(100% + 10px)")}}>
+                    {errorMessage && <p className="layer-element-warning" style={{bottom: ((layer.updated && isBuilt) ? "calc(100% + 60px)" : "calc(100% + 10px)")}}>
                         <img className="layer-element-warning-icon" src={BACKEND_URL + "/static/images/failure.png"} />
                         <span className="layer-element-warning-text" title={errorMessage}>{get_error_message()}</span>
                     </p>}
@@ -486,7 +486,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         onClick={() => setRevertChanges(!revertChanges)}>
                         Revert changes
                     </button>}
-                    {!isPublic && <button type="button" 
+                    {!isPublic && isBuilt && <button type="button" 
                         className="layer-element-revert"
                         title="Reset to build"
                         onClick={resetToBuild}>

@@ -15,6 +15,8 @@ import { useTask } from "../contexts/TaskContext";
 
 import { LAYERS, getLayerName } from "../layers";
 import DescriptionTable from "../components/DescriptionTable";
+import { TEMPLATE_DATA } from "../helpers/templates"
+import ProgressBar from "../components/ProgressBar";
 
 
 // The default page. Login not required.
@@ -60,6 +62,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [cursor, setCursor] = useState("")
 
     const [currentTemplate, setCurrentTemplate] = useState("")
+    const [templateProgress, setTemplateProgress] = useState(0)
+    const [loadingTemplate, setLoadingTemplate] = useState(false)
 
     // For scrolling by grabbing
     const [mouseOnLayer, setMouseOnLayer] = useState(false)
@@ -345,8 +349,14 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         })
     };
 
-    function createLayer(data) {
+    function createLayer(data, callback) {
         setProcessingCreateLayer(true)
+
+        // Required to be specified
+        data["activation_function"] = data["activation_function"] || ""
+        data["input_x"] = data["input_x"] || ""
+        data["input_y"] = data["input_y"] || ""
+        data["input_z"] = data["input_z"] || ""
 
         data["model"] = model.id
         
@@ -359,6 +369,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
         axios.post(URL, data, config)
         .then((data) => {
+            if (callback) {
+                callback()
+                return
+            }
             notification("Successfully created layer.", "success")
             
             getModel()
@@ -416,7 +430,28 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }
 
     function loadTemplate(e) {
-        console.log(currentTemplate)
+        let layers = TEMPLATE_DATA[currentTemplate]
+
+        setLoadingTemplate(true)
+
+        function processTemplateLayers(index = 0) {
+            setTemplateProgress((index / layers.length) * 100)
+            if (index >= layers.length) {
+                setTimeout(() => {
+                    setLoadingTemplate(false)
+                    getModel()
+                    notification("Successfully loaded template.", "success")
+                    setTemplateProgress(0)
+                }, 200)
+                return
+            };
+        
+            createLayer(layers[index], () => {
+                processTemplateLayers(index + 1);
+            });
+        }
+        
+        processTemplateLayers()
     }
 
     // FRONTEND FUNCTIONALITY
@@ -538,6 +573,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             BACKEND_URL={BACKEND_URL}
             notification={notification}>
             </PredictionPopup>}
+
+            {loadingTemplate && <ProgressBar progress={templateProgress} message="Processing..." BACKEND_URL={BACKEND_URL}></ProgressBar>}
 
             {showTrainModelPopup && <TrainModelPopup setShowTrainModelPopup={setShowTrainModelPopup} 
             currentProfile={currentProfile} 

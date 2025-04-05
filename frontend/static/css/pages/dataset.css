@@ -29,6 +29,9 @@
     background: var(--sidebar-light);
     cursor: e-resize;
 }
+.dataset-toolbar-resizeable:hover {
+    background: var(--sidebar-lighter);
+}
 
 .dataset-elements-scrollable, .dataset-labels-scrollable {
     display: flex;
@@ -162,6 +165,9 @@
     align-items: center;
     justify-content: center;
 }
+.dataset-main-toolbar-resize:hover {
+    background: var(--sidebar-lighter);
+}
 
 .toolbar-main-dropdown {
     height: 10px;
@@ -280,6 +286,9 @@
     box-sizing: border-box;
     background: var(--border);
     cursor: e-resize;
+}
+.dataset-description-resize:hover {
+    background: var(--border-light);
 }
 
 .dataset-description-keywords {
