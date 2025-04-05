@@ -900,6 +900,10 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
                         model.add(new_layer)
 
                 metrics = get_metrics(loss_function)
+                
+                if model.count_params() > 5 * 10**6:
+                    return {"Bad request": "A model cannot have more than 5 million parameters. Current parameter count: " + str(model.count_params()), "status": 400}
+                
                 model.compile(optimizer=optimizer, loss=loss_function, metrics=[metrics])
                 
                 # Do this here so it's not set to false if build fails

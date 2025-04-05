@@ -3,8 +3,8 @@ export const TEMPLATE_DATA = {
         {
             "type": "conv2d",
             "activation_function": "relu",
-            "input_x": 256,
-            "input_y": 256,
+            "input_x": 32,
+            "input_y": 32,
             "input_z": 3,
             "filters": 16,
             "kernel_size": 3
@@ -27,13 +27,13 @@ export const TEMPLATE_DATA = {
             "type": "flatten"
         },
         {
-            "type": "dense",
-            "activation_function": "relu",
-            "nodes_count": 8
-        },
-        {
             "type": "dropout",
             "rate": 0.2
+        },
+        {
+            "type": "dense",
+            "activation_function": "relu",
+            "nodes_count": 16
         },
         {
             "type": "dense",
@@ -45,8 +45,8 @@ export const TEMPLATE_DATA = {
         {
             "type": "conv2d",
             "activation_function": "relu",
-            "input_x": 256,
-            "input_y": 256,
+            "input_x": 32,
+            "input_y": 32,
             "input_z": 3,
             "filters": 32,
             "kernel_size": 3
@@ -69,13 +69,13 @@ export const TEMPLATE_DATA = {
             "type": "flatten"
         },
         {
-            "type": "dense",
-            "activation_function": "relu",
-            "nodes_count": 16
-        },
-        {
             "type": "dropout",
             "rate": 0.2
+        },
+        {
+            "type": "dense",
+            "activation_function": "relu",
+            "nodes_count": 32
         },
         {
             "type": "dense",
@@ -87,8 +87,8 @@ export const TEMPLATE_DATA = {
         {
             "type": "conv2d",
             "activation_function": "relu",
-            "input_x": 256,
-            "input_y": 256,
+            "input_x": 32,
+            "input_y": 32,
             "input_z": 3,
             "filters": 32,
             "kernel_size": 3
@@ -114,20 +114,16 @@ export const TEMPLATE_DATA = {
             "kernel_size": 3
         },
         {
-            "type": "maxpool2d",
-            "pool_size": 2
+            "type": "flatten"
         },
         {
-            "type": "flatten"
+            "type": "dropout",
+            "rate": 0.2
         },
         {
             "type": "dense",
             "activation_function": "relu",
             "nodes_count": 32
-        },
-        {
-            "type": "dropout",
-            "rate": 0.2
         },
         {
             "type": "dense",

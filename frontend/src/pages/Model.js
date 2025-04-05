@@ -201,7 +201,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                     notification("Successfully built model.", "success")
                     getModel()
                 },
-                () => notification("Building failed.", "failure"),
+                (data) => notification(data["message"], "failure"),
                 () => {},
                 () => {
                     setShowModelMetrics(false)
