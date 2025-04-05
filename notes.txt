@@ -5,6 +5,7 @@ TO-DO:
 - Profile
 - Models can't be deleted in Admin
 - Look into keeping loaded models for a bit longer to make loading faster
+- Better image resizing
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

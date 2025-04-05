@@ -72,7 +72,7 @@
     font-size: 1.2rem;
     box-sizing: border-box;
     outline: none;
-    background: var(--background-dark);
+    background: transparent;
     padding-left: 36px;
     border: 1px solid var(--border);
     border-radius: 3px;
