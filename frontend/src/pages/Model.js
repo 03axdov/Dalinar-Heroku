@@ -130,7 +130,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
             if (res.data.model_type.toLowerCase() == "image") {
                 setCurrentTemplate("cv-small")
             } else {
-                setCurrentTemplate("text-small")
+                setCurrentTemplate("text-medium")
             }
 
             let accuracy = res.data.accuracy
@@ -168,7 +168,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     let buildResInterval = null;
     function buildModel(optimizer, loss, input_sequence_length=256) {
-
+        if (!layers || layers.length == 0) {
+            notification("Please add layers before building the model.", "failure")
+            return
+        }
         if (processingBuildModel) {return}
         setProcessingBuildModel(true)
 
@@ -885,9 +888,9 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                                     {model.model_type.toLowerCase() == "image" && <option value="cv-medium">Computer Vision (medium)</option>}
                                     {model.model_type.toLowerCase() == "image" && <option value="cv-large">Computer Vision (large)</option>}
 
-                                    {model.model_type.toLowerCase() == "text"  && <option value="text-small">Text (small)</option>}
-                                    {model.model_type.toLowerCase() == "text" && <option value="text-medium">Text (medium)</option>}
-                                    {model.model_type.toLowerCase() == "text" && <option value="text-large">Text (large)</option>}
+                                    {model.model_type.toLowerCase() == "text"  && <option value="text-small">Text Model (small)</option>}
+                                    {model.model_type.toLowerCase() == "text" && <option value="text-medium">Text Model (medium)</option>}
+                                    {model.model_type.toLowerCase() == "text" && <option value="text-large">Text Model (large)</option>}
                                 </select>
                                 <button type="button" 
                                 className="sidebar-button dataset-upload-button"

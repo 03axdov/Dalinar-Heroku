@@ -85,7 +85,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [currentImageWidth, setCurrentImageWidth] = useState(0)    // Only used if current element is an image
     const [currentImageHeight, setCurrentImageHeight] = useState(0)  // Only used if current element is an image
 
-    const [descriptionWidth, setDescriptionWidth] = useState(45)    // As percentage
+    const [descriptionWidth, setDescriptionWidth] = useState(35)    // As percentage
 
     const [toolbarLeftWidth, setToolbarLeftWidth] = useState(185)   // In pixels
     const [toolbarRightWidth, setToolbarRightWidth] = useState(185) // In pixels

@@ -299,7 +299,8 @@ export const LAYERS = {
         "name": "GlobalAveragePooling1D",
         "params": [],
         "image": "global.svg",
-        "color": "lightblue"
+        "color": "lightblue",
+        "not_editable": true    // Formatted like this as only a few are not editable
     }
 }
 

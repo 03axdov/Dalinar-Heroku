@@ -751,6 +751,12 @@ div.layer-element-mode-input {
     margin-right: 5px;
 }
 
+.layer-not-editable {
+    color: var(--gray-text);
+    margin: 0;
+    text-align: center;
+}
+
 @media all and (max-width: 1400px) {
     .model-evaluate-button {
         font-size: 0rem;

@@ -134,5 +134,85 @@ export const TEMPLATE_DATA = {
             "activation_function": "sigmoid",
             "nodes_count": 1
         },
+    ],
+    "text-small": [
+        {
+            "type": "embedding",
+            "max_tokens": 5000,
+            "output_dim": 16
+        },
+        {
+            "type": "globalaveragepooling1d"
+        },
+        {
+            "type": "dropout",
+            "rate": 0.2
+        },
+        {
+            "type": "dense",
+            "nodes_count": 16,
+            "activation_function": "relu"
+        },
+        {
+            "type": "dense",
+            "nodes_count": 1,
+            "activation_function": "sigmoid"
+        }
+    ],
+    "text-medium": [
+        {
+            "type": "embedding",
+            "max_tokens": 10000,
+            "output_dim": 32
+        },
+        {
+            "type": "dropout",
+            "rate": 0.2
+        },
+        {
+            "type": "globalaveragepooling1d"
+        },
+        {
+            "type": "dropout",
+            "rate": 0.2
+        },
+        {
+            "type": "dense",
+            "nodes_count": 32,
+            "activation_function": "relu"
+        },
+        {
+            "type": "dense",
+            "nodes_count": 1,
+            "activation_function": "sigmoid"
+        }
+    ],
+    "text-large": [
+        {
+            "type": "embedding",
+            "max_tokens": 10000,
+            "output_dim": 64
+        },
+        {
+            "type": "dropout",
+            "rate": 0.2
+        },
+        {
+            "type": "globalaveragepooling1d"
+        },
+        {
+            "type": "dropout",
+            "rate": 0.2
+        },
+        {
+            "type": "dense",
+            "nodes_count": 64,
+            "activation_function": "relu"
+        },
+        {
+            "type": "dense",
+            "nodes_count": 1,
+            "activation_function": "sigmoid"
+        }
     ]
 }

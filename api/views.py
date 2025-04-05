@@ -1622,8 +1622,6 @@ class GetTaskResult(APIView):
     def get(self, request, *args, **kwargs):
         task_id = kwargs[self.lookup_url_kwarg]
         task = AsyncResult(task_id)
-        
-        print(task.state)
 
         if task.state == 'SUCCESS' and task.result["status"] == 200:
             return Response(task.result, status=status.HTTP_200_OK)

@@ -62,7 +62,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
     const [currentImageWidth, setCurrentImageWidth] = useState(0)    // Only used if current element is an image
     const [currentImageHeight, setCurrentImageHeight] = useState(0)  // Only used if current element is an image
 
-    const [descriptionWidth, setDescriptionWidth] = useState(45)
+    const [descriptionWidth, setDescriptionWidth] = useState(35)
 
     const [toolbarLeftWidth, setToolbarLeftWidth] = useState(185)   // In pixels
     const [toolbarRightWidth, setToolbarRightWidth] = useState(185) // In pixels

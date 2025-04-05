@@ -38,6 +38,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 let param = current_layer.params[i]
                 temp[param.name] = layer[param.name]
             }
+            
         })
         temp["input_x"] = layer.input_x || ""
         temp["input_y"] = layer.input_y || ""
@@ -473,26 +474,28 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     
                     {!isEmptyObject(params) && getLayerElement(type)}
     
-                    {!isPublic && <button type="button" 
+                    {!isPublic && !LAYERS[type].not_editable && <button type="button" 
                         className={"layer-element-save " + (!updated ? "layer-element-save-disabled" : "")}
                         title={(updated ? "Save changes" : "No changes")}
                         onClick={updateLayer}>
                         {savingChanges && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
                         {(!savingChanges ? "Save changes" : "Updating...")}
                     </button>}
-                    {!isPublic && <button type="button" 
+                    {!isPublic && !LAYERS[type].not_editable && <button type="button" 
                         className="layer-element-revert"
                         title="Revert changes"
                         onClick={() => setRevertChanges(!revertChanges)}>
                         Revert changes
                     </button>}
-                    {!isPublic && isBuilt && <button type="button" 
+                    {!isPublic && isBuilt && !LAYERS[type].not_editable && <button type="button" 
                         className="layer-element-revert"
                         title="Reset to build"
                         onClick={resetToBuild}>
                         <img className="layer-element-button-icon" src={BACKEND_URL + "/static/images/" + (resettingToBuild ? "loading.gif" : "reset.svg")} />
                         {(resettingToBuild ? "Processing..." : "Reset to build")}
                     </button>}
+
+                    {LAYERS[type].not_editable && <p className="layer-not-editable">This layer has no parameters to edit.</p>}
 
                     <div className="layer-element-index" title={"Layer #" + (idx+1)}>{idx+1}</div>
                 </div>}

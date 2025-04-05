@@ -885,9 +885,6 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
                 
                 old_model = None
                 
-                if instance.model_file:
-                    instance.model_file.delete(save=False)
-                
                 for layer in instance.layers.all():
                     if not layer.update_build:
                         if not old_model:
@@ -899,6 +896,7 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
                                 break
                     else:
                         new_layer = get_tf_layer(layer)
+                        new_layer.trainable = layer.trainable
                         model.add(new_layer)
 
                 metrics = get_metrics(loss_function)
@@ -917,6 +915,9 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
 
                 # Save the model to the temp file
                 model.save(temp_path)
+                
+                if instance.model_file:
+                    instance.model_file.delete(save=False)
                 
                 # Open the file and save it to Django's FileField
                 with open(temp_path, 'rb') as model_file:
