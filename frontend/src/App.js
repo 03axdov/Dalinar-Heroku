@@ -19,6 +19,7 @@ import Model from "./pages/Model"
 import PublicModel from "./pages/PublicModel"
 import EditModel from "./pages/EditModel"
 import { TaskProvider } from "./contexts/TaskContext"
+import ProfileBar from "./components/ProfileBar"
 
 
 // Local: "http://127.0.0.1:8000"
@@ -37,6 +38,7 @@ export default function App() {
     const [updateProfile, setUpdateProfile] = useState(0) // Increase by 1 whenever currentProfile must be updated
 
     const [showAccountPopup, setShowAccountPopup] = useState(false)
+    const [showProfileBar, setShowProfileBar] = useState(false)
 
     const [showConfirmPopup, setShowConfirmPopup] = useState(false)
     const [confirmPopupOnConfirm, setConfirmPopupOnConfirm] = useState(() => {})
@@ -111,7 +113,8 @@ export default function App() {
             <Notification show={showNotification} message={notificationMessage} type={notificationType} notificationHover={notificationHover} BACKEND_URL={BACKEND_URL}/>
 
             {showAccountPopup && <AccountPopup setShowAccountPopup={setShowAccountPopup} message={"Please sign in to access this functionality."}/>}
-            <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile} checkLoggedIn={checkLoggedIn} BACKEND_URL={BACKEND_URL}></Toolbar>
+            <Toolbar currentProfile={currentProfile} loadingCurrentProfile={loadingCurrentProfile} checkLoggedIn={checkLoggedIn} BACKEND_URL={BACKEND_URL} setShowProfileBar={setShowProfileBar}></Toolbar>
+            {showProfileBar && <ProfileBar currentProfile={currentProfile} setShowProfileBar={setShowProfileBar} BACKEND_URL={BACKEND_URL}></ProfileBar>}
             {showConfirmPopup && <ConfirmPopup color={confirmPopupColor} setShowConfirmPopup={setShowConfirmPopup} message={confirmPopupMessage} onConfirm={confirmPopupOnConfirm} />}
 
             <div id="app">

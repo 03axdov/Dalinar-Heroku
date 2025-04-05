@@ -2,7 +2,7 @@ import React from "react"
 import {useNavigate} from "react-router-dom"
 
 // The default page. Login not required.
-function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_URL}) {
+function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_URL, setShowProfileBar}) {
     const navigate = useNavigate()
 
     const isBaseUrl = window.location.pathname === '/'; // Check if we're at the base URL
@@ -53,8 +53,10 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
             {!loadingCurrentProfile && currentProfile.user !== "" &&
                 <div className="toolbar-auth">
                     <p className="toolbar-text" onClick={() => {
-                        window.location.href = window.location.origin + "/accounts/logout/"
-                    }}>Sign out</p>
+                        setShowProfileBar(true)
+                    }}>
+                        {currentProfile.name}
+                    </p>
                 </div>
             }
             

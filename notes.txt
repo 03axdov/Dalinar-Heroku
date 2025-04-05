@@ -4,7 +4,6 @@ TO-DO:
 - More images in Guide
 - Profile
 - Models can't be deleted in Admin
-- Limit model size
 - Look into keeping loaded models for a bit longer to make loading faster
 
 For building:

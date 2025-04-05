@@ -53,6 +53,61 @@ html, body {
     overflow-x: auto;
 }
 
+.profile-bar-container {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    display: flex;
+    flex-direction: row; 
+    justify-content: end;
+    background: rgb(25,25,25,0.4);
+    z-index: 9;
+}
+
+.profile-bar {
+    height: 100%;
+    width: 250px;
+    background: var(--toolbar);
+    border-left: 1px solid var(--border);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 20px;
+    padding-bottom: 20px;
+}
+
+.profile-bar-title {
+    height: var(--toolbar-height);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    width: 100%;
+    font-size: 1.1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.profile-bar-icon {
+    height: 20px;
+    width: 20px;
+    margin-right: 10px;
+}
+
+.profile-bar-row {
+    width: 100%;
+    font-size: 1.1rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.profile-bar-row:hover {
+    background: var(--toolbar-light);
+}
+
 .toolbar-landing {
     border-color: rgb(0,0,0,0)!important;
     background: var(--background-dark)!important;
