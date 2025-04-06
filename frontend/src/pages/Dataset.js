@@ -24,6 +24,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [elementsIndex, setElementsIndex] = useState(0)
     const currentElementRef = useRef(null);
 
+    const [originalText, setOriginalText] = useState("")
     const [currentText, setCurrentText] = useState("")
     const [textChanged, setTextChanged] = useState(false)
 
@@ -97,6 +98,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     const [cursor, setCursor] = useState("")
 
+    const datasetMainDisplayRef = useRef(null)
 
     // Update current image dimensions
     useEffect(() => {
@@ -112,7 +114,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         } else if (dataset && dataset.dataset_type.toLowerCase() == "text") {
             setTextChanged(false)
             setCurrentText(currentElement.text)
+            setOriginalText(currentElement.text)
         }
+
     }, [elements, elementsIndex])
 
     // Zoom functionality
@@ -601,6 +605,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         if (dataset) {
             setShowDatasetDescription(false)
         }
+        if (datasetMainDisplayRef.current) {
+            datasetMainDisplayRef.current.scrollTop = 0
+        }
     }, [elementsIndex])
 
     useEffect(() => {
@@ -826,7 +833,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 </div>}
                 <div className="dataset-text-save-button-container">
                     <button className={"dataset-text-save-button " + (!textChanged ? "dataset-text-save-button-disabled" : "")} type="button" onClick={(e) => {
-                        updateElement(e, true)
+                        if (textChanged) {
+                            updateElement(e, true)
+                        }
+                        
                     }}>Save changes</button>
                 </div>
                 
@@ -835,7 +845,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         notification("Cannot remove all text.", "failure")
                         return;
                     };
-                    if (e.target.value != element.text) setTextChanged(true)
+                    if (e.target.value != originalText) setTextChanged(true)
                     else {setTextChanged(false)}
                     setCurrentText(e.target.value)
                 }}>
@@ -1006,6 +1016,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             if (!isText) {
                 setLoadingElementEdit(false)
             } else {
+                setOriginalText(currentText)
                 setTextChanged(false)
             }
         })
@@ -2198,7 +2209,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     </div>
                 </div>
                 
-                <div className="dataset-main-display">
+                <div className="dataset-main-display" ref={datasetMainDisplayRef} style={(dataset && dataset.dataset_type.toLowerCase() == "text" ? {overflowY: "scroll"} : {})}>
                     {(elements.length == 0 && !loading && !uploadLoading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>
                         <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
                         Upload folder

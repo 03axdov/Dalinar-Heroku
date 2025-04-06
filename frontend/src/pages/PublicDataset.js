@@ -70,6 +70,8 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
 
     const [cursor, setCursor] = useState("")
 
+    const datasetMainDisplayRef = useRef(null)
+
     // Update current image dimensions
     useEffect(() => {
         let currentElement = elements[elementsIndex]
@@ -254,6 +256,9 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
     useEffect(() => {
         if (dataset) {
             setShowDatasetDescription(false)
+        }
+        if (datasetMainDisplayRef.current) {
+            datasetMainDisplayRef.current.scrollTop = 0
         }
     }, [elementsIndex])
 
@@ -1061,7 +1066,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                     </div>
                 </div>
                 
-                <div className="dataset-main-display">
+                <div className="dataset-main-display" ref={datasetMainDisplayRef}>
                     {elements.length != 0 && !showDatasetDescription && <div className="dataset-element-view-container">
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}
