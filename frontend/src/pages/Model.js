@@ -422,14 +422,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }
 
     function updateLayers(updated_layer) {
-        let temp = [...layers]
-        for (let i=0; i < temp.length; i++) {
-            if (temp[i].id == updated_layer.id) {
-                temp[i] = updated_layer
-                break
-            }
-        }
-        setLayers(temp)
+        setLayers(prevLayers => {
+            return prevLayers.map(layer =>
+                layer.id === updated_layer.id ? updated_layer : layer
+            );
+        });
     }
 
     function loadTemplate(e) {
