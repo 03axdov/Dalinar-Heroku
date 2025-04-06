@@ -210,11 +210,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     }
 
     function clearLayerUpdated(e) {
+        setUpdated(false)
         if (updatedRef.current) {
-            console.log("A")
             updatedRef.current.blur(); // Important!
         }
         setUpdatedWarningHovered(false)
+        
         
         const data = {
             "id": layer.id,
@@ -230,8 +231,6 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         axios.post(URL, data, config)
         .then((res) => {
             updateLayers(res.data)
-            
-
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
         })

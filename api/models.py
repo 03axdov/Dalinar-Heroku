@@ -1,7 +1,7 @@
 from django.db import models, transaction
 from django.dispatch import receiver
 from django.contrib.auth.models import User
-from django.db.models.signals import post_save, post_delete
+from django.db.models.signals import post_save, post_delete, pre_delete
 from django.core.validators import FileExtensionValidator
 import os
 from django.core.validators import MaxLengthValidator, MinValueValidator, MaxValueValidator
@@ -266,6 +266,11 @@ def delete_model_files(sender, instance, **kwargs):
         instance.imageSmall.delete(save=False)
     if instance.model_file:
         instance.model_file.delete(save=False)
+        
+@receiver(pre_delete, sender=Model)
+def delete_related_layers(sender, instance, **kwargs):
+    for layer in instance.layers.all():    # Workaround due to bug with Django Polymorphic
+        layer.delete()
     
     
 # LAYERS

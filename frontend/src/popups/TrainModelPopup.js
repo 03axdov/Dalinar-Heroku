@@ -118,8 +118,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                             {
                                 time: pingCount,
                                 accuracy: data["training_accuracy"].toFixed(4),
-                                loss: data["training_loss"].toFixed(4),
-                                loss: 0.5
+                                loss: data["training_loss"].toFixed(4)
                             }
                         ]);
                         pingCount += 1

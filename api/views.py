@@ -1123,8 +1123,6 @@ class DeleteModel(APIView):
                 model = Model.objects.get(id=model_id)
                 
                 if model.owner == user.profile:
-                    for layer in model.layers.all():    # Workaround due to bug with Django Polymorphic
-                        layer.delete()
                     model.delete()
                     
                     return Response(None, status=status.HTTP_200_OK)
@@ -1584,7 +1582,7 @@ class ClearLayerUpdated(APIView):
                     layer.updated = False
                     layer.save()
                 
-                    return Response(None, status=status.HTTP_200_OK)
+                    return Response(LayerSerializer(layer).data, status=status.HTTP_200_OK)
                 
                 else:
                     return Response({'Unauthorized': 'You can only edit layers belonging to your own models.'}, status=status.HTTP_401_UNAUTHORIZED)

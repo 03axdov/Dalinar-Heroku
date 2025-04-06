@@ -67,7 +67,7 @@ html, body {
 
 .profile-bar {
     height: 100%;
-    width: 250px;
+    width: 225px;
     background: var(--toolbar);
     border-left: 1px solid var(--border);
     box-sizing: border-box;
@@ -102,6 +102,7 @@ html, body {
     width: 20px;
     height: 20px;
     padding: 10px;
+    user-select: none;
     border-radius: 20px;
 }
 .profile-bar-cross:hover {
@@ -121,7 +122,7 @@ html, body {
 }
 
 .profile-bar-row:hover {
-    background: var(--toolbar-light);
+    background: var(--toolbar-lighter);
     cursor: pointer;
 }
 
@@ -219,6 +220,7 @@ button:hover {
     display: flex;
     flex-direction: row;
     align-items: center;
+    user-select: none;
     height: 100%;
 }
 

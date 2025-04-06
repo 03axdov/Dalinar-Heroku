@@ -1,10 +1,7 @@
 TO-DO:
-- Track multiple datasets used
-- Evaluate on TensorFlow datasets?
+- Track multiple datasets used (probably difficult)
 - More images in Guide
 - Profile
-- Models can't be deleted in Admin
-- Look into keeping loaded models for a bit longer to make loading faster
 - Better image resizing
 
 For building:
