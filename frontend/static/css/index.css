@@ -43,6 +43,7 @@ html, body {
     background: var(--toolbar);
     border-bottom: 1px solid var(--border);
     padding: 0 40px;
+    padding-right: 20px;
     box-sizing: border-box;
 
     display: flex;
@@ -60,7 +61,7 @@ html, body {
     display: flex;
     flex-direction: row; 
     justify-content: end;
-    background: rgb(25,25,25,0.4);
+    background: rgb(25,25,25,0.3);
     z-index: 9;
 }
 
@@ -73,29 +74,42 @@ html, body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 0 20px;
+    padding: 0 15px;
     padding-bottom: 20px;
+    transition: transform 0.2s ease-out;
+    transform: translateX(100%);
 }
+.profile-bar.slide-in {
+    transform: translateX(0);
+  }
 
 .profile-bar-title {
     height: var(--toolbar-height);
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: end;
     width: 100%;
-    font-size: 1.1rem;
-    border-bottom: 1px solid var(--border);
-    padding: 0 15px;
-    box-sizing: border-box;
-    margin-bottom: 10px;
 }
 
 .profile-bar-icon {
-    width: 18px;
+    width: 16px;
     margin-right: 10px;
 }
 
-.profile-bar-row {
+.profile-bar-cross {
+    margin-right: 5px;
+    width: 20px;
+    height: 20px;
+    padding: 10px;
+    border-radius: 20px;
+}
+.profile-bar-cross:hover {
+    cursor: pointer;
+    background: var(--toolbar-lighter);
+}
+
+.profile-bar-row, .profile-bar-profile {
     width: 100%;
     font-size: 1rem;
     display: flex;
@@ -104,11 +118,11 @@ html, body {
     box-sizing: border-box;
     padding: 5px 15px;
     border-radius: 7px;
-    cursor: pointer;
 }
 
 .profile-bar-row:hover {
     background: var(--toolbar-light);
+    cursor: pointer;
 }
 
 .profile-bar-line {
@@ -137,6 +151,19 @@ html, body {
     border-radius: 3px;
     object-fit: cover;
     cursor: pointer;
+    user-select: none;
+}
+
+.toolbar-menu {
+    height: 30px;
+    width: 30px;
+    padding: 5px;
+    border-radius: 20px;
+    cursor: pointer;
+    user-select: none;
+}
+.toolbar-menu:hover {
+    background: var(--toolbar-lighter);
 }
 
 input:-webkit-autofill {

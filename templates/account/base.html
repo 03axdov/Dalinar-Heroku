@@ -49,10 +49,12 @@
 
       <a href="/guide" target="_blank" class="toolbar-text">Guide <img class="toolbar-icon" src={% static 'images/external.png' %} /></a>
 
+      {% if not user.is_authenticated %}
       <div class="toolbar-auth">
           <a class="toolbar-text" href="/accounts/signup">Register</a>
           <a href="/accounts/login" class="toolbar-button toolbar-register">Sign in</a>
       </div>
+      {% endif %}
         
     </nav>
 

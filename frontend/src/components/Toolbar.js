@@ -52,11 +52,9 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
             }
             {!loadingCurrentProfile && currentProfile.user !== "" &&
                 <div className="toolbar-auth">
-                    <p className="toolbar-text" onClick={() => {
+                    <img className="toolbar-menu" src={BACKEND_URL + "/static/images/menu.svg"} onClick={() => {
                         setShowProfileBar(true)
-                    }}>
-                        {currentProfile.name}
-                    </p>
+                    }} />
                 </div>
             }
             
