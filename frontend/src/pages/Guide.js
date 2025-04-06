@@ -47,8 +47,8 @@ function Guide({BACKEND_URL}) {
                     onClick={() => setCurrentInstructions("dataset-area")}>
                         Area
                     </div>
-                    <div className={"guide-toolbar-subelement " + (currentInstructions == "datasets-loading" ? "guide-toolbar-element-selected": "")}
-                    onClick={() => setCurrentInstructions("datasets-loading")}>
+                    <div className={"guide-toolbar-subelement " + (currentInstructions == "dataset-loading" ? "guide-toolbar-element-selected": "")}
+                    onClick={() => setCurrentInstructions("dataset-loading")}>
                         Loading Datasets
                     </div>
                 <div className="guide-toolbar-element">
@@ -90,8 +90,7 @@ function Guide({BACKEND_URL}) {
                             Users are able to create both area and classification datasets. Dalinar currently supports both images and text.
                             Elements are listed to the left with labels and areas, if applicable, to the right.
                         </p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.jpg"} style={{height: "430px"}} />
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.jpg"} style={{height: "430px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.webp"} style={{height: "505px"}} />
                         
                         <p className="guide-subheader" id="models">Models</p>
                         <p className="instructions-text">
@@ -99,7 +98,7 @@ function Guide({BACKEND_URL}) {
                             These all have different parameters that can be tailored to your needs.
                             Once you've construct a model it must be built (i.e. compiled) and can then be trained or exported. 
                         </p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.jpg"} style={{height: "430px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.webp"} style={{height: "505px"}} />
                         <p className="instructions-text">
                             Please see the more detailed pages for further explanations.
                         </p>
@@ -107,7 +106,7 @@ function Guide({BACKEND_URL}) {
                 </div>}
                 
                 {/* LOADING DATASETS */}
-                {currentInstructions == "datasets-loading" && <div className="guide-main">
+                {currentInstructions == "dataset-loading" && <div className="guide-main">
 
                     <div className="instructions-header">
                         <h1 className="instructions-title">Loading Datasets</h1>
@@ -116,7 +115,7 @@ function Guide({BACKEND_URL}) {
                         </p>
                     </div>
                     <div className="instructions-container">
-                        <div className="download-instructions-element">
+                        <div className="download-instructions-element" id="folders-as-labels">
                             <h1 className="download-instructions-title">Folders as labels</h1>
 
                             <div className="download-frameworks-container download-frameworks-instructions">
@@ -134,7 +133,7 @@ function Guide({BACKEND_URL}) {
                             <DownloadCode name="YOUR_DATASET" datatype="classification" framework={downloadFramework1} downloadType="folders" BACKEND_URL={BACKEND_URL}/>
                         </div>
 
-                        <div className="download-instructions-element">
+                        <div className="download-instructions-element" id="filenames-as-labels">
                             <h1 className="download-instructions-title">Filenames as labels</h1>
 
                             <div className="download-frameworks-container download-frameworks-instructions">
@@ -164,7 +163,7 @@ function Guide({BACKEND_URL}) {
                     </div>
 
                     <div className="instructions-container">
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.jpg"} style={{height: "430px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.webp"} style={{height: "505px"}} />
 
                         <p className="guide-subheader" id="labelling">Labelling</p>
                         <p className="instructions-text">
@@ -186,7 +185,7 @@ function Guide({BACKEND_URL}) {
                     </div>
 
                     <div className="instructions-container">
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.jpg"} style={{height: "430px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.webp"} style={{height: "505px"}} />
 
                         <p className="guide-subheader" id="area-creation">Area Creation</p>
                         <p className="instructions-text">
@@ -201,8 +200,10 @@ function Guide({BACKEND_URL}) {
                 {currentInstructions == "model-layers" && <div className="guide-main">
                     <div className="instructions-header">
                         <h1 className="instructions-title">Model Layers</h1>
+                        <p className="instructions-text">Models consist of several different layers, all of which have different types of parameters.</p>
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.webp"} style={{height: "505px"}} />
                         <p className="instructions-text">
-                            Models consist of several different layers, all of which have different types of parameters. Dalinar currently supports the following layers (click for more detailed descriptions):
+                            Dalinar currently supports the layers listed below (click for more detailed descriptions). Note that some of these are exclusive to either Image or Text models.
                         </p>
                     </div>
                     <div className="instructions-container">
@@ -214,9 +215,6 @@ function Guide({BACKEND_URL}) {
                                 </div>
                             ))}
                         </div>
-                        <p className="instructions-text">
-                            Note that some of these are exclusive to either Image or Text models.
-                        </p>
                         <p className="guide-subheader" id="ordering-layers">Ordering Layers</p>
                         <p className="instructions-text">
                             The order of layers is of great importance; some layers can only follow certain other layers (or can only be the first layer).
@@ -251,6 +249,10 @@ function Guide({BACKEND_URL}) {
                             If you only want to update the optimizer, loss function, or whether certain layers are trainable see the section on Model Compiling.
                         </p>
                     </div>
+
+                    <div className="instructions-container" style={{alignItems: "center"}}>
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/build-model.jpg"} style={{width: "600px", height: "658px"}} />
+                    </div>
                 </div>}
 
                 {currentInstructions == "model-compiling" && <div className="guide-main">
@@ -262,6 +264,10 @@ function Guide({BACKEND_URL}) {
                             Furthermore, recompiling will reflect changes in the Trainable parameter which can be specified for all layers with weights.
                         </p>
                     </div>
+
+                    <div className="instructions-container" style={{alignItems: "center"}}>
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/build-model.jpg"} style={{width: "600px", height: "658px"}} />
+                    </div>
                 </div>}
 
                 {currentInstructions == "model-training" && <div className="guide-main">
@@ -269,8 +275,14 @@ function Guide({BACKEND_URL}) {
                         <h1 className="instructions-title">Model Training</h1>
                         <p className="instructions-text">
                             Built models, see the section on Building, can be trained on any of your own datasets or any datasets you've saved, so long as the type of dataset aligns with that of the model.
-                            Metrics, i.e. loss and accuracy, from the last dataset the model was trained on can be viewed by clicking Show metrics in the main view.
                         </p>
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/train-model.jpg"} style={{height: "678px"}}/>
+                    </div>
+
+                    <div className="instructions-container">
+                        <p className="guide-subheader" id="training-metrics">Training Metrics</p>
+                        <p className="instructions-text">Metrics, i.e. loss and accuracy for the different epochs of training, from the last dataset the model was trained on can be viewed by clicking Show metrics in the main view.</p>
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/model-metrics.jpg"} />
                     </div>
                 </div>}
             </div>
@@ -302,6 +314,17 @@ function Guide({BACKEND_URL}) {
                     Area Creation
                 </div>
             </div>}
+            {currentInstructions == "dataset-loading" && <div className="guide-toolbar-right">
+                <div className="guide-toolbar-element-right">
+                    On this page
+                </div>
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("folders-as-labels").scrollIntoView({behavior: "smooth"});}}>
+                    Folders as labels
+                </div>
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("filenames-as-labels").scrollIntoView({behavior: "smooth"});}}>
+                    Filenames as labels
+                </div>
+            </div>}
 
             {currentInstructions == "model-layers" && <div className="guide-toolbar-right">
                 <div className="guide-toolbar-element-right">
@@ -315,6 +338,15 @@ function Guide({BACKEND_URL}) {
                 </div>
                 <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("layer-update").scrollIntoView({behavior: "smooth"});}}>
                     Updating Layers
+                </div>
+            </div>}
+
+            {currentInstructions == "model-training" && <div className="guide-toolbar-right">
+                <div className="guide-toolbar-element-right">
+                    On this page
+                </div>
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("training-metrics").scrollIntoView({behavior: "smooth"});}}>
+                    Training metrics
                 </div>
             </div>}
         </div>

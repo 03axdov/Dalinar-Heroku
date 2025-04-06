@@ -2,21 +2,23 @@ from PIL import Image
 import os
 
 files = [
-    "frontend/static/images/blueCheck.png",
-    "frontend/static/images/warning.png",
-    "frontend/static/images/failure.png",
+    "frontend/static/images/examplePage.jpg",
+    "frontend/static/images/exampleClassification.jpg",
+    "frontend/static/images/examplePageModel.jpg",
 ]
 
-output_format = "png"  # or "avif"
+output_format = "webp"  # or "avif"
 output_dir = "frontend/static/images/converted"
 os.makedirs(output_dir, exist_ok=True)
 
-target_size = 50
+target_width = 800
 
 for i, file in enumerate(files):
     with Image.open(file) as img:
-        # Maintain aspect ratio by calculating the new width
-        resized_img = img.resize((target_size, target_size), Image.LANCZOS)
+        # Calculate the new height to maintain aspect ratio
+        width_percent = target_width / float(img.width)
+        target_height = int(img.height * width_percent)
+        resized_img = img.resize((target_width, target_height), Image.LANCZOS)
 
         # Build the new filename
         filename_no_ext = os.path.splitext(os.path.basename(file))[0]

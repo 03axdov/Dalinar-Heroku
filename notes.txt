@@ -3,6 +3,7 @@ TO-DO:
 - More images in Guide
 - Profile
 - Better image resizing
+- Testing
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

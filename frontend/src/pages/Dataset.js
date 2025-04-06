@@ -134,7 +134,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const canvasRefs = useRef([])
     const elementRef = useRef(null)
 
-    const DOT_SIZE = 22
+    const DOT_SIZE = 18
 
     // For drawing points for area datasets
     useEffect(() => {
@@ -805,10 +805,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         {imageMouseDown && labelSelected && rectanglePreviewDimensions[0] > 0 && rectanglePreviewDimensions[1] > 0 && <div 
                         className="dataset-rectangle-preview"
                         style={{
-                            width: "calc(" + rectanglePreviewDimensions[0] + "% + " + Math.round(10 / (1 + (zoom - 1)* 3)) + "px)",
-                            height: "calc(" + rectanglePreviewDimensions[1] + "% + " + Math.round(10 / (1 + (zoom - 1)* 3)) + "px)",
-                            left: "calc(" + rectanglePreviewOffset[0] + "% + " + Math.round(10 / (1 + (zoom - 1)* 3)) + "px)",
-                            top: "calc(" + rectanglePreviewOffset[1] + "% + " + Math.round(10 / (1 +(zoom - 1)* 3)) + "px)",
+                            width: "calc(" + rectanglePreviewDimensions[0] + "% + " + Math.round(5 / (1 + (zoom - 1)* 3)) + "px)",
+                            height: "calc(" + rectanglePreviewDimensions[1] + "% + " + Math.round(5 / (1 + (zoom - 1)* 3)) + "px)",
+                            left: "calc(" + rectanglePreviewOffset[0] + "% + " + Math.round(5 / (1 + (zoom - 1)* 3)) + "px)",
+                            top: "calc(" + rectanglePreviewOffset[1] + "% + " + Math.round(5 / (1 +(zoom - 1)* 3)) + "px)",
                             background: idToLabel[labelSelected].color + "50"
                         }}>
                             
@@ -2208,11 +2208,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}
 
-                    {/* For preloading images */}
-                    {dataset && dataset.dataset_type.toLowerCase() == "image" && <div className="hidden-preload">
-                        {elements.map((e, idx) => {getPreviewElement(e)})}
-                    </div>}
-                    
                     {showDatasetDescription && dataset &&<div className="dataset-description-display-container" ref={descriptionContainerRef}>
 
                         <div className="dataset-description-image-container" style={{width: "calc(100% - " + descriptionWidth + "%)"}}>

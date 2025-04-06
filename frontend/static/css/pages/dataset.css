@@ -756,11 +756,11 @@
 
 .dataset-element-view-point {
     position: absolute;
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
     border-radius: 11px;
     z-index: 1;
-    border: 7px solid rgb(0,0,0,0.8);
+    border: 6px solid rgb(0,0,0,0.8);
     cursor: pointer;
 }
 

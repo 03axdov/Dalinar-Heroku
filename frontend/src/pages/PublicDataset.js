@@ -94,7 +94,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
 
     // AREA FUNCTIONALITY
 
-    const DOT_SIZE = 22
+    const DOT_SIZE = 18
     
     useEffect(() => {
             if (elements.length < 1) {return}
