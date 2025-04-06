@@ -316,7 +316,6 @@ class CreateDataset(APIView):
                 else:            
                     return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                print(serializer.errors)
                 return Response({'Bad Request': 'An error occurred while creating dataset'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'Unauthorized': 'Must be logged in to create datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -1333,7 +1332,6 @@ class PredictModel(APIView):
     def post(self, request, format=None):
         model_id = request.data["model"]
         images = request.data.getlist("images[]")
-        print(images)
         encoded_images = [convert_image_to_base64(image) for image in images]
         text = request.data["text"]
         

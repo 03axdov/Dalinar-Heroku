@@ -8,8 +8,9 @@ from api.models import *
 import io
 from PIL import Image
 import json
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from api.models import Model as MLModel  # To avoid clash with Django's internal Model name
+from celery.result import AsyncResult
 
 
 class ProfileTests(APITestCase):
@@ -260,6 +261,7 @@ class LabelTests(APITestCase):
         response = self.client.get(reverse("dataset-labels"), {"dataset": self.dataset.id})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
+    
         
 class ModelTests(APITestCase):
     def setUp(self):
@@ -368,3 +370,226 @@ class ModelTests(APITestCase):
         }, format="json")
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data["task_id"], "eval-task-id")
+        
+
+class LayerTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="layeruser", password="password123")
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.model = MLModel.objects.create(
+            name="LayeredModel",
+            model_type="image",
+            owner=self.user.profile
+        )
+
+    def post_json(self, url_name, data):
+        return self.client.post(
+            reverse(url_name),
+            data=json.dumps(data),
+            content_type="application/json"
+        )
+
+    def test_create_dense_layer(self):
+        res = self.post_json("create-layer", {
+            "type": "dense",
+            "nodes_count": 64,
+            "input_x": 128,
+            "activation_function": "relu",
+            "model": self.model.id
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.model.layers.first().layer_type, "dense")
+
+    def test_create_conv2d_layer(self):
+        res = self.post_json("create-layer", {
+            "type": "conv2d",
+            "filters": 32,
+            "kernel_size": 3,
+            "input_x": 64,
+            "input_y": 64,
+            "input_z": 3,
+            "activation_function": "relu",
+            "model": self.model.id
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.model.layers.first().layer_type, "conv2d")
+
+    def test_edit_layer(self):
+        # Create a Conv2D layer to edit
+        res = self.post_json("create-layer", {
+            "type": "conv2d",
+            "filters": 16,
+            "kernel_size": 3,
+            "input_x": 64,
+            "input_y": 64,
+            "input_z": 3,
+            "activation_function": "relu",
+            "model": self.model.id
+        })
+        layer_id = res.data["id"]
+
+        # Update kernel size
+        res = self.post_json("edit-layer", {
+            "id": layer_id,
+            "type": "conv2d",
+            "filters": 16,
+            "kernel_size": 5,
+            "input_x": 64,
+            "input_y": 64,
+            "input_z": 3,
+            "activation_function": "relu"
+        })
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.model.layers.first().kernel_size, 5)
+
+    def test_delete_layer(self):
+        res = self.post_json("create-layer", {
+            "type": "dense",
+            "nodes_count": 128,
+            "input_x": 32,
+            "activation_function": "relu",
+            "model": self.model.id
+        })
+        layer_id = res.data["id"]
+        res = self.post_json("delete-layer", {"layer": layer_id})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertFalse(self.model.layers.exists())
+
+    def test_reorder_layers(self):
+        # Create two layers
+        l1 = self.post_json("create-layer", {
+            "type": "dense", "nodes_count": 64, "input_x": 128,
+            "activation_function": "relu", "model": self.model.id
+        }).data["id"]
+        l2 = self.post_json("create-layer", {
+            "type": "dense", "nodes_count": 32, "input_x": 128,
+            "activation_function": "relu", "model": self.model.id
+        }).data["id"]
+
+        # Reverse order
+        reorder_data = {
+            "id": self.model.id,
+            "order": {str(l1): 1, str(l2): 0}
+        }
+        res = self.post_json("reorder-model-layers", reorder_data)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+
+        first = self.model.layers.order_by("index").first()
+        self.assertEqual(first.id, l2)
+
+
+class AreaTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="areatester", password="password123")
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.dataset = Dataset.objects.create(
+            name="AreaDataset",
+            owner=self.user.profile,
+            dataset_type="image",
+            datatype="area"
+        )
+
+        self.label = Label.objects.create(name="AreaLabel", dataset=self.dataset, owner=self.user.profile)
+
+        self.element = Element.objects.create(
+            name="AreaElement",
+            dataset=self.dataset,
+            owner=self.user.profile
+        )
+
+    def test_create_area(self):
+        points = [[10, 10], [20, 10], [20, 20], [10, 20]]
+        data = {
+            "label": self.label.id,
+            "element": self.element.id,
+            "area_points": json.dumps(points)
+        }
+        res = self.client.post(reverse("create-area"), data=json.dumps(data), content_type="application/json")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(self.element.areas.count(), 1)
+
+    def test_edit_area(self):
+        area = Area.objects.create(label=self.label, element=self.element, area_points=[[0, 0]])
+        new_points = [[30, 30], [40, 30], [40, 40], [30, 40]]
+
+        res = self.client.post(reverse("edit-area"), data=json.dumps({
+            "area": area.id,
+            "area_points": json.dumps(new_points)
+        }), content_type="application/json")
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        area.refresh_from_db()
+
+        self.assertEqual(json.loads(area.area_points), new_points)
+
+    def test_delete_area(self):
+        area = Area.objects.create(label=self.label, element=self.element, area_points=[[1, 1]])
+        res = self.client.post(
+            reverse("delete-area"), 
+            data=json.dumps({"area": area.id}),
+            content_type="application/json")
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertFalse(Area.objects.filter(id=area.id).exists())
+
+
+class PredictionTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="predictor", password="password123")
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+        self.model = MLModel.objects.create(name="PredModel", model_type="image", owner=self.user.profile)
+
+    def create_image_file(self):
+        img = Image.new("RGB", (64, 64))
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG")
+        buf.seek(0)
+        return SimpleUploadedFile("predict.jpg", buf.read(), content_type="image/jpeg")
+
+    @patch("api.views.predict_model_task.delay")
+    def test_predict_image(self, mock_task):
+        mock_task.return_value.id = "predict-task-id"
+        image = self.create_image_file()
+
+        res = self.client.post(
+            reverse("predict-model"),
+            data={"model": self.model.id, "images[]": [image], "text": ""},
+            format="multipart"
+        )
+
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["task_id"], "predict-task-id")
+
+
+class TaskResultTests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username="tasktester", password="password123")
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+
+    @patch("api.views.AsyncResult")
+    def test_task_result_success(self, mock_result):
+        mock_instance = Mock()
+        mock_instance.state = "SUCCESS"
+        mock_instance.result = {"status": 200, "message": "ok"}
+        mock_result.return_value = mock_instance
+
+        res = self.client.get(reverse("task-result", kwargs={"id": "some-task-id"}))
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["status"], 200)
+
+    @patch("api.views.AsyncResult")
+    def test_task_result_pending(self, mock_result):
+        mock_instance = Mock()
+        mock_instance.state = "PENDING"
+        mock_instance.result = None
+        mock_result.return_value = mock_instance
+
+        res = self.client.get(reverse("task-result", kwargs={"id": "some-task-id"}))
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(res.data["status"], "in progress")
