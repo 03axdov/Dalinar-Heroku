@@ -316,6 +316,7 @@ class CreateDataset(APIView):
                 else:            
                     return Response(serializer.data, status=status.HTTP_200_OK)
             else:
+                print(serializer.errors)
                 return Response({'Bad Request': 'An error occurred while creating dataset'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'Unauthorized': 'Must be logged in to create datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -565,7 +566,6 @@ class CreateElement(APIView):
     
     def post(self, request, format=None):
         data = self.request.data
-        print(f"data: {data}")
         serializer = self.serializer_class(data=data)
         
         if serializer.is_valid():

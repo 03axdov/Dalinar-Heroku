@@ -92,7 +92,7 @@ class DatasetSerializer(serializers.ModelSerializer):
 class CreateDatasetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset
-        fields = ("name", "description", "visibility", "image", "datatype", "dataset_type", "keywords", "imageWidth", "imageHeight")    # Not image small as this is added post-creation
+        fields = ("id", "name", "description", "visibility", "image", "datatype", "dataset_type", "keywords", "imageWidth", "imageHeight")    # Not image small as this is added post-creation
         
         
 # LAYER HANDLING
