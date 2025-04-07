@@ -67,7 +67,7 @@ html, body {
 
 .profile-bar {
     height: 100%;
-    width: 225px;
+    width: 300px;
     background: var(--background-dark);
     border-left: 1px solid var(--border);
     box-sizing: border-box;
@@ -76,7 +76,7 @@ html, body {
     align-items: center;
     padding: 0 15px;
     padding-bottom: 20px;
-    transition: transform 0.2s ease-out;
+    transition: transform 0.1s ease-out;
     transform: translateX(100%);
 }
 .profile-bar.slide-in {
@@ -288,14 +288,14 @@ input[type=radio] {
     outline: none;
     cursor: pointer;
     margin: 0;
+    box-sizing: border-box;
+    padding: 0;
 }
 
 /* Style when checked */
 input[type="radio"]:checked {
     background-color: white;
     border: 6px solid var(--blue);
-    box-sizing: border-box;
-
 }
 
 .truncate {

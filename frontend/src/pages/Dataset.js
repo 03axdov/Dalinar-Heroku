@@ -86,7 +86,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [currentImageWidth, setCurrentImageWidth] = useState(0)    // Only used if current element is an image
     const [currentImageHeight, setCurrentImageHeight] = useState(0)  // Only used if current element is an image
 
-    const [descriptionWidth, setDescriptionWidth] = useState(35)    // As percentage
+    const [descriptionWidth, setDescriptionWidth] = useState(40)    // As percentage
 
     const [toolbarLeftWidth, setToolbarLeftWidth] = useState(185)   // In pixels
     const [toolbarRightWidth, setToolbarRightWidth] = useState(185) // In pixels
@@ -2209,7 +2209,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     </div>
                 </div>
                 
-                <div className="dataset-main-display" ref={datasetMainDisplayRef} style={(dataset && dataset.dataset_type.toLowerCase() == "text" ? {overflowY: "scroll"} : {})}>
+                <div className="dataset-main-display" ref={datasetMainDisplayRef} style={((dataset && dataset.dataset_type.toLowerCase() == "text" && !showDatasetDescription) ? {overflowY: "scroll"} : {overflowY: "auto"})}>
                     {(elements.length == 0 && !loading && !uploadLoading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>
                         <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
                         Upload folder

@@ -221,6 +221,7 @@ function Guide({BACKEND_URL}) {
                         <h1 className="instructions-title">Model Overview</h1>
                         <p className="instructions-text">
                             Models consist of several different layers, all of which have different types of parameters.
+                            They can either be image models or text models, which will determine which types of datasets are shown when e.g. training or evaluating.
                             Added layers are displayed in the toolbar to the left as well as the main display. Once a model is created or changed, it must be built before it can be trained, downloaded, etc. (see the section on Building).
                         </p>
                         <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.webp"} style={{height: "505px"}} />
@@ -290,7 +291,7 @@ function Guide({BACKEND_URL}) {
                             Building the model creates a model file based on the current layers and compiles this file according to specified optimizer and loss function.
                         </p>
                         <div className="guide-center">
-                            <img className="guide-image" src={BACKEND_URL + "/static/images/build-model.jpg"} style={{width: "600px", height: "658px"}} />
+                            <img className="guide-image" src={BACKEND_URL + "/static/images/build-model.jpg"} style={{width: "592px", height: "632px"}} />
                         </div>
                     </div>
 

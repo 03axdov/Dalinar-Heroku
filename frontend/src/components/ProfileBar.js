@@ -46,7 +46,14 @@ function ProfileBar({currentProfile, setShowProfileBar, BACKEND_URL}) {
                 Saved
             </div>
 
-            <div className="profile-bar-line" style={{marginTop: "auto"}}></div>
+            <div className="profile-bar-line" style={{marginTop: "10px"}}></div>
+
+            <div className="profile-bar-row" onClick={() => {
+                window.location.href = window.location.origin + "/accounts/email/"
+            }}>
+                <img className="profile-bar-icon" src={BACKEND_URL + "/static/images/email.svg"} />
+                Email settings
+            </div>
 
             <div className="profile-bar-row" onClick={() => {
                 window.location.href = window.location.origin + "/accounts/password/change/"

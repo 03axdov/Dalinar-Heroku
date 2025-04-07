@@ -48,7 +48,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [isTrained, setIsTrained] = useState(false)
 
     const pageRef = useRef(null)
-    const [descriptionWidth, setDescriptionWidth] = useState(35)    // As percentage
+    const [descriptionWidth, setDescriptionWidth] = useState(40)    // As percentage
 
     const [toolbarLeftWidth, setToolbarLeftWidth] = useState(185)   // In pixels
     const [toolbarMainHeight, setToolbarMainHeight] = useState(50)

@@ -62,7 +62,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
     const [currentImageWidth, setCurrentImageWidth] = useState(0)    // Only used if current element is an image
     const [currentImageHeight, setCurrentImageHeight] = useState(0)  // Only used if current element is an image
 
-    const [descriptionWidth, setDescriptionWidth] = useState(35)
+    const [descriptionWidth, setDescriptionWidth] = useState(40)
 
     const [toolbarLeftWidth, setToolbarLeftWidth] = useState(185)   // In pixels
     const [toolbarRightWidth, setToolbarRightWidth] = useState(185) // In pixels
@@ -277,8 +277,10 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
             let key = getUserPressKeycode(event)
             
             if (key === "ArrowDown" || key === "ArrowRight") {
+                event.preventDefault()
                 setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
             } else if (key === "ArrowUp" || key === "ArrowLeft") {
+                event.preventDefault()
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
             }
         };
@@ -1066,7 +1068,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                     </div>
                 </div>
                 
-                <div className="dataset-main-display" ref={datasetMainDisplayRef}>
+                <div className="dataset-main-display" ref={datasetMainDisplayRef} style={((dataset && dataset.dataset_type.toLowerCase() == "text" && !showDatasetDescription) ? {overflowY: "scroll"} : {overflowY: "auto"})}>
                     {elements.length != 0 && !showDatasetDescription && <div className="dataset-element-view-container">
                         {getPreviewElement(elements[elementsIndex])}
                     </div>}

@@ -143,12 +143,8 @@ a:hover {
 }
 
 h2 {
-    text-align: center;
-    font-size: 2.5rem;
+    font-size: 1.7rem;
     font-weight: 500;
-    padding-bottom: 5px;
-    border-bottom: 1px solid var(--border);
-    letter-spacing: 2px;
 }
 
 #id_remember {
@@ -159,7 +155,7 @@ h2 {
     background-color: var(--accounts-input);
 }
 
-label {
+.signup p label, .login p label {
     display: none;
 }
 
@@ -247,4 +243,45 @@ label {
     justify-content: center;
     align-items: start;
     background: var(--background-dark);
+}
+
+.ctrlHolder label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.ctrlHolder label span {
+    margin-left: 7px;
+    color: var(--gray-text);
+}
+
+.ctrlHolder label input {
+    margin-right: 10px;
+}
+
+.blockLabels {
+    border: none;
+    padding: 0;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+.blockLabels .buttonHolder {
+    margin-top: 30px;
+}
+
+.blockLabels .buttonHolder button {
+    margin: 5px 0;
+    background: transparent;
+    border: 1px solid var(--border);
+}
+.blockLabels .buttonHolder button:hover {
+    border: 1px solid var(--border-light);
+}
+
+.add_email button {
+    margin-top: 10px;
 }
