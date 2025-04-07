@@ -128,3 +128,36 @@
     background: rgb(0,0,0,0);
     border-color: rgb(150,150,150);
 }
+
+@media all and (max-width: 1100px) {
+    .landing-title {
+        font-size: 2.3rem;
+    }
+
+    .landing-header-left {
+        padding-left: 5%;
+    }
+}
+
+@media all and (max-width: 800px) {
+    .landing-header-right {
+        display: none;
+    }
+
+    .landing-header-left {
+        width: 100%;
+        padding: 0;
+        align-items: center;
+    }
+
+    .landing-title, .landing-description {
+        text-align: center;
+    }
+
+    .landing-header-button {
+        margin: 0 5px;
+    }
+    .landing-header-buttons {
+        justify-content: center;
+    }
+}

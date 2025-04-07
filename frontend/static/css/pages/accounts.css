@@ -155,7 +155,7 @@ h2 {
     background-color: var(--accounts-input);
 }
 
-.signup p label, .login p label {
+.signup p label, .login p label, .password_change p label, .password_reset p label {
     display: none;
 }
 

@@ -76,7 +76,7 @@ html, body {
     align-items: center;
     padding: 0 15px;
     padding-bottom: 20px;
-    transition: transform 0.1s ease-out;
+    transition: transform 0.2s ease-out;
     transform: translateX(100%);
 }
 .profile-bar.slide-in {

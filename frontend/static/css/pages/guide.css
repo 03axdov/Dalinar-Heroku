@@ -82,7 +82,7 @@
 }
 
 .guide-toolbar-subelement:hover {
-    background: var(--sidebar-light);
+    background: var(--background-light);
     cursor: pointer;
 }
 
@@ -239,4 +239,25 @@
     width: 100%;
     display: flex;
     justify-content: center;
+}
+
+@media all and (max-width: 1300px) {
+    .guide-image {
+        height: auto!important;
+        max-width: 100%;
+    }
+}
+
+@media all and (max-width: 1000px) {
+    .guide-toolbar-right {
+        display: none;
+    }
+
+    .guide-main {
+        max-width: calc(95% - var(--guide-sidebar-width));
+    }
+
+    .guide-main-outer {
+        padding-left: var(--guide-sidebar-width);
+    }
 }
