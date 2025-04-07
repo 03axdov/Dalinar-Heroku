@@ -19,7 +19,7 @@ function ProfileBar({currentProfile, setShowProfileBar, BACKEND_URL}) {
                 <img className="profile-bar-icon profile-bar-cross" onClick={() => setShowProfileBar(false)} src={BACKEND_URL + "/static/images/cross.svg"} />
             </div>
 
-            <div className="profile-bar-profile">
+            <div className="profile-bar-profile" title={"Signed in as " + currentProfile.name}>
                 <img className="profile-bar-icon" src={BACKEND_URL + "/static/images/profile.svg"} />
                 {currentProfile.name}
             </div>

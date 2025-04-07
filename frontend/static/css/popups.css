@@ -148,7 +148,7 @@
     height: 500px;
     max-height: 95%;
     border-radius: 5px;
-    background: var(--toolbar);
+    background: var(--background);
     display: flex;
     flex-direction: row;
     align-items: center;

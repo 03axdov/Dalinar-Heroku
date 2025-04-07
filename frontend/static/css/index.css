@@ -62,13 +62,13 @@ html, body {
     flex-direction: row; 
     justify-content: end;
     background: rgb(25,25,25,0.3);
-    z-index: 9;
+    z-index: 11;
 }
 
 .profile-bar {
     height: 100%;
     width: 225px;
-    background: var(--toolbar);
+    background: var(--background-dark);
     border-left: 1px solid var(--border);
     box-sizing: border-box;
     display: flex;
@@ -107,7 +107,7 @@ html, body {
 }
 .profile-bar-cross:hover {
     cursor: pointer;
-    background: var(--toolbar-lighter);
+    background: var(--background-lighter);
 }
 
 .profile-bar-row, .profile-bar-profile {
@@ -120,9 +120,12 @@ html, body {
     padding: 5px 15px;
     border-radius: 7px;
 }
+.profile-bar-profile {
+    cursor: default;
+}
 
 .profile-bar-row:hover {
-    background: var(--toolbar-lighter);
+    background: var(--background-lighter);
     cursor: pointer;
 }
 

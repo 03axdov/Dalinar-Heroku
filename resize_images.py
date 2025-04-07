@@ -2,16 +2,14 @@ from PIL import Image
 import os
 
 files = [
-    "frontend/static/images/examplePage.jpg",
-    "frontend/static/images/exampleClassification.jpg",
-    "frontend/static/images/examplePageModel.jpg",
+    "frontend/static/images/check.png",
 ]
 
-output_format = "webp"  # or "avif"
+output_format = "png"
 output_dir = "frontend/static/images/converted"
 os.makedirs(output_dir, exist_ok=True)
 
-target_width = 800
+target_width = 50
 
 for i, file in enumerate(files):
     with Image.open(file) as img:

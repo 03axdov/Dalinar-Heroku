@@ -54,6 +54,10 @@ function Guide({BACKEND_URL}) {
                 <div className="guide-toolbar-element">
                     Models
                 </div>
+                    <div className={"guide-toolbar-subelement " + (currentInstructions == "model" ? "guide-toolbar-element-selected": "")}
+                    onClick={() => setCurrentInstructions("model")}>
+                        Model Overview
+                    </div>
                     <div className={"guide-toolbar-subelement " + (currentInstructions == "model-layers" ? "guide-toolbar-element-selected": "")}
                     onClick={() => setCurrentInstructions("model-layers")}>
                         Layers
@@ -169,7 +173,17 @@ function Guide({BACKEND_URL}) {
                         <p className="instructions-text">
                             To label an element you must first select it. This can be done by clicking it in the list of elements to the left, or by scrolling through the elements with arrow keys.
                             The element can then be labelled by clicking on the desired label or pressing the keybind assigned to this label.
+                            For labelled elements, the label will be displayed at the top right corner of the display.
                         </p>
+
+                        <p className="guide-subheader" id="downloading">Downloading</p>
+                        <p className="instructions-text">
+                            There are two different formats for downloading image classification datasets, with an additional format for text datasets.
+                            The first format is labels as folders. Each label will have a dedicated folder, with elements (files) belonging to that label placed within it.
+                            The second format is filenames as labels, where elements are saved with names according to the format {"{label}_{idx}.{file extension}"}.
+                            The third format, which is only supported for text datasets, is as a .csv file. Label names will be placed in the first row, and text in the second. Each row represents an element.
+                        </p>
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/dataset-download.jpg"} style={{height: "394px"}}/>
                     </div>
                     
                 </div>}
@@ -193,6 +207,35 @@ function Guide({BACKEND_URL}) {
                             Areas will appear in the list beneath labels, and can then be selected and edited by pressing them.
                             Added points can be selected by clicking on them, and can then be moved or deleted (by pressing Delete or Backspace).
                         </p>
+
+                        <p className="guide-subheader" id="downloading">Downloading</p>
+                        <p className="instructions-text">
+                            For area datasets only one download format is supported. This will save the dataset's elements in one folder, with an additional .json file which contains the areas corresponding to each element.
+                        </p>
+                    </div>
+                    
+                </div>}
+
+                {currentInstructions == "model" && <div className="guide-main">
+                    <div className="instructions-header">
+                        <h1 className="instructions-title">Model Overview</h1>
+                        <p className="instructions-text">
+                            Models consist of several different layers, all of which have different types of parameters.
+                            Added layers are displayed in the toolbar to the left as well as the main display. Once a model is created or changed, it must be built before it can be trained, downloaded, etc. (see the section on Building).
+                        </p>
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.webp"} style={{height: "505px"}} />
+                    </div>
+
+                    <div className="instructions-container">
+                        
+                        <p className="guide-subheader" id="downloading">Downloading</p>
+                        <p className="instructions-text">
+                            Built models can be downloaded as either .h5 or .keras files. These can then be loaded outside of Dalinar, or uploaded when creating a new model in order to create a copy (this can also be done by clicking the Copy button).
+                        </p>
+                        <div className="guide-center">
+                            <img className="guide-image" src={BACKEND_URL + "/static/images/model-download.jpg"} style={{width: "455px", height: "564px"}} />
+                        </div>
+                        
                     </div>
                     
                 </div>}
@@ -200,8 +243,6 @@ function Guide({BACKEND_URL}) {
                 {currentInstructions == "model-layers" && <div className="guide-main">
                     <div className="instructions-header">
                         <h1 className="instructions-title">Model Layers</h1>
-                        <p className="instructions-text">Models consist of several different layers, all of which have different types of parameters.</p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.webp"} style={{height: "505px"}} />
                         <p className="instructions-text">
                             Dalinar currently supports the layers listed below (click for more detailed descriptions). Note that some of these are exclusive to either Image or Text models.
                         </p>
@@ -228,6 +269,9 @@ function Guide({BACKEND_URL}) {
                             Furthermore, for most layers the input dimensions can be specified, though it's optional for all but the first layer.
                             The parameter Trainable can be specified for all layers with weights. If set to false, the layer will not be updated while training.
                         </p>
+                        <div className="guide-center">
+                            <img className="guide-image" src={BACKEND_URL + "/static/images/layer-element.jpg"} style={{width: "303px", height: "500px"}} />
+                        </div>
                         <p className="guide-subheader" id="layer-update">Updating Layers</p>
                         <p className="instructions-text">
                             Created layers can be easily updated by changing parameters and clicking Save changes.
@@ -244,14 +288,19 @@ function Guide({BACKEND_URL}) {
                         <p className="instructions-text">
                             Building the model is necessary in order to unlock functionality such as training, evaluation, predicting, and downloading.
                             Building the model creates a model file based on the current layers and compiles this file according to specified optimizer and loss function.
+                        </p>
+                        <div className="guide-center">
+                            <img className="guide-image" src={BACKEND_URL + "/static/images/build-model.jpg"} style={{width: "600px", height: "658px"}} />
+                        </div>
+                    </div>
+
+                    <div className="instructions-container">
+                        <p className="guide-subheader" id="building-updates">Reflecting Updates</p>
+                        <p className="instructions-text">
                             Changes made between builds will only be reflected in functionality such as training once the model is rebuilt.
                             It is important to note that rebuilding a model will reset all weights of layers that have Update on build set to true, i.e. trained layers will become untrained.
                             If you only want to update the optimizer, loss function, or whether certain layers are trainable see the section on Model Compiling.
                         </p>
-                    </div>
-
-                    <div className="instructions-container" style={{alignItems: "center"}}>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/build-model.jpg"} style={{width: "600px", height: "658px"}} />
                     </div>
                 </div>}
 
@@ -260,13 +309,19 @@ function Guide({BACKEND_URL}) {
                         <h1 className="instructions-title">Model Compiling</h1>
                         <p className="instructions-text">
                             Built models can be recompiled in the same popup where they can be rebuilt. Recompiling will compile the model file with the specified optimizer and loss function.
+                            
+                        </p>
+                        <div className="guide-center">
+                            <img className="guide-image" src={BACKEND_URL + "/static/images/build-model.jpg"} style={{width: "600px", height: "658px"}} />
+                        </div>
+                    </div>
+
+                    <div className="instructions-container">
+                        <p className="guide-subheader" id="compiling-updates">Reflecting Updates</p>
+                        <p className="instructions-text">
                             Unlike rebuilding this will not reset the weights of any layers.
                             Furthermore, recompiling will reflect changes in the Trainable parameter which can be specified for all layers with weights.
                         </p>
-                    </div>
-
-                    <div className="instructions-container" style={{alignItems: "center"}}>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/build-model.jpg"} style={{width: "600px", height: "658px"}} />
                     </div>
                 </div>}
 
@@ -305,13 +360,19 @@ function Guide({BACKEND_URL}) {
                 <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("labelling").scrollIntoView({behavior: "smooth"});}}>
                     Labelling
                 </div>
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("downloading").scrollIntoView({behavior: "smooth"});}}>
+                    Downloading
+                </div>
             </div>}
             {currentInstructions == "dataset-area" && <div className="guide-toolbar-right">
                 <div className="guide-toolbar-element-right">
                     On this page
                 </div>
                 <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("area-creation").scrollIntoView({behavior: "smooth"});}}>
-                    Area Creation
+                    Area creation
+                </div>
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("downloading").scrollIntoView({behavior: "smooth"});}}>
+                    Downloading
                 </div>
             </div>}
             {currentInstructions == "dataset-loading" && <div className="guide-toolbar-right">
@@ -326,19 +387,47 @@ function Guide({BACKEND_URL}) {
                 </div>
             </div>}
 
+            {currentInstructions == "model" && <div className="guide-toolbar-right">
+                <div className="guide-toolbar-element-right">
+                    On this page
+                </div>
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("downloading").scrollIntoView({behavior: "smooth"});}}>
+                    Downloading
+                </div>
+            </div>}
+
             {currentInstructions == "model-layers" && <div className="guide-toolbar-right">
                 <div className="guide-toolbar-element-right">
                     On this page
                 </div>
                 <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("ordering-layers").scrollIntoView({behavior: "smooth"});}}>
-                    Ordering Layers
+                    Ordering layers
                 </div>
                 <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("layer-properties").scrollIntoView({behavior: "smooth"});}}>
-                    Layer Properties
+                    Layer properties
                 </div>
                 <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("layer-update").scrollIntoView({behavior: "smooth"});}}>
-                    Updating Layers
+                    Updating layers
                 </div>
+            </div>}
+
+            {currentInstructions == "model-building" && <div className="guide-toolbar-right">
+                <div className="guide-toolbar-element-right">
+                    On this page
+                </div>
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("building-updates").scrollIntoView({behavior: "smooth"});}}>
+                    Reflecting updates
+                </div>
+            </div>}
+
+            {currentInstructions == "model-compiling" && <div className="guide-toolbar-right">
+                <div className="guide-toolbar-element-right">
+                    On this page
+                </div>
+                <div className="guide-toolbar-subelement-right" onClick={() => {document.getElementById("compiling-updates").scrollIntoView({behavior: "smooth"});}}>
+                    Reflecting updates
+                </div>
+
             </div>}
 
             {currentInstructions == "model-training" && <div className="guide-toolbar-right">

@@ -1,9 +1,6 @@
 TO-DO:
 - Track multiple datasets used (probably difficult)
 - More images in Guide
-- Profile
-- Better image resizing
-- Testing
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py
