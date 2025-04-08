@@ -253,7 +253,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                     notification("Successfully recompiled model.", "success")
                     getModel()
                 },
-                () => notification("Recompilation failed.", "failure"),
+                (data) => notification("Recompilation failed: " + data["message"], "failure"),
                 () => {},
                 () => {
                     setProcessingRecompile(false)

@@ -40,10 +40,15 @@ def set_training_progress(profile, progress):
 
 
 def get_temp_model_name(id, timestamp, extension, user_id=None):   # Timestamp used if user (user_id) not specified
-    if not user_id:
-        return 'temp_models/temp_model' + str(id) + "-" + str(timestamp) + '.' + extension
+    base_path = '/tmp/temp_models' if os.name != 'nt' else 'tmp/temp_models'  # Use local path on Windows
+    os.makedirs(base_path, exist_ok=True)  # make sure the folder exists
+
+    if user_id:
+        filename = f"temp_model{id}-{user_id}.{extension}"
     else:
-        return 'temp_models/temp_model' + str(id) + "-" + str(user_id) + '.' + extension
+        filename = f"temp_model{id}-{timestamp}.{extension}"
+    
+    return os.path.join(base_path, filename)
     
     
 def get_tf_model(model_instance, profile=None):     # Gets a Tensorflow model from a built Model instance, negative timestamp means ongoing operation
@@ -1276,7 +1281,7 @@ def create_model_file(request, model_instance):
     try:
         model_file = request.data["model"]
         extension = model_file.name.split(".")[-1]
-        temp_path = "temp_models/" + model_file.name
+        temp_path = "tmp/temp_models/" + model_file.name
         file_path = default_storage.save(temp_path, model_file.file)
         
         bucket_name = settings.AWS_STORAGE_BUCKET_NAME
