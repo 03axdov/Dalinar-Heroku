@@ -68,7 +68,7 @@ html, body {
 .profile-bar {
     height: 100%;
     width: 300px;
-    background: var(--background-dark);
+    background: var(--background);
     border-left: 1px solid var(--border);
     box-sizing: border-box;
     display: flex;
