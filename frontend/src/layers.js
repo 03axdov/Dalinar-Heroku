@@ -359,3 +359,112 @@ export function getLayerName(layer) {
         return "GlobalAveragePooling1D"
     }
 }
+
+export function computeParams(layers, sequence_length = 256) {
+    let totalParams = 0;
+  
+    // For Conv2D/MaxPool2D shape tracking
+    let current_x = null;
+    let current_y = null;
+    let current_z = null;
+  
+    // For sequence-based layers like Embedding, Conv1D, GlobalPooling
+    let current_steps = null;
+    let current_feats = null;
+  
+    let inUnits = null; // For Dense layer
+  
+    layers.forEach((layer) => {
+      const type = layer.layer_type;
+  
+      if (type === 'conv2d') {
+        const filters = layer.filters;
+        const kernel_size = layer.kernel_size;
+        const stride = 1;
+        const padding = 0;
+  
+        // Initialize spatial dims if not set
+        if (current_x === null || current_y === null || current_z === null) {
+          current_x = layer.input_x;
+          current_y = layer.input_y;
+          current_z = layer.input_z;
+        }
+  
+        const out_x = Math.floor((current_x - kernel_size + 2 * padding) / stride) + 1;
+        const out_y = Math.floor((current_y - kernel_size + 2 * padding) / stride) + 1;
+        const out_z = filters;
+  
+        const params = (kernel_size * kernel_size * current_z + 1) * filters;
+        totalParams += params;
+  
+        current_x = out_x;
+        current_y = out_y;
+        current_z = out_z;
+  
+        // Clear sequence tracking if switching from sequence to image
+        current_steps = null;
+        current_feats = null;
+      }
+  
+      else if (type === 'maxpool2d') {
+        const stride = layer.pool_size;
+  
+        current_x = Math.floor(current_x / stride);
+        current_y = Math.floor(current_y / stride);
+        // current_z unchanged
+      }
+  
+      else if (type === 'flatten') {
+        if (current_x !== null && current_y !== null && current_z !== null) {
+          inUnits = current_x * current_y * current_z;
+        } else if (current_steps !== null && current_feats !== null) {
+          inUnits = current_steps * current_feats;
+        }
+  
+        // Clear all shape tracking
+        current_x = current_y = current_z = null;
+        current_steps = current_feats = null;
+      }
+  
+      else if (type === 'dense') {
+        const units = layer.nodes_count;
+  
+        if (inUnits === null) {
+          inUnits = layer.input_x || 1;
+        }
+  
+        const params = (inUnits + 1) * units;
+        totalParams += params;
+  
+        inUnits = units;
+      }
+  
+      else if (type === 'globalaveragepooling1d') {
+        if (current_feats !== null) {
+          inUnits = current_feats;
+        }
+  
+        current_steps = null;
+        current_feats = null;
+      }
+  
+      else if (type === 'embedding') {
+        const maxTokens = layer.max_tokens;
+        const outputDim = layer.output_dim;
+        const inputLength = sequence_length;
+  
+        const params = maxTokens * outputDim;
+        totalParams += params;
+  
+        current_steps = inputLength;
+        current_feats = outputDim;
+  
+        // Clear image shape
+        current_x = current_y = current_z = null;
+        inUnits = null;
+      }
+    });
+  
+    return totalParams;
+  }
+  

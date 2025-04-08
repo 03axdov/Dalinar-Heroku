@@ -150,6 +150,7 @@
     position: relative;
     pointer-events: all;
     cursor: default;
+    box-shadow: 0 0 15px 0 black;
 }
 
 .layer-element-hovered {
@@ -659,6 +660,16 @@ div.layer-element-mode-input {
 .train-model-epochs-label {
     margin-left: 20px;
     margin-right: 5px;
+}
+
+.model-params-container {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1;
+    background: var(--toolbar);
+    padding: 5px 10px;
+    font-size: 1.1rem;
 }
 
 .toggle-model-metrics {

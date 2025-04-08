@@ -93,7 +93,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                 let temp = {...params}
                                 temp[param.name] = e.target.value
                                 setParams(temp)
-                            }} />
+                            }} {...(param.required ? { required: true } : {})}/>
                         ))}
                     </div>
                 </div>

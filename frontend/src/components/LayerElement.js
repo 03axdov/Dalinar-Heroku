@@ -8,7 +8,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         BACKEND_URL, updateLayers, layers, notification, 
                         prevLayer, setWarnings, provided, 
                         updateWarnings, idx, onMouseEnter, 
-                        onMouseLeave, isBuilt, warnings=false, isPublic=false}) {
+                        onMouseLeave, isBuilt, warnings=new Set([]), isPublic=false}) {
     const { getTaskResult } = useTask();
 
     const [type, setType] = useState(null)  // Workaround to stop warning when reordering layers.
@@ -284,19 +284,33 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     }
 
     function getErrorMessage() {
-        setWarnings(false || warnings)
+        if (warnings.has(layer.id)) {
+            setWarnings((prevWarnings) => {
+                const newWarnings = new Set(prevWarnings); // clone the Set
+                newWarnings.delete(layer.id);              // remove the item
+                return newWarnings;                        // return new Set
+            });
+        }
 
         let type = layer.layer_type
         let prevType = (prevLayer ? prevLayer.layer_type : null)
         setErrorMessage("")
 
         if (!VALID_PREV_LAYERS[type].includes(prevType)) {
-            setWarnings(true)
+            setWarnings((prevWarnings) => {
+                const newWarnings = new Set(prevWarnings); // clone the Set
+                newWarnings.add(layer.id);              // remove the item
+                return newWarnings;                        // return new Set
+            });
             setErrorMessage(WARNING_MESSAGES[type])
         }
 
         if (!prevLayer && (!layer.input_x && !layer.input_y && !layer.input_z) && !LAYERS[type].no_dimensions) {
-            setWarnings(true)
+            setWarnings((prevWarnings) => {
+                const newWarnings = new Set(prevWarnings); // clone the Set
+                newWarnings.add(layer.id);              // remove the item
+                return newWarnings;                        // return new Set
+            });
             setErrorMessage("Input dimensions must be specified on the first layer.")
         }
 
@@ -311,7 +325,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 temp["input_x"] = e.target.value
                 setParams(temp)
             }}></input>}
-            {isPublic && <div className="layer-element-input">{params.input_x || "-"}</div>}
+            {isPublic && <div className="layer-element-input" id={"dimensionX" + layer.id}>{params.input_x || "-"}</div>}
         </div>)
     }
 
@@ -324,7 +338,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 temp["input_y"] = e.target.value
                 setParams(temp)
             }}></input>}
-            {isPublic && <div className="layer-element-input">{params.input_y || "-"}</div>}
+            {isPublic && <div className="layer-element-input" id={"dimensionY" + layer.id}>{params.input_y || "-"}</div>}
         </div>)
     }
 
@@ -337,7 +351,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 temp["input_z"] = e.target.value
                 setParams(temp)
             }}></input>}
-            {isPublic && <div className="layer-element-input">{params.input_z || "-"}</div>}
+            {isPublic && <div className="layer-element-input" id={"dimensionZ" + layer.id}>{params.input_z || "-"}</div>}
         </div>)
     }
 
@@ -372,7 +386,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             temp[param.name] = e.target.value
                             setParams(temp)
                         }}></input>}
-                        {isPublic && <div className="layer-element-input">{params[param.name]}</div>}
+                        {isPublic && <div className="layer-element-input" id={param.name + layer.id}>{params[param.name]}</div>}
                     </div>
                 ))}
                 {dimensionParams.map((param, idx) => (
@@ -384,7 +398,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             temp[param.name] = e.target.value
                             setParams(temp)
                         }}></input>}
-                        {isPublic && <div className="layer-element-input">{params[param.name]}</div>}
+                        {isPublic && <div className="layer-element-input" id={param.name + layer.id}>{params[param.name]}</div>}
                     </div>
                 ))}
                 {current_layer.input_x && dimensionsX(current_layer)}
@@ -403,7 +417,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             <option value="softmax">Softmax</option>
                             <option value="sigmoid">Sigmoid</option>
                     </select>}
-                    {isPublic && <div className="layer-element-input layer-element-activation-input">{params["activation_function"] || "-"}</div>}
+                    {isPublic && <div className="layer-element-input layer-element-activation-input" id={"activation" + layer.id}>{params["activation_function"] || "-"}</div>}
                 </div>}
                 {current_layer.freezable && !isPublic && <div className="layer-element-stat">
                     <span className="layer-element-stat-color layer-element-stat-gray"></span>

@@ -13,7 +13,7 @@ import PredictionPopup from "../popups/PredictionPopup";
 import ModelMetrics from "../components/ModelMetrics";
 import { useTask } from "../contexts/TaskContext";
 
-import { LAYERS, getLayerName } from "../layers";
+import { LAYERS, getLayerName, computeParams } from "../layers";
 import DescriptionTable from "../components/DescriptionTable";
 import { TEMPLATE_DATA } from "../helpers/templates"
 import ProgressBar from "../components/ProgressBar";
@@ -56,8 +56,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [hoveredLayerTimeout, setHoveredLayerTimeout] = useState(null)
     const [hoveredLayer, setHoveredLayer] = useState(null)  // id of hovered layer
 
-    const [warnings, setWarnings] = useState(false)
-    const [updateWarnings, setUpdateWarnings] = useState(false)
+    const [warnings, setWarnings] = useState(new Set([]))
+    const [updateWarnings, setUpdateWarnings] = useState(false) // Used to update when warning messages should be refreshed
+
+    const [numParams, setNumParams] = useState("")
 
     const [cursor, setCursor] = useState("")
 
@@ -95,16 +97,22 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const navigate = useNavigate()
 
     useEffect(() => {
+        setWarnings(new Set([]))
         getModel()
     }, [])
 
     useEffect(() => {
-        setWarnings(false)
-    }, [])
-
-    useEffect(() => {
         setUpdateWarnings(!updateWarnings)
-    }, [layers])
+        if (layers.length > 0 && warnings.size == 0) {
+            if (model.model_type.toLowerCase() == "image") {
+                setNumParams(computeParams(layers))
+            } else {
+                setNumParams(computeParams(layers, model.input_sequence_length || 256))
+            }
+        } else {
+            setNumParams("")
+        }
+    }, [layers, warnings])
 
     useEffect(() => {
         if (currentProfile && model && !loading) {
@@ -716,7 +724,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         title="Build model" 
                         className="model-build-button" 
                         onClick={() => {
-                            setShowBuildModelPopup(true)
+                            if (warnings.size == 0) {
+                                setShowBuildModelPopup(true)
+                            } else {
+                                notification("You must address all warnings before building the model.", "failure")
+                            }
                         }}>
                             <img className="model-download-icon" src={BACKEND_URL + "/static/images/build.svg"} />
                             {model.model_file ? "Rebuild" : "Build"}
@@ -793,6 +805,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         <img className="metrics-icon" src={BACKEND_URL + "/static/images/metrics.png"}/>
                         {showModelMetrics ? "Hide training metrics" : "Show training metrics"}
                     </button>}
+
+                    {layers.length > 0 && numParams && <div className="model-params-container">
+                        {numParams} parameters
+                    </div>}
 
                     {showModelDescription && model && <div className="dataset-description-display-container" ref={descriptionContainerRef}>
                         <div className="dataset-description-image-container" style={{width: "calc(100% - " + descriptionWidth + "%)"}}>

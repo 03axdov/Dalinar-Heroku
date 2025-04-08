@@ -7,7 +7,7 @@ import ModelDownloadPopup from "../popups/ModelDownloadPopup";
 import PredictionPopup from "../popups/PredictionPopup";
 import EvaluateModelPopup from "../popups/EvaluateModelPopup";
 import ModelMetrics from "../components/ModelMetrics";
-import { LAYERS, getLayerName } from "../layers";
+import { LAYERS, getLayerName, computeParams } from "../layers";
 import DescriptionTable from "../components/DescriptionTable";
 
 
@@ -41,10 +41,23 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
     const [hoveredLayerTimeout, setHoveredLayerTimeout] = useState(null)
     const [hoveredLayer, setHoveredLayer] = useState(null)  // id of hovered layer
 
-    const [warnings, setWarnings] = useState(false)
-    const [updateWarnings, setUpdateWarnings] = useState(false)
+    const [warnings, setWarnings] = useState(new Set([]))
+
+    const [numParams, setNumParams] = useState("")
 
     const [cursor, setCursor] = useState("")
+
+    useEffect(() => {
+        if (layers.length > 0 && warnings.size == 0) {
+            if (model.model_type.toLowerCase() == "image") {
+                setNumParams(computeParams(layers))
+            } else {
+                setNumParams(computeParams(layers, model.input_sequence_length || 256))
+            }
+        } else {
+            setNumParams("")
+        }
+    }, [layers, warnings])
 
     // For scrolling by grabbing
     const [mouseOnLayer, setMouseOnLayer] = useState(false)
@@ -78,14 +91,6 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
     useEffect(() => {
         getModel()
     }, [])
-
-    useEffect(() => {
-        setWarnings(false)
-    }, [])
-
-    useEffect(() => {
-        setUpdateWarnings(!updateWarnings)
-    }, [layers])
 
     function getModel() {
 
@@ -494,6 +499,9 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                         {showModelMetrics ? "Hide training metrics" : "Show training metrics"}
                     </button>}
 
+                    {layers.length > 0 && numParams && <div className="model-params-container">
+                        {numParams} parameters
+                    </div>}
 
                     {showModelDescription && model &&<div className="dataset-description-display-container" ref={descriptionContainerRef}>
                         <div className="dataset-description-image-container" style={{width: "calc(100% - " + descriptionWidth + "%)"}}>
@@ -551,7 +559,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                                         provided={{
                                             draggableProps: ""
                                         }}   // Just give this object here as not draggable
-                                        updateWarnings={updateWarnings}
+                                        updateWarnings={false}
                                         idx={idx}
                                         isBuilt={model.model_file != null}
                                         onMouseEnter={() => setMouseOnLayer(true)}
