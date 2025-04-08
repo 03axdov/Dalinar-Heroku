@@ -1,7 +1,5 @@
 TO-DO:
-- Track multiple datasets used (probably difficult)
-- More images in Guide
-- Text when filters do not find datasets / models
+- Text when filters do not find datasets / models (fixed for all but training and evaluation)
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

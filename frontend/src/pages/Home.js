@@ -342,7 +342,6 @@ function Home({currentProfile, notification, BACKEND_URL}) {
     }, [searchSavedModels]);
 
     function datasetShouldShow(dataset_type) {
-        console.log(dataset_type)
         if (datasetShow == "all" || datasetShow == dataset_type.toLowerCase()) {
             return true;
         }
@@ -354,6 +353,11 @@ function Home({currentProfile, notification, BACKEND_URL}) {
         if (modelShow == "built") return model.model_file != null
         if (modelShow == "not-built") return model.model_file == null
     }
+
+    const visibleDatasets = datasets.filter((dataset) => datasetShouldShow(dataset.dataset_type));
+    const visibleModels = models.filter((model) => modelShouldShow(model));
+    const visibleSavedDatasets = savedDatasets.filter((dataset) => datasetShouldShow(dataset.dataset_type));
+    const visibleSavedModels = savedModels.filter((model) => modelShouldShow(model));
 
     return <div className="home-container">
         
@@ -424,16 +428,25 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 </div>
                 
                 <div className="my-datasets-container">
-                    {datasets.map((dataset) => (
-                        ((datasetShouldShow(dataset.dataset_type)) ? <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL}/> : "")
+                    {visibleDatasets.map((dataset) => (
+                        <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL}/>
                     ))}
-                    {!loading && datasets.length == 0 && search.length == 0 && <p>You don't have any datasets. Click <span className="link" onClick={() => {
-                        navigate("/create-dataset")
-                    }}>here</span> to create one.</p>}
-                    {!loading && datasets.length == 0 && search.length > 0 && <p className="gray-text">No such datasets found.</p>}
-                    {loading && datasets.length == 0 && currentProfile.datasetsCount > 0 && [...Array(currentProfile.datasetsCount)].map((e, i) => (
-                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
-                    ))}
+                    
+                    {!loading && visibleDatasets.length === 0 && datasets.length > 0 && <p className="gray-text">No such datasets found.</p>}
+
+                    {!loading && datasets.length === 0 && search.length === 0 && (
+                        <p>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
+                    )}
+
+                    {!loading && datasets.length === 0 && search.length > 0 && (
+                        <p className="gray-text">No such datasets found.</p>
+                    )}
+
+                    {loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && (
+                        [...Array(currentProfile.datasetsCount)].map((e, i) => (
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
+                        ))
+                    )}
                 </div>
                 
             </div>}
@@ -471,16 +484,26 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 </div>
                 
                 <div className="my-datasets-container">
-                    {models.map((model) => (
-                       (modelShouldShow(model) ? <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL}/> : "")
+
+                    {visibleModels.map((model) => (
+                        <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL}/>
                     ))}
-                    {!loadingModels && models.length == 0 && searchModels.length == 0 && <p>You don't have any models. Click <span className="link" onClick={() => {
-                        navigate("/create-model")
-                    }}>here</span> to create one.</p>}
-                    {!loadingModels && models.length == 0 && searchModels.length > 0 && <p className="gray-text">No such models found.</p>}
-                    {loadingModels && models.length == 0 && currentProfile.modelsCount != null && currentProfile.modelsCount.length > 0 && [...Array(currentProfile.modelsCount)].map((e, i) => (
-                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
-                    ))}
+                    
+                    {!loadingModels && visibleModels.length === 0 && models.length > 0 && <p className="gray-text">No such models found.</p>}
+
+                    {!loadingModels && models.length === 0 && searchModels.length === 0 && (
+                        <p>You don't have any models. Click <span className="link" onClick={() => navigate("/create-model")}>here</span> to create one.</p>
+                    )}
+
+                    {!loadingModels && models.length === 0 && searchModels.length > 0 && (
+                        <p className="gray-text">No such datasets found.</p>
+                    )}
+
+                    {loadingModels && models.length === 0 && currentProfile.modelsCount > 0 && (
+                        [...Array(currentProfile.modelsCount)].map((e, i) => (
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
+                        ))
+                    )}
                 </div>
                 
             </div>}
@@ -539,7 +562,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                         
                         {savedTypeShown == "datasets" && <div className="explore-datasets-search-container">
                             <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={searchSaved} placeholder="Search datasets" onChange={(e) => {
-                                    setLoading(true)
+                                    setLoadingSaved(true)
                                     setSearchSaved(e.target.value)
                             }} /> 
                             <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
@@ -547,7 +570,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
                         {savedTypeShown == "models" && <div className="explore-datasets-search-container">
                             <input title="Will search names." type="text" className="explore-datasets-search" value={searchSavedModels} placeholder="Search models" onChange={(e) => {
-                                    setLoadingModels(true)
+                                    setLoadingSaved(true)
                                     setSearchSavedModels(e.target.value)
                             }} /> 
                             <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
@@ -556,25 +579,51 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 </div>
                 
                 {savedTypeShown == "datasets" && savedDatasets && <div className="my-datasets-container">
-                    {savedDatasets.map((dataset) => (
-                        ((datasetShouldShow(dataset.dataset_type)) ? <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL} isPublic={true}/> : "")
+
+                    {visibleSavedDatasets.map((dataset) => (
+                        <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                     ))}
-                    {!loadingSaved && currentProfile && savedDatasets.length == 0 && searchSaved.length == 0 && <p className="gray-text">You don't have any saved datasets.</p>}
-                    {!loadingSaved && currentProfile && savedDatasets.length == 0 && searchSaved.length > 0 && <p className="gray-text">No such saved datasets found.</p>}
-                    {loadingSaved && currentProfile && savedDatasets.length == 0 && currentProfile.saved_datasets && currentProfile.saved_datasets.length > 0 && currentProfile.saved_datasets.map((e, i) => (
-                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
-                    ))}
+                    
+                    {!loadingSaved && visibleSavedDatasets.length === 0 && savedDatasets.length > 0 && <p className="gray-text">No such saved datasets found.</p>}
+
+                    {!loadingSaved && savedDatasets.length === 0 && searchSaved.length === 0 && (
+                        <p>You don't have any saved datasets.</p>
+                    )}
+
+                    {!loadingSaved && savedDatasets.length === 0 && searchSaved.length > 0 && (
+                        <p className="gray-text">No such saved datasets found.</p>
+                    )}
+
+                    {loadingSaved && savedDatasets.length === 0 && currentProfile.saved_datasets && currentProfile.saved_datasets.length > 0 && (
+                        currentProfile.saved_datasets.map((e, i) => (
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
+                        ))
+                    )}
+
                 </div>}
 
                 {savedTypeShown == "models" && savedModels && <div className="my-datasets-container">
-                    {savedModels.map((model) => (
-                       (modelShouldShow(model) ? <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL} isPublic={true}/> : "")
+                    {visibleSavedModels.map((model) => (
+                        <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL}/>
                     ))}
-                    {!loadingSaved && savedModels.length == 0 && searchSavedModels.length == 0 && <p className="gray-text">You don't have any saved models.</p>}
-                    {!loadingSaved && savedModels.length == 0 && searchSavedModels.length > 0 && <p className="gray-text">No such saved models found.</p>}
-                    {loadingSaved && savedModels.length == 0 && currentProfile.saved_models && currentProfile.saved_models.length > 0 && currentProfile.saved_models.map((e, i) => (
-                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
-                    ))}
+                    
+                    {!loadingSaved && visibleSavedModels.length === 0 && savedModels.length > 0 && <p className="gray-text">No such saved models found.</p>}
+
+                    {!loadingSaved && savedModels.length === 0 && searchSavedModels.length === 0 && (
+                        <p>You don't have any saved models.</p>
+                    )}
+
+                    {!loadingSaved && savedModels.length === 0 && searchSavedModels.length > 0 && (
+                        <p className="gray-text">No such saved models found.</p>
+                    )}
+
+                    {loadingSaved && savedModels.length === 0 && currentProfile.modelsCount > 0 && currentProfile.saved_models && currentProfile.saved_models.length > 0 && (
+                        currentProfile.saved_models.map((e, i) => (
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
+                        ))
+                    )}
+
+                    
                 </div>}
                 
             </div>}

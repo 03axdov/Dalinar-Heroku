@@ -146,11 +146,11 @@
     padding: 10px;
     box-sizing: border-box;
     margin-right: 50px;
-    border-radius: 3px;
+    border-radius: 10px;
     position: relative;
     pointer-events: all;
     cursor: default;
-    box-shadow: 0 0 15px 0 black;
+    box-shadow: 0 0 10px 0 black;
 }
 
 .layer-element-hovered {

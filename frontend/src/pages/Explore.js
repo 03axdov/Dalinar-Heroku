@@ -192,7 +192,6 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
     }, [searchModels]);
 
     function datasetShouldShow(dataset_type) {
-        console.log(dataset_type)
         if (datasetShow == "all" || datasetShow == dataset_type.toLowerCase()) {
             return true;
         }
@@ -204,6 +203,9 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
         if (modelShow == "built") return model.model_file != null
         if (modelShow == "not-built") return model.model_file == null
     }
+
+    const visibleDatasets = datasets.filter((dataset) => datasetShouldShow(dataset.dataset_type));
+    const visibleModels = models.filter((model) => modelShouldShow(model));
 
     return <div className="explore-container">
         <div className="home-sidebar">
@@ -271,14 +273,22 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
                 </div>
                 
                 <div className="my-datasets-container">
-                    {datasets.map((dataset) => (
-                        (datasetShouldShow(dataset.dataset_type) ? <DatasetElement dataset={dataset} key={dataset.id} isPublic={true} BACKEND_URL={BACKEND_URL}/> : "")
+                    
+                    {visibleDatasets.map((dataset) => (
+                        <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                     ))}
+                    
+                    {!loading && visibleDatasets.length === 0 && datasets.length > 0 && <p className="gray-text">No such datasets found.</p>}
 
-                    {loading && datasets.length == 0 && [...Array(4)].map((e, i) => (
-                        <DatasetElementLoading key={i} isPublic={true} BACKEND_URL={BACKEND_URL}/>
-                    ))}
-                    {!loading && datasets.length == 0 && search.length > 0 && <p className="gray-text">No such datasets found.</p>}
+                    {!loading && datasets.length === 0 && search.length > 0 && (
+                        <p className="gray-text">No such datasets found.</p>
+                    )}
+
+                    {loading && datasets.length === 0 && (
+                        [...Array(4)].map((e, i) => (
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
+                        ))
+                    )}
                 </div>
                 
             </div>}
@@ -316,13 +326,21 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
                 </div>
                 
                 <div className="my-datasets-container">
-                    {models.map((model) => (
-                       (modelShouldShow(model) ? <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL} isPublic={true}/> : "")
+                    {visibleModels.map((model) => (
+                        <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                     ))}
-                    {!loadingModels && models.length == 0 && searchModels.length > 0 && <p className="gray-text">No such models found.</p>}
-                    {loadingModels && models.length == 0 && [...Array(4)].map((e, i) => (
-                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
-                    ))}
+                    
+                    {!loadingModels && visibleModels.length === 0 && models.length > 0 && <p className="gray-text">No such models found.</p>}
+
+                    {!loadingModels && models.length === 0 && searchModels.length > 0 && (
+                        <p className="gray-text">No such datasets found.</p>
+                    )}
+
+                    {loadingModels && models.length === 0 && (
+                        [...Array(4)].map((e, i) => (
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
+                        ))
+                    )}
                 </div>
                 
             </div>}
