@@ -445,16 +445,20 @@ div.layer-element-input {
     background: var(--sidebar-button-hover);
 }
 
-.layer-element-save-disabled {
+.layer-element-save-disabled, .layer-element-button-disabled {
     background: var(--background);
     opacity: 0.8;
     pointer-events: none;
     cursor: default;
 }
 
-.layer-element-save-disabled:hover {
+.layer-element-save-disabled:hover, .layer-element-button-disabled:hover {
     cursor: default;
     background: var(--background);
+}
+
+.layer-element-button-disabled {
+    pointer-events: all;
 }
 
 .create-layer-label-inp {

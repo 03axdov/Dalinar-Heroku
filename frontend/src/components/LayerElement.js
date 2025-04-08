@@ -238,6 +238,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
     let resInterval = null;
     function resetToBuild(e) {
+        if (!isBuilt) return;
         const data = {
             "id": layer.id,
         }
@@ -486,9 +487,9 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         onClick={() => setRevertChanges(!revertChanges)}>
                         Revert changes
                     </button>}
-                    {!isPublic && isBuilt && !LAYERS[type].not_editable && <button type="button" 
-                        className="layer-element-revert"
-                        title="Reset to build"
+                    {!isPublic && !LAYERS[type].not_editable && <button type="button" 
+                        className={"layer-element-revert " + (!isBuilt ? "layer-element-button-disabled" : "")}
+                        title={isBuilt ? "Reset to build" : "Disabled as the model has not been built."}
                         onClick={resetToBuild}>
                         <img className="layer-element-button-icon" src={BACKEND_URL + "/static/images/" + (resettingToBuild ? "loading.gif" : "reset.svg")} />
                         {(resettingToBuild ? "Processing..." : "Reset to build")}
