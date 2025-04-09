@@ -88,7 +88,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                 resInterval,
                 res.data["task_id"],
                 (data) => {
-                    notification("Successfully evaluated dataset.", "success")
+                    notification("Successfully evaluated model.", "success")
     
                     setAccuracy(data["accuracy"].toFixed(4))
                     setLoss(data["loss"].toFixed(4))

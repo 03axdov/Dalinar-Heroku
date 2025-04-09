@@ -625,6 +625,9 @@ div.layer-element-mode-input {
     border: 1px solid var(--border);
     box-sizing: border-box;
     background: var(--background-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
   
 .training-table, .description-table {

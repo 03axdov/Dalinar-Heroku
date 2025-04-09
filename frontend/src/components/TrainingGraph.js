@@ -14,6 +14,7 @@ const TrainingGraph = ({ data, is_validation, is_training=false, border=true }) 
 
   return (
     <div style={{ width: '100%', height: 400 }} className={"training-graph " + (!border ? "no-border" : "")}>
+      {!data  || data.length === 0 && <p>No data to display yet.</p>}
       {data && data.length > 0 && <ResponsiveContainer>
         <LineChart data={data}>
           <CartesianGrid stroke="rgba(255, 255, 255, 0.1)" strokeDasharray="3 3" />

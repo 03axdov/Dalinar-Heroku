@@ -63,7 +63,11 @@ def get_tf_model(model_instance, profile=None):     # Gets a Tensorflow model fr
     timestamp = time.time()
 
     # Download the model file from S3 to a local temporary file
-    temp_file_path = get_temp_model_name(model_instance.id, timestamp, extension, profile.user.id)
+    temp_file_path = ""
+    if profile:
+        temp_file_path = get_temp_model_name(model_instance.id, timestamp, extension, profile.user.id)
+    else:
+        temp_file_path = get_temp_model_name(model_instance.id, timestamp, extension)
 
     with open(temp_file_path, 'wb') as f:
         s3_client.download_fileobj(bucket_name, model_file_path, f)
@@ -746,15 +750,20 @@ def decode_image(encoded_image):    # Used for prediction, creates a BytesIO obj
     file_like_object = BytesIO(img_data)
     return file_like_object
 
-def get_tensorflow_labels(num_labels):
+def get_tensorflow_labels(num_labels, label_names=[]):
     li = []
     for i in range(num_labels):
         hue = int(360 * i / num_labels)  # Divide the full hue spectrum by 10
         color = f"hsl({hue}, 100%, 50%)"
+        name = str(i)
+        if len(label_names) == num_labels:
+            name = label_names[i]
+
         li.append({
-            "name": str(i),
+            "name": name,
             "color": color
         })
+
     return li
 
 tf_dataset_to_labels = {
@@ -770,7 +779,7 @@ tf_dataset_to_labels = {
     ],
     "mnist": get_tensorflow_labels(10),
     "fashion_mnist": get_tensorflow_labels(10),
-    "cifar10": get_tensorflow_labels(10),
+    "cifar10": get_tensorflow_labels(10, ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]),
     "cifar100": get_tensorflow_labels(100)
 }
     
@@ -795,13 +804,11 @@ def predict_model_task(self, model_id, encoded_images, text):
                     prediction_colors = []
                     
                     for image in images:
-                        #print(image)
                         image_tensor = preprocess_uploaded_image(image, target_size)
-                        
-                        print(image_tensor)
+                        print(f"image_tensor.shape: {image_tensor.shape}")
                         
                         prediction_arr = model.predict(image_tensor)
-                        print(f"prediction_arr: {prediction_arr}")
+                        
                         prediction_idx = int(np.argmax(prediction_arr))
                         if model_instance.loss_function == "binary_crossentropy":
                             prediction_idx = int(prediction_arr[0][0] >= 0.5)
@@ -834,12 +841,10 @@ def predict_model_task(self, model_id, encoded_images, text):
                     text = tf.convert_to_tensor(text, dtype=tf.string)
 
                     prediction_arr = model.predict(text)
-                    print(f"prediction_arr: {prediction_arr}")
                     
                     prediction_idx = int(np.argmax(prediction_arr))
                     if model_instance.loss_function == "binary_crossentropy":
                         prediction_idx = int(prediction_arr[0][0] >= 0.5)
-                    print(f"prediction_idx: {prediction_idx}")
                     
                     remove_temp_tf_model(model_instance, timestamp)
                     
@@ -1030,9 +1035,8 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
             try:
                 extension = str(model_instance.model_file).split(".")[-1]
                 
-                print("BEFORE")
                 model, timestamp = get_tf_model(model_instance, profile=profile)
-                print("AFTER")
+
                 if timestamp < 0: return {"Bad request": "You have an ongoing task on this model. Please wait until it finishes.", "status": 400}
                 
                 names_to_freeze = set([])
@@ -1042,12 +1046,9 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
                 
                 for layer in model.layers:
                     if layer.name in names_to_freeze:
-                        print(f"froze: {layer.name}")
                         layer.trainable = False
                     else:
                         layer.trainable = True
-                        
-                print(names_to_freeze)
                         
                 model.summary()
 
@@ -1085,7 +1086,6 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
                 return {"status": 200}
         
             except ValueError as e: # In case of invalid layer combination
-                print("Error: ", e)
                 remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 return {"Bad request": str(e), "status": 400}
             except Exception as e:
@@ -1198,7 +1198,6 @@ def reset_to_build_task(self, layer_id, user_id):
                 return {"data": LayerSerializer(layer_instance).data,"status": 200}
         
             except ValueError as e: # In case of invalid layer combination
-                print("Error: ", e)
                 remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 return {"Bad request": str(e), "status": 400}
             except Exception as e:

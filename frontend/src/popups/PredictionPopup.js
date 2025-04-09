@@ -94,7 +94,7 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
                     setPredictionColors(data["colors"])
                     notification("Successfully predicted data.", "success")  
                 },
-                () => notification("Error: " + res.data["message"], "failure"),
+                (data) => notification("Error: " + data["message"], "failure"),
                 () => {},
                 () => {
                     setPredictionProgress(100)

@@ -121,7 +121,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                             }
                         ]);
                     }
-
+                    
                 },
                 () => {
                     setTrainingProgress(100)
