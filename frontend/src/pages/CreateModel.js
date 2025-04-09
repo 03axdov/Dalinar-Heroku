@@ -13,7 +13,7 @@ function CreateModel({notification, BACKEND_URL}) {
 
     const [loading, setLoading] = useState(false)
 
-    const [modelType, setModelType] = useState("image")
+    const [modelType, setModelType] = useState(copyModel ? "" : "image")
     const [name, setName] = useState("")
     const [description, setDescription] = useState("")
     const [image, setImage] = useState(null)
@@ -27,7 +27,6 @@ function CreateModel({notification, BACKEND_URL}) {
     const [imageURL, setImageURL] = useState("")
 
     const hiddenFileRef = useRef(null)
-
 
     useEffect(() => {
         if (!copyModel) return;
@@ -50,6 +49,7 @@ function CreateModel({notification, BACKEND_URL}) {
                 setModelFileName(model.name.replaceAll(" ", "_") + "." + ext)
                 createFileFromUrl(model.model_file)
             }
+            setModelType(model.model_type)
 
         }).catch((err) => {
             navigate("/")
@@ -176,7 +176,7 @@ function CreateModel({notification, BACKEND_URL}) {
                     Once layers have been specified, the model can be trained and downloaded.
                 </p>
 
-                <div className="create-dataset-label-inp">
+                {!copyModel && <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Model type</p>
                     <input type="radio" id="create-dataset-type-image" name="imagetype" value="image" checked={modelType == "image"} onChange={(e) => {
                         setModelType(e.target.value)
@@ -186,7 +186,14 @@ function CreateModel({notification, BACKEND_URL}) {
                         setModelType(e.target.value)
                     }} />
                     <label htmlFor="create-dataset-type-text" className="create-dataset-type-label">Text</label>
-                </div>
+                </div>}
+                {copyModel && <div className="create-dataset-label-inp">
+                    <p className="create-dataset-label create-dataset-type edit-dataset-deactivated">Model type</p>
+                    <input type="radio" id="create-dataset-type-image" name="image" value="Image" className="edit-dataset-deactivated" checked={modelType == "image"} unselectable={"true"} onChange={() => {}} />
+                    <label htmlFor="create-dataset-type-image" className="edit-dataset-deactivated create-dataset-type-label">Image</label>
+                    <input type="radio" id="create-dataset-type-text" name="text" value="Text" className="edit-dataset-deactivated" checked={modelType == "text"} unselectable={"true"} onChange={() => {}} />
+                    <label htmlFor="create-dataset-type-text" className="edit-dataset-deactivated create-dataset-type-label">Text</label>
+                </div>}
 
                 <div className="create-dataset-label-inp">
                     <label className="create-dataset-label" htmlFor="dataset-name">Model name <span className="create-dataset-required">(required)</span></label>
@@ -249,21 +256,21 @@ function CreateModel({notification, BACKEND_URL}) {
                     <input id="folders-as-labels-upload-inp" type="file" accept=".h5, .keras" className="hidden" ref={hiddenFileRef} onChange={(e) => {uploadModel(e)}}/>
 
                     <div className="upload-model-container">
-                        <button type="button" className="upload-model-button" onClick={uploadInputClick}>
+                        {!copyModel && <button type="button" className="upload-model-button" onClick={uploadInputClick}>
                             <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
                             Upload model
-                        </button>
+                        </button>}
 
-                        {modelFile && <div className="uploaded-model-element">
+                        {modelFile && <div className={"uploaded-model-element " + (copyModel ? "no-margin" : "")}>
                             {(modelFileName ? modelFileName : modelFile.name)}
-                            <img className="uploaded-model-cross" title="Remove uploaded model" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                            {!copyModel && <img className="uploaded-model-cross" title="Remove uploaded model" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                                 setModelFile(null)
                                 if (hiddenFileRef.current) {
                                     hiddenFileRef.current.value = null
                                 }
-                            }}/>
+                            }}/>}
                         </div>}
-                        {loadingModelFile && <div className="uploaded-model-element">
+                        {loadingModelFile && <div className={"uploaded-model-element " + (copyModel ? "no-margin" : "")}>
                             <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} style={{width: "15px", height: "15px", marginRight: "10px"}}/>
                             Loading...
                         </div>}

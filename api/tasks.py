@@ -459,11 +459,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
     
 
 def getTensorflowPrebuiltDataset(tensorflowDataset):
-    if tensorflowDataset == "boston_housing":
-        return tf.keras.datasets.boston_housing.load_data()
-    elif tensorflowDataset == "california_housing":
-        return tf.keras.datasets.california_housing.load_data()
-    elif tensorflowDataset == "cifar10":
+    if tensorflowDataset == "cifar10":
         return tf.keras.datasets.cifar10.load_data()
     elif tensorflowDataset == "cifar100":
         return tf.keras.datasets.cifar100.load_data()

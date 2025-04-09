@@ -1,6 +1,6 @@
 TO-DO:
 - Search for image dimensions
-- Fix step for layer elements
+- Parameter titles
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

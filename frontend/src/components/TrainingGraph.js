@@ -18,14 +18,10 @@ const TrainingGraph = ({ data, is_validation, is_training=false, border=true }) 
         <LineChart data={data}>
           <CartesianGrid stroke="rgba(255, 255, 255, 0.1)" strokeDasharray="3 3" />
           
-          {!is_training && <XAxis
+          <XAxis
             dataKey="epoch"
             label={{ value: 'Epoch', position: 'insideBottomRight', offset: -5 }}
-          />}
-          {is_training && <XAxis
-            dataKey="time"
-            label={{ value: 'Time', position: 'insideBottomRight', offset: -5 }}
-          />}
+          />
           
           {/* Y-axis for Accuracy (left) */}
           <YAxis
@@ -47,7 +43,7 @@ const TrainingGraph = ({ data, is_validation, is_training=false, border=true }) 
                 color: '#fff',
                 borderRadius: '8px'
             }}
-            labelFormatter={(label) => (!is_training ? "Epoch " : "Time ") + label}
+            labelFormatter={(label) => "Epoch " + label}
           />
 
           <Legend />

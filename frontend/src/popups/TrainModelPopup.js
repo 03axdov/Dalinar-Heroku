@@ -14,7 +14,6 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
     const [isTraining, setIsTraining] = useState(false)
     const [trainingProgress, setTrainingProgress] = useState(-1)    // Negative means processing
     const [trainingData, setTrainingData] = useState([])
-    const [trainingPingCount, setTrainingPingCount] = useState(0)
 
     const [loading, setLoading] = useState(false)
 
@@ -95,7 +94,6 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         axios.post(URL, data, config)
         .then((res) => {
 
-            let pingCount = 0;
             let isComplete = false
 
             resInterval = setInterval(() => getTaskResult(
@@ -110,20 +108,20 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                     notification("Training failed: " + data["message"], "failure")
                 },
                 (data) => {
+
                     setTrainingProgress(data["training_progress"] * 100)
                     if (data["training_progress"] > 0 && !isComplete) {
                         isComplete = data["training_progress"] == 1
                         setTrainingData(prev => [
                             ...prev,
                             {
-                                time: pingCount,
+                                epoch: Math.round(data["training_progress"] * epochs),
                                 accuracy: data["training_accuracy"].toFixed(4),
                                 loss: data["training_loss"].toFixed(4)
                             }
                         ]);
-                        pingCount += 1
                     }
-                    
+
                 },
                 () => {
                     setTrainingProgress(100)
@@ -132,7 +130,6 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         setIsTraining(false)
                         setTrainingProgress(-1)
                         setTrainingData([])
-                        setTrainingPingCount(0)
 
                         if (document.visibilityState !== "visible") {
                             alert("Training finished.")
@@ -421,12 +418,13 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                                 setTensorflowDataset(e.target.value)
                             }}>
                                 
-                                {model_type.toLowerCase() == "image" && <option value="cifar10">cifar10</option>}
-                                {model_type.toLowerCase() == "image" && <option value="cifar100">cifar100</option>}
-                                {model_type.toLowerCase() == "image" && <option value="mnist">mnist</option>}
-                                {model_type.toLowerCase() == "image" && <option value="fashion_mnist">fashion_mnist</option>}
+                                {model_type.toLowerCase() == "image" && <option value="cifar10" title="50,000 images, 10 labels, 32x32x3 grayscale images">cifar10</option>}
+                                {model_type.toLowerCase() == "image" && <option value="cifar100" title="50,000 images, 100 labels, 32x32x3 grayscale images">cifar100</option>}
+                                {model_type.toLowerCase() == "image" && <option value="mnist" title="60,000 images, 10 labels, 28x28 grayscale images">mnist</option>}
+                                {model_type.toLowerCase() == "image" && <option value="fashion_mnist" title="60,000 images, 10 labels, 28x28 grayscale images">fashion_mnist</option>}
 
-                                {model_type.toLowerCase() == "text" && <option value="imdb">imdb</option>}
+                                {model_type.toLowerCase() == "text" && <option value="imdb" title="25,000 elements, 2 labels">imdb</option>}
+                                {model_type.toLowerCase() == "text" && <option value="imdb" title="11,228 elements, 46 labels">reuters</option>}
                             </select>
 
                             <button className="tensorflow-dataset-train-button" onClick={() => {

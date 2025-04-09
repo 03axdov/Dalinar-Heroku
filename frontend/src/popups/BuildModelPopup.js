@@ -3,7 +3,7 @@ import React, {useState} from "react"
 function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildModel, BACKEND_URL, isBuilt, recompileModel, processingRecompile, activateConfirmPopup, model_type, instance_optimizer, instance_loss_function}) {
 
     const [optimizer, setOptimizer] = useState(instance_optimizer || "adam")
-    const [learningRate, setLearningRate] = useState(0.01)
+    const [learningRate, setLearningRate] = useState(0.001)
     const [loss, setLoss] = useState(instance_loss_function || "categorical_crossentropy")
     const [inputSequenceLength, setInputSequenceLength] = useState(256)
 
@@ -18,7 +18,7 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
                     Note that rebuilding the model will <span style={{color: "white"}}>reset the weights</span> of all layers with 'Update on build' set to True. Recompiling will not reset these, but only recompiles the last built model (i.e. not any changes made since). 
                     <br></br>
                     <br></br>
-                    Note that recompiling will update which layers are trainable, without resetting weights.
+                    Note that recompiling will update which layers are trainable, without resetting weights. Trainable will be updated when building regardless of Update on build.
                 </p>
 
                 <form className="build-model-form" onSubmit={(e) => {

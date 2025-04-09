@@ -381,7 +381,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                     <div className="layer-element-stat" key={idx}>
                         <span className={"layer-element-stat-color layer-element-stat-" + current_layer.color}></span>
                         <label className="layer-element-label" htmlFor={param.name + layer.id}>{param.name_readable}</label>
-                        {!isPublic && <input type={param.type}step={param.step || 1} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
+                        {!isPublic && <input type={param.type} step={param.step || 1} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value
                             setParams(temp)
@@ -419,7 +419,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                     </select>}
                     {isPublic && <div className="layer-element-input layer-element-activation-input" id={"activation" + layer.id}>{params["activation_function"] || "-"}</div>}
                 </div>}
-                {current_layer.freezable && !isPublic && <div className="layer-element-stat">
+                {current_layer.freezable && !isPublic && <div className="layer-element-stat" title="Whether or not weights should be updated while training.">
                     <span className="layer-element-stat-color layer-element-stat-gray"></span>
                     <label className="layer-element-label" htmlFor={"trainable" + layer.id}>Trainable</label>
                     <input type="checkbox" className="layer-element-input layer-element-checkbox" id={"trainable" + layer.id} checked={params["trainable"]} onChange={(e) => {
@@ -428,7 +428,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         setParams(temp)
                     }} />
                 </div>}
-                {current_layer.freezable && !isPublic && <div className="layer-element-stat">
+                {current_layer.freezable && !isPublic && <div className="layer-element-stat" title={"Whether or not this layer should be updated when building the model. Trainable will be updated regardless."}>
                     <span className="layer-element-stat-color layer-element-stat-gray"></span>
                     <label className="layer-element-label" htmlFor={"update_build" + layer.id}>Update on build</label>
                     <input type="checkbox" className="layer-element-input layer-element-checkbox" id={"update_build" + layer.id} checked={params["update_build"]} onChange={(e) => {
