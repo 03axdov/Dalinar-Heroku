@@ -175,7 +175,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }
 
     let buildResInterval = null;
-    function buildModel(optimizer, loss, input_sequence_length=256) {
+    function buildModel(optimizer, learningRate, loss, input_sequence_length=256) {
         if (!layers || layers.length == 0) {
             notification("Please add layers before building the model.", "failure")
             return
@@ -189,6 +189,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         let data = {
             "id": model.id,
             "optimizer": optimizer,
+            "learning_rate": learningRate,
             "loss": loss,
         }
         if (model.model_type.toLowerCase() == "text") {
@@ -230,7 +231,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }
 
     let recompileResInterval = null;
-    function recompileModel(optimizer, loss, input_sequence_length) {
+    function recompileModel(optimizer, learningRate, loss, input_sequence_length) {
 
         if (processingRecompile) {return}
         setProcessingRecompile(true)
@@ -241,6 +242,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
         let data = {
             "id": model.id,
             "optimizer": optimizer,
+            "learning_rate": learningRate,
             "loss": loss,
         }
         if (model.model_type.toLowerCase() == "text") {

@@ -38,6 +38,7 @@ export const LAYERS = {
                 "name_readable": "Rate",
                 "default": 0.2,
                 "type": "number",
+                "step": 0.05,
                 "required": true,
                 "validator": (rate) => {
                     if (rate <= 0 || rate >= 1) {

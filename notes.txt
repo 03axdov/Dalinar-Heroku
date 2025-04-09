@@ -1,5 +1,6 @@
 TO-DO:
-- Text when filters do not find datasets / models (fixed for all but training and evaluation)
+- Search for image dimensions
+- Fix step for layer elements
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

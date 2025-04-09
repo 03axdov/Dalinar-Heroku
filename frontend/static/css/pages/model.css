@@ -425,6 +425,18 @@ div.layer-element-input {
     height: 30px;
 }
 
+.layer-element-checkbox {
+    margin-left: auto!important;
+    height: 20px!important;
+    width: 20px!important;
+}
+.layer-element-checkbox:checked {
+    background: url("https://dalinar.s3.eu-north-1.amazonaws.com/static/images/checkedGray.jpg")!important;
+    background-repeat: no-repeat!important;
+    background-size: cover!important;
+    border: none!important;
+}
+
 .layer-element-save, .layer-element-revert {
     margin-top: 20px;
     font-size: 1rem;

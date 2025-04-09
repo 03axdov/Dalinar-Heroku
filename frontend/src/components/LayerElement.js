@@ -381,7 +381,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                     <div className="layer-element-stat" key={idx}>
                         <span className={"layer-element-stat-color layer-element-stat-" + current_layer.color}></span>
                         <label className="layer-element-label" htmlFor={param.name + layer.id}>{param.name_readable}</label>
-                        {!isPublic && <input type={param.type} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
+                        {!isPublic && <input type={param.type}step={param.step || 1} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value
                             setParams(temp)
@@ -393,7 +393,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                     <div className="layer-element-stat" key={idx}>
                         <span className={"layer-element-stat-color layer-element-stat-" + current_layer.color}></span>
                         <label className="layer-element-label" htmlFor={param.name + layer.id}>{param.name_readable}</label>
-                        {!isPublic && <input type={param.type} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
+                        {!isPublic && <input type={param.type} step={param.step || 1} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value
                             setParams(temp)
@@ -422,26 +422,20 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 {current_layer.freezable && !isPublic && <div className="layer-element-stat">
                     <span className="layer-element-stat-color layer-element-stat-gray"></span>
                     <label className="layer-element-label" htmlFor={"trainable" + layer.id}>Trainable</label>
-                    <select className="layer-element-input layer-element-activation-input" id={"trainable" + layer.id} value={params["trainable"]} onChange={(e) => {
+                    <input type="checkbox" className="layer-element-input layer-element-checkbox" id={"trainable" + layer.id} checked={params["trainable"]} onChange={(e) => {
                         let temp = {...params}
-                        temp["trainable"] = e.target.value
+                        temp["trainable"] = e.target.checked
                         setParams(temp)
-                    }}>
-                        <option value={true}>True</option>
-                        <option value={false}>False</option>
-                    </select>
+                    }} />
                 </div>}
                 {current_layer.freezable && !isPublic && <div className="layer-element-stat">
                     <span className="layer-element-stat-color layer-element-stat-gray"></span>
                     <label className="layer-element-label" htmlFor={"update_build" + layer.id}>Update on build</label>
-                    <select className="layer-element-input layer-element-activation-input" id={"update_build" + layer.id} value={params["update_build"]} onChange={(e) => {
+                    <input type="checkbox" className="layer-element-input layer-element-checkbox" id={"update_build" + layer.id} checked={params["update_build"]} onChange={(e) => {
                         let temp = {...params}
-                        temp["update_build"] = e.target.value
+                        temp["update_build"] = e.target.checked
                         setParams(temp)
-                    }}>
-                        <option value={true}>True</option>
-                        <option value={false}>False</option>
-                    </select>
+                    }} />
                 </div>}
             </form>
         )

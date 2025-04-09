@@ -879,9 +879,38 @@ def get_metrics(loss_function):
     if loss_function == "binary_crossentropy":
         metrics = tf.metrics.BinaryAccuracy(threshold=0.5)
     return metrics
+
+
+def get_tf_optimizer(optimizer_str, learning_rate):
+    if optimizer_str == "adam":
+        return tf.keras.optimizers.Adam(
+            learning_rate=learning_rate
+        )
+    elif optimizer_str == "adagrad":
+        return tf.keras.optimizers.Adagrad(
+            learning_rate=learning_rate
+        )
+    elif optimizer_str == "adadelta":
+        return tf.keras.optimizers.Adadelta(
+            learning_rate=learning_rate
+        )
+    elif optimizer_str == "adamax":
+        return tf.keras.optimizers.Adamax(
+            learning_rate=learning_rate
+        )
+    elif optimizer_str == "sgd":
+        return tf.keras.optimizers.SGD(
+            learning_rate=learning_rate
+        )
+    elif optimizer_str == "rmsprop":
+        return tf.keras.optimizers.RMSprop(
+            learning_rate=learning_rate
+        )
+    else:
+        raise Exception("Could not find optimzier of type " + optimizer_str)
     
 @shared_task(bind=True)
-def build_model_task(self, model_id, optimizer, loss_function, user_id, input_sequence_length):
+def build_model_task(self, model_id, optimizer, learning_rate, loss_function, user_id, input_sequence_length):
     
     profile = Profile.objects.get(user_id=user_id)
     
@@ -918,7 +947,11 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
                 if model.count_params() > 5 * 10**6:
                     return {"Bad request": "A model cannot have more than 5 million parameters. Current parameter count: " + str(model.count_params()), "status": 400}
                 
-                model.compile(optimizer=optimizer, loss=loss_function, metrics=[metrics])
+                tf_optimizer = get_tf_optimizer(optimizer, learning_rate)
+                model.compile(optimizer=tf_optimizer, 
+                    loss=loss_function, 
+                    metrics=[metrics]
+                )
                 
                 # Do this here so it's not set to false if build fails
                 for layer in instance.layers.all():
@@ -988,7 +1021,7 @@ def build_model_task(self, model_id, optimizer, loss_function, user_id, input_se
     
     
 @shared_task(bind=True)
-def recompile_model_task(self, model_id, optimizer, loss_function, user_id, input_sequence_length):
+def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function, user_id, input_sequence_length):
     
     try:
         profile = Profile.objects.get(user_id=user_id)
@@ -1001,7 +1034,9 @@ def recompile_model_task(self, model_id, optimizer, loss_function, user_id, inpu
             try:
                 extension = str(model_instance.model_file).split(".")[-1]
                 
+                print("BEFORE")
                 model, timestamp = get_tf_model(model_instance, profile=profile)
+                print("AFTER")
                 if timestamp < 0: return {"Bad request": "You have an ongoing task on this model. Please wait until it finishes.", "status": 400}
                 
                 names_to_freeze = set([])
@@ -1021,7 +1056,11 @@ def recompile_model_task(self, model_id, optimizer, loss_function, user_id, inpu
                 model.summary()
 
                 metrics = get_metrics(loss_function)
-                model.compile(optimizer=optimizer, loss=loss_function, metrics=[metrics])
+                tf_optimizer = get_tf_optimizer(optimizer, learning_rate)
+                model.compile(optimizer=tf_optimizer, 
+                    loss=loss_function, 
+                    metrics=[metrics]
+                )
                 
                 # UPDATING MODEL_FILE
                 # Create a temporary file
@@ -1037,7 +1076,7 @@ def recompile_model_task(self, model_id, optimizer, loss_function, user_id, inpu
                     model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
 
                 # Delete the temporary file after saving
-                remove_temp_tf_model(model_instance, timestamp,user_id=user_id)
+                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 
                 model_instance.optimizer = optimizer
                 model_instance.loss_function = loss_function

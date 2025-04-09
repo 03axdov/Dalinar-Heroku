@@ -271,7 +271,7 @@ input[type=checkbox] {
 }
 
 input[type="checkbox"]:checked {
-    background: url("../images/checked.jpg");
+    background: url("https://dalinar.s3.eu-north-1.amazonaws.com/static/images/checked.jpg");
     background-repeat: no-repeat;
     background-size: cover;
     border: none;

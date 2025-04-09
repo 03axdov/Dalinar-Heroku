@@ -3,6 +3,7 @@ import React, {useState} from "react"
 function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildModel, BACKEND_URL, isBuilt, recompileModel, processingRecompile, activateConfirmPopup, model_type, instance_optimizer, instance_loss_function}) {
 
     const [optimizer, setOptimizer] = useState(instance_optimizer || "adam")
+    const [learningRate, setLearningRate] = useState(0.01)
     const [loss, setLoss] = useState(instance_loss_function || "categorical_crossentropy")
     const [inputSequenceLength, setInputSequenceLength] = useState(256)
 
@@ -23,9 +24,9 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
                 <form className="build-model-form" onSubmit={(e) => {
                     e.preventDefault()
                     if (isBuilt) {
-                        activateConfirmPopup("Are you sure you want to rebuild the model? This will reset all parameters for layers with 'Update on build' set to True.", () => buildModel(optimizer, loss, inputSequenceLength), "blue")
+                        activateConfirmPopup("Are you sure you want to rebuild the model? This will reset all parameters for layers with 'Update on build' set to True.", () => buildModel(optimizer, learningRate, loss, inputSequenceLength), "blue")
                     } else {
-                        buildModel(optimizer, loss, inputSequenceLength)
+                        buildModel(optimizer, learningRate, loss, inputSequenceLength)
                     }
                     
                 }}>
@@ -42,6 +43,13 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
                             <option value="rmsprop">rmsprop</option>
 
                         </select>
+                    </div>
+
+                    <div className="create-dataset-label-inp">
+                        <label className="create-dataset-label" htmlFor="learning_rate">Learning rate</label>
+                        <input type="number" className="create-dataset-inp" step="0.005" style={{width: "100px"}} required value={learningRate} onChange={(e) => {
+                            setLearningRate(Math.max(0, Math.min(1, e.target.value)))
+                        }} />
                     </div>
 
                     <div className="create-dataset-label-inp">
@@ -66,7 +74,7 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
                     <div className="create-layer-popup-buttons">
                         <button type="button" style={{marginRight: "auto"}} className="create-layer-popup-cancel" onClick={() => setShowBuildModelPopup(false)}>Cancel</button>
                         {isBuilt && <button type="button" className="create-layer-popup-submit build-model-recompile" onClick={() => {
-                            recompileModel(optimizer, loss, inputSequenceLength)
+                            recompileModel(optimizer, learningRate, loss, inputSequenceLength)
                         }}>
                             {processingRecompile && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
                             {(!processingRecompile ? "Recompile" : "Compiling...")}

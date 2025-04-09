@@ -1209,6 +1209,7 @@ class BuildModel(APIView):
     def post(self, request, format=None):
         model_id = request.data["id"]
         optimizer = request.data["optimizer"]
+        learning_rate = request.data["learning_rate"]
         loss_function = request.data["loss"]
         input_sequence_length = None
         if "input_sequence_length" in request.data.keys():
@@ -1217,7 +1218,7 @@ class BuildModel(APIView):
         user = self.request.user
         
         if user.is_authenticated:
-            task = build_model_task.delay(model_id, optimizer, loss_function, user.id, input_sequence_length)
+            task = build_model_task.delay(model_id, optimizer, learning_rate, loss_function, user.id, input_sequence_length)
 
             # Optionally, you could return a task ID to the client if you plan to track progress
             return Response({
@@ -1234,6 +1235,7 @@ class RecompileModel(APIView):
     def post(self, request, format=None):
         model_id = request.data["id"]
         optimizer = request.data["optimizer"]
+        learning_rate = request.data["learning_rate"]
         loss_function = request.data["loss"]
         input_sequence_length = None
         if "input_sequence_length" in request.data.keys():
@@ -1242,7 +1244,7 @@ class RecompileModel(APIView):
         user = self.request.user
         
         if user.is_authenticated:
-            task = recompile_model_task.delay(model_id, optimizer, loss_function, user.id, input_sequence_length)
+            task = recompile_model_task.delay(model_id, optimizer, learning_rate, loss_function, user.id, input_sequence_length)
 
             # Optionally, you could return a task ID to the client if you plan to track progress
             return Response({
