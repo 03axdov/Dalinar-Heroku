@@ -374,6 +374,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     progress_callback = TrainingProgressCallback(profile=profile, total_epochs=epochs)
 
                     if validation_size >= 1: # Some dataset are too small for validation
+                        dataset = dataset.shuffle(1000)
                         train_dataset = dataset.take(train_size)
                         validation_dataset = dataset.skip(train_size)
                     
@@ -396,7 +397,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                         if model_instance.model_type.lower() == "text": # Must be initialized
                             model = get_vectorize_layer(model_instance, model, dataset)
                             
-                        dataset = dataset.batch(32).prefetch(tf.data.experimental.AUTOTUNE)
+                        dataset = dataset.shuffle(1000).batch(32).prefetch(tf.data.experimental.AUTOTUNE)
                         
                         history = model.fit(dataset, 
                                             epochs=epochs,
@@ -558,6 +559,7 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     set_training_progress(profile, 0)
 
                     if validation_size >= 1: # Some dataset are too small for validation
+                        dataset = dataset.shuffle(1000)
                         train_dataset = dataset.take(train_size).batch(32).prefetch(tf.data.experimental.AUTOTUNE)
                         validation_dataset = dataset.skip(train_size).batch(32).prefetch(tf.data.experimental.AUTOTUNE)
                     
@@ -566,7 +568,7 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                                             validation_data=validation_dataset,
                                             callbacks=[progress_callback])
                     else:
-                        dataset = dataset.batch(32).prefetch(tf.data.experimental.AUTOTUNE)
+                        dataset = dataset.shuffle(1000).batch(32).prefetch(tf.data.experimental.AUTOTUNE)
                         history = model.fit(dataset, 
                                             epochs=epochs,
                                             callbacks=[progress_callback])
@@ -665,7 +667,13 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
                 
                 model.summary()
                 
-                res = model.evaluate(dataset, return_dict=True)
+                try:
+                    set_evaluation_progress(profile, 0)
+                
+                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
+                    res = model.evaluate(dataset, return_dict=True)
+                except Exception as e:
+                    return {"Bad request": "Could not evaluate on given dataset.", "status": 400} 
                 
                 # Delete the temporary file after saving
                 remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
@@ -714,7 +722,7 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
         return {"Bad request": str(e), "status": 400}
     
     
-def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Convert uploaded files to tensors for TensorFlow processing
+def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3), normalize=True):   # Convert uploaded files to tensors for TensorFlow processing
     image = Image.open(uploaded_file)
     
     # Convert to RGB (to handle grayscale images)
@@ -732,7 +740,8 @@ def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Conve
     image_array = np.array(image)
     
     # Normalize pixel values to [0,1]
-    image_array = image_array / 255.0
+    if normalize:
+        image_array = image_array / 255.0
     
     # Expand dimensions to match TensorFlow model input
     image_array = np.expand_dims(image_array, axis=0)  # Shape: (1, height, width, channels)
@@ -804,8 +813,10 @@ def predict_model_task(self, model_id, encoded_images, text):
                     prediction_colors = []
                     
                     for image in images:
-                        image_tensor = preprocess_uploaded_image(image, target_size)
-                        print(f"image_tensor.shape: {image_tensor.shape}")
+                        normalize = True
+                        if model_instance.trained_on_tensorflow:
+                            normalize = False   # None of these should be normalized
+                        image_tensor = preprocess_uploaded_image(image, target_size, normalize)
                         
                         prediction_arr = model.predict(image_tensor)
                         

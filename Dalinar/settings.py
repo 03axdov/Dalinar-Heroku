@@ -15,7 +15,7 @@ with open('./SECRET_KEY.txt') as f:
 DEBUG = True
 PRODUCTION = False
 
-ALLOWED_HOSTS = ["dalinar-041d6630f0a7.herokuapp.com", "127.0.0.1"]
+ALLOWED_HOSTS = ["dalinar-041d6630f0a7.herokuapp.com", "127.0.0.1", "www.dalinar.net", "dalinar.net"]
 
 
 # Application definition

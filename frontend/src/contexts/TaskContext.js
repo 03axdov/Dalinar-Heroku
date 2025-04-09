@@ -30,7 +30,7 @@ export const TaskProvider = ({ children }) => {
             }
         })
         .catch(error => {
-            notification("An error occured: " + error, "failure")
+            alert("An error occured while fetching task result: " + error)
             console.log(error)
         })
         .finally(() => {

@@ -108,18 +108,23 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                     notification("Training failed: " + data["message"], "failure")
                 },
                 (data) => {
-
                     setTrainingProgress(data["training_progress"] * 100)
                     if (data["training_progress"] > 0 && !isComplete) {
                         isComplete = data["training_progress"] == 1
-                        setTrainingData(prev => [
-                            ...prev,
-                            {
-                                epoch: Math.round(data["training_progress"] * epochs),
-                                accuracy: data["training_accuracy"].toFixed(4),
-                                loss: data["training_loss"].toFixed(4)
+                        setTrainingData(prev => {
+                            if (prev.length > 0 && prev[prev.length - 1].epoch == Math.round(data["training_progress"] * epochs)) {
+                                return prev
+                            } else {
+                                return [
+                                    ...prev,
+                                    {
+                                        epoch: Math.round(data["training_progress"] * epochs),
+                                        accuracy: data["training_accuracy"].toFixed(4),
+                                        loss: data["training_loss"].toFixed(4)
+                                    }
+                                ]
                             }
-                        ]);
+                            });
                     }
                     
                 },
