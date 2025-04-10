@@ -15,6 +15,10 @@ function ProgressBar({progress, message, BACKEND_URL, training_data=null}) {
             </div>
 
             {training_data && <TrainingGraph data={training_data} is_training={true} border={false}/>}
+
+            {training_data && <p className="est-time">Estimated time remaining: <span style={{color: "white"}}>
+                {training_data.length > 0 ? training_data[training_data.length - 1].training_time_remaining : "calculating..."}
+            </span></p>}
         </div>
     </div>)
 }

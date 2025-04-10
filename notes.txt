@@ -1,6 +1,7 @@
 TO-DO:
 - Filter by image and text for models as well
 - Parameter titles if needed
+- Padding for conv2d layers
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

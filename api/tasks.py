@@ -31,11 +31,13 @@ def get_s3_client():
     return s3_client
 
 
+# Negative progress resets variables
 def set_training_progress(profile, progress):
     profile.training_progress = progress
     if progress == -1:
         profile.training_accuracy = -1
         profile.training_loss = -1
+        profile.training_time_remaining = ""
     profile.save()
 
 
@@ -318,12 +320,29 @@ class TrainingProgressCallback(tf.keras.callbacks.Callback):
         super().__init__()
         self.profile = profile
         self.total_epochs = total_epochs
+        self.epoch_start_time = None
+        self.total_elapsed_time = 0
+
+    def on_epoch_begin(self, epoch, logs=None):
+        self.epoch_start_time = time.time()
 
     def on_epoch_end(self, epoch, logs=None):
+        epoch_duration = time.time() - self.epoch_start_time
+        self.total_elapsed_time += epoch_duration
+        
         if logs:
             self.profile.training_accuracy = logs["accuracy"]  # set_training_progress saves
-            self.profile.training_loss = logs["loss"]
-        set_training_progress(self.profile, round((epoch + 1) / self.total_epochs, 4))
+            self.profile.training_loss = logs["loss"] 
+        
+        avg_time_per_epoch = self.total_elapsed_time / (epoch + 1)
+        remaining_epochs = self.total_epochs - (epoch + 1)
+        estimated_remaining_time = avg_time_per_epoch * remaining_epochs
+
+        formatted_time = time.strftime("%H:%M:%S", time.gmtime(estimated_remaining_time))
+        self.profile.training_time_remaining = formatted_time
+        
+        progress = (epoch + 1) / self.total_epochs
+        set_training_progress(self.profile, round(progress, 4)) # Saves profile
 
 
 def get_accuracy_loss(history, model_instance, validation_size):
@@ -786,10 +805,46 @@ tf_dataset_to_labels = {
             "color": "red"
         }
     ],
+    "reuters": get_tensorflow_labels(46, [
+        'cocoa', 'grain', 'veg-oil', 'earn', 'acq', 'wheat', 'copper', 'housing',
+        'money-supply', 'coffee', 'sugar', 'trade', 'reserves', 'ship', 'cotton', 'carcass',
+        'crude', 'nat-gas', 'cpi', 'money-fx', 'interest', 'gnp', 'meal-feed', 'alum',
+        'oilseed', 'gold', 'tin', 'strategic-metal', 'livestock', 'retail', 'ipi', 'iron-steel',
+        'rubber', 'heat', 'jobs', 'lei', 'bop', 'zinc', 'orange', 'pet-chem',
+        'dlr', 'gas', 'income', 'instal-debt', 'lead', 'lumber'
+    ]),
     "mnist": get_tensorflow_labels(10),
-    "fashion_mnist": get_tensorflow_labels(10),
+    "fashion_mnist": get_tensorflow_labels(10, [
+        'T-shirt/top',
+        'Trouser',    
+        'Pullover',   
+        'Dress',      
+        'Coat',       
+        'Sandal',     
+        'Shirt',      
+        'Sneaker',    
+        'Bag',        
+        'Ankle boot'  
+    ]),
     "cifar10": get_tensorflow_labels(10, ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]),
-    "cifar100": get_tensorflow_labels(100)
+    "cifar100": get_tensorflow_labels(100, [
+        'apple', 'aquarium_fish', 'baby', 'bear', 'beaver', 'bed', 'bee', 'beetle',
+        'bicycle', 'bottle', 'bowl', 'boy', 'bridge', 'bus', 'butterfly', 'camel',
+        'can', 'castle', 'caterpillar', 'cattle', 'chair', 'chimpanzee', 'clock',
+        'cloud', 'cockroach', 'couch', 'crab', 'crocodile', 'cup', 'dinosaur',
+        'dolphin', 'elephant', 'flatfish', 'forest', 'fox', 'girl', 'hamster',
+        'house', 'kangaroo', 'keyboard', 'lamp', 'lawn_mower', 'leopard', 'lion',
+        'lizard', 'lobster', 'man', 'maple_tree', 'motorcycle', 'mountain',
+        'mouse', 'mushroom', 'oak_tree', 'orange', 'orchid', 'otter', 'palm_tree',
+        'pear', 'pickup_truck', 'pine_tree', 'plain', 'plate', 'poppy', 'porcupine',
+        'possum', 'rabbit', 'raccoon', 'ray', 'road', 'rocket', 'rose',
+        'sea', 'seal', 'shark', 'shrew', 'skunk', 'skyscraper', 'snail', 'snake',
+        'spider', 'squirrel', 'streetcar', 'sunflower', 'sweet_pepper', 'table',
+        'tank', 'telephone', 'television', 'tiger', 'tractor', 'train', 'trout',
+        'tulip', 'turtle', 'wardrobe', 'whale', 'willow_tree', 'wolf', 'woman',
+        'worm'
+    ]
+)
 }
     
 @shared_task(bind=True)

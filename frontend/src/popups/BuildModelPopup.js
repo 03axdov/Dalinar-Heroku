@@ -47,7 +47,7 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
 
                     <div className="create-dataset-label-inp">
                         <label className="create-dataset-label" htmlFor="learning_rate">Learning rate</label>
-                        <input type="number" className="create-dataset-inp" step="0.005" style={{width: "100px"}} required value={learningRate} onChange={(e) => {
+                        <input type="number" className="create-dataset-inp" step="0.005" style={{width: "100px"}} id="learning_rate" required value={learningRate} onChange={(e) => {
                             setLearningRate(Math.max(0, Math.min(1, e.target.value)))
                         }} />
                     </div>

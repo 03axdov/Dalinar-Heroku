@@ -123,7 +123,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                                     {
                                         epoch: Math.round(data["training_progress"] * epochs),
                                         accuracy: data["training_accuracy"].toFixed(4),
-                                        loss: data["training_loss"].toFixed(4)
+                                        loss: data["training_loss"].toFixed(4),
+                                        training_time_remaining: data["training_time_remaining"]
                                     }
                                 ]
                             }
@@ -144,7 +145,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         }
                     }, 200)
                 }
-            ), 2000)
+            ), 3000)    // ping every 3 seconds
 
         }).catch((error) => {
             console.log(error)

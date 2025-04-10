@@ -103,6 +103,9 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     useEffect(() => {
         setUpdateWarnings(!updateWarnings)
+    }, [layers])
+
+    useEffect(() => {
         if (layers.length > 0 && warnings.size == 0) {
             if (model.model_type.toLowerCase() == "image") {
                 setNumParams(computeParams(layers))

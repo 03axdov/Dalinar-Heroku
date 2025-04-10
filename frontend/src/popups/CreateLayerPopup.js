@@ -163,7 +163,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     let layer = LAYERS[type]
                     for (let i=0; i < layer.params.length; i++) {
                         let param = layer.params[i]
-                        if (param.required && !params[param.name]) {
+                        if (param.required && !params[param.name] && params[param.name] !== 0) {
                             notification("Please enter " + param.name, "failure")
                             return
                         }
@@ -211,9 +211,6 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                             {modelType.toLowerCase() == "image" && <optgroup label="Computer Vision">
                                 <option value="conv2d">Conv2D</option>
                                 <option value="maxpool2d">MaxPool2D</option>
-                            </optgroup>}
-                            {modelType.toLowerCase() == "text" && <optgroup label="Text Preprocessing">
-                                <option value="textvectorization">TextVectorization</option>
                             </optgroup>}
                             {modelType.toLowerCase() == "text" && <optgroup label="Text">
                                 <option value="embedding">Embedding</option>

@@ -523,3 +523,12 @@ input {
     flex-direction: row;
     align-items: center;
 }
+
+.est-time {
+    margin: 0;
+    margin-top: 0;
+    width: 100%;
+    text-align: end;
+    margin-bottom: 15px;
+    color: var(--gray-text);
+}
