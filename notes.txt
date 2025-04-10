@@ -1,7 +1,6 @@
 TO-DO:
 - Search for image dimensions
 - Parameter titles if needed
-- Look into predictions
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

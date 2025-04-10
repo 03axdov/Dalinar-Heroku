@@ -67,7 +67,7 @@
     -webkit-text-size-adjust: 100%; /* 2 */
 }
 
-.explore-datasets-search {
+.explore-datasets-search, .image-dimensions-filter {
     height: 36px;
     font-size: 1.2rem;
     box-sizing: border-box;
@@ -77,6 +77,19 @@
     border: 1px solid var(--border);
     border-radius: 3px;
     width: 300px;
+}
+
+.image-dimensions-filter-container {
+    margin-left: 20px;
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    align-items: center;
+}
+
+.image-dimensions-filter {
+    width: 100px;
+    padding-left: 10px;
 }
 
 .explore-datasets-search-icon {

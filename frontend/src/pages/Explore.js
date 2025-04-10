@@ -27,6 +27,10 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
     const [datasetShow, setDatasetShow] = useState("all")
     const [modelShow, setModelShow] = useState("all")
 
+    const [imageWidth, setImageWidth] = useState("")
+    const [imageHeight, setImageHeight] = useState("")
+    const [imageDimensions, setImageDimensions] = useState(["", ""])    // The one that is used
+
     useEffect(() => {
         getDatasets()
         getModels()
@@ -174,8 +178,8 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
       }, [search]);
 
     const firstModelSearch = useRef(true)
-        // Search input timing
-        useEffect(() => {
+    // Search input timing
+    useEffect(() => {
             if (firstModelSearch.current) {
                 firstModelSearch.current = false; // Set to false after first render
                 return;
@@ -191,8 +195,30 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
             };
     }, [searchModels]);
 
-    function datasetShouldShow(dataset_type) {
-        if (datasetShow == "all" || datasetShow == dataset_type.toLowerCase()) {
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            let prevDims = [...imageDimensions]
+            prevDims[0] = imageWidth
+            prevDims[1] = imageHeight
+            setImageDimensions(prevDims)
+        }, 350);
+    
+        // Cleanup the timeout if inputValue changes before delay
+        return () => {
+            clearTimeout(handler);
+        };
+    }, [imageWidth, imageHeight])
+
+    function datasetShouldShow(dataset) {
+        if (datasetShow == "all" || datasetShow == dataset.dataset_type.toLowerCase()) {
+            if (datasetShow == "image") {
+                if (imageDimensions[0] && imageDimensions[0] != dataset.imageWidth) {
+                    return false
+                }
+                if (imageDimensions[1] && imageDimensions[1] != dataset.imageHeight) {
+                    return false
+                }
+            }
             return true;
         }
         return false
@@ -204,7 +230,7 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
         if (modelShow == "not-built") return model.model_file == null
     }
 
-    const visibleDatasets = datasets.filter((dataset) => datasetShouldShow(dataset.dataset_type));
+    const visibleDatasets = datasets.filter((dataset) => datasetShouldShow(dataset));
     const visibleModels = models.filter((model) => modelShouldShow(model));
 
     return <div className="explore-container">
@@ -258,6 +284,15 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
                             <option value="alphabetical">Alphabetical</option>
                             <option value="date">Created</option>
                         </select>
+
+                        {datasetShow == "image" && <div className="image-dimensions-filter-container">
+                            <input type="number" title="Image width" placeholder="Width" className="image-dimensions-filter" value={imageWidth} onChange={(e) => {
+                                setImageWidth(e.target.value)
+                            }}/>
+                            <input type="number" title="Image height" placeholder="Height" className="image-dimensions-filter" value={imageHeight} onChange={(e) => {
+                                setImageHeight(e.target.value)
+                            }}/>
+                        </div>}
                         
                         <div className="explore-datasets-search-container">
                             <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
