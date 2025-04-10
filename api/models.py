@@ -358,6 +358,12 @@ class Conv2DLayer(Layer):
     filters = models.PositiveIntegerField(default=1)
     kernel_size = models.PositiveIntegerField(default=3)
     
+    PADDING_CHOICES = [
+        ("valid", "valid"),
+        ("same", "same"),
+    ]
+    padding = models.CharField(max_length=20, choices=PADDING_CHOICES, default="valid")
+    
     def __str__(self):
         res = f"Conv2D ({self.filters}, {self.kernel_size})"
         if self.model: res += " - " + self.model.name

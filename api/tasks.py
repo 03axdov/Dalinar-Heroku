@@ -99,9 +99,9 @@ def get_tf_layer(layer):    # From a Layer instance
             return layers.Dense(layer.nodes_count, activation=activation, name=name)
     elif layer_type == "conv2d":
         if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
-            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation, input_shape=(layer.input_x, layer.input_y, layer.input_z), name=name)
+            return layers.Conv2D(layer.filters, layer.kernel_size, padding=layer.padding, activation=activation, input_shape=(layer.input_x, layer.input_y, layer.input_z), name=name)
         else:
-            return layers.Conv2D(layer.filters, layer.kernel_size, activation=activation, name=name)
+            return layers.Conv2D(layer.filters, layer.kernel_size, padding=layer.padding, activation=activation, name=name)
     elif layer_type == "maxpool2d":
         return layers.MaxPool2D(pool_size=layer.pool_size, name=name)
     elif layer_type == "flatten":
@@ -1020,6 +1020,16 @@ def build_model_task(self, model_id, optimizer, learning_rate, loss_function, us
                     metrics=[metrics]
                 )
                 
+                for layer in model.layers:
+                    print(f"{layer.name} ({layer.__class__.__name__})")
+                    if isinstance(layer, tf.keras.layers.Conv2D):
+                        print(f"  Padding: {layer.padding}")
+                        print(f"  Filters: {layer.filters}")
+                        print(f"  Kernel size: {layer.kernel_size}")
+                        print(f"  Strides: {layer.strides}")
+                    print(f"  Output shape: {layer.output_shape}")
+                    print("-" * 40)
+                
                 # Do this here so it's not set to false if build fails
                 for layer in instance.layers.all():
                     layer.updated = False
@@ -1182,6 +1192,7 @@ def set_to_tf_layer(layer_instance, tf_layer):
     elif isinstance(tf_layer, layers.Conv2D):
         layer_instance.filters = config["filters"]
         layer_instance.kernel_size = config["kernel_size"][0]
+        layer_instance.padding = config["padding"]
         if input_shape:
             layer_instance.input_x = input_shape[1]    # First one is None
             layer_instance.input_y = input_shape[2]
@@ -1299,6 +1310,7 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
         data["type"] = "conv2d"
         data["filters"] = config["filters"]
         data["kernel_size"] = config["kernel_size"][0]
+        data["padding"] = config["padding"]
         if input_shape:
             data["input_x"] = input_shape[1]    # First one is None
             data["input_y"] = input_shape[2]

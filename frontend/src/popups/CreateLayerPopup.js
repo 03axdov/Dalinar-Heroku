@@ -71,7 +71,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     </div>)
                 } else {
                     return (<div className="create-layer-label-inp" key={idx}>
-                        <label className="create-dataset-label" htmlFor={param.name}>{param.name}</label>
+                        <label className="create-dataset-label" htmlFor={param.name}>{param.name_readable}</label>
                         <select className="create-dataset-inp" id={param.name} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value

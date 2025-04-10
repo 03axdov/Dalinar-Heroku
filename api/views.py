@@ -1510,6 +1510,7 @@ class EditLayer(APIView):
                     elif layer_type == "conv2d":
                         layer.filters = request.data["filters"]
                         layer.kernel_size = request.data["kernel_size"]
+                        layer.padding = request.data["padding"]
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]
                         layer.input_z = request.data["input_z"]

@@ -189,6 +189,20 @@ export const LAYERS = {
                     }
                     return ""
                 }
+            },
+            {
+                "name": "padding",
+                "name_readable": "Padding",
+                "default": "valid",
+                "choices": [
+                    {
+                        "value": "valid",
+                    },
+                    {
+                        "value": "same",
+                    },
+                ],
+                "required": true
             }
         ],
         "image": "image.png",
@@ -382,17 +396,23 @@ export function computeParams(layers, sequence_length = 256) {
         const filters = layer.filters;
         const kernel_size = layer.kernel_size;
         const stride = 1;
-        const padding = 0;
+        const paddingType = layer.padding || 'valid';
   
         // Initialize spatial dims if not set
-        if (current_x === null || current_y === null || current_z === null) {
+        if (!current_x || !current_y || !current_z) {
           current_x = layer.input_x;
           current_y = layer.input_y;
           current_z = layer.input_z;
         }
   
-        const out_x = Math.floor((current_x - kernel_size + 2 * padding) / stride) + 1;
-        const out_y = Math.floor((current_y - kernel_size + 2 * padding) / stride) + 1;
+        let out_x, out_y;
+        if (paddingType === 'same') {
+            out_x = Math.ceil(current_x / stride);
+            out_y = Math.ceil(current_y / stride);
+        } else { // 'valid'
+            out_x = Math.floor((current_x - kernel_size + 1) / stride);
+            out_y = Math.floor((current_y - kernel_size + 1) / stride);
+        }
         const out_z = filters;
   
         const params = (kernel_size * kernel_size * current_z + 1) * filters;
@@ -405,6 +425,8 @@ export function computeParams(layers, sequence_length = 256) {
         // Clear sequence tracking if switching from sequence to image
         current_steps = null;
         current_feats = null;
+
+        console.log(`Conv2D: input=(${current_x},${current_y},${current_z}), kernel=${kernel_size}, padding=${paddingType} → output=(${out_x},${out_y},${filters})`);
       }
   
       else if (type === 'maxpool2d') {
@@ -463,6 +485,37 @@ export function computeParams(layers, sequence_length = 256) {
         // Clear image shape
         current_x = current_y = current_z = null;
         inUnits = null;
+      }
+
+      else if (
+        type === 'rescaling' ||
+        type === 'resizing' ||
+        type === 'randomflip'
+      ) {
+        // These layers have no parameters, but may define input shape
+        if (
+          (current_x === null || current_x === 0) &&
+          (layer.input_x !== undefined && layer.input_x !== 0)
+        ) {
+          current_x = layer.input_x;
+        }
+      
+        if (
+          (current_y === null || current_y === 0) &&
+          (layer.input_y !== undefined && layer.input_y !== 0)
+        ) {
+          current_y = layer.input_y;
+        }
+      
+        if (
+          (current_z === null || current_z === 0) &&
+          (layer.input_z !== undefined && layer.input_z !== 0)
+        ) {
+          current_z = layer.input_z;
+        }
+      
+        // Skip parameter count, these layers don't have any
+        return;
       }
     });
   

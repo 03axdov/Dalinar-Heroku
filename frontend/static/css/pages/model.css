@@ -486,6 +486,13 @@ div.layer-element-input {
     font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
 }
 
+.layer-element-dropdown-input {
+    width: auto;
+    max-width: 100%;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+    min-width: 75px;
+}
+
 .layer-element-mode-input {
     width: 170px;
     font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
