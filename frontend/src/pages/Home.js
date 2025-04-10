@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react"
 import DatasetElement from "../components/DatasetElement"
 import ModelElement from "../components/ModelElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
+import ElementFilters from "../components/minor/ElementFilters"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import axios from 'axios'
 
@@ -37,12 +38,12 @@ function Home({currentProfile, notification, BACKEND_URL}) {
     const [datasetShow, setDatasetShow] = useState("all")
     const [modelShow, setModelShow] = useState("all")
 
+    const [imageDimensions, setImageDimensions] = useState(["", ""])
+
     useEffect(() => {
         getDatasets()
         getModels()
     }, [])
-
-
 
     useEffect(() => {
         if (currentProfile && (currentProfile.saved_datasets || currentProfile.saved_models)) {
@@ -341,8 +342,16 @@ function Home({currentProfile, notification, BACKEND_URL}) {
         };
     }, [searchSavedModels]);
 
-    function datasetShouldShow(dataset_type) {
-        if (datasetShow == "all" || datasetShow == dataset_type.toLowerCase()) {
+    function datasetShouldShow(dataset) {
+        if (datasetShow == "all" || datasetShow == dataset.dataset_type.toLowerCase()) {
+            if (datasetShow == "image") {
+                if (imageDimensions[0] && imageDimensions[0] != dataset.imageWidth) {
+                    return false
+                }
+                if (imageDimensions[1] && imageDimensions[1] != dataset.imageHeight) {
+                    return false
+                }
+            }
             return true;
         }
         return false
@@ -354,9 +363,9 @@ function Home({currentProfile, notification, BACKEND_URL}) {
         if (modelShow == "not-built") return model.model_file == null
     }
 
-    const visibleDatasets = datasets.filter((dataset) => datasetShouldShow(dataset.dataset_type));
+    const visibleDatasets = datasets.filter((dataset) => datasetShouldShow(dataset));
     const visibleModels = models.filter((model) => modelShouldShow(model));
-    const visibleSavedDatasets = savedDatasets.filter((dataset) => datasetShouldShow(dataset.dataset_type));
+    const visibleSavedDatasets = savedDatasets.filter((dataset) => datasetShouldShow(dataset));
     const visibleSavedModels = savedModels.filter((model) => modelShouldShow(model));
 
     return <div className="home-container">
@@ -398,33 +407,18 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 <div className="explore-datasets-title-container">
                     <h2 className="my-datasets-title">My Datasets</h2>
 
-                    <div className="title-forms">
-                        <select title="Show which types" className="explore-datasets-sort" value={datasetShow} onChange={(e) => {
-                                setDatasetShow(e.target.value)
-                            }}>
-                            <option value="all">All</option>
-                            <option value="image">Image</option>
-                            <option value="text">Text</option>
-                        </select>
-
-                        <select title="Sort by" className="explore-datasets-sort" value={sortDatasets} onChange={(e) => {
-                                setSortDatasets(e.target.value)
-                            }}>
-                            <option value="downloads">Downloads</option>
-                            <option value="elements">Elements</option>
-                            <option value="labels">Labels</option>
-                            <option value="alphabetical">Alphabetical</option>
-                            <option value="date">Created</option>
-                        </select>
-                        
-                        <div className="explore-datasets-search-container">
-                            <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
-                                    setLoading(true)
-                                    setSearch(e.target.value)
-                            }} /> 
-                            <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
-                        </div>
-                    </div>
+                    <ElementFilters 
+                        show={datasetShow}
+                        setShow={setDatasetShow}
+                        sort={sortDatasets}
+                        setSort={setSortDatasets}
+                        imageDimensions={imageDimensions}
+                        setImageDimensions={setImageDimensions}
+                        search={search}
+                        setSearch={setSearch}
+                        setLoading={setLoading}
+                        BACKEND_URL={BACKEND_URL}
+                    ></ElementFilters>
                 </div>
                 
                 <div className="my-datasets-container">
@@ -455,32 +449,17 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 <div className="explore-datasets-title-container">
                     <h2 className="my-datasets-title">My Models</h2>
 
-                    <div className="title-forms">
-
-                        <select title="Sort by" className="explore-datasets-sort" value={modelShow} onChange={(e) => {
-                                setModelShow(e.target.value)
-                            }}>
-                            <option value="all">All</option>
-                            <option value="built">Built</option>
-                            <option value="not-built">Not built</option>
-                        </select>
-
-                        <select title="Sort by" className="explore-datasets-sort" value={sortModels} onChange={(e) => {
-                                setSortModels(e.target.value)
-                            }}>
-                            <option value="downloads">Downloads</option>
-                            <option value="alphabetical">Alphabetical</option>
-                            <option value="layers">Layers</option>
-                        </select>
-                        
-                        <div className="explore-datasets-search-container">
-                            <input title="Will search names." type="text" className="explore-datasets-search" value={searchModels} placeholder="Search models" onChange={(e) => {
-                                    setLoadingModels(true)
-                                    setSearchModels(e.target.value)
-                            }} /> 
-                            <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
-                        </div>
-                    </div>
+                    <ElementFilters 
+                        show={modelShow}
+                        setShow={setModelShow}
+                        isModel={true}
+                        sort={sortModels}
+                        setSort={setSortModels}
+                        search={searchModels}
+                        setSearch={setSearchModels}
+                        setLoading={setLoadingModels}
+                        BACKEND_URL={BACKEND_URL}
+                    ></ElementFilters>
                 </div>
                 
                 <div className="my-datasets-container">
@@ -512,70 +491,39 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 <div className="explore-datasets-title-container">
                     <h2 className="my-datasets-title">Saved {savedTypeShown == "datasets" ? "Datasets" : "Models"}</h2>
 
-                    <div className="title-forms">
-                        <select title="Type shown " className="explore-datasets-sort" value={savedTypeShown} onChange={(e) => {
-                                let temp = {
-                                    start: startParam,
-                                    type: e.target.value
-                                }
-                                setSearchParams(temp)
-                                setSavedTypeShown(e.target.value)
-                            }}>
-                            <option value="datasets">Datasets</option>
-                            <option value="models">Models</option>
+                    {savedTypeShown == "datasets" && <ElementFilters 
+                        show={datasetShow}
+                        setShow={setDatasetShow}
+                        sort={sortSavedDatasets}
+                        setSort={setSortSavedDatasets}
+                        imageDimensions={imageDimensions}
+                        setImageDimensions={setImageDimensions}
+                        search={searchSaved}
+                        setSearch={setSearchSaved}
+                        setLoading={setLoadingSaved}
+                        BACKEND_URL={BACKEND_URL}
+                        savedTypeShown={savedTypeShown}
+                        setSavedTypeShown={setSavedTypeShown}
+                        setSearchParams={setSearchParams}
+                        startParam={startParam}
+                    ></ElementFilters>}
 
-                        </select>
+                    {savedTypeShown == "models" && <ElementFilters 
+                        show={modelShow}
+                        setShow={setModelShow}
+                        isModel={true}
+                        sort={sortSavedModels}
+                        setSort={setSortSavedModels}
+                        search={searchSavedModels}
+                        setSearch={setSearchSavedModels}
+                        setLoading={setLoadingSaved}
+                        BACKEND_URL={BACKEND_URL}
+                        savedTypeShown={savedTypeShown}
+                        setSavedTypeShown={setSavedTypeShown}
+                        setSearchParams={setSearchParams}
+                        startParam={startParam}
+                    ></ElementFilters>}
 
-                        {savedTypeShown == "datasets" && <select title="Sort by" className="explore-datasets-sort" value={datasetShow} onChange={(e) => {
-                                setDatasetShow(e.target.value)
-                            }}>
-                            <option value="all">All</option>
-                            <option value="image">Image</option>
-                            <option value="text">Text</option>
-                        </select>}
-
-                        {savedTypeShown == "models" && <select title="Sort by" className="explore-datasets-sort" value={modelShow} onChange={(e) => {
-                                setModelShow(e.target.value)
-                            }}>
-                            <option value="all">All</option>
-                            <option value="built">Built</option>
-                            <option value="not-built">Not built</option>
-                        </select>}
-
-                        {savedTypeShown == "datasets" && <select title="Sort by" className="explore-datasets-sort" value={sortSavedDatasets} onChange={(e) => {
-                                setSortSavedDatasets(e.target.value)
-                            }}>
-                            <option value="downloads">Downloads</option>
-                            <option value="elements">Elements</option>
-                            <option value="labels">Labels</option>
-                            <option value="alphabetical">Alphabetical</option>
-                            <option value="date">Created</option>
-                        </select>}
-
-                        {savedTypeShown == "models" && <select title="Sort by" className="explore-datasets-sort" value={sortSavedModels} onChange={(e) => {
-                                setSortSavedModels(e.target.value)
-                            }}>
-                            <option value="downloads">Downloads</option>
-                            <option value="alphabetical">Alphabetical</option>
-                            <option value="layers">Layers</option>
-                        </select>}
-                        
-                        {savedTypeShown == "datasets" && <div className="explore-datasets-search-container">
-                            <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={searchSaved} placeholder="Search datasets" onChange={(e) => {
-                                    setLoadingSaved(true)
-                                    setSearchSaved(e.target.value)
-                            }} /> 
-                            <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
-                        </div>}
-
-                        {savedTypeShown == "models" && <div className="explore-datasets-search-container">
-                            <input title="Will search names." type="text" className="explore-datasets-search" value={searchSavedModels} placeholder="Search models" onChange={(e) => {
-                                    setLoadingSaved(true)
-                                    setSearchSavedModels(e.target.value)
-                            }} /> 
-                            <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
-                        </div>}
-                    </div>
                 </div>
                 
                 {savedTypeShown == "datasets" && savedDatasets && <div className="my-datasets-container">

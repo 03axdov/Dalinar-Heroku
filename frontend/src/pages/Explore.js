@@ -4,6 +4,7 @@ import ModelElement from "../components/ModelElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import axios from 'axios'
+import ElementFilters from "../components/minor/ElementFilters"
 
 function Explore({checkLoggedIn, BACKEND_URL, notification}) {
     const navigate = useNavigate()
@@ -27,8 +28,6 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
     const [datasetShow, setDatasetShow] = useState("all")
     const [modelShow, setModelShow] = useState("all")
 
-    const [imageWidth, setImageWidth] = useState("")
-    const [imageHeight, setImageHeight] = useState("")
     const [imageDimensions, setImageDimensions] = useState(["", ""])    // The one that is used
 
     useEffect(() => {
@@ -195,20 +194,6 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
             };
     }, [searchModels]);
 
-    useEffect(() => {
-        const handler = setTimeout(() => {
-            let prevDims = [...imageDimensions]
-            prevDims[0] = imageWidth
-            prevDims[1] = imageHeight
-            setImageDimensions(prevDims)
-        }, 350);
-    
-        // Cleanup the timeout if inputValue changes before delay
-        return () => {
-            clearTimeout(handler);
-        };
-    }, [imageWidth, imageHeight])
-
     function datasetShouldShow(dataset) {
         if (datasetShow == "all" || datasetShow == dataset.dataset_type.toLowerCase()) {
             if (datasetShow == "image") {
@@ -265,46 +250,19 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
                 <div className="explore-datasets-title-container">
                     <h2 className="explore-datasets-title">Public Datasets</h2>
 
-                    <div className="title-forms">
-
-                        <select title="Show which types" className="explore-datasets-sort" value={datasetShow} onChange={(e) => {
-                                setDatasetShow(e.target.value)
-                            }}>
-                            <option value="all">All</option>
-                            <option value="image">Image</option>
-                            <option value="text">Text</option>
-                        </select>
-
-                        <select title="Sort by" className="explore-datasets-sort" value={sortDatasets} onChange={(e) => {
-                            setSortDatasets(e.target.value)
-                        }}>
-                            <option value="downloads">Downloads</option>
-                            <option value="elements">Elements</option>
-                            <option value="labels">Labels</option>
-                            <option value="alphabetical">Alphabetical</option>
-                            <option value="date">Created</option>
-                        </select>
-
-                        {datasetShow == "image" && <div className="image-dimensions-filter-container">
-                            <input type="number" title="Image width" placeholder="Width" className="image-dimensions-filter" value={imageWidth} onChange={(e) => {
-                                setImageWidth(e.target.value)
-                            }}/>
-                            <input type="number" title="Image height" placeholder="Height" className="image-dimensions-filter" value={imageHeight} onChange={(e) => {
-                                setImageHeight(e.target.value)
-                            }}/>
-                        </div>}
-                        
-                        <div className="explore-datasets-search-container">
-                            <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
-                                    setLoading(true)
-                                    setSearch(e.target.value)
-                            }} /> 
-                            <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
-                        </div>
-                    </div>
-                    
-
-                    
+                    <ElementFilters 
+                        show={datasetShow}
+                        setShow={setDatasetShow}
+                        sort={sortDatasets}
+                        setSort={setSortDatasets}
+                        imageDimensions={imageDimensions}
+                        setImageDimensions={setImageDimensions}
+                        search={search}
+                        setSearch={setSearch}
+                        setLoading={setLoading}
+                        BACKEND_URL={BACKEND_URL}
+                    ></ElementFilters>
+                       
                 </div>
                 
                 <div className="my-datasets-container">
@@ -332,32 +290,18 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
                 <div className="explore-datasets-title-container">
                     <h2 className="my-datasets-title">Public Models</h2>
 
-                    <div className="title-forms">
+                    <ElementFilters 
+                        show={modelShow}
+                        setShow={setModelShow}
+                        isModel={true}
+                        sort={sortModels}
+                        setSort={setSortModels}
+                        search={searchModels}
+                        setSearch={setSearchModels}
+                        setLoading={setLoadingModels}
+                        BACKEND_URL={BACKEND_URL}
+                    ></ElementFilters>
 
-                        <select title="Sort by" className="explore-datasets-sort" value={modelShow} onChange={(e) => {
-                                setModelShow(e.target.value)
-                            }}>
-                            <option value="all">All</option>
-                            <option value="built">Built</option>
-                            <option value="not-built">Not built</option>
-                        </select>
-
-                        <select title="Sort by" className="explore-datasets-sort" value={sortModels} onChange={(e) => {
-                                setSortModels(e.target.value)
-                            }}>
-                            <option value="downloads">Downloads</option>
-                            <option value="alphabetical">Alphabetical</option>
-                            <option value="layers">Layers</option>
-                        </select>
-                        
-                        <div className="explore-datasets-search-container">
-                            <input title="Will search names." type="text" className="explore-datasets-search" value={searchModels} placeholder="Search models" onChange={(e) => {
-                                    setLoadingModels(true)
-                                    setSearchModels(e.target.value)
-                            }} /> 
-                            <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
-                        </div>
-                    </div>
                 </div>
                 
                 <div className="my-datasets-container">

@@ -4,6 +4,7 @@ import DatasetElement from "../components/DatasetElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import ProgressBar from "../components/ProgressBar"
 import TrainingTable from "../components/TrainingTable"
+import ElementFilters from "../components/minor/ElementFilters"
 import { useTask } from "../contexts/TaskContext"
 
 function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, currentProfile, BACKEND_URL, notification, activateConfirmPopup}) {
@@ -29,6 +30,8 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
     const [loss, setLoss] = useState(0)
 
     const [wasEvaluated, setWasEvaluated] = useState(false)
+
+    const [imageDimensions, setImageDimensions] = useState(["", ""])
 
 
     useEffect(() => {
@@ -259,6 +262,20 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
         }, "blue")
     }
 
+    function datasetShouldShow(dataset) {
+        if (model_type.toLowerCase() == "image") {
+            if (imageDimensions[0] && imageDimensions[0] != dataset.imageWidth) {
+                return false
+            }
+            if (imageDimensions[1] && imageDimensions[1] != dataset.imageHeight) {
+                return false
+            }
+        }
+        return true;
+    }
+
+    const visibleDatasets = datasets.filter((dataset) => datasetShouldShow(dataset));
+    const visibleSavedDatasets = savedDatasets.filter((dataset) => datasetShouldShow(dataset));
 
     return (
         <div className="popup train-model-popup" onClick={() => setShowEvaluateModelPopup(false)}>
@@ -269,44 +286,30 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                 e.stopPropagation()
             }}>
                 <div className="explore-datasets-title-container">
-                    <h1 className="create-layer-popup-title">Evaluate model</h1>
+                    <h1 className="create-layer-popup-title" style={{width: "auto"}}>Evaluate model</h1>
 
-                    <div className="title-forms">
-
-                        {datasetTypeShown == "my" && <select title="Sort by" className="explore-datasets-sort" value={sortDatasets} onChange={(e) => {
-                                setSortDatasets(e.target.value)
-                            }}>
-                            <option value="downloads">Downloads</option>
-                            <option value="elements">Elements</option>
-                            <option value="labels">Labels</option>
-                            <option value="alphabetical">Alphabetical</option>
-                            <option value="date">Created</option>
-                        </select>}
-                        {datasetTypeShown == "saved" && <select title="Sort by" className="explore-datasets-sort" value={sortSavedDatasets} onChange={(e) => {
-                                setSortSavedDatasets(e.target.value)
-                            }}>
-                            <option value="downloads">Downloads</option>
-                            <option value="elements">Elements</option>
-                            <option value="labels">Labels</option>
-                            <option value="alphabetical">Alphabetical</option>
-                            <option value="date">Created</option>
-                        </select>}
-                        
-                        {datasetTypeShown == "my" && <div className="explore-datasets-search-container">
-                            <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={search} placeholder="Search datasets" onChange={(e) => {
-                                    setLoading(true)
-                                    setSearch(e.target.value)
-                            }} /> 
-                            <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
-                        </div>}
-                        {datasetTypeShown == "saved" && <div className="explore-datasets-search-container">
-                            <input title="Will search names and keywords." type="text" className="explore-datasets-search" value={searchSaved} placeholder="Search datasets" onChange={(e) => {
-                                    setLoading(true)
-                                    setSearchSaved(e.target.value)
-                            }} /> 
-                            <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
-                        </div>}
-                    </div>
+                    {datasetTypeShown == "my" && <ElementFilters 
+                        show={model_type}
+                        sort={sortDatasets}
+                        setSort={setSortDatasets}
+                        imageDimensions={imageDimensions}
+                        setImageDimensions={setImageDimensions}
+                        search={search}
+                        setSearch={setSearch}
+                        setLoading={setLoading}
+                        BACKEND_URL={BACKEND_URL}
+                    ></ElementFilters>}
+                    {datasetTypeShown == "saved" && <ElementFilters 
+                        show={model_type}
+                        sort={sortSavedDatasets}
+                        setSort={setSortSavedDatasets}
+                        imageDimensions={imageDimensions}
+                        setImageDimensions={setImageDimensions}
+                        search={searchSaved}
+                        setSearch={setSearchSaved}
+                        setLoading={setLoading}
+                        BACKEND_URL={BACKEND_URL}
+                    ></ElementFilters>}
                 </div>
                 
                 <p className="create-layer-popup-description">
@@ -327,12 +330,12 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                 
 
                 {datasetTypeShown == "my" && <div className="my-datasets-container train-datasets-container" style={{padding: 0}}>
-                    {datasets.map((dataset) => (
-                        ((dataset.dataset_type.toLowerCase() == model_type) ? <div title={(dataset.datatype == "classification" ? "Evaluate on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
+                {visibleDatasets.map((dataset) => (
+                        ((dataset.dataset_type.toLowerCase() == model_type) ? <div title={(dataset.datatype == "classification" ? "Train on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
                             if (dataset.datatype == "classification") {
                                 datasetOnClick(dataset)
                             } else {
-                                notification("Evaluation on area datasets is not yet supported.", "failure")
+                                notification("Training on area datasets is not yet supported.", "failure")
                             }
 
                         }}
@@ -340,30 +343,53 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                             <DatasetElement isPublic={true} dataset={dataset} isTraining={true} BACKEND_URL={BACKEND_URL} isDeactivated={dataset.datatype != "classification"}/>
                         </div> : "")
                     ))}
-                    {!loading && datasets.length == 0 && search.length > 0 && <p className="gray-text">No such datasets found.</p>}
-                    {loading && datasets.length == 0 && currentProfile.datasetsCount > 0 && [...Array(currentProfile.datasetsCount)].map((e, i) => (
-                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true}/>
-                    ))}
+                    
+                    {!loading && visibleDatasets.length === 0 && datasets.length > 0 && <p className="gray-text">No such datasets found.</p>}
+
+                    {!loading && datasets.length === 0 && search.length === 0 && (
+                        <p>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
+                    )}
+
+                    {!loading && datasets.length === 0 && search.length > 0 && (
+                        <p className="gray-text">No such datasets found.</p>
+                    )}
+
+                    {loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && (
+                        [...Array(currentProfile.datasetsCount)].map((e, i) => (
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true}/>
+                        ))
+                    )}
                 </div>}
 
                 {savedDatasets && datasetTypeShown == "saved" && <div className="my-datasets-container train-datasets-container" style={{padding: 0}}>
-                    {savedDatasets.map((dataset) => (
-                        (((dataset.dataset_type.toLowerCase() == model_type)) ? <div title={(dataset.datatype == "classification" ? "Evaluate on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
+                    {visibleSavedDatasets.map((dataset) => (
+                        ((dataset.dataset_type.toLowerCase() == model_type) ? <div title={(dataset.datatype == "classification" ? "Train on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
                             if (dataset.datatype == "classification") {
                                 datasetOnClick(dataset)
                             } else {
-                                notification("Evaluation on area datasets is not yet supported.", "failure")
+                                notification("Training on area datasets is not yet supported.", "failure")
                             }
+
                         }}
                         className="dataset-element-training-outer">
-                            <DatasetElement dataset={dataset} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true} isDeactivated={dataset.datatype != "classification"}/>
+                            <DatasetElement isPublic={true} dataset={dataset} isTraining={true} BACKEND_URL={BACKEND_URL} isDeactivated={dataset.datatype != "classification"}/>
                         </div> : "")
                     ))}
-                    {!loading && currentProfile && savedDatasets.length == 0 && searchSaved.length == 0 && <p>You don't have any saved datasets.</p>}
-                    {!loading && currentProfile && savedDatasets.length == 0 && searchSaved.length > 0 && <p className="gray-text">No such saved datasets found.</p>}
-                    {loading && currentProfile && savedDatasets.length == 0 && currentProfile.saved_datasets && currentProfile.saved_datasets.length > 0 && currentProfile.saved_datasets.map((e, i) => (
-                        <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true}/>
-                    ))}
+                    
+                    {!loading && visibleSavedDatasets.length === 0 && savedDatasets.length > 0 && <p className="gray-text">No such datasets found.</p>}
+
+                    {!loading && savedDatasets.length === 0 && searchSaved.length === 0 && (
+                        <p>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
+                    )}
+
+                    {!loading && savedDatasets.length === 0 && searchSaved.length > 0 && (
+                        <p className="gray-text">No such datasets found.</p>
+                    )}
+
+                    {loading && savedDatasets.length === 0 && currentProfile.saved_datasets && currentProfile.saved_datasets.length > 0 && currentProfile.saved_datasets.map((e, i) => (
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true}/>
+                        )
+                    )}
                 </div>}
                 
             </div>}

@@ -1,5 +1,5 @@
 TO-DO:
-- Search for image dimensions
+- Filter by image and text for models as well
 - Parameter titles if needed
 
 For building:

@@ -41,7 +41,7 @@
 }
 
 .train-model-popup-container {
-    width: 880px;
+    width: 1000px;
     max-width: 95%;
     overflow-y: scroll;
     height: 95%;
@@ -61,6 +61,7 @@
     margin: 0;
     text-align: left;
     width: 100%;
+    white-space: nowrap;
     font-weight: 500;
 }
 
