@@ -154,8 +154,6 @@ def load_and_preprocess_image(file_path,input_dims,file_key):
     
     image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
     
-    # Normalize the image to [0, 1]
-    image = tf.cast(image, tf.float32) / 255.0
     return image
 
 
@@ -449,6 +447,8 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     model_instance.loss = loss
                     model_instance.val_loss = val_loss
                     
+                    model_instance.val_split = validation_split
+                    
                     model_instance.save()
                     
                     set_training_progress(profile, -1)
@@ -626,6 +626,8 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     model_instance.loss = loss
                     model_instance.val_loss = val_loss
                     
+                    model_instance.val_split = val_split
+                    
                     model_instance.save()
                     
                     set_training_progress(profile, -1)
@@ -741,7 +743,7 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
         return {"Bad request": str(e), "status": 400}
     
     
-def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3), normalize=True):   # Convert uploaded files to tensors for TensorFlow processing
+def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Convert uploaded files to tensors for TensorFlow processing
     image = Image.open(uploaded_file)
     
     # Convert to RGB (to handle grayscale images)
@@ -757,10 +759,6 @@ def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3), normalize=
     
     # Convert image to NumPy array
     image_array = np.array(image)
-    
-    # Normalize pixel values to [0,1]
-    if normalize:
-        image_array = image_array / 255.0
     
     # Expand dimensions to match TensorFlow model input
     image_array = np.expand_dims(image_array, axis=0)  # Shape: (1, height, width, channels)
@@ -868,10 +866,7 @@ def predict_model_task(self, model_id, encoded_images, text):
                     prediction_colors = []
                     
                     for image in images:
-                        normalize = True
-                        if model_instance.trained_on_tensorflow:
-                            normalize = False   # None of these should be normalized
-                        image_tensor = preprocess_uploaded_image(image, target_size, normalize)
+                        image_tensor = preprocess_uploaded_image(image, target_size)
                         
                         prediction_arr = model.predict(image_tensor)
                         
@@ -1020,16 +1015,6 @@ def build_model_task(self, model_id, optimizer, learning_rate, loss_function, us
                     metrics=[metrics]
                 )
                 
-                for layer in model.layers:
-                    print(f"{layer.name} ({layer.__class__.__name__})")
-                    if isinstance(layer, tf.keras.layers.Conv2D):
-                        print(f"  Padding: {layer.padding}")
-                        print(f"  Filters: {layer.filters}")
-                        print(f"  Kernel size: {layer.kernel_size}")
-                        print(f"  Strides: {layer.strides}")
-                    print(f"  Output shape: {layer.output_shape}")
-                    print("-" * 40)
-                
                 # Do this here so it's not set to false if build fails
                 for layer in instance.layers.all():
                     layer.updated = False
@@ -1066,6 +1051,8 @@ def build_model_task(self, model_id, optimizer, learning_rate, loss_function, us
                 instance.val_accuracy = []
                 instance.loss = []
                 instance.val_loss = []
+                
+                instance.val_split = None
                 
                 instance.evaluated_on = None
                 instance.evaluated_on_tensorflow = None

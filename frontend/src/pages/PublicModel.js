@@ -575,7 +575,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                     }
 
                     {model && showModelMetrics && !showModelDescription && <ModelMetrics data={trainingMetrics} 
-                    show_validation={model.val_accuracy && model.val_accuracy.length > 0} 
+                    val_split={model.val_split} 
                     BACKEND_URL={BACKEND_URL}
                     model={model}
                     trained_on_name={(model.trained_on ? model.trained_on.name : (model.trained_on_tensorflow ? model.trained_on_tensorflow : ""))}/>}

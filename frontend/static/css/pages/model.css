@@ -794,6 +794,17 @@ div.layer-element-mode-input {
     text-align: center;
 }
 
+.model-metrics-validation {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+}
+
+.model-metrics-split {
+    color: var(--gray-text);
+}
+
 @media all and (max-width: 1400px) {
     .model-evaluate-button {
         font-size: 0rem;
