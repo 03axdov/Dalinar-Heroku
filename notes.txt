@@ -2,6 +2,8 @@ TO-DO:
 - Filter by image and text for models as well
 - Parameter titles if needed
 - Maybe update for moving layers
+- Presave tensorflow datasets
+- AWS lambda
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

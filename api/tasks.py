@@ -626,7 +626,7 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     model_instance.loss = loss
                     model_instance.val_loss = val_loss
                     
-                    model_instance.val_split = val_split
+                    model_instance.val_split = validation_split
                     
                     model_instance.save()
                     
@@ -937,7 +937,7 @@ def predict_model_task(self, model_id, encoded_images, text):
     
     
 def get_metrics(loss_function):
-    metrics = ["accuracy"]
+    metrics = "accuracy"
     if loss_function == "binary_crossentropy":
         metrics = tf.metrics.BinaryAccuracy(threshold=0.5)
     return metrics
