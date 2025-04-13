@@ -49,7 +49,7 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
             }
 
         }).catch((err) => {
-            alert("An error occured while loading your datasets.")
+            alert("An error occured while loading public datasets.")
             console.log(err)
         }).finally(() => {
             setLoading(false)
@@ -71,7 +71,7 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
             }
 
         }).catch((err) => {
-            notification("An error occured while loading your models.", "failure")
+            notification("An error occured while loading public models.", "failure")
             console.log(err)
         }).finally(() => {
             setLoadingModels(false)

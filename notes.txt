@@ -5,6 +5,7 @@ TO-DO:
 - Presave tensorflow datasets
 - AWS lambda
 - Look into images on smaller screens
+- Pagination of datasets
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py
