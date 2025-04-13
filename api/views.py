@@ -728,43 +728,46 @@ class ResizeElementImage(APIView):
         user = self.request.user
         
         if user.is_authenticated:
-            try:
-                element = Element.objects.get(id=element_id)
-                
-                if element.owner == user.profile:
-                    file = element.file
-                    new_name = file.name.split("/")[-1]     # Otherwise includes files
-                    new_name, extension = new_name.split(".")     
-                    new_name = new_name.split("-")[0]   # Remove previous resize information      
-                    new_name += ("-" + str(newWidth) + "x" + str(newHeight) + "." + extension) 
+            if newWidth > 0 and newWidth <= 1024 and newHeight > 0 and newHeight <= 1024:
+                try:
+                    element = Element.objects.get(id=element_id)
                     
-                    try:
+                    if element.owner == user.profile:
+                        file = element.file
+                        new_name = file.name.split("/")[-1]     # Otherwise includes files
+                        new_name, extension = new_name.split(".")     
+                        new_name = new_name.split("-")[0]   # Remove previous resize information      
+                        new_name += ("-" + str(newWidth) + "x" + str(newHeight) + "." + extension) 
                         
-                        img = Image.open(file)
-                        img = img.resize([newWidth, newHeight], Image.LANCZOS)
+                        try:
+                            
+                            img = Image.open(file)
+                            img = img.resize([newWidth, newHeight], Image.LANCZOS)
+                            
+                            if default_storage.exists(file.name):
+                                default_storage.delete(file.name)
+                            
+                            # Save to BytesIO buffer
+                            buffer = BytesIO()
+                            img_format = img.format if img.format else "JPEG"  # Default to JPEG
+                            img.save(buffer, format=img_format, quality=90)
+                            buffer.seek(0)
+                                                
+                            element.file.save(new_name, ContentFile(buffer.read()), save=False)
+                            element.imageWidth = newWidth
+                            element.imageHeight = newHeight
+                            element.save()
+                            
+                            return Response(self.serializer_class(element).data, status=status.HTTP_200_OK)
                         
-                        if default_storage.exists(file.name):
-                            default_storage.delete(file.name)
-                        
-                        # Save to BytesIO buffer
-                        buffer = BytesIO()
-                        img_format = img.format if img.format else "JPEG"  # Default to JPEG
-                        img.save(buffer, format=img_format, quality=90)
-                        buffer.seek(0)
-                                            
-                        element.file.save(new_name, ContentFile(buffer.read()), save=False)
-                        element.imageWidth = newWidth
-                        element.imageHeight = newHeight
-                        element.save()
-                        
-                        return Response(self.serializer_class(element).data, status=status.HTTP_200_OK)
-                    
-                    except IOError:
-                        return Response({"Bad Request": "Not an image."}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    return Response({"Unauthorized": "You can only resize images for your own elements."}, status=status.HTTP_401_UNAUTHORIZED)
-            except Element.DoesNotExist:
-                return Response({"Not found": "Could not find element with the id " + str(element_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+                        except IOError:
+                            return Response({"Bad Request": "Not an image."}, status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        return Response({"Unauthorized": "You can only resize images for your own elements."}, status=status.HTTP_401_UNAUTHORIZED)
+                except Element.DoesNotExist:
+                    return Response({"Not found": "Could not find element with the id " + str(element_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({"Bad request": "Dimensions must be between 0 and 1024."}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"Unauthorized": "Must be logged in to resize element images."}, status=status.HTTP_401_UNAUTHORIZED)
         

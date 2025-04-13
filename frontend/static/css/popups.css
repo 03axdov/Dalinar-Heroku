@@ -30,7 +30,7 @@
 
 .create-layer-popup-container, .build-model-popup-container, .model-download-popup-container, .train-model-popup-container {
     height: 650px;
-    max-height: 90%;
+    max-height: 95%;
     width: 600px;
     padding: 30px 40px;
     max-width: 90%;
@@ -90,6 +90,7 @@
     flex-direction: row;
     margin-top: auto;
     justify-content: end;
+    margin-top: 50px;
 }
 
 .create-layer-popup-cancel {
@@ -646,5 +647,11 @@
     
     .download-popup-container-text {
         width: 95%;
+    }
+}
+
+@media all and (max-height: 750px) {
+    .download-popup, .create-layer-popup, .build-model-popup, .model-download-popup, .train-model-popup {
+        padding-bottom: 0;
     }
 }

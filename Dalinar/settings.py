@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "storages"
 ]
 
-SITE_ID = 2
+SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -116,6 +116,8 @@ WSGI_APPLICATION = 'Dalinar.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+import dj_database_url
 
 if not DEBUG:
     DATABASES = {

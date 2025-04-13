@@ -140,7 +140,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     const DOT_SIZE = 18
 
-    // For drawing points for area datasets
+    // For drawing lines for area datasets
     useEffect(() => {
         if (elements.length < 1) {return}
         if (!canvasRefs.current.length) return;
@@ -166,8 +166,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         
             // Convert percentage-based coordinates to pixel values
             const percentageToPixels = (point) => ({
-                x: (point[0] / 100) * canvas.width + DOT_SIZE / 2, // Adjust for the dot's width
-                y: (point[1] / 100) * canvas.height + DOT_SIZE / 2, // Adjust for the dot's height
+                x: (point[0] / 100) * canvas.offsetWidth + DOT_SIZE / 2,
+                y: (point[1] / 100) * canvas.offsetHeight + DOT_SIZE / 2,
             });
         
             // Draw lines between points
@@ -1064,6 +1064,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
 
     function resizeElementImage() {
+        if (currentImageWidth <= 0 || currentImageWidth > 1024 || currentImageHeight <= 0 || currentImageHeight > 1024) {
+            notification("Dimensions must be between 0 and 750.", "failure")
+            return
+        }
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';    
@@ -1091,7 +1095,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             notification("Successfully resized image.", "success")
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
-
         }).finally(() => {
             setLoading(false)
             setLoadingResizeImage(false)
