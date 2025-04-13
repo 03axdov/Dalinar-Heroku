@@ -1,0 +1,113 @@
+:root {
+    color-scheme: dark;
+
+    --background: #0d1017;
+    --background-dark: rgb(9, 11, 15);
+    --background-darker: rgb(5, 6, 8);
+    --background-light: #121720;
+    --background-lighter: #1d2431;
+    --background-shadow: #000000;
+    --accounts-input: rgb(9, 11, 15);
+
+    --toolbar: #181d25;
+    --toolbar-light: #212730;
+    --toolbar-lighter: #2a313b;
+    --toolbar-dark: #161a22;
+    --toolbar-darker: #141820;
+    --border: rgb(50,50,50);
+    --border-light: rgb(100,100,100);
+
+    --sidebar: #181d24;
+    --sidebar-slightly-light: #20242c;
+    --sidebar-light: #212730;
+    --sidebar-lighter: #2c3441;
+    --sidebar-selected: #262d36;
+    --sidebar-button: rgb(50,50,50);
+    --sidebar-button-hover: rgb(65,65,65);
+    --sidebar-icon: rgb(85,85,85);
+
+    --element: #12161f;
+    --element-light: #1a1e25;
+    --element-lighter: #292e36;
+    --element-icon-hover: #262a33;
+    
+    --blue: #008ff8;
+    --blue-dark: #0082df;
+    --blue-light: #00aaf8;
+
+    --darkblue: #0061df;
+    --darkblue-dark: #0058cc;
+
+    --gray: #3f3f3f;
+    --gray-dark: #3b3b3b;
+    --gray-darker: #303030;
+
+    --form-width: 425px;
+    --toolbar-height: 60px;
+
+    --home-sidebar-width: 185px;
+    --dataset-elements-width: 185px;
+    --dataset-labels-width: 185px;
+
+    --gray-text: rgb(180,180,180);
+    --grayer-text: rgb(125,125,125);
+
+    --delete-red: rgb(165, 48, 48);
+
+    --delete-red-hover: rgb(146, 43, 43);
+
+    --guide-sidebar-width: 175px;
+
+    --landing-header-right: 40%;
+}
+
+::-webkit-scrollbar {
+    background: rgb(41, 41, 41);
+    width: 15px;
+    z-index: 3;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgb(68, 68, 68);
+    border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgb(80, 80, 80);
+}
+
+::-webkit-scrollbar-corner {
+    background: rgba(31, 31, 31, 0);
+}
+
+input::-webkit-input-placeholder {
+    color: gray;
+}
+input::-moz-placeholder {
+    color: gray;
+}
+input:-ms-input-placeholder {
+    color: gray;
+}
+input::placeholder {
+    color: gray;
+}
+input::placeholder {
+    -webkit-font-smoothing: antialiased; /* For WebKit browsers */
+    -moz-osx-font-smoothing: grayscale; /* For Firefox on macOS */
+}
+
+@media all and (max-width: 975px) {
+    :root {
+        --home-sidebar-width: 155px;
+        --dataset-elements-width: 155px;
+        --dataset-labels-width: 155px;
+    }
+}
+
+@media all and (max-width: 900px) {
+    :root {
+        --dataset-elements-width: 135px;
+        --dataset-labels-width: 135px;
+    }
+}

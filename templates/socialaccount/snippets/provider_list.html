@@ -1,0 +1,15 @@
+{% load socialaccount %}
+{% load static %}
+{% get_providers as socialaccount_providers %}
+
+<ul class="socialaccount_providers">
+  {% for provider in socialaccount_providers %}
+    <li class="social-button">
+      <a href="{% provider_login_url provider.id process=process %}" class="socialaccount_provider {{ provider.id|lower }}">
+        <img src="{% static 'images/social/'|add:provider.id|add:'.svg' %}" alt="{{ provider.name }} logo" class="provider-logo">
+        Continue with {{ provider.name }}
+      </a>
+    </li>
+  {% endfor %}
+  <p class="login-or">or</p>
+</ul>

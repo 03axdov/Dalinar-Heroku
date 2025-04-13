@@ -1,0 +1,102 @@
+.home-container {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    width: 100%;
+}
+
+.home-sidebar {
+    width: var(--home-sidebar-width);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 10px;
+    padding-top: 20px;
+    box-sizing: border-box;
+    background: var(--sidebar);
+    overflow-y: auto;
+}
+
+.home-non-sidebar {
+    width: calc(100% - var(--home-sidebar-width));
+    padding-left: 50px;
+    padding-top: 20px;
+    height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
+}
+
+.my-datasets-title {
+    font-size: 2rem;
+    margin: 0;
+    font-weight: 500;
+    padding-right: 50px;
+    padding-bottom: 5px;
+
+    border-bottom: 1px solid white;
+    display: inline-block;
+    width: 280px;
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+.my-datasets-container {
+    margin-top: 20px;
+    width: 100%;
+    padding-right: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: center;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    gap: 20px;
+}
+
+.sidebar-button-margin {
+    margin-top: 10px;
+}
+
+.home-sidebar-button-icon {
+    height: 17px;
+    margin-right: 10px;
+}
+
+.sidebar-types-container {
+    padding-top: 20px;
+    margin-top: 20px;
+    box-sizing: border-box;
+    border-top: 1px solid var(--border);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.sidebar-types-element {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 32px;
+    border-radius: 16px;
+    box-sizing: border-box;
+    padding: 0 20px;
+    font-size: 1.1rem;
+}
+
+.sidebar-types-element-icon {
+    width: 15px;
+    overflow-clip-margin: unset;
+    margin-right: 10px;
+}
+
+.sidebar-types-element:hover {
+    background: var(--sidebar-light);
+    cursor: pointer;
+}
+
+.sidebar-types-element-selected {
+    background: var(--sidebar-lighter)!important;
+}

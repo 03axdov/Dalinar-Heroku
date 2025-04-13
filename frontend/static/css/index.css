@@ -1,0 +1,534 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--background);
+    color: white;
+    height: 100%;
+    width: 100%;
+
+    line-height: 1.5;
+    letter-spacing: 0px;
+    word-spacing: 0px;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+    font-weight: 500;
+    font-optical-sizing: auto;
+    -ms-text-size-adjust: 100%; /* 2 */
+    -webkit-text-size-adjust: 100%; /* 2 */
+    font-size: 16px;
+}
+
+#root, #main {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+#app {
+    height: calc(100% - var(--toolbar-height));
+    width: 100%;
+    margin: 0;
+    margin-top: var(--toolbar-height);
+    padding: 0;
+}
+
+.hidden {
+    display: none!important;
+}
+
+#toolbar {
+    top: 0;
+    width: 100%;
+    height: var(--toolbar-height);
+    background: var(--toolbar);
+    border-bottom: 1px solid var(--border);
+    padding: 0 40px;
+    padding-right: 20px;
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    position: fixed;
+    overflow-x: auto;
+}
+
+.profile-bar-container {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    display: flex;
+    flex-direction: row; 
+    justify-content: end;
+    background: rgb(25,25,25,0.3);
+    z-index: 11;
+}
+
+.profile-bar {
+    height: 100%;
+    width: 300px;
+    background: var(--background);
+    border-left: 1px solid var(--border);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0 15px;
+    padding-bottom: 20px;
+    transition: transform 0.2s ease-out;
+    transform: translateX(100%);
+}
+.profile-bar.slide-in {
+    transform: translateX(0);
+  }
+
+.profile-bar-title {
+    height: var(--toolbar-height);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: end;
+    width: 100%;
+}
+
+.profile-bar-icon {
+    width: 16px;
+    margin-right: 10px;
+}
+
+.profile-bar-cross {
+    margin-right: 5px;
+    width: 20px;
+    height: 20px;
+    padding: 10px;
+    user-select: none;
+    border-radius: 20px;
+}
+.profile-bar-cross:hover {
+    cursor: pointer;
+    background: var(--background-lighter);
+}
+
+.profile-bar-row, .profile-bar-profile {
+    width: 100%;
+    font-size: 1rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 5px 15px;
+    border-radius: 7px;
+}
+.profile-bar-profile {
+    cursor: default;
+}
+
+.profile-bar-row:hover {
+    background: var(--background-lighter);
+    cursor: pointer;
+}
+
+.profile-bar-line {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin-bottom: 10px;
+}
+
+.toolbar-landing {
+    border-color: rgb(0,0,0,0)!important;
+    background: var(--background-dark)!important;
+}
+
+.toolbar-guide {
+    background: var(--background-dark)!important;
+}
+
+#toolbar::-webkit-scrollbar {
+    height: 7px;
+}
+
+#toolbar-logo {
+    height: 40px;
+    width: 40px;
+    border-radius: 3px;
+    object-fit: cover;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toolbar-menu {
+    height: 30px;
+    width: 30px;
+    padding: 5px;
+    border-radius: 20px;
+    cursor: pointer;
+    user-select: none;
+}
+.toolbar-menu:hover {
+    background: var(--toolbar-lighter);
+}
+
+input:-webkit-autofill {
+    transition: background-color 600000s 0s, color 600000s 0s;
+}
+input[data-autocompleted] {
+    background-color: transparent !important;
+}
+
+button {
+    border: none;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+    font-weight: 500;
+    font-size: 1.1rem;
+    border-radius: 3px;
+    padding: 7px 15px;
+    background: var(--blue);
+    color: white;
+    cursor: pointer;
+}
+
+button:hover {
+    background: var(--blue-dark);
+}
+
+.toolbar-text {
+    font-size: 1.1rem;
+    margin: 0 0 0 40px;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+}
+
+.toolbar-text:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.toolbar-text-activated {
+    text-decoration: underline;
+}
+
+.toolbar-icon {
+    height: 17px;
+    margin-left: 5px;
+}
+
+.toolbar-auth {
+    margin-left: auto;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    user-select: none;
+    height: 100%;
+}
+
+.toolbar-button {
+    margin: 0 0 0 40px;
+    background: var(--blue);
+    color: white;
+    border-radius: 3px;
+    padding: 7px 15px;
+    font-size: 1.1rem;
+    width: auto;
+    letter-spacing: 0px;
+    text-decoration: none;
+}
+
+.toolbar-button:hover {
+    cursor: pointer;
+    background: var(--blue-dark);
+    text-decoration: none;
+}
+
+.toolbar-title {
+    padding-left: 10px;
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+    box-sizing: border-box;
+    margin-left: 0;
+}
+
+.toolbar-title:hover {
+    text-decoration: none;
+}
+
+input[type=checkbox] {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+input[type="checkbox"]:checked {
+    background: url("https://dalinar.s3.eu-north-1.amazonaws.com/static/images/checked.jpg");
+    background-repeat: no-repeat;
+    background-size: cover;
+    border: none;
+}
+
+input[type=radio] {
+    appearance: none;
+    -webkit-appearance: none; /* For Safari */
+    width: 20px; /* Size of the radio button */
+    height: 20px;
+    background-color: var(--background-dark);
+    border-radius: 50%; /* Make it circular */
+    border: 1px solid gray;
+    outline: none;
+    cursor: pointer;
+    margin: 0;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+/* Style when checked */
+input[type="radio"]:checked {
+    background-color: white;
+    border: 6px solid var(--blue);
+}
+
+.truncate {
+    display: -webkit-box; /* Use flexbox for webkit-based browsers */
+    -webkit-line-clamp: 3; /* Limit the number of lines */
+    line-clamp: 3; /* Standard property for compatibility */
+    -webkit-box-orient: vertical; /* Set box orientation to vertical */
+    overflow: hidden; /* Hide overflow content */
+    text-overflow: ellipsis; /* Add ellipsis for truncated text */
+    word-break: break-word; /* Break long words onto the next line */
+    overflow-wrap: break-word; /* Ensure long words wrap appropriately */
+}
+
+.sidebar-button {
+    padding: 7px 15px;
+    border-radius: 5px;
+    color: white;
+    background: var(--sidebar-button);
+    width: 100%;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-button:hover {
+    background: var(--blue);
+    cursor: pointer;
+}
+
+.sidebar-button-small {
+    padding: 3px 7px;
+    border-radius: 3px;
+    font-size: 0.9rem;
+}
+
+
+.sidebar-button-disabled {
+    cursor: default;
+    user-select: none;
+    opacity: 0.6;
+}
+
+.sidebar-button-disabled:hover {
+    background: var(--sidebar-button);
+    cursor: default;
+}
+
+.create-model {
+    margin-top: 10px;
+}
+
+input {
+    font-size: 1rem;
+    font-family: 'Open Sans', sans-serif; /* 1 */
+}
+
+.gray-text {
+    color: var(--gray-text)
+}
+
+.visible {
+    display: block;
+}
+
+.link {
+    color: var(--blue);
+    cursor: pointer;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+.default-cursor {
+    cursor: default!important;
+}
+
+.unselectable {
+    user-select: none;
+}
+
+.no-margin {
+    margin: 0!important;
+}
+.no-margin-right {
+    margin-right: 0!important;
+}
+
+.no-box-shadow {
+    box-shadow: none!important;
+}
+
+.no-border {
+    border: none!important;
+}
+
+.border {
+    border: 1px solid;
+}
+
+.display-none {
+    display: none;
+}
+
+.notification {
+    position: fixed;
+    box-shadow: 0 0 0 1px white;
+    font-size: 1.2rem;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    border-radius: 3px;
+    z-index: 20;    /* Should be highest */
+    background: var(--toolbar);
+    left: 50%;
+    transform: translate(-50%, 0);
+    top: calc(var(--toolbar-height) + 30px);
+    max-width: 50%;
+    text-align: left;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    transition: 0s;
+}
+
+.notification-icon {
+    height: 30px;
+    width: 30px;
+    margin-right: 20px;
+}
+
+.notification-faded {
+    transition: 0.2s;
+    opacity: 0;
+}
+
+.notification-hidden {
+    display: none;
+}
+
+.progress-bar-outer {
+    position: fixed;
+    z-index: 7;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    background: rgb(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.progress-bar-container-outer {
+    width: 550px;
+    max-width: 70%;
+    border-radius: 5px;
+    background: var(--toolbar);
+    display: flex;
+    flex-direction: column;
+    padding: 10px 20px;
+    box-sizing: border-box;
+    z-index: 2;
+}
+
+.progress-bar-container {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    
+}
+.progress-bar-long {
+    width: 750px;
+    max-width: 80%;
+    padding-top: 30px;
+}
+
+.progress-bar-spinner {
+    height: 20px;
+    width: 20px;
+    margin-right: 10px;
+}
+
+.progress-bar-text {
+    margin: 0;
+    margin-right: 20px;
+    white-space: nowrap;
+}
+
+.progress-bar {
+    height: 22px;
+    width: 100%;
+    border-radius: 3px;
+    background: var(--background);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    overflow: hidden;
+}
+
+.progress-bar-completed {
+    height: 100%;
+    background: rgb(0,212,255);
+    background: linear-gradient(90deg, rgba(0,212,255,1) 0%, rgba(0,116,255,1) 100%);
+    transition: 0.2s;
+    z-index: 2;
+}
+
+@media all and (max-width: 975px) {
+    button {
+        font-size: 1rem;
+    }
+
+    .sidebar-button {
+        padding: 5px 7px;
+        border-radius: 3px;
+    }
+}
+
+.accounts-logo {
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.est-time {
+    margin: 0;
+    margin-top: 0;
+    width: 100%;
+    text-align: end;
+    margin-bottom: 15px;
+    color: var(--gray-text);
+}

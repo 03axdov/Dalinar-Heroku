@@ -1,0 +1,651 @@
+.popup {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    background: rgb(0,0,0,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.account-popup {
+    z-index: 6;
+}
+
+.account-popup-container, .confirm-popup-container, .create-layer-popup-container, .build-model-popup-container, .model-download-popup-container, .train-model-popup-container {
+    width: 450px;
+    border-radius: 5px;
+    background: var(--toolbar);
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    box-shadow: 0 0 0 1px var(--border-light);
+}
+
+.confirm-popup-container {
+    width: 400px;
+}
+
+.create-layer-popup-container, .build-model-popup-container, .model-download-popup-container, .train-model-popup-container {
+    height: 650px;
+    max-height: 95%;
+    width: 600px;
+    padding: 30px 40px;
+    max-width: 90%;
+    align-items: center;
+    background: var(--background);
+    overflow-y: auto;
+    border-radius: 0;
+}
+
+.train-model-popup-container {
+    width: 1000px;
+    max-width: 95%;
+    overflow-y: scroll;
+    height: 95%;
+}
+
+.train-model-popup-container::-webkit-scrollbar {
+    width: 7px;
+}
+
+.model-download-popup-container {
+    width: 700px;
+    max-width: 95%;
+}
+
+.create-layer-popup-title {
+    font-size: 2rem;
+    margin: 0;
+    text-align: left;
+    width: 100%;
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+.create-layer-popup-description {
+    font-size: 0.9rem;
+    line-height: 150%;
+    margin: 0;
+    margin-top: 10px;
+    text-align: justify;
+    color: var(--gray-text);
+}
+
+.create-layer-popup-form, .build-model-form, .model-download-form {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.create-layer-type-fields {
+    width: 100%;
+}
+
+.create-layer-popup-buttons {
+    display: flex;
+    flex-direction: row;
+    margin-top: auto;
+    justify-content: end;
+    margin-top: 50px;
+}
+
+.create-layer-popup-cancel {
+    padding: 7px 20px;
+    background: var(--gray);
+    margin-right: 20px;
+}
+
+.create-layer-popup-cancel:hover {
+    background: var(--gray-dark);
+}
+
+.create-layer-popup-submit {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.account-popup-button {
+    width: 100%;
+    color: white;
+    border-radius: 3px;
+    margin-top: 20px;
+    font-size: 1.1rem;
+    padding:  7px 15px;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.account-popup-login {
+    background: var(--blue);
+}
+.account-popup-login:hover {
+    background: var(--blue-dark);
+}
+
+.account-popup-cancel {
+    background: var(--gray);
+    margin-top: 10px;
+}
+.account-popup-cancel:hover {
+    background: var(--gray-dark);
+}
+
+.account-popup-message {
+    font-size: 1.1rem;
+    text-align: justify;
+    margin: 0;
+    margin-bottom: 10px;
+}
+
+.download-popup-container {
+    width: 850px;
+    max-width: 95%;
+    height: 500px;
+    max-height: 95%;
+    border-radius: 5px;
+    background: var(--background);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 60px;
+    box-sizing: border-box;
+    border: 1px solid var(--border-light);
+}
+
+.download-popup-container-text {
+    width: 1000px;
+}
+
+.download-popup-container-text .download-element {
+    width: 31%;
+}
+
+.download-popup-container-area {
+    width: 450px;
+    height: 500px;
+    padding: 30px;
+}
+
+.download-popup-container-downloaded {
+    width: 725px;
+    max-width: 90%;
+    height: 750px;
+    max-height: 90%;
+
+    flex-direction: column;
+    justify-content: start;
+}
+
+.download-successful-title {
+    font-size: 2rem;
+    font-weight: 500;
+    margin: 0;
+    margin-top: 10px;
+    padding: 0 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.download-successful-icon {
+    height: 40px;
+    width: 40px;
+    margin-left: 15px;
+}
+
+.download-successful-code {
+    margin-top: 5px;
+    border-radius: 3px;
+    background: #0f1218;
+    height: 100%;
+    width: 100%;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.download-successful-code-inner {
+    white-space: nowrap;
+    overflow: auto;
+    height: 100%;
+    max-height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    padding-right: 20px;
+    padding-left: 0;
+    padding-top: 10px;
+    padding-bottom: 5px;
+    max-width: 100%;
+}
+
+.download-successful-code-inner::-webkit-scrollbar{
+    width: 8px;
+    height: 8px;
+}
+.download-successful-code-inner::-webkit-scrollbar-thumb {
+    border-radius: 0;
+}
+
+.download-successful-code-copy {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 0.9rem;
+    padding: 3px 7px;
+    background: var(--sidebar-button);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.code-copy-icon {
+    height: 17px;
+    width: 17px;
+    margin-right: 10px;
+}
+
+.code-copied-icon {
+    height: 7px;
+    margin-right: 7px;
+}
+
+.download-successful-instructions {
+    color: var(--gray-text);
+    text-align: justify;
+}
+
+.download-frameworks-container {
+    border-radius: 3px;
+    padding: 3px 0;
+    background: #0f1218;
+    margin-right: auto;
+    margin-left: 0;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.download-framework {
+    width: 50%;
+    height: 100%;
+    text-align: center;
+    padding: 0 10px;
+    font-size: 1rem;
+    user-select: none;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.download-framework:hover {
+    cursor: pointer;
+}
+
+.download-framework-icon {
+    width: 15px;
+    margin-right: 5px;
+}
+
+.download-framework-disabled {
+    color: var(--grayer-text);
+}
+
+.download-framework-disabled:hover {
+    color: var(--gray-text);
+}
+
+.code-line {
+    color: var(--gray-text);
+    font-size: 1rem;
+    user-select: none;
+    margin-right: 20px;
+    min-width: 30px;
+    margin-left: 15px;
+    display: inline-block;
+}
+
+.code-tab {
+    margin-left: 30px;
+}
+
+.code-pink {
+    color: #C586C0;
+}
+
+.code-green {
+    color: #48995c;
+}
+
+.code-lightgreen {
+    color: #94CE89;
+}
+
+.code-orange {
+    color: #d48557;
+}
+
+.code-yellow {
+    color: #DBD70A;
+}
+
+.code-lightyellow {
+    color: #f3f178;
+}
+
+.code-blue {
+    color: #3db8ff;
+}
+
+.code-cyan {
+    color: #1ad496;
+}
+
+.code-lightblue {
+    color: #9CDCFE;
+}
+
+.download-popup, .create-layer-popup, .build-model-popup, .model-download-popup, .train-model-popup {
+    padding-bottom: var(--toolbar-height);
+    height: calc(100% - var(--toolbar-height));
+    box-sizing: border-box;
+}
+
+.confirm-popup {
+    z-index: 11;
+}
+
+.confirm-popup-message {
+    margin: 0;
+    font-size: 1.1rem;
+    text-align: justify;
+}
+
+.confirm-popup-buttons {
+    margin-top: 40px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.confirm-popup-cancel, .confirm-popup-confirm {
+    width: 100%;
+}
+
+.confirm-popup-confirm-red {
+    background: var(--delete-red);
+}
+
+.confirm-popup-confirm-red:hover {
+    background: var(--delete-red-hover);
+}
+
+.confirm-popup-confirm-blue {
+    background: var(--blue);
+}
+
+.confirm-popup-confirm-blue:hover {
+    background: var(--blue-dark);
+}
+
+.confirm-popup-cancel {
+    background: var(--sidebar-button);
+    margin-top: 10px;
+}
+
+.confirm-popup-cancel:hover {
+    background: var(--sidebar-button-hover);
+}
+
+.model-download-build-container {
+    width: 100%;
+    margin-top: 20px;
+    border-radius: 3px;
+    box-sizing: border-box;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    background: var(--background-light);
+}
+
+.model-download-build-title {
+    font-size: 1.5rem;
+    margin: 0;
+    padding-bottom: 3px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.model-download-build-row {
+    display: flex;
+    margin-top: 20px;
+    flex-direction: row;
+    align-items: center;
+}
+
+.model-download-build-label {
+    font-size: 1.1rem;
+    white-space: nowrap;
+    margin: 0;
+}
+
+.model-download-build-value {
+    width: 100%;
+    padding: 5px 10px;
+    margin: 0;
+    margin-left: 20px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 1rem;
+    font-family: 'Open Sans', sans-serif;
+    box-sizing: border-box;
+    outline: none;
+    background: var(--background);
+    opacity: 0.8;
+    cursor: default;
+    user-select: none;
+    color: white;
+}
+
+.model-download-popup-submit {
+    min-width: 170px;
+}
+
+.train-model-row {
+    margin-top: 30px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    box-sizing: border-box;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.train-model-dataset-type-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+    margin-right: auto;
+}
+
+.train-model-dataset-type {
+    padding: 5px 10px;
+    box-sizing: border-box;
+    font-size: 1.1rem;
+    background: var(--toolbar-dark);
+    user-select: none;
+}
+.train-model-dataset-type:hover {
+    cursor: pointer;
+}
+
+.train-model-dataset-type-selected {
+    background: var(--toolbar-lighter);
+}
+.train-model-dataset-type-selected:hover {
+    background: var(--toolbar-lighter);
+}
+
+.train-model-dataset-type-left {
+    border-radius: 5px 0 0 5px;
+}
+.train-model-dataset-type-right {
+    border-radius: 0 5px 5px 0;
+}
+
+
+.train-model-inp {
+    background: var(--background-dark);
+    outline: none;
+    border: 1px solid var(--border);
+    font-size: 1.1rem;
+    padding: 5px;
+    padding-left: 10px;
+    width: 80px;
+    border-radius: 3px;
+}
+
+.trained-successfully-icon {
+    height: 40px;
+    width: 40px;
+    margin-left: 15px;
+}
+
+.successfully-trained-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 3px;
+}
+
+.tensorflow-dataset-container {
+    margin-top: 10px;
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    height: 190px;
+    min-height: 190px;
+    max-height: 190px;
+    background: var(--background-dark);
+    border-radius: 5px;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.tensorflow-dataset-description {
+    margin: 0;
+    font-size: 0.9rem;
+    display: flex;
+    flex-direction: row;
+    margin-top: 5px;
+    align-items: center;
+}
+
+.tensorflow-dataset-external {
+    margin-left: 5px;
+    height: 15px;
+    width: 15px;
+}
+
+.tensorflow-dataset-select {
+    outline: none;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: var(--toolbar);
+    border-radius: 3px;
+    font-size: 1rem;
+    line-height: 1.5;
+    letter-spacing: 0px;
+    word-spacing: 0px;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+    font-weight: 500;
+    font-optical-sizing: auto;
+    -ms-text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+    width: 100%;
+}
+
+.tensorflow-dataset-train-button {
+    margin-top: auto;
+    width: 100%;
+    padding: 5px 10px;
+    font-size: 1rem;
+    background: var(--sidebar-button);
+}
+
+.tensorflow-dataset-more-info {
+    margin-top: 5px;
+    background: var(--sidebar-button-hover);
+}
+
+.tensorflow-dataset-more-info:hover {
+    background: rgb(75,75,75);
+}
+
+.build-model-recompile {
+    margin-right: 20px;
+    background: #0051ff;
+}
+
+.build-model-recompile:hover {
+    background: #0147dd;
+}
+  
+.train-datasets-container::after {
+    content: '';
+    width: 250px;
+    max-width: 250px;
+    flex: auto;
+}
+
+.prediction-circle {
+    height: 20px;
+    width: 20px;
+    border-radius: 10px;
+    margin-right: 10px;
+}
+
+.evaluation-stat {
+    font-size: 1.2rem;
+    margin-top: 0;
+    margin-bottom: 10px;
+    width: 100%;
+    text-align: left;
+}
+
+@media all and (max-width: 1000px) {
+    .download-popup-container {
+        padding: 10px 30px;
+        width: 750px;
+    }
+    
+    .download-popup-container-text {
+        width: 95%;
+    }
+}
+
+@media all and (max-height: 750px) {
+    .download-popup, .create-layer-popup, .build-model-popup, .model-download-popup, .train-model-popup {
+        padding-bottom: 0;
+    }
+}

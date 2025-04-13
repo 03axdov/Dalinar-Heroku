@@ -1,0 +1,317 @@
+/* For elements, such as dataset-element */
+
+.dataset-element {
+    width: 245px;
+    height: 245px;
+    border-radius: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+    background: var(--element);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 0 20px 0 black;
+}
+
+.dataset-element:hover {
+    cursor: pointer;
+    background: var(--element-light);
+}
+
+.dataset-element-name {
+    font-size: 1.1rem;
+    margin: 0;
+    margin-left: 10px;
+    margin-right: 10px;
+    display: flex;
+    max-width: calc(100% - 50px);
+    flex-direction: row;
+    align-items: center;
+}
+
+.dataset-element-name-inner {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden; 
+    text-overflow: ellipsis;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.dataset-element-name-verified {
+    height: 22px;
+    width: 22px;
+    margin-left: 7px;
+}
+
+.dataset-element-date {
+    margin: 0;
+}
+
+.dataset-element-image {
+    width: 100%;
+    height: 100%;
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: cover;
+    overflow-clip-margin: unset;
+    background: var(--background-dark);
+    display: block;
+    border-radius: 5px;
+}
+
+.dataset-element-image-container {
+    margin-top: 10px;
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    height: 190px;
+    min-height: 190px;
+    max-height: 190px;
+    position: relative;
+}
+
+.dataset-element-description-container {
+    width: 100%;
+    border-radius: 3px;
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    background: rgb(0,0,0,0.9);
+    z-index: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.dataset-element-description-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.dataset-element-description {
+    margin: 0;
+    font-size: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 5; /* Number of lines before truncation */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: pre-wrap;
+}
+
+.model-element-description-container {
+    width: 100%;
+    border-radius: 3px;
+    height: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+    background: rgb(0,0,0,0.9);
+    z-index: 1;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.model-element-description {
+    margin: 0;
+    font-size: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 7; /* Number of lines before truncation */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: pre-wrap;
+}
+
+.dataset-element-header {
+    display: flex;
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.dataset-element-icon {
+    width: 24px;
+}
+
+.dataset-element-icon-empty {
+    width: 24px;
+}
+
+.dataset-element-options {
+    padding: 5px;
+    border-radius: 12px;
+    box-sizing: border-box;
+}
+
+.dataset-element-options:hover {
+    background: var(--element-icon-hover);
+}
+
+.dataset-element-date, .dataset-element-count, .dataset-element-labels, .dataset-element-shape, .dataset-element-private, .dataset-element-datatype {
+    position: absolute;
+    font-size: 0.9rem;
+    padding: 2px 5px;
+    margin: 0;
+    border-radius: 3px;
+    background: var(--element);
+    bottom: 17px;
+    color: white;
+}
+
+.dataset-element-private {
+    left: 15px;
+    bottom: calc(17px + 30px);
+    text-transform: capitalize;
+}
+
+.dataset-element-date {
+    left: 15px;
+}
+
+.dataset-element-count {
+    right: 15px;
+}
+
+.dataset-element-labels {
+    right: 15px;
+    bottom: calc(17px + 30px);
+}
+
+.dataset-element-shape {
+    right: 15px;
+    top: 50px;
+    font-size: 0.8rem;
+    bottom: auto;
+}
+
+.dataset-element-datatype {
+    left: 15px;
+    top: 50px;
+    bottom: auto;
+    text-transform: capitalize;
+}
+
+.dataset-element-keywords-container {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin-top: 5px;
+}
+
+.dataset-element-keyword {
+    padding: 1px 10px;
+    font-size: 0.8rem;
+    margin-right: 3px;
+    margin-left: 3px;
+    max-width: calc(33% - 6px);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    background: var(--element-light);
+    border-radius: 3px;
+}
+
+.tensorflow-dataset-element:hover {
+    cursor: default;
+    background: var(--element);
+}
+
+@media all and (max-width: 1110px) {
+    .dataset-element {
+        width: 200px;
+        height: 200px;
+    }
+
+    .dataset-element-description {
+        font-size: 0.9rem;
+        -webkit-line-clamp: 4; /* Number of lines before truncation */
+    }
+
+    .model-element-description {
+        font-size: 0.9rem;
+        -webkit-line-clamp: 6; /* Number of lines before truncation */
+    }
+
+    .dataset-element-image-container {
+        width: 175px;
+        min-width: 175px;
+        height: 145px;
+        min-height: 145px;
+    }
+
+    .dataset-element-count, .dataset-element-labels, .dataset-element-date, .dataset-element-private, .dataset-element-shape, .dataset-element-datatype {
+        font-size: 0.8rem;
+    }
+
+    .dataset-element-count, .dataset-element-date {
+        bottom: 12px;
+    }
+
+    .dataset-element-private {
+        bottom: calc(17px + 23px);
+    }
+
+    .dataset-element-labels {
+        bottom: calc(17px + 23px);
+    }
+
+    .dataset-element-icon {
+        height: 20px;
+    }
+
+    .dataset-element-options {
+        height: 24px;
+    }
+}
+
+@media all and (max-width: 925px) and (min-width: 800px) { 
+    .my-datasets-container {
+        justify-content: center;
+    }
+
+    .dataset-element {
+        width: 250px;
+        height: 250px;
+    }
+
+    .dataset-element-image-container {
+        width: 230px;
+        min-width: 230px;
+        max-width: 230px;
+        height: 195px;
+        min-height: 195px;
+        max-height: 195px;
+    }
+
+    .dataset-element-count, .dataset-element-labels, .dataset-element-date, .dataset-element-private, .dataset-element-shape, .dataset-element-datatype {
+        font-size: 0.9rem;
+    }
+
+    .dataset-element-description {
+        font-size: 1rem;
+        -webkit-line-clamp: 5; /* Number of lines before truncation */
+    }
+
+    .model-element-description {
+        font-size: 1rem;
+        -webkit-line-clamp: 7; /* Number of lines before truncation */
+    }
+
+}
+
+@media all and (max-width: 800px) {
+    .my-datasets-container {
+        justify-content: center;
+    }
+}
