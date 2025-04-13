@@ -52,6 +52,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
     const [downloadingPercentage, setDownloadingPercentage] = useState(0)
 
     const [updateArea, setUpdateArea] = useState(false)
+    const [displayAreas, setDisplayAreas] = useState(false)
 
     const pageRef = useRef(null)
     const elementRef = useRef(null)
@@ -123,8 +124,8 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
             
                 // Convert percentage-based coordinates to pixel values
                 const percentageToPixels = (point) => ({
-                    x: (point[0] / 100) * canvas.width + DOT_SIZE / 2, // Adjust for the dot's width
-                    y: (point[1] / 100) * canvas.height + DOT_SIZE / 2, // Adjust for the dot's height
+                    x: (point[0] / 100) * canvas.offsetWidth + DOT_SIZE / 2,
+                    y: (point[1] / 100) * canvas.offsetHeight + DOT_SIZE / 2,
                 });
             
                 // Draw lines between points
@@ -210,13 +211,14 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
         return <div key={area.id} className={(hoveredAreaId && hoveredAreaId != area.id ? "display-none" : "")}>
             <canvas ref={(el) => (canvasRefs.current[areaIdx] = el)} 
                     className={"dataset-element-view-canvas " + 
-                        (hoveredAreaId ? "dataset-element-view-canvas-background" : "")} 
+                        (hoveredAreaId ? "dataset-element-view-canvas-background" : "") +
+                        (displayAreas ? "" : "hidden")} 
                     style={{zIndex: 1, width:"100%", 
                             height:"100%", top: 0, 
                             left: 0, position: "absolute"}}></canvas>
             {points.map((point, idx) => (
                 <div title="Click to drag" 
-                    className="dataset-element-view-point"
+                    className={"dataset-element-view-point " + (displayAreas ? "" : "hidden")}
                     key={idx} 
                     style={{top: point[1] + "%", 
                             left: point[0] + "%", 
@@ -254,16 +256,15 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
     }
 
     useEffect(() => {
+        setDisplayAreas(false)
+
         if (dataset) {
             setShowDatasetDescription(false)
         }
         if (datasetMainDisplayRef.current) {
             datasetMainDisplayRef.current.scrollTop = 0
         }
-    }, [elementsIndex])
 
-
-    useEffect(() => {
         if (!currentElementRef.current) return;
         currentElementRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
     }, [elementsIndex])
@@ -452,7 +453,10 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                         transformOrigin: "center",
                         transition: "transform 0.1s ease-out",
                     }}>
-                        <img onLoad={() => setUpdateArea(!updateArea)} 
+                        <img onLoad={() => {
+                            setDisplayAreas(true)
+                            setUpdateArea(!updateArea)
+                        }} 
                         ref={elementRef} 
                         className="dataset-element-view-image-area" 
                         src={element.file} 

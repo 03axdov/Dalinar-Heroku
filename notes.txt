@@ -4,6 +4,7 @@ TO-DO:
 - Maybe update for moving layers
 - Presave tensorflow datasets
 - AWS lambda
+- Look into images on smaller screens
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py

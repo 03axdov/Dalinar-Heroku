@@ -96,6 +96,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [rectanglePreviewOffset, setRectanglePreviewOffset] = useState(0) // x, y
     const [rectanglePreviewDimensions, setRectanglePreviewDimensions] = useState([0,0]) // x, y
 
+    const [displayAreas, setDisplayAreas] = useState(false)
+
     const [cursor, setCursor] = useState("")
 
     const datasetMainDisplayRef = useRef(null)
@@ -115,7 +117,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             setTextChanged(false)
             setCurrentText(currentElement.text)
             setOriginalText(currentElement.text)
-        }
+        }   
 
     }, [elements, elementsIndex])
 
@@ -285,14 +287,17 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         return <div key={area.id} className={(hoveredAreaId && hoveredAreaId != area.id ? "display-none" : "")}>
             <canvas ref={(el) => (canvasRefs.current[areaIdx] = el)} 
                     className={"dataset-element-view-canvas " + 
-                        (hoveredAreaId ? "dataset-element-view-canvas-background" : "")} 
+                        (hoveredAreaId ? "dataset-element-view-canvas-background" : "") +
+                        (displayAreas ? "" : "hidden")} 
                     style={{zIndex: 1, width:"100%", 
                             height:"100%", top: 0, 
                             left: 0, position: "absolute", 
                             display: (pointSelected[0] == area.id ? "none" : "block")}}></canvas>
             {points.map((point, idx) => (
                 <div title="Click to drag" 
-                    className={"dataset-element-view-point " + ((pointSelected[0] == area.id && pointSelected[1] == idx) ? "dataset-element-view-point-selected" : "")} 
+                    className={"dataset-element-view-point " + 
+                        ((pointSelected[0] == area.id && pointSelected[1] == idx) ? "dataset-element-view-point-selected" : "") +
+                        (displayAreas ? "" : "hidden")} 
                     key={idx} 
                     style={{top: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[1] : point[1]) + "%", 
                             left: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[0] : point[0]) + "%", 
@@ -635,6 +640,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }
 
     useEffect(() => {
+        setDisplayAreas(false)
         if (!currentElementRef.current) return;
         currentElementRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
         
@@ -770,6 +776,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         onContextMenu={(e) => e.preventDefault()}/>
                 </div>
             } else {
+
                 return <div className="dataset-element-view-image-container-area" 
                 onClick={(e) => {
                     if (pointSelected[0] == -1 && pointSelected[1] == -1) { // Don't do this if a point is selected
@@ -791,7 +798,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         transition: "transform 0.1s ease-out",
                     }}
                     onClick={(e) => e.stopPropagation()}>
-                        <img onLoad={() => setUpdateArea(!updateArea)} 
+                        <img onLoad={() => {
+                            setDisplayAreas(true)
+                            setUpdateArea(!updateArea)
+                        }} 
                         ref={elementRef} 
                         className="dataset-element-view-image-area" 
                         src={element.file} 
@@ -2170,7 +2180,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         {elements && elements[elementsIndex] && dataset && dataset.dataset_type.toLowerCase() == "image" && <form className="resize-form" onSubmit={(e) => {
                             e.preventDefault()
                             if (!dataset.imageHeight && !dataset.imageWidth) {
-                                resizeElementImage()
+                                activateConfirmPopup("Are you sure you want to resize this image?", resizeElementImage, "blue")
                             }
                         }}>
                             
