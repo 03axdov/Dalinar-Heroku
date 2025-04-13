@@ -7,13 +7,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-with open('./SECRET_KEY.txt') as f:
-    SECRET_KEY = f.read().strip() 
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 PRODUCTION = False
+
+# SECURITY WARNING: keep the secret key used in production secret!
+if DEBUG:
+    with open('./SECRET_KEY.txt') as f:
+        SECRET_KEY = f.read().strip()
+else:
+    SECRET_KEY = os.environ.get("SECRET_KEY")
 
 ALLOWED_HOSTS = ["dalinar-041d6630f0a7.herokuapp.com", "127.0.0.1", "www.dalinar.net", "dalinar.net"]
 
@@ -90,8 +93,11 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'dalinar.net@gmail.com'
 
-with open('./EMAIL_PASSWORD.txt') as f:
-    EMAIL_HOST_PASSWORD = f.read().strip() 
+if DEBUG:
+    with open('./EMAIL_PASSWORD.txt') as f:
+        EMAIL_HOST_PASSWORD = f.read().strip() 
+else:
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 
 TEMPLATES = [
     {
@@ -182,8 +188,11 @@ LOGOUT_REDIRECT_URL = '/accounts/login'
 
 AWS_ACCESS_KEY_ID = 'AKIA5JXOPCQYY5WKJEPD'
 
-with open('./AWS_SECRET_KEY.txt') as f:
-    AWS_SECRET_ACCESS_KEY = f.read().strip()
+if DEBUG:
+    with open('./AWS_SECRET_KEY.txt') as f:
+        AWS_SECRET_ACCESS_KEY = f.read().strip()
+else:
+    AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
     
 AWS_STORAGE_BUCKET_NAME = 'dalinar'
 AWS_S3_SIGNATURE_NAME = 's3v4',
