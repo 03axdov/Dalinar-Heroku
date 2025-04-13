@@ -2,6 +2,7 @@ import os
 import ssl
 from celery import Celery
 from django.conf import settings
+from kombu import Queue
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Dalinar.settings')
 
@@ -25,5 +26,15 @@ if redis_url.startswith("rediss://"):
 # Must be set regardless of SSL
 app.conf.broker_url = redis_url
 app.conf.result_backend = redis_url
+
+app.conf.task_queues = (
+    Queue('default'),
+    Queue('training'),
+)
+
+app.conf.task_routes = {
+    'api.tasks.train_model_task': {'queue': 'training'},
+    'api.tasks.train_model_tensorflow_dataset_task': {'queue': 'training'},
+}
 
 app.autodiscover_tasks()
