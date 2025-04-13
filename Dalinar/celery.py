@@ -32,6 +32,10 @@ app.conf.task_queues = (
     Queue('training', Exchange('training'), routing_key='training'),
 )
 
+app.conf.task_default_queue = 'default'
+app.conf.task_default_exchange = 'default'
+app.conf.task_default_routing_key = 'default'
+
 app.conf.task_routes = {
     'api.tasks.train_model_task': {'queue': 'training'},
     'api.tasks.train_model_tensorflow_dataset_task': {'queue': 'training'},
