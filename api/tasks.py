@@ -1415,3 +1415,10 @@ def create_model_file(request, model_instance):
         if os.path.exists(backend_temp_model_path):
             os.remove(backend_temp_model_path)
         return {"Bad request": str(e), "status": 400}
+    
+
+
+@shared_task
+def ping_task():
+    print("Ping task ran!")
+    return "pong"

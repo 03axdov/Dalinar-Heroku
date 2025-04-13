@@ -2,7 +2,7 @@ import os
 import ssl
 from celery import Celery
 from django.conf import settings
-from kombu import Queue
+from kombu import Exchange, Queue
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Dalinar.settings')
 
@@ -28,8 +28,8 @@ app.conf.broker_url = redis_url
 app.conf.result_backend = redis_url
 
 app.conf.task_queues = (
-    Queue('default'),
-    Queue('training'),
+    Queue('default', Exchange('default'), routing_key='default'),
+    Queue('training', Exchange('training'), routing_key='training'),
 )
 
 app.conf.task_routes = {
