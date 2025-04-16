@@ -362,7 +362,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         setLoading={setLoading}
                         BACKEND_URL={BACKEND_URL}
                     ></ElementFilters>}
-
+                    
+                    <button className="close-model-popup" title="Return to main display" onClick={() => setShowTrainModelPopup(false)}>Return to main display</button>
                 </div>
                 
                 <p className="create-layer-popup-description">
