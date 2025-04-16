@@ -248,7 +248,11 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
         const handleMouseMove = (e) => {
           const newWidth = startWidth + (e.clientX - startX)
 
-          setToolbarLeftWidth(Math.max(135, Math.min(newWidth, 250)));  // Arbitrary max and min width
+          if (newWidth < 25) { // Hide toolbar
+            setToolbarLeftWidth(15)
+          } else {  // Show toolbar
+            setToolbarLeftWidth(Math.max(135, Math.min(newWidth, 250)));  // Arbitrary max and min width
+          }
         };
     
         const handleMouseUp = () => {
@@ -375,7 +379,7 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
             </ModelDownloadPopup>}
 
             <div className="dataset-toolbar-left" style={{width: toolbarLeftWidth + "px"}}>
-                <div className="model-toolbar-left-inner">
+                <div className={"model-toolbar-left-inner " + (toolbarLeftWidth == 15 ? "hidden" : "")}>
                     <p className={"dataset-sidebar-title " + (toolbarLeftWidth < 150 ? "dataset-sidebar-title-small" : "")}>Layers</p>
                     
                     <div className="model-layers-list">
@@ -407,7 +411,14 @@ function PublicModel({currentProfile, activateConfirmPopup, notification, BACKEN
                             </div>
                     
                 </div>
-                <div className="dataset-toolbar-resizeable" onMouseDown={resizeLeftToolbarHandleMouseDown}></div>
+                <div className="dataset-toolbar-resizeable" 
+                onMouseDown={resizeLeftToolbarHandleMouseDown}
+                style={{width: (toolbarLeftWidth == 15 ? "15px" : "5px")}}>
+                    {toolbarLeftWidth == 15 && <img 
+                    className="toolbar-main-dropdown" 
+                    src={BACKEND_URL + "/static/images/down.svg"} 
+                    style={{transform: "rotate(270deg)"}}/>}
+                </div>
                 
             </div>
 

@@ -610,13 +610,6 @@
 .build-model-recompile:hover {
     background: #0147dd;
 }
-  
-.train-datasets-container::after {
-    content: '';
-    width: 250px;
-    max-width: 250px;
-    flex: auto;
-}
 
 .prediction-circle {
     height: 20px;
@@ -644,8 +637,42 @@
     }
 }
 
-@media all and (max-height: 750px) {
-    .download-popup, .create-layer-popup, .build-model-popup, .model-download-popup, .train-model-popup {
+.close-model-popup {
+    height: 20px;
+    width: 20px;
+    padding: 6px;
+    border-radius: 50%;
+    margin-left: auto;
+    cursor: pointer;
+    display: none;
+}
+.close-model-popup:hover {
+    background: rgba(45, 45, 45, 0.4);
+}
+
+@media all and (max-height: 800px) {
+    .download-popup, .create-layer-popup, .model-download-popup {
         padding-bottom: 0;
     }
+}
+
+.build-model-popup, .train-model-popup {
+    padding-bottom: 0;
+}
+
+.build-model-popup-container, .train-model-popup-container, .model-download-popup-container {
+    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    height: 100%;
+    box-shadow: none;
+}
+
+.build-model-popup-container, .model-download-popup-container {
+    padding: 0 calc((100% - 500px) / 2);
+    padding-top: 40px;
+}
+
+.close-model-popup {
+    display: block;
 }

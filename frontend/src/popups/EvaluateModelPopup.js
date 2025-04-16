@@ -286,6 +286,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                 e.stopPropagation()
             }}>
                 <div className="explore-datasets-title-container">
+                <img className="close-model-popup" title="Close" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => setShowEvaluateModelPopup(false)}/>
                     <h1 className="create-layer-popup-title" style={{width: "auto"}}>Evaluate model</h1>
 
                     {datasetTypeShown == "my" && <ElementFilters 

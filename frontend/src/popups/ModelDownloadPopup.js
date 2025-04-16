@@ -22,7 +22,7 @@ function ModelDownloadPopup({model, setShowDownloadPopup, downloadModel, isDownl
                 <DownloadCode name={model.name} datatype="model" framework="" downloadType="" BACKEND_URL={BACKEND_URL} modelValues={{format: format, filename: filename.replaceAll(" ", "_")}}></DownloadCode>
             </div>}
 
-            {!isDownloaded && <div className="model-download-popup-container" style={{width: "550px"}} onClick={(e) => {
+            {!isDownloaded && <div className="model-download-popup-container" onClick={(e) => {
                 e.stopPropagation()
                 
             }}>

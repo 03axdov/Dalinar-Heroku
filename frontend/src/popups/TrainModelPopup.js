@@ -362,7 +362,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         setLoading={setLoading}
                         BACKEND_URL={BACKEND_URL}
                     ></ElementFilters>}
-
+                    
+                    <img className="close-model-popup" title="Close" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => setShowTrainModelPopup(false)}/>
                 </div>
                 
                 <p className="create-layer-popup-description">
