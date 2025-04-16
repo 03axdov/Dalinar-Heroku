@@ -30,7 +30,7 @@
 
 .create-layer-popup-container, .build-model-popup-container, .model-download-popup-container, .train-model-popup-container {
     height: 650px;
-    max-height: 95%;
+    max-height: 90%;
     width: 600px;
     padding: 30px 40px;
     max-width: 90%;
@@ -38,6 +38,10 @@
     background: var(--background);
     overflow-y: auto;
     border-radius: 0;
+}
+
+.create-layer-popup-container::-webkit-scrollbar {
+    width: 8px;
 }
 
 .train-model-popup-container {
@@ -638,16 +642,16 @@
 }
 
 .close-model-popup {
-    height: 20px;
-    width: 20px;
-    padding: 6px;
-    border-radius: 50%;
+    height: 36px;
     margin-left: auto;
-    cursor: pointer;
-    display: none;
+    background: var(--gray);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
 }
 .close-model-popup:hover {
-    background: rgba(45, 45, 45, 0.4);
+    background: var(--gray-dark);
 }
 
 @media all and (max-height: 800px) {
@@ -671,8 +675,4 @@
 .build-model-popup-container, .model-download-popup-container {
     padding: 0 calc((100% - 500px) / 2);
     padding-top: 40px;
-}
-
-.close-model-popup {
-    display: block;
 }

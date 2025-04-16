@@ -286,7 +286,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                 e.stopPropagation()
             }}>
                 <div className="explore-datasets-title-container">
-                <img className="close-model-popup" title="Close" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => setShowEvaluateModelPopup(false)}/>
+                
                     <h1 className="create-layer-popup-title" style={{width: "auto"}}>Evaluate model</h1>
 
                     {datasetTypeShown == "my" && <ElementFilters 
@@ -311,6 +311,8 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                         setLoading={setLoading}
                         BACKEND_URL={BACKEND_URL}
                     ></ElementFilters>}
+
+                    <button className="close-model-popup" title="Return to main display" onClick={() => setShowTrainModelPopup(false)}>Return to main display</button>
                 </div>
                 
                 <p className="create-layer-popup-description">

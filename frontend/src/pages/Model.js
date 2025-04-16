@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useRef} from "react"
+import React, {useEffect, useState, useRef, useCallback} from "react"
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios"
 
@@ -17,6 +17,8 @@ import { LAYERS, getLayerName, computeParams } from "../layers";
 import DescriptionTable from "../components/DescriptionTable";
 import { TEMPLATE_DATA } from "../helpers/templates"
 import ProgressBar from "../components/ProgressBar";
+
+import throttle from 'lodash.throttle';
 
 
 // The default page. Login not required.
@@ -68,28 +70,37 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     const [loadingTemplate, setLoadingTemplate] = useState(false)
 
     // For scrolling by grabbing
-    const [mouseOnLayer, setMouseOnLayer] = useState(false)
+    const [mouseOnLayer, setMouseOnLayer] = useState(false);
     const scrollRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
-    const [startX, setStartX] = useState(0);
-    const [scrollLeft, setScrollLeft] = useState(0);
+    const startX = useRef(0);
+    const startY = useRef(0);
+    const scrollLeft = useRef(0);
+    const scrollTop = useRef(0);
 
     const handleMouseDown = (e) => {
-        if (mouseOnLayer || e.button===1) {return}
+        if (mouseOnLayer || e.button === 1) return;
         setIsDragging(true);
-        setStartX(e.pageX - scrollRef.current.offsetLeft);
-        setScrollLeft(scrollRef.current.scrollLeft);
+        startX.current = e.pageX - scrollRef.current.offsetLeft;
+        scrollLeft.current = scrollRef.current.scrollLeft;
+        startY.current = e.pageY - scrollRef.current.offsetTop;
+        scrollTop.current = scrollRef.current.scrollTop;
     };
-    
-    const handleMouseMove = (e) => {
+
+    const throttledMouseMove = useCallback(throttle((e) => {
         if (!isDragging) return;
         e.preventDefault();
         const x = e.pageX - scrollRef.current.offsetLeft;
-        const walk = (x - startX) * 1; // Adjust speed by changing multiplier
-        scrollRef.current.scrollLeft = scrollLeft - walk;
+        const y = e.pageY - scrollRef.current.offsetTop;
+        const walkX = (x - startX.current) * 1;
+        const walkY = (y - startY.current) * 1;
+        scrollRef.current.scrollLeft = scrollLeft.current - walkX;
+        scrollRef.current.scrollTop = scrollTop.current - walkY;
+    }, 10), [isDragging, startX, startY, scrollLeft, scrollTop]);
+
+    const handleMouseUp = () => {
+        setIsDragging(false);
     };
-    
-    const handleMouseUp = () => setIsDragging(false);
     const handleMouseLeave = () => setIsDragging(false);
 
     const descriptionContainerRef = useRef(null)
@@ -873,7 +884,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             provided.innerRef(el)
                         }}
                         onMouseDown={handleMouseDown}
-                        onMouseMove={handleMouseMove}
+                        onMouseMove={throttledMouseMove}
                         onMouseUp={handleMouseUp}
                         onMouseLeave={handleMouseLeave}
                         >
