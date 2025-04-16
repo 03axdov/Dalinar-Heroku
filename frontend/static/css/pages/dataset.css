@@ -27,6 +27,9 @@
     height: 100%;
     width: 5px;
     background: var(--sidebar-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: e-resize;
 }
 .dataset-toolbar-resizeable:hover {
@@ -751,7 +754,6 @@
     width: auto; /* Ensure natural aspect ratio */
     height: auto; /* Ensure natural aspect ratio */
     box-shadow: 0 0 50px 0 var(--background-shadow);
-    object-fit: fill;
     user-select: none;
 }
 

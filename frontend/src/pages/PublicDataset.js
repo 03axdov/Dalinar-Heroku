@@ -776,7 +776,11 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
         const handleMouseMove = (e) => {
           const newWidth = startWidth + (e.clientX - startX)
 
-          setToolbarLeftWidth(Math.max(135, Math.min(newWidth, 250)));  // Arbitrary max and min width
+          if (newWidth < 25) { // Hide toolbar
+            setToolbarLeftWidth(15)
+          } else {  // Show toolbar
+            setToolbarLeftWidth(Math.max(135, Math.min(newWidth, 250)));  // Arbitrary max and min width
+          }
         };
     
         const handleMouseUp = () => {
@@ -800,7 +804,11 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
         const handleMouseMove = (e) => {
           const newWidth = startWidth - (e.clientX - startX)
 
-          setToolbarRightWidth(Math.max(135, Math.min(newWidth, 250)));  // Arbitrary max and min width
+          if (newWidth < 25) { // Hide toolbar
+            setToolbarRightWidth(15)
+          } else {  // Show toolbar
+            setToolbarRightWidth(Math.max(135, Math.min(newWidth, 250)));  // Arbitrary max and min width
+          }
         };
     
         const handleMouseUp = () => {
@@ -935,7 +943,7 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
             </DownloadPopup>}
             
             <div className="dataset-toolbar-left" style={{width: toolbarLeftWidth + "px"}}>
-                <div className="dataset-elements">
+                <div className={"dataset-elements " + (toolbarLeftWidth == 15 ? "hidden" : "")}>
                     <div className="dataset-elements-scrollable">
                         <p className={"dataset-sidebar-title " + (toolbarLeftWidth < 150 ? "dataset-sidebar-title-small" : "")}>Elements</p>
                         
@@ -1013,7 +1021,14 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
                     
                 </div>
 
-                <div className="dataset-toolbar-resizeable" onMouseDown={resizeLeftToolbarHandleMouseDown}></div>
+                <div className="dataset-toolbar-resizeable" 
+                onMouseDown={resizeLeftToolbarHandleMouseDown}
+                style={{width: (toolbarLeftWidth == 15 ? "15px" : "5px")}}>
+                    {toolbarLeftWidth == 15 && <img 
+                    className="toolbar-main-dropdown" 
+                    src={BACKEND_URL + "/static/images/down.svg"} 
+                    style={{transform: "rotate(270deg)"}}/>}
+                </div>
             </div>
 
             <div className="dataset-main" style={{width: "calc(100% - " + toolbarLeftWidth + "px - " + toolbarRightWidth + "px)"}}>
@@ -1131,8 +1146,15 @@ function PublicDataset({currentProfile, BACKEND_URL, notification}) {   // Curre
             </div>
 
             <div className="dataset-toolbar-right" style={{width: toolbarRightWidth + "px"}}>
-                <div className="dataset-toolbar-resizeable" onMouseDown={resizeRightToolbarHandleMouseDown}></div>
-                <div className="dataset-labels">
+            <div className="dataset-toolbar-resizeable" 
+                onMouseDown={resizeRightToolbarHandleMouseDown}
+                style={{width: (toolbarRightWidth == 15 ? "15px" : "5px")}}>
+                    {toolbarRightWidth == 15 && <img 
+                    className="toolbar-main-dropdown" 
+                    src={BACKEND_URL + "/static/images/down.svg"} 
+                    style={{transform: "rotate(90deg)"}}/>}
+                </div>
+                <div className={"dataset-labels " + (toolbarRightWidth == 15 ? "hidden" : "")}>
                     <div className={"dataset-labels-scrollable " + (dataset && dataset.datatype=="area" ? "dataset-labels-nonscrollable" : "")}>
                         <p className={"dataset-sidebar-title " + (toolbarRightWidth < 150 ? "dataset-sidebar-title-small" : "")}>Labels</p>
     
