@@ -61,7 +61,7 @@ function ElementFilters({show, setShow, isModel, sort, setSort,
                 <option value="not-built">Not built</option>
             </select>}
 
-            <select title="Sort by" className="explore-datasets-sort" value={sort} onChange={(e) => {
+            {!isModel && <select title="Sort by" className="explore-datasets-sort" value={sort} onChange={(e) => {
                 setSort(e.target.value)
             }}>
                 <option value="downloads">Downloads</option>
@@ -69,7 +69,15 @@ function ElementFilters({show, setShow, isModel, sort, setSort,
                 <option value="labels">Labels</option>
                 <option value="alphabetical">Alphabetical</option>
                 <option value="date">Created</option>
-            </select>
+            </select>}
+            {isModel && <select title="Sort by" className="explore-datasets-sort" value={sort} onChange={(e) => {
+                setSort(e.target.value)
+            }}>
+                <option value="downloads">Downloads</option>
+                <option value="layers">Layers</option>
+                <option value="alphabetical">Alphabetical</option>
+                <option value="date">Created</option>
+            </select>}
 
             {show == "image" && imageDimensions && setImageDimensions && <div className="image-dimensions-filter-container">
                 <input type="number" title="Image width" placeholder="Width" className="image-dimensions-filter" value={imageWidth} onChange={(e) => {

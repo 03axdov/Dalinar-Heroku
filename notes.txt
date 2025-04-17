@@ -1,12 +1,7 @@
 TO-DO:
 - Maybe update for moving layers
 - Presave tensorflow datasets
-- Pagination of datasets
-
-For building:
-- Update DEBUG and PRODUCTION in settings.py
-- Update SECRET_KEY and AWS_SECRET_KEY
-- With heroku, run "python manage.py migrate" and "python.manage.py migrate api"
+- Fix dimensions for list api calls of datasets
 
 Start Celery Worker: 
 celery -A Dalinar.celery worker --pool=solo -l info
