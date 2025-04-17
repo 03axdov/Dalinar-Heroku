@@ -1,10 +1,6 @@
 TO-DO:
-- Filter by image and text for models as well
-- Parameter titles if needed
 - Maybe update for moving layers
 - Presave tensorflow datasets
-- AWS lambda
-- Look into images on smaller screens
 - Pagination of datasets
 
 For building:

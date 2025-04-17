@@ -3,7 +3,8 @@ import {useNavigate} from "react-router-dom"
 
 function ElementFilters({show, setShow, isModel, sort, setSort,
                         imageDimensions, setImageDimensions, search, setSearch, setLoading, 
-                        BACKEND_URL, savedTypeShown, setSavedTypeShown, setSearchParams, startParam}) {
+                        BACKEND_URL, savedTypeShown, setSavedTypeShown, setSearchParams, startParam,
+                        showModelType, setShowModelType}) {
 
     const [imageWidth, setImageWidth] = useState("")
     const [imageHeight, setImageHeight] = useState("")
@@ -41,7 +42,14 @@ function ElementFilters({show, setShow, isModel, sort, setSort,
             {setShow && !isModel && <select title="Show which types" className="explore-datasets-sort" value={show} onChange={(e) => {
                     setShow(e.target.value)
                 }}>
-                <option value="all">All</option>
+                <option value="all">All types</option>
+                <option value="image">Image</option>
+                <option value="text">Text</option>
+            </select>}
+            {setShowModelType && <select title="Show which types" className="explore-datasets-sort" value={showModelType} onChange={(e) => {
+                    setShowModelType(e.target.value)
+                }}>
+                <option value="all">All types</option>
                 <option value="image">Image</option>
                 <option value="text">Text</option>
             </select>}
