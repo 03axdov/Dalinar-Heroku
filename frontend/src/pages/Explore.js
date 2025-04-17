@@ -33,7 +33,7 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
 
     useEffect(() => {
         getModels()
-    }, [])
+    }, [modelShow, modelShowType, sortModels])
 
     useEffect(() => {
         getDatasets()
@@ -68,11 +68,15 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
         setLoadingModels(true)
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/models/' + (searchModels ? "?search=" + searchModels : ""),
+            url: window.location.origin + '/api/models/?' + 
+            "search=" + searchModels +
+            "&model_type=" + modelShowType +
+            "&model_build_type=" + modelShow +
+            "&order_by=" + sortModels,
         })
         .then((res) => {
             if (res.data) {
-                setModels(sort_models(res.data))
+                setModels(res.data)
             } else {
                 setModels([])
             }
@@ -85,39 +89,6 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
         })
 
     }
-    
-    function sort_models(ms) {
-        let tempModels = [...ms]
-
-        
-        tempModels.sort((m1, m2) => {
-            if (sortModels == "downloads") {
-                if (m1.downloaders.length != m2.downloaders.length) {
-                    return m2.downloaders.length - m1.downloaders.length
-                } else {
-                    return m1.name.localeCompare(m2.name)
-                }
-
-            } else if (sortModels == "alphabetical") {
-                return m1.name.localeCompare(m2.name)
-
-            } else if (sortModels == "layers") {
-                if (m1.layers.length != m2.layers.length) {
-                    return m2.layers.length - m1.layers.length
-                } else {
-                    return m1.name.localeCompare(m2.name)
-                }
-            }
-        })
-
-        return tempModels
-    }
-
-    useEffect(() => {
-        if (!loadingModels) {
-            setModels(sort_models(models))
-        }
-    }, [sortModels])
 
 
     // Search input timing
@@ -157,16 +128,6 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
             };
     }, [searchModels]);
 
-    function modelShouldShow(model) {
-        if (modelShowType == "all" || modelShowType == model.model_type.toLowerCase()) {
-            if (modelShow == "all") return true
-            if (modelShow == "built") return model.model_file != null
-            if (modelShow == "not-built") return model.model_file == null
-        }
-        return false
-    }
-
-    const visibleModels = models.filter((model) => modelShouldShow(model));
 
     return <div className="explore-container">
         <div className="home-sidebar">
@@ -253,15 +214,11 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
                 </div>
                 
                 <div className="my-datasets-container">
-                    {visibleModels.map((model) => (
+                    {models.map((model) => (
                         <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                     ))}
                     
-                    {!loadingModels && visibleModels.length === 0 && models.length > 0 && <p className="gray-text">No such models found.</p>}
-
-                    {!loadingModels && models.length === 0 && searchModels.length > 0 && (
-                        <p className="gray-text">No such datasets found.</p>
-                    )}
+                    {!loadingModels && models.length === 0 && <p className="gray-text">No such models found.</p>}
 
                     {loadingModels && models.length === 0 && (
                         [...Array(4)].map((e, i) => (

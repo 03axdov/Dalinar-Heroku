@@ -43,7 +43,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
     useEffect(() => {
         getModels()
-    }, [])
+    }, [modelShow, modelShowType, sortModels])
 
     useEffect(() => {
         getDatasets()
@@ -95,11 +95,15 @@ function Home({currentProfile, notification, BACKEND_URL}) {
         setLoadingModels(true)
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/my-models/' + (searchModels ? "?search=" + searchModels : ""),
+            url: window.location.origin + '/api/my-models/?' + 
+            "search=" + searchModels +
+            "&model_type=" + modelShowType +
+            "&model_build_type=" + modelShow +
+            "&order_by=" + sortModels,
         })
         .then((res) => {
             if (res.data) {
-                setModels(sort_models(res.data))
+                setModels(res.data)
             } else {
                 setModels([])
             }
@@ -111,32 +115,6 @@ function Home({currentProfile, notification, BACKEND_URL}) {
             setLoadingModels(false)
         })
 
-    }
-
-    function sort_models(ms) {
-        let tempModels = [...ms]
-        
-        tempModels.sort((m1, m2) => {
-            if (sortModels == "downloads") {
-                if (m1.downloaders.length != m2.downloaders.length) {
-                    return m2.downloaders.length - m1.downloaders.length
-                } else {
-                    return m1.name.localeCompare(m2.name)
-                }
-
-            } else if (sortModels == "alphabetical") {
-                return m1.name.localeCompare(m2.name)
-
-            } else if (sortModels == "layers") {
-                if (m1.layers.length != m2.layers.length) {
-                    return m2.layers.length - m1.layers.length
-                } else {
-                    return m1.name.localeCompare(m2.name)
-                }
-            }
-        })
-
-        return tempModels
     }
 
     function sort_saved_datasets(ds) {
@@ -203,12 +181,6 @@ function Home({currentProfile, notification, BACKEND_URL}) {
             setSavedDatasets(sort_saved_datasets(savedDatasets))
         }
     }, [sortSavedDatasets])
-
-    useEffect(() => {
-        if (!loadingModels) {
-            setModels(sort_models(models))
-        }
-    }, [sortModels])
 
     useEffect(() => {
         if (!loadingSaved) {
@@ -334,7 +306,6 @@ function Home({currentProfile, notification, BACKEND_URL}) {
         return false
     }
 
-    const visibleModels = models.filter((model) => modelShouldShow(model));
     const visibleSavedDatasets = savedDatasets.filter((dataset) => datasetShouldShow(dataset));
     const visibleSavedModels = savedModels.filter((model) => modelShouldShow(model));
 
@@ -432,18 +403,14 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 
                 <div className="my-datasets-container">
 
-                    {visibleModels.map((model) => (
+                    {models.map((model) => (
                         <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL}/>
                     ))}
                     
-                    {!loadingModels && visibleModels.length === 0 && models.length > 0 && <p className="gray-text">No such models found.</p>}
+                    {!loadingModels && models.length === 0 && currentProfile.modelsCount > 0 && <p className="gray-text">No such models found.</p>}
 
-                    {!loadingModels && models.length === 0 && searchModels.length === 0 && (
+                    {!loadingModels && models.length === 0 && currentProfile.modelsCount == 0 && (
                         <p>You don't have any models. Click <span className="link" onClick={() => navigate("/create-model")}>here</span> to create one.</p>
-                    )}
-
-                    {!loadingModels && models.length === 0 && searchModels.length > 0 && (
-                        <p className="gray-text">No such datasets found.</p>
                     )}
 
                     {loadingModels && models.length === 0 && currentProfile.modelsCount > 0 && (

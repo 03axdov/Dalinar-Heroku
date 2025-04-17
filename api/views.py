@@ -1027,17 +1027,41 @@ class DeleteArea(APIView):
         
 # MODEL FUNCTIONALITY
 
+def model_order_by(models, order_by):
+    if order_by == "downloads": 
+        return models.order_by("downloaders")
+    if order_by == "layers":
+        return models.annotate(num_layers=Count('layers', distinct=True)).order_by('-num_layers')
+    if order_by == "alphabetical": 
+        return models.order_by("name")
+    if order_by == "date": 
+        return models.order_by("created_at")
+    return models
+
 class ModelListPublic(generics.ListAPIView):
     serializer_class = ModelSerializer
     permission_classes = [AllowAny]
     
     def get_queryset(self):
         search = self.request.GET.get("search")
-        if search == None: search = ""
+        model_type = self.request.GET.get("model_type")
+        model_build_type = self.request.GET.get("model_build_type")
+        order_by = self.request.GET.get("order_by")
+        
         models = Model.objects.filter(Q(visibility="public") & (
             # Search handling
             Q(name__icontains=search)
         ))
+        if model_type != "all":
+            models = models.filter(model_type=model_type)
+        if model_build_type != "all":
+            if model_build_type == "built":
+                models = models.filter(Q(model_file__isnull=False))
+            else:
+                models = models.filter(Q(model_file__isnull=True) | Q(model_file=''))
+        if order_by:
+            models = model_order_by(models, order_by)
+
         return models
 
 
@@ -1051,8 +1075,21 @@ class ModelListProfile(generics.ListCreateAPIView):
         models = profile.models
         
         search = self.request.GET.get("search")
+        model_type = self.request.GET.get("model_type")
+        model_build_type = self.request.GET.get("model_build_type")
+        order_by = self.request.GET.get("order_by")
+
         if (search):
             models = models.filter(Q(name__contains=search))
+        if model_type != "all":
+            models = models.filter(model_type=model_type)
+        if model_build_type != "all":
+            if model_build_type == "built":
+                models = models.filter(Q(model_file__isnull=False))
+            else:
+                models = models.filter(Q(model_file__isnull=True) | Q(model_file=''))
+        if order_by:
+            models = model_order_by(models, order_by)
 
         return models
     
