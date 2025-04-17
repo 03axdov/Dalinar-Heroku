@@ -1,10 +1,11 @@
-import React, {useState, useEffect, useRef} from "react"
+import React, {useState, useEffect, useRef, useCallback} from "react"
 import axios from 'axios'
 import DatasetElement from "../components/DatasetElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import ProgressBar from "../components/ProgressBar"
 import ElementFilters from "../components/minor/ElementFilters"
 import { useTask } from "../contexts/TaskContext"
+import { debounce } from 'lodash';
 
 function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentProfile, BACKEND_URL, notification, activateConfirmPopup, getModel}) {
     const { getTaskResult } = useTask();
@@ -33,9 +34,11 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
 
     const [imageDimensions, setImageDimensions] = useState(["", ""])
 
+    const [nextPageDatasets, setNextPageDatasets] = useState(null);
+
     useEffect(() => {
         getDatasets()
-    }, [])
+    }, [sortDatasets])
 
     useEffect(() => {
         if (currentProfile && currentProfile.saved_datasets) {
@@ -47,13 +50,18 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         setLoading(true)
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/my-datasets/' + (search ? "?search=" + search : ""),
+            url: window.location.origin + '/api/my-datasets/?' +
+                "search=" + search +
+                "&dataset_type=" + model_type +
+                "&order_by=" + sortDatasets,
         })
         .then((res) => {
             if (res.data) {
-                setDatasets(sort_datasets(res.data))
+                setDatasets(res.data.results)
+                setNextPageDatasets(res.data.next)
             } else {
                 setDatasets([])
+                setNextPageDatasets(res.data.next)
             }
 
         }).catch((err) => {
@@ -63,6 +71,54 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
             setLoading(false)
         })
     }
+
+    const loadMoreDatasets = useCallback(debounce(() => {
+        if (!nextPageDatasets || loading) return;
+        setLoading(true);
+        axios.get(nextPageDatasets)
+            .then((res) => {
+                if (res.data) {
+                    setDatasets(prev => {
+                        const combined = [...prev, ...res.data.results];
+
+                        // Deduplicate based on dataset.id
+                        const unique = Array.from(
+                            new Map(combined.map(item => [item.id, item])).values()
+                        );
+
+                        return unique;
+                    });
+                    setNextPageDatasets(res.data.next);
+                }
+            })
+            .catch(err => {
+                notification("An error occurred while loading more datasets.", "failure");
+            })
+            .finally(() => setLoading(false));
+    }, 500), [nextPageDatasets, loading]);
+
+    const loaderRef = useRef(null);
+    
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && nextPageDatasets) {
+                    loadMoreDatasets();
+                }
+            },
+            { threshold: 1.0 }
+        );
+
+        if (loaderRef.current) {
+            observer.observe(loaderRef.current);
+        }
+
+        return () => {
+            if (loaderRef.current) {
+                observer.unobserve(loaderRef.current);
+            }
+        };
+    }, [loaderRef.current, nextPageDatasets, loading]);
 
     let resInterval = null;
     function trainModel(dataset_id, tensorflowDatasetSelected = "") {
@@ -160,44 +216,6 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
 
     }
 
-    console.log(trainingData)
-
-    function sort_datasets(ds) {
-        let tempDatasets = [...ds]
-
-        tempDatasets.sort((d1, d2) => {
-            if (sortDatasets == "downloads") {
-                if (d1.downloaders.length != d2.downloaders.length) {
-                    return d2.downloaders.length - d1.downloaders.length
-                } else {
-                    return d1.name.localeCompare(d2.name)
-                }
-                
-            } else if (sortDatasets == "alphabetical") {
-                return d1.name.localeCompare(d2.name)
-            } else if (sortDatasets == "date") {
-                return new Date(d2.created_at) - new Date(d1.created_at)
-            } else if (sortDatasets == "elements") {
-                if (d1.elements.length != d2.elements.length) {
-                    return d2.elements.length - d1.elements.length
-                } else {
-                    return d1.name.localeCompare(d2.name)
-                }
-                
-            } else if (sortDatasets == "labels") {
-                if (d1.labels.length != d2.labels.length) {
-                    return d2.labels.length - d1.labels.length
-                } else {
-                    return d1.name.localeCompare(d2.name)
-                }
-                
-            }
-        })
-
-        return tempDatasets
-
-    }
-
     function sort_saved_datasets(ds) {
         let tempDatasets = [...ds]
         
@@ -236,12 +254,6 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
             setSavedDatasets(sort_saved_datasets(savedDatasets))
         }
     }, [sortSavedDatasets])
-    
-    useEffect(() => {
-        if (!loading) {
-            setDatasets(sort_datasets(datasets))
-        }
-    }, [sortDatasets])
 
 
     const firstSearch = useRef(true)
@@ -324,7 +336,6 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         return true;
     }
 
-    const visibleDatasets = datasets.filter((dataset) => datasetShouldShow(dataset));
     const visibleSavedDatasets = savedDatasets.filter((dataset) => datasetShouldShow(dataset));
 
     return (
@@ -454,7 +465,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
       
                     </div>
 
-                    {visibleDatasets.map((dataset) => (
+                    {datasets.map((dataset) => (
                         ((dataset.dataset_type.toLowerCase() == model_type) ? <div title={(dataset.datatype == "classification" ? "Train on this dataset": "Area datasets not supported.")} key={dataset.id} onClick={() => {
                             if (dataset.datatype == "classification") {
                                 datasetOnClick(dataset)
@@ -468,14 +479,10 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         </div> : "")
                     ))}
                     
-                    {!loading && visibleDatasets.length === 0 && datasets.length > 0 && <p className="gray-text">No such datasets found.</p>}
+                    {!loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && <p className="gray-text">No such datasets found.</p>}
 
-                    {!loading && datasets.length === 0 && search.length === 0 && (
+                    {!loading && currentProfile.datasetsCount === 0 && (
                         <p style={{width: "250px"}}>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
-                    )}
-
-                    {!loading && datasets.length === 0 && search.length > 0 && (
-                        <p className="gray-text">No such datasets found.</p>
                     )}
 
                     {loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && (
@@ -483,6 +490,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                             <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true} isTraining={true}/>
                         ))
                     )}
+
+                    {nextPageDatasets && <div ref={loaderRef}><DatasetElementLoading BACKEND_URL={BACKEND_URL} isPublic={true}></DatasetElementLoading></div>}
 
                 </div>}
 

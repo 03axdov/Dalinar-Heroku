@@ -1,13 +1,8 @@
 TO-DO:
 - Maybe update for moving layers
 - Presave tensorflow datasets
-- Pagination of datasets
+- Fix dimensions for list api calls of datasets
 
-For building:
-- Update DEBUG and PRODUCTION in settings.py
-- Update SECRET_KEY and AWS_SECRET_KEY
-- Remove migrations (not __init__.py)
-- python manage.py makemigrations api
 
 Start Celery Worker: 
 celery -A Dalinar.celery worker --pool=solo -l info
