@@ -51,7 +51,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
 
     useEffect(() => {
         getDatasets()
-    }, [datasetShow, sortDatasets])
+    }, [datasetShow, sortDatasets, imageDimensions])
 
     useEffect(() => {
         if (is_explore) return;
@@ -71,14 +71,19 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
     const getDatasets = () => {
         setLoading(true)
 
-        const BASE_URL = window.location.origin + "/api/" + (is_explore ? "datasets/?" : "my-datasets/?")
+        let URL = window.location.origin + "/api/" + (is_explore ? "datasets/?" : "my-datasets/?")
+        URL += "search=" + search +
+                "&dataset_type=" + datasetShow +
+                "&order_by=" + sortDatasets
+
+        if (datasetShow == "image") {
+            URL += "&imageWidth=" + imageDimensions[0] +
+                "&imageHeight=" + imageDimensions[1]
+        }
 
         axios({
             method: 'GET',
-            url: BASE_URL + 
-                "search=" + search +
-                "&dataset_type=" + datasetShow +
-                "&order_by=" + sortDatasets,
+            url: URL
         })
         .then((res) => {
             if (res.data) {

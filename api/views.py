@@ -152,6 +152,8 @@ class DatasetListPublic(generics.ListAPIView):
         search = self.request.GET.get("search")
         dataset_type = self.request.GET.get("dataset_type")
         order_by = self.request.GET.get("order_by")
+        imageWidth = self.request.GET.get("imageWidth")
+        imageHeight = self.request.GET.get("imageHeight")
         
         datasets = Dataset.objects.filter(Q(visibility="public") & (
             # Search handling
@@ -163,6 +165,11 @@ class DatasetListPublic(generics.ListAPIView):
         ))
         if dataset_type != "all":
             datasets = datasets.filter(dataset_type=dataset_type)
+        if imageWidth:
+            datasets = datasets.filter(imageWidth=imageWidth)
+        if imageHeight:
+            datasets = datasets.filter(imageHeight=imageHeight)
+
         if order_by:
             datasets = dataset_order_by(datasets, order_by)
 
@@ -181,6 +188,8 @@ class DatasetListProfile(generics.ListCreateAPIView):
         search = self.request.GET.get("search")
         dataset_type = self.request.GET.get("dataset_type")
         order_by = self.request.GET.get("order_by")
+        imageWidth = self.request.GET.get("imageWidth")
+        imageHeight = self.request.GET.get("imageHeight")
 
         if (search):
             datasets = datasets.filter(Q(name__contains=search) | (
@@ -190,6 +199,10 @@ class DatasetListProfile(generics.ListCreateAPIView):
             ))
         if dataset_type != "all":
             datasets = datasets.filter(dataset_type=dataset_type)
+        if imageWidth:
+            datasets = datasets.filter(imageWidth=imageWidth)
+        if imageHeight:
+            datasets = datasets.filter(imageHeight=imageHeight)
 
         if order_by:
             datasets = dataset_order_by(datasets, order_by)
