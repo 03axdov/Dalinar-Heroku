@@ -32,19 +32,25 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
     const [imageDimensions, setImageDimensions] = useState(["", ""])    // The one that is used
 
     useEffect(() => {
-        getDatasets()
         getModels()
     }, [])
+
+    useEffect(() => {
+        getDatasets()
+    }, [datasetShow, sortDatasets])
 
     const getDatasets = () => {
         setLoading(true)
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/datasets/' + (search ? "?search=" + search : ""),
+            url: window.location.origin + '/api/datasets/?' + 
+            "search=" + search +
+            "&dataset_type=" + datasetShow +
+            "&order_by=" + sortDatasets,
         })
         .then((res) => {
             if (res.data) {
-                setDatasets(sort_datasets(res.data))
+                setDatasets(res.data)
             } else {
                 setDatasets([])
             }
@@ -107,50 +113,6 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
         return tempModels
     }
 
-    function sort_datasets(ds) {
-
-        let tempDatasets = [...ds]
-
-        
-        tempDatasets.sort((d1, d2) => {
-            if (sortDatasets == "downloads") {
-                if (d1.downloaders.length != d2.downloaders.length) {
-                    return d2.downloaders.length - d1.downloaders.length
-                } else {
-                    return d1.name.localeCompare(d2.name)
-                }
-                
-            } else if (sortDatasets == "alphabetical") {
-                return d1.name.localeCompare(d2.name)
-            } else if (sortDatasets == "date") {
-                return new Date(d2.created_at) - new Date(d1.created_at)
-            } else if (sortDatasets == "elements") {
-                if (d1.elements.length != d2.elements.length) {
-                    return d2.elements.length - d1.elements.length
-                } else {
-                    return d1.name.localeCompare(d2.name)
-                }
-                
-            } else if (sortDatasets == "labels") {
-                if (d1.labels.length != d2.labels.length) {
-                    return d2.labels.length - d1.labels.length
-                } else {
-                    return d1.name.localeCompare(d2.name)
-                }
-                
-            }
-        })
-
-        return tempDatasets
-
-    }
-
-    useEffect(() => {
-        if (!loading) {
-            setDatasets(sort_datasets(datasets))
-        }
-    }, [sortDatasets])
-
     useEffect(() => {
         if (!loadingModels) {
             setModels(sort_models(models))
@@ -195,21 +157,6 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
             };
     }, [searchModels]);
 
-    function datasetShouldShow(dataset) {
-        if (datasetShow == "all" || datasetShow == dataset.dataset_type.toLowerCase()) {
-            if (datasetShow == "image") {
-                if (imageDimensions[0] && imageDimensions[0] != dataset.imageWidth) {
-                    return false
-                }
-                if (imageDimensions[1] && imageDimensions[1] != dataset.imageHeight) {
-                    return false
-                }
-            }
-            return true;
-        }
-        return false
-    }
-
     function modelShouldShow(model) {
         if (modelShowType == "all" || modelShowType == model.model_type.toLowerCase()) {
             if (modelShow == "all") return true
@@ -219,7 +166,6 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
         return false
     }
 
-    const visibleDatasets = datasets.filter((dataset) => datasetShouldShow(dataset));
     const visibleModels = models.filter((model) => modelShouldShow(model));
 
     return <div className="explore-container">
@@ -271,15 +217,11 @@ function Explore({checkLoggedIn, BACKEND_URL, notification}) {
                 
                 <div className="my-datasets-container">
                     
-                    {visibleDatasets.map((dataset) => (
+                    {datasets.map((dataset) => (
                         <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                     ))}
                     
-                    {!loading && visibleDatasets.length === 0 && datasets.length > 0 && <p className="gray-text">No such datasets found.</p>}
-
-                    {!loading && datasets.length === 0 && search.length > 0 && (
-                        <p className="gray-text">No such datasets found.</p>
-                    )}
+                    {!loading && datasets.length === 0 && <p className="gray-text">No such datasets found.</p>}
 
                     {loading && datasets.length === 0 && (
                         [...Array(4)].map((e, i) => (

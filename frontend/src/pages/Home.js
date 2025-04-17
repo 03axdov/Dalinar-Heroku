@@ -42,9 +42,12 @@ function Home({currentProfile, notification, BACKEND_URL}) {
     const [imageDimensions, setImageDimensions] = useState(["", ""])
 
     useEffect(() => {
-        getDatasets()
         getModels()
     }, [])
+
+    useEffect(() => {
+        getDatasets()
+    }, [datasetShow, sortDatasets])
 
     useEffect(() => {
         if (currentProfile && (currentProfile.saved_datasets || currentProfile.saved_models)) {
@@ -63,13 +66,18 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
     const getDatasets = () => {
         setLoading(true)
+
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/my-datasets/' + (search ? "?search=" + search : ""),
+            url: window.location.origin + '/api/my-datasets/?' + 
+                "search=" + search +
+                "&dataset_type=" + datasetShow +
+                "&order_by=" + sortDatasets,
         })
         .then((res) => {
             if (res.data) {
-                setDatasets(sort_datasets(res.data))
+                console.log(res.data)
+                setDatasets(res.data)
             } else {
                 setDatasets([])
             }
@@ -129,41 +137,6 @@ function Home({currentProfile, notification, BACKEND_URL}) {
         })
 
         return tempModels
-    }
-
-    function sort_datasets(ds) {
-        let tempDatasets = [...ds]
-        
-        tempDatasets.sort((d1, d2) => {
-            if (sortDatasets == "downloads") {
-                if (d1.downloaders.length != d2.downloaders.length) {
-                    return d2.downloaders.length - d1.downloaders.length
-                } else {
-                    return d1.name.localeCompare(d2.name)
-                }
-                
-            } else if (sortDatasets == "alphabetical") {
-                return d1.name.localeCompare(d2.name)
-            } else if (sortDatasets == "date") {
-                return new Date(d2.created_at) - new Date(d1.created_at)
-            } else if (sortDatasets == "elements") {
-                if (d1.elements.length != d2.elements.length) {
-                    return d2.elements.length - d1.elements.length
-                } else {
-                    return d1.name.localeCompare(d2.name)
-                }
-                
-            } else if (sortDatasets == "labels") {
-                if (d1.labels.length != d2.labels.length) {
-                    return d2.labels.length - d1.labels.length
-                } else {
-                    return d1.name.localeCompare(d2.name)
-                }
-                
-            }
-        })
-
-        return tempDatasets
     }
 
     function sort_saved_datasets(ds) {
@@ -230,12 +203,6 @@ function Home({currentProfile, notification, BACKEND_URL}) {
             setSavedDatasets(sort_saved_datasets(savedDatasets))
         }
     }, [sortSavedDatasets])
-
-    useEffect(() => {
-        if (!loading) {
-            setDatasets(sort_datasets(datasets))
-        }
-    }, [sortDatasets])
 
     useEffect(() => {
         if (!loadingModels) {
@@ -367,7 +334,6 @@ function Home({currentProfile, notification, BACKEND_URL}) {
         return false
     }
 
-    const visibleDatasets = datasets.filter((dataset) => datasetShouldShow(dataset));
     const visibleModels = models.filter((model) => modelShouldShow(model));
     const visibleSavedDatasets = savedDatasets.filter((dataset) => datasetShouldShow(dataset));
     const visibleSavedModels = savedModels.filter((model) => modelShouldShow(model));
@@ -426,18 +392,14 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 </div>
                 
                 <div className="my-datasets-container">
-                    {visibleDatasets.map((dataset) => (
+                    {datasets.map((dataset) => (
                         <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL}/>
                     ))}
                     
-                    {!loading && visibleDatasets.length === 0 && datasets.length > 0 && <p className="gray-text">No such datasets found.</p>}
+                    {!loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && <p className="gray-text">No such datasets found.</p>}
 
-                    {!loading && datasets.length === 0 && search.length === 0 && (
+                    {!loading && currentProfile.datasetsCount == 0 && (
                         <p>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
-                    )}
-
-                    {!loading && datasets.length === 0 && search.length > 0 && (
-                        <p className="gray-text">No such datasets found.</p>
                     )}
 
                     {loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && (

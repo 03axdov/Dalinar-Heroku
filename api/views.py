@@ -111,6 +111,20 @@ def random_light_color():   # Slightly biased towards lighter shades
     return "#{:02x}{:02x}{:02x}".format(r, g, b)
 
 
+def dataset_order_by(datasets, order_by):
+    if order_by == "downloads": 
+        return datasets.order_by("downloaders")
+    if order_by == "elements":
+        return datasets.annotate(num_elements=Count('elements', distinct=True)).order_by('-num_elements')
+    if order_by == "labels":
+        return datasets.annotate(num_labels=Count('labels', distinct=True)).order_by('-num_labels')
+    if order_by == "alphabetical": 
+        return datasets.order_by("name")
+    if order_by == "date": 
+        return datasets.order_by("created_at")
+
+    return datasets
+
 # PROFILE HANDLING
 
 class GetCurrentProfile(APIView):
@@ -136,7 +150,9 @@ class DatasetListPublic(generics.ListAPIView):
     
     def get_queryset(self):
         search = self.request.GET.get("search")
-        if search == None: search = ""
+        dataset_type = self.request.GET.get("dataset_type")
+        order_by = self.request.GET.get("order_by")
+        
         datasets = Dataset.objects.filter(Q(visibility="public") & (
             # Search handling
             Q(name__icontains=search) | (
@@ -145,6 +161,11 @@ class DatasetListPublic(generics.ListAPIView):
                 )
             )
         ))
+        if dataset_type != "all":
+            datasets = datasets.filter(dataset_type=dataset_type)
+        if order_by:
+            datasets = dataset_order_by(datasets, order_by)
+
         return datasets
 
 
@@ -158,12 +179,20 @@ class DatasetListProfile(generics.ListCreateAPIView):
         datasets = profile.datasets
         
         search = self.request.GET.get("search")
+        dataset_type = self.request.GET.get("dataset_type")
+        order_by = self.request.GET.get("order_by")
+
         if (search):
             datasets = datasets.filter(Q(name__contains=search) | (
                 Q(
                     keywords__icontains=search
                 )
             ))
+        if dataset_type != "all":
+            datasets = datasets.filter(dataset_type=dataset_type)
+
+        if order_by:
+            datasets = dataset_order_by(datasets, order_by)
 
         return datasets
 
