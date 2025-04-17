@@ -37,6 +37,7 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
     const [datasetShow, setDatasetShow] = useState("all")
     const [modelShow, setModelShow] = useState("all")
+    const [modelShowType, setModelShowType] = useState("all")
 
     const [imageDimensions, setImageDimensions] = useState(["", ""])
 
@@ -358,9 +359,12 @@ function Home({currentProfile, notification, BACKEND_URL}) {
     }
 
     function modelShouldShow(model) {
-        if (modelShow == "all") return true
-        if (modelShow == "built") return model.model_file != null
-        if (modelShow == "not-built") return model.model_file == null
+        if (modelShowType == "all" || modelShowType == model.model_type.toLowerCase()) {
+            if (modelShow == "all") return true
+            if (modelShow == "built") return model.model_file != null
+            if (modelShow == "not-built") return model.model_file == null
+        }
+        return false
     }
 
     const visibleDatasets = datasets.filter((dataset) => datasetShouldShow(dataset));
@@ -452,6 +456,8 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                     <ElementFilters 
                         show={modelShow}
                         setShow={setModelShow}
+                        showModelType={modelShowType}
+                        setShowModelType={setModelShowType}
                         isModel={true}
                         sort={sortModels}
                         setSort={setSortModels}
@@ -511,6 +517,8 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                     {savedTypeShown == "models" && <ElementFilters 
                         show={modelShow}
                         setShow={setModelShow}
+                        showModelType={modelShowType}
+                        setShowModelType={setModelShowType}
                         isModel={true}
                         sort={sortSavedModels}
                         setSort={setSortSavedModels}
