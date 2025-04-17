@@ -38,7 +38,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
 
     useEffect(() => {
         getDatasets()
-    }, [sortDatasets])
+    }, [sortDatasets, imageDimensions])
 
     useEffect(() => {
         if (currentProfile && currentProfile.saved_datasets) {
@@ -48,12 +48,20 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
 
     function getDatasets() {
         setLoading(true)
+
+        let URL = window.location.origin + '/api/my-datasets/?' +
+            "search=" + search +
+            "&dataset_type=" + model_type +
+            "&order_by=" + sortDatasets
+
+        if (model_type.toLowerCase() == "image") {
+            URL += "&imageWidth=" + imageDimensions[0] +
+                "&imageHeight=" + imageDimensions[1]
+        }
+
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/my-datasets/?' +
-                "search=" + search +
-                "&dataset_type=" + model_type +
-                "&order_by=" + sortDatasets,
+            url: URL
         })
         .then((res) => {
             if (res.data) {
@@ -479,7 +487,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         </div> : "")
                     ))}
                     
-                    {!loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && <p className="gray-text">No such datasets found.</p>}
+                    {!loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && <p className="gray-text train-no-datasets">No such datasets found.</p>}
 
                     {!loading && currentProfile.datasetsCount === 0 && (
                         <p style={{width: "250px"}}>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
@@ -510,14 +518,14 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         </div> : "")
                     ))}
                     
-                    {!loading && visibleSavedDatasets.length === 0 && savedDatasets.length > 0 && <p className="gray-text">No such datasets found.</p>}
+                    {!loading && visibleSavedDatasets.length === 0 && savedDatasets.length > 0 && <p className="gray-text train-no-datasets">No such datasets found.</p>}
 
                     {!loading && savedDatasets.length === 0 && searchSaved.length === 0 && (
                         <p style={{width: "250px"}}>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
                     )}
 
                     {!loading && savedDatasets.length === 0 && searchSaved.length > 0 && (
-                        <p className="gray-text">No such datasets found.</p>
+                        <p className="gray-text train-no-datasets">No such datasets found.</p>
                     )}
 
                     {loading && savedDatasets.length === 0 && currentProfile.saved_datasets && currentProfile.saved_datasets.length > 0 && currentProfile.saved_datasets.map((e, i) => (
