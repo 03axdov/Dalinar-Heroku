@@ -115,6 +115,30 @@ export const LAYERS = {
         "input_z": true,
         "color": "cyan"
     },
+    randomrotation: {
+        "name": "RandomRotation",
+        "params": [
+            {
+                "name": "factor",
+                "name_readable": "Factor (of 2π)",
+                "default": 0.2,
+                "type": "number",
+                "step": 0.1,
+                "validator": (rate) => {
+                    if (rate <= 0 || rate > 1) {
+                        return "Rate must be greater than 0 and less than or equal to 1."
+                    }
+                    return ""
+                },
+                "required": true
+            }
+        ],
+        "image": "image.png",
+        "input_x": true,
+        "input_y": true,
+        "input_z": true,
+        "color": "cyan"
+    },
     resizing: {
         "name": "Resizing",
         "params": [],
@@ -322,12 +346,13 @@ export const LAYERS = {
 
 export const VALID_PREV_LAYERS = { // null means that it can be the first layer
     "dense": [null, "dense", "flatten", "dropout", "textvectorization"],
-    "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "resizing"],
+    "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing"],
     "maxpool2d": ["conv2d", "maxpool2d", "rescaling", "resizing"],
     "dropout": ["dense", "dropout", "flatten", "embedding", "globalaveragepooling1d"],
     "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling", "resizing"],
-    "rescaling": [null, "randomflip", "resizing"],
-    "randomflip": [null, "rescaling", "resizing"],
+    "rescaling": [null, "randomflip", "resizing", "randomrotation"],
+    "randomflip": [null, "rescaling", "resizing", "randomrotation"],
+    "randomrotation": [null, "rescaling", "resizing", "randomflip"],
     "resizing": [null],
     "textvectorization": [null],
     "embedding": [null, "textvectorization"],
@@ -342,6 +367,7 @@ export const WARNING_MESSAGES = {
     "flatten": "Invalid previous layer.",
     "rescaling": "Must be the first layer or follow another preprocessing layer.",
     "randomflip": "Must be the first layer or follow another preprocessing layer.",
+    "randomrotation": "Must be the first layer or follow another preprocessing layer.",
     "resizing": "Must be the first layer.",
     "textvectorization": "Must be the first layer.",
     "embedding": "Must be the first layer, else follow one of the following layers: [" + VALID_PREV_LAYERS["embedding"].slice(1).join(", ") + "].",
@@ -364,6 +390,8 @@ export function getLayerName(layer) {
         return "Rescale (" + layer.scale + ", " + layer.offset + ")"
     } else if (type == "randomflip") {
         return "RandomFlip (" + layer.mode + ")"
+    } else if (type == "randomrotation") {
+        return "RandomRotation (" + layer.factor + ")"
     } else if (type == "resizing") {
         return "Resizing (" + layer.input_x + ", " + layer.input_y + ")"
     } else if (type == "textvectorization") {

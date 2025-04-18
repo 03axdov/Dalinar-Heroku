@@ -1484,7 +1484,7 @@ class CreateLayer(APIView):
         
         ALLOWED_TYPES = set(["dense", "conv2d", "flatten",
                              "dropout", "maxpool2d", "rescaling",
-                             "randomflip", "resizing", "textvectorization",
+                             "randomflip", "randomrotation", "resizing", "textvectorization",
                              "embedding", "globalaveragepooling1d"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
@@ -1505,6 +1505,8 @@ class CreateLayer(APIView):
             serializer = CreateRescalingLayerSerializer(data=data)
         elif layer_type == "randomflip":
             serializer = CreateRandomFlipLayerSerializer(data=data)
+        elif layer_type == "randomrotation":
+            serializer = CreateRandomRotationLayerSerializer(data=data)
         elif layer_type == "resizing":
             serializer = CreateResizingLayerSerializer(data=data)
         elif layer_type == "textvectorization":
@@ -1611,6 +1613,14 @@ class EditLayer(APIView):
                         layer.input_z = request.data["input_z"]
                     elif layer_type == "randomflip":
                         layer.mode = request.data["mode"]
+                        layer.input_x = request.data["input_x"]
+                        layer.input_y = request.data["input_y"]
+                        layer.input_z = request.data["input_z"]
+                    elif layer_type == "randomrotation":
+                        layer.factor = request.data["factor"]
+                        layer.input_x = request.data["input_x"]
+                        layer.input_y = request.data["input_y"]
+                        layer.input_z = request.data["input_z"]
                     elif layer_type == "resizing":
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]

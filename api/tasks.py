@@ -121,6 +121,11 @@ def get_tf_layer(layer):    # From a Layer instance
             return layers.RandomFlip(mode=layer.mode, input_shape=(layer.input_x, layer.input_y, layer.input_z), name=name)
         else:
             return layers.RandomFlip(mode=layer.mode, name=name)
+    elif layer_type == "randomrotation":
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
+            return layers.RandomRotation(layer.factor, input_shape=(layer.input_x, layer.input_y, layer.input_z), name=name)
+        else:
+            return layers.RandomRotation(layer.factor, name=name)
     elif layer_type == "resizing":
         if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
             return layers.Resizing(layer.output_y, layer.output_x, input_shape=(layer.input_x, layer.input_y, layer.input_z),name=name)
@@ -1237,6 +1242,12 @@ def set_to_tf_layer(layer_instance, tf_layer):
             layer_instance.input_x = input_shape[1]
             layer_instance.input_y = input_shape[2]
             layer_instance.input_z = input_shape[3]
+    elif isinstance(tf_layer, layers.RandomRotation):
+        layer_instance.factor = config["factor"]
+        if input_shape:
+            layer_instance.input_x = input_shape[1]
+            layer_instance.input_y = input_shape[2]
+            layer_instance.input_z = input_shape[3]
     elif isinstance(tf_layer, layers.Resizing):
         layer_instance.output_x = config["width"]
         layer_instance.output_y = config["height"]
@@ -1356,6 +1367,13 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
     elif isinstance(tf_layer, layers.RandomFlip):
         data["type"] = "randomflip"
         data["mode"] = config["mode"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.RandomRotation):
+        data["type"] = "randomrotation"
+        data["factor"] = config["factor"]
         if input_shape:
             data["input_x"] = input_shape[1]
             data["input_y"] = input_shape[2]

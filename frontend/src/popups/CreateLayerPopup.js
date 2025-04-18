@@ -63,7 +63,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                 if (!param.choices) {
                     return (<div key={idx} className="create-layer-label-inp">
                         <label className="create-dataset-label" htmlFor={param.name}>{param.name_readable}</label>
-                        <input className="create-dataset-inp" id={param.name} type={param.type} value={params[param.name]} onChange={(e) => {
+                        <input className="create-dataset-inp" id={param.name} type={param.type} step={(param.step || 1)} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value
                             setParams(temp)
@@ -207,6 +207,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                 <option value="resizing">Resizing</option>
                                 <option value="rescaling">Rescaling</option>
                                 <option value="randomflip">RandomFlip</option>
+                                <option value="randomrotation">RandomRotation</option>
                             </optgroup>}
                             {modelType.toLowerCase() == "image" && <optgroup label="Computer Vision">
                                 <option value="conv2d">Conv2D</option>

@@ -113,6 +113,8 @@ class LayerSerializer(serializers.BaseSerializer):
             return RescalingLayerSerializer(instance).data
         elif isinstance(instance, RandomFlipLayer):
             return RandomFlipLayerSerializer(instance).data
+        elif isinstance(instance, RandomRotationLayer):
+            return RandomRotationLayerSerializer(instance).data
         elif isinstance(instance, ResizingLayer):
             return ResizingLayerSerializer(instance).data
         elif isinstance(instance, TextVectorizationLayer):
@@ -131,7 +133,7 @@ class CreateLayerSerializer(serializers.BaseSerializer):
         elif isinstance(instance, Conv2DLayer):
             return CreateConv2DLayerSerializer(instance).data
         elif isinstance(instance, MaxPool2DLayer):
-            return CreateMaxPool2DLayer(instance).data
+            return CreateMaxPool2DLayerSerializer(instance).data
         elif isinstance(instance, FlattenLayer):
             return CreateFlattenLayerSerializer(instance).data
         elif isinstance(instance, DropoutLayer):
@@ -139,7 +141,9 @@ class CreateLayerSerializer(serializers.BaseSerializer):
         elif isinstance(instance, RescalingLayer):
             return CreateRescalingLayerSerializer(instance).data
         elif isinstance(instance, RandomFlipLayer):
-            return CreateRandomFlipLayer(instance).data
+            return CreateRandomFlipLayerSerializer(instance).data
+        elif isinstance(instance, RandomRotationLayer):
+            return CreateRandomRotationLayerSerializer(instance).data
         elif isinstance(instance, ResizingLayer):
             return CreateResizingLayerSerializer(instance).data
         elif isinstance(instance, TextVectorizationLayer):
@@ -218,7 +222,17 @@ class RandomFlipLayerSerializer(serializers.ModelSerializer):
 class CreateRandomFlipLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = RandomFlipLayer
-        fields = ["mode", "input_x", "input_y", "input_z"]       
+        fields = ["mode", "input_x", "input_y", "input_z"]    
+
+
+class RandomRotationLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RandomRotationLayer
+        fields = "__all__"
+class CreateRandomRotationLayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RandomRotationLayer
+        fields = ["factor", "input_x", "input_y", "input_z"]     
 
 
 class ResizingLayerSerializer(serializers.ModelSerializer):

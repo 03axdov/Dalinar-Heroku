@@ -98,7 +98,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
         const walkY = (y - startY.current) * 1;
         scrollRef.current.scrollLeft = scrollLeft.current - walkX;
         scrollRef.current.scrollTop = scrollTop.current - walkY;
-    }, 10), [isDragging, startX, startY, scrollLeft, scrollTop]);
+    }, 1), [isDragging, startX, startY, scrollLeft, scrollTop]);
 
     const handleMouseUp = () => {
         setIsDragging(false);

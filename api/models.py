@@ -419,6 +419,15 @@ class RandomFlipLayer(Layer):
         if self.model: res += " - " + self.model.name
         return res
     
+
+class RandomRotationLayer(Layer):
+    factor = models.FloatField()
+
+    def __str__(self):
+        res = f"RandomRotation ({self.factor})"
+        if self.model: res += " - " + self.model.name
+        return res
+    
     
 class ResizingLayer(Layer):
     output_x = models.PositiveIntegerField()
