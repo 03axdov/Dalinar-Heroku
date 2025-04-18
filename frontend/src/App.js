@@ -14,7 +14,6 @@ import Guide from "./pages/Guide"
 import Notification from "./components/Notification"
 import CreateModel from "./pages/CreateModel"
 import Model from "./pages/Model"
-import PublicModel from "./pages/PublicModel"
 import EditModel from "./pages/EditModel"
 import { TaskProvider } from "./contexts/TaskContext"
 import ProfileBar from "./components/ProfileBar"
@@ -131,7 +130,7 @@ export default function App() {
                     <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/datasets/public/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} isPublic={true}/>}/>
                     <Route path="/models/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/models/public/:id" element={<PublicModel checkLoggedIn={checkLoggedIn} currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/models/public/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} checkLoggedIn={checkLoggedIn} isPublic={true}/>}/>
                     <Route path="/edit-model/:id" element={<EditModel activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                 </Routes>
             </div>
