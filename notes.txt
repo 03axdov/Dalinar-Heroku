@@ -1,8 +1,15 @@
 TO-DO:
-- Maybe update for moving layers
 - Presave tensorflow datasets
-- Fix dimensions for list api calls of datasets
+- Upload datasets directly for training (don't store for longer than used)
+- alt tag for images
+- Load models with weights
+- Fine tuning
+- Regression models
+
+Layers to add:
+- RandomRotation
+
 
 
 Start Celery Worker: 
-celery -A Dalinar.celery worker --pool=solo -l info
+celery -A Dalinar.celery worker --pool=solo -l info -Q default

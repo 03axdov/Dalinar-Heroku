@@ -971,6 +971,22 @@ def get_tf_optimizer(optimizer_str, learning_rate):
     else:
         raise Exception("Could not find optimzier of type " + optimizer_str)
     
+
+def find_layer_by_name(layer_container, name):
+    """
+    Recursively search for a layer by name in a model or nested container.
+    """
+    for layer in getattr(layer_container, 'layers', []):
+        if layer.name == name:
+            return layer
+        # if it's a nested model or Sequential, search inside it
+        if hasattr(layer, 'layers'):
+            found = find_layer_by_name(layer, name)
+            if found:
+                return found
+    return None
+
+    
 @shared_task(bind=True)
 def build_model_task(self, model_id, optimizer, learning_rate, loss_function, user_id, input_sequence_length):
     
@@ -995,16 +1011,21 @@ def build_model_task(self, model_id, optimizer, learning_rate, loss_function, us
                             old_model, timestamp = get_tf_model(instance, profile=profile)
                             if timestamp < 0: return {"Bad request": "You have an ongoing task on this model. Please wait until it finishes.", "status": 400}
                         
-                        for old_layer in old_model.layers:
-                            if old_layer.name == str(layer.id):
-                                model.add(old_layer)
-                                break
+                        matched_layer = find_layer_by_name(old_model, str(layer.id))
+                        if matched_layer:
+                            model.add(matched_layer)
                     else:
                         new_layer = get_tf_layer(layer)
                         new_layer.trainable = layer.trainable
                         model.add(new_layer)
 
+                # Must build in this case
+                if instance.model_type.lower() == "text":
+                    model.build(input_sequence_length)
+
                 metrics = get_metrics(loss_function)
+
+                model.summary()
                 
                 if model.count_params() > 5 * 10**6:
                     return {"Bad request": "A model cannot have more than 5 million parameters. Current parameter count: " + str(model.count_params()), "status": 400}
@@ -1083,6 +1104,20 @@ def build_model_task(self, model_id, optimizer, learning_rate, loss_function, us
     except Exception as e:
         return {"Bad request": str(e), "status": 400}
     
+
+def set_trainable_recursive(layer, names_to_freeze):
+    """
+    Recursively set trainable attribute on a layer and its sublayers.
+    """
+    if hasattr(layer, 'layers'):  # it's a model or a container
+        for sublayer in layer.layers:
+            set_trainable_recursive(sublayer, names_to_freeze)
+    else:
+        if layer.name in names_to_freeze:
+            layer.trainable = False
+        else:
+            layer.trainable = True
+
     
 @shared_task(bind=True)
 def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function, user_id, input_sequence_length):
@@ -1108,10 +1143,7 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
                         names_to_freeze.add(str(layer.id))
                 
                 for layer in model.layers:
-                    if layer.name in names_to_freeze:
-                        layer.trainable = False
-                    else:
-                        layer.trainable = True
+                    set_trainable_recursive(layer, names_to_freeze)
                         
                 model.summary()
 
@@ -1142,7 +1174,7 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
                 model_instance.loss_function = loss_function
                 
                 if input_sequence_length:
-                    instance.input_sequence_length = input_sequence_length
+                    model_instance.input_sequence_length = input_sequence_length
                 
                 model_instance.save()
                 

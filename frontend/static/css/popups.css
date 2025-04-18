@@ -85,6 +85,10 @@
     flex-direction: column;
 }
 
+.build-model-form {
+    margin-bottom: 40px;
+}
+
 .create-layer-type-fields {
     width: 100%;
 }
