@@ -15,7 +15,7 @@ import DescriptionTable from "../components/DescriptionTable"
 const TOOLBAR_HEIGHT = 60
 
 // The default page. Login not required.
-function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_URL}) {
+function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_URL, isPublic=false}) {
 
     const { id } = useParams();
     const [dataset, setDataset] = useState(null)
@@ -41,6 +41,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [loadingElementEdit, setLoadingElementEdit] = useState(false)
     const [loadingElementDelete, setLoadingElementDelete] = useState(false)
     const [loadingResizeImage, setLoadingResizeImage] = useState(false)
+
+    const [saving, setSaving] = useState(false)
 
     const [elementLabelTop, setElementLabelTop] = useState(0)
     const [editExpandedTop, setEditExpandedTop] = useState(0)
@@ -68,7 +70,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
 
-    const [showDatasetDescription, setShowDatasetDescription] = useState(false)
+    const [showDatasetDescription, setShowDatasetDescription] = useState(isPublic)
 
     const [isDownloaded, setIsDownloaded] = useState(false)
     const [downloadFramework, setDownloadFramework] = useState("tensorflow")
@@ -294,7 +296,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             left: 0, position: "absolute", 
                             display: (pointSelected[0] == area.id ? "none" : "block")}}></canvas>
             {points.map((point, idx) => (
-                <div title="Click to drag" 
+                <div title={(isPublic ? "" : "Click to drag" )}
                     className={"dataset-element-view-point " + 
                         ((pointSelected[0] == area.id && pointSelected[1] == idx) ? "dataset-element-view-point-selected" : "") +
                         (displayAreas ? "" : "hidden")} 
@@ -302,9 +304,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     style={{top: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[1] : point[1]) + "%", 
                             left: ((pointSelected[0] == area.id && pointSelected[1] == idx) ? pointSelectedCoords[0] : point[0]) + "%", 
                             "background": (idToLabel[area.label].color),
+                            "cursor": (isPublic ? "default" : "pointer")
                         }} 
                     onClick={(e) => {
                         e.stopPropagation()
+                        if (isPublic) return;
                         if (pointSelected[0] != area.id || pointSelected[1] != idx) {
                             setPointSelectedCoords([point[0], point[1]])
                             setSelectedAreaIdx(areaIdx)
@@ -349,6 +353,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     const handleImageMouseDown = (event) => {
         event.preventDefault();
+        if (isPublic) return;
         const imageElement = elementRef.current;
         if (imageElement ) {
 
@@ -394,7 +399,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                     [endXPercent, startYPercent],
                                     [endXPercent, endYPercent],
                                     [startXPercent, endYPercent]]
-                    createPoints(areas, points)
+                    createPoints(points)
                 }
 
                 document.removeEventListener("mousemove", handleMouseMove);
@@ -414,7 +419,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }
 
 
-    function createPoints(areas, points) {  // Points is an array of [clickXPercent, clickYPercent]
+    function createPoints(points) {  // Points is an array of [clickXPercent, clickYPercent]
+        if (isPublic) return;
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';
@@ -450,8 +456,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         })
     }
 
-
     function createPoint(areas, clickXPercent, clickYPercent) {
+        if (isPublic) return;
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';
@@ -519,9 +525,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         }
     }
 
-
     function deleteArea(area, elementIdx, areaIdx) {
-        
+        if (isPublic) return;
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';
@@ -553,7 +558,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             console.log(err)
         })
     }
-
 
     // For creating the JSON file that is downloaded for area datasets
     function createJSON() {
@@ -616,6 +620,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }, [elementsIndex])
 
     useEffect(() => {
+        if (isPublic) return;
         if (currentProfile && dataset && !loading) {
             if (currentProfile.user && dataset.owner) {
                 if (currentProfile.user != dataset.owner) {
@@ -671,8 +676,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 setElementsIndex(Math.max(elementsIndex - 1, 0))  
 
             } else if (labelKeybinds[key]) {
+                if (isPublic) return;
                 labelOnClick(labelKeybinds[key])
             } else if (key === "Backspace" || key === "Delete") {  // For datatype area, deleting points
+                if (isPublic) return;
                 if (pointSelected[0] != -1 || pointSelected[1] != -1) {
                     updatePoints(selectedArea, [], pointSelected[1], true) // Remove point
                 }
@@ -690,9 +697,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     function getDataset() {
         setLoading(true)
+
+        let URL = window.location.origin + "/api/datasets/" +
+            (isPublic ? "public/" : "") + id
+
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/datasets/' + id,
+            url: URL,
         })
         .then((res) => {
             setDataset(res.data)
@@ -714,6 +725,68 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         }).finally(() => {
             setLoading(false)
+        })
+    }
+
+    function saveDataset() {
+        if (!currentProfile) {return}
+
+        const URL = window.location.origin + '/api/save-dataset/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": dataset.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        if (saving) {return}
+        setSaving(true)
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            let tempDataset = {...dataset}
+            tempDataset.saved_by.push(currentProfile.user)
+            setDataset(tempDataset)
+        }).catch((error) => {
+
+            notification("Error: " + error, "failure")
+            
+        }).finally(() => {
+            setSaving(false)
+        })
+    }
+
+    function unsaveDataset() {
+        if (!currentProfile) {return}
+
+        const URL = window.location.origin + '/api/unsave-dataset/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": dataset.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        if (saving) {return}
+        setSaving(true)
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            let tempDataset = {...dataset}
+            tempDataset.saved_by = tempDataset.saved_by.filter((user) => user != currentProfile.user)
+            setDataset(tempDataset)
+        }).catch((error) => {
+
+            notification("Error: " + error, "failure")
+            
+        }).finally(() => {
+            setSaving(false)
         })
     }
 
@@ -779,6 +852,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
                 return <div className="dataset-element-view-image-container-area" 
                 onClick={(e) => {
+                    if (isPublic) return;
                     if (pointSelected[0] == -1 && pointSelected[1] == -1) { // Don't do this if a point is selected
                         setLabelSelected(null)
                         setSelectedArea(null)
@@ -809,6 +883,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             e.stopPropagation()
                         }}
                         onMouseDown={(e) => {
+                            if (isPublic) return;
                             if ((pointSelected[0] == -1 && pointSelected[1] == -1) && (labelSelected != null || selectedArea != null) && (e.button === 0)) {    // Only left click
                                 handleImageMouseDown(e)
                             }
@@ -819,7 +894,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             getPoints(area, idx)
                         ))}
 
-                        {imageMouseDown && labelSelected && rectanglePreviewDimensions[0] > 0 && rectanglePreviewDimensions[1] > 0 && <div 
+                        {!isPublic && imageMouseDown && labelSelected && rectanglePreviewDimensions[0] > 0 && rectanglePreviewDimensions[1] > 0 && <div 
                         className="dataset-rectangle-preview"
                         style={{
                             width: "calc(" + rectanglePreviewDimensions[0] + "% + " + Math.round(5 / (1 + (zoom - 1)* 3)) + "px)",
@@ -841,16 +916,16 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     <span className="text-label-color" style={{background: idToLabel[element.label].color}}></span>
                     {idToLabel[element.label].name}
                 </div>}
-                <div className="dataset-text-save-button-container">
+                {!isPublic && <div className="dataset-text-save-button-container">
                     <button className={"dataset-text-save-button " + (!textChanged ? "dataset-text-save-button-disabled" : "")} type="button" onClick={(e) => {
                         if (textChanged) {
                             updateElement(e, true)
                         }
                         
                     }}>Save changes</button>
-                </div>
+                </div>}
                 
-                <textarea className="dataset-element-view-text" style={{display: (currentText ? "block" : "none")}} value={currentText} onChange={(e) => {
+                {!isPublic && <textarea className="dataset-element-view-text" style={{display: (currentText ? "block" : "none")}} value={currentText} onChange={(e) => {
                     if (!e.target.value) {
                         notification("Cannot remove all text.", "failure")
                         return;
@@ -859,7 +934,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     else {setTextChanged(false)}
                     setCurrentText(e.target.value)
                 }}>
-                </textarea></div> // Process the text content
+                </textarea>}
+                {isPublic && <p className="dataset-element-view-text" style={{display: (currentText ? "block" : "none")}}>
+                    {currentText}
+                </p>}
+            </div>
             
         } else {
             return <div className="extension-not-found">File of type .{extension} could not be rendered.</div>
@@ -879,18 +958,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         }
     }
 
-    function getTextFromFile(file) {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-      
-          reader.onload = (e) => resolve(e.target.result);
-          reader.onerror = (e) => reject(e);
-      
-          reader.readAsText(file);
-        });
-    }
-
     async function elementFilesUploaded(e) {
+        if (isPublic) return;
         let files = e.target.files
 
         axios.defaults.withCredentials = true;
@@ -986,6 +1055,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     // isText used when updating text
     function updateElement(e, isText=false) {
         e.preventDefault()
+        if (isPublic) return;
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';
@@ -1034,6 +1104,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     function deleteElement(e) {
         e.preventDefault()
+        if (isPublic) return;
 
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -1074,6 +1145,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
 
     function resizeElementImage() {
+        if (isPublic) return;
         if (currentImageWidth <= 0 || currentImageWidth > 1024 || currentImageHeight <= 0 || currentImageHeight > 1024) {
             notification("Dimensions must be between 0 and 750.", "failure")
             return
@@ -1113,7 +1185,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
 
     // LABEL FUNCTIONALITY
-
 
     function parseLabels(labels) {
         if (labels) {
@@ -1178,6 +1249,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     
     function createLabelSubmit(e) {
         e.preventDefault()
+        if (isPublic) return;
 
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -1222,6 +1294,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
 
     function labelOnClick(label) {
+        if (isPublic) return;
         if (dataset.datatype == "classification") {
             axios.defaults.withCredentials = true;
             axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -1274,6 +1347,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }
 
     function removeCurrentElementLabel() {
+        if (isPublic) return;
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';
@@ -1304,6 +1378,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     function editLabelOnSubmit(e) {
         e.preventDefault()
+        if (isPublic) return;
 
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -1339,8 +1414,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         })
     }
 
-
     function deleteLabelInner() {
+        if (isPublic) return;
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';    
@@ -1386,6 +1461,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     function deleteLabel(e) {
         e.preventDefault()
+        if (isPublic) return;
 
         activateConfirmPopup("Are you sure you want to delete this label? This action cannot be undone.", deleteLabelInner)
     }
@@ -1674,6 +1750,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 setElementsIndex(i)
             }
         }
+
+        if (isPublic) return;
         
         // For updating the order, so it stays the same after refresh
         const URL = window.location.origin + '/api/reorder-dataset-elements/'
@@ -1705,6 +1783,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         reorderLabels.splice(result.destination.index, 0, movedItem);
         
         setLabels(reorderLabels);
+
+        if (isPublic) return;
         
         let idToIdx = {}
         for (let i=0; i < reorderLabels.length; i++) {
