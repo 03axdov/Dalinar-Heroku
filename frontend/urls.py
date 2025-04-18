@@ -15,4 +15,5 @@ urlpatterns = [
     path("datasets/public/<int:id>", index_no_login),
     path("models/<int:id>", index),
     path("models/public/<int:id>", index_no_login)
+    
 ]

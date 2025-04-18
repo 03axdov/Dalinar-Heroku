@@ -44,6 +44,16 @@
         <link rel="stylesheet" type="text/css" href="{% static "css/pages/model.css" %}" />
 
         <link rel="canonical" href="https://{{ request.get_host }}{{ request.path }}" />
+
+        <script type="application/ld+json">
+            {
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Dalinar Technologies",
+              "url": "https://dalinar.net",
+              "logo": "https://dalinar.s3.eu-north-1.amazonaws.com/static/images/logoWhite.svg"
+            }
+        </script>
     </head>
     <body>
         <div id="root">
