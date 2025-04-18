@@ -10,7 +10,6 @@ import CreateDataset from "./pages/CreateDataset"
 import EditDataset from "./pages/EditDataset"
 import Dataset from "./pages/Dataset"
 import axios from "axios"
-import Explore from "./pages/Explore"
 import Guide from "./pages/Guide"
 import PublicDataset from "./pages/PublicDataset"
 import Notification from "./components/Notification"
@@ -120,7 +119,11 @@ export default function App() {
             <div id="app">
                 <Routes>
                     <Route path="/" element={<Landing BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/explore" element={<Explore checkLoggedIn={checkLoggedIn} BACKEND_URL={BACKEND_URL} notification={notification}/>}/>
+                    <Route path="/explore" element={<Home currentProfile={null} 
+            notification={notification} 
+            BACKEND_URL={BACKEND_URL} 
+            checkLoggedIn={checkLoggedIn} 
+            is_explore={true}/>}/>
                     <Route path="/guide" element={<Guide BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/home" element={<Home currentProfile={currentProfile} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/create-dataset" element={<CreateDataset notification={notification} BACKEND_URL={BACKEND_URL} activateConfirmPopup={activateConfirmPopup}/>}/>
