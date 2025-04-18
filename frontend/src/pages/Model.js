@@ -22,12 +22,14 @@ import throttle from 'lodash.throttle';
 
 
 // The default page. Login not required.
-function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}) {
+function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL, checkLoggedIn, isPublic=false}) {
     const { getTaskResult } = useTask();
 
     const { id } = useParams();
     const [model, setModel] = useState(null)
     const [layers, setLayers] = useState([])
+
+    const [saving, setSaving] = useState(false)
 
     const [loading, setLoading] = useState(true)
     const [processingBuildModel, setProcessingBuildModel] = useState(false)
@@ -140,11 +142,14 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }, [currentProfile, model])
 
     function getModel(after_training=false) {
-
         setLoading(true)
+
+        let URL = window.location.origin +
+            "/api/models/" + (isPublic ? "public/" : "") + id
+
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/models/' + id,
+            url: URL,
         })
         .then((res) => {
             setModel(res.data)
@@ -190,6 +195,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     let buildResInterval = null;
     function buildModel(optimizer, learningRate, loss, input_sequence_length=256) {
+        if (isPublic) return;
         if (!layers || layers.length == 0) {
             notification("Please add layers before building the model.", "failure")
             return
@@ -246,7 +252,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
     let recompileResInterval = null;
     function recompileModel(optimizer, learningRate, loss, input_sequence_length) {
-
+        if (isPublic) return;
         if (processingRecompile) {return}
         setProcessingRecompile(true)
 
@@ -336,11 +342,74 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
           setDownloading(false)
         }
     };
+
+    function saveModel() {
+        if (!currentProfile) {return}
+
+        const URL = window.location.origin + '/api/save-model/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": model.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        if (saving) {return}
+        setSaving(true)
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            let tempModel = {...model}
+            tempModel.saved_by.push(currentProfile.user)
+            setModel(tempModel)
+        }).catch((error) => {
+
+            notification("Error: " + error, "failure")
+            
+        }).finally(() => {
+            setSaving(false)
+        })
+    }
+
+    function unsaveModel() {
+        if (!currentProfile) {return}
+
+        const URL = window.location.origin + '/api/unsave-model/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": model.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        if (saving) {return}
+        setSaving(true)
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            let tempModel = {...model}
+            tempModel.saved_by = tempModel.saved_by.filter((user) => user != currentProfile.user)
+            setModel(tempModel)
+        }).catch((error) => {
+
+            notification("Error: " + error, "failure")
+            
+        }).finally(() => {
+            setSaving(false)
+        })
+    }
     
 
     // LAYER FUNCTIONALITY
 
     const layersHandleDragEnd = (result) => {
+        if (isPublic) return;
         if (!result.destination) return; // Dropped outside
     
         const reorderLayers = [...layers];
@@ -377,6 +446,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     };
 
     function createLayer(data, callback) {
+        if (isPublic) return;
         setProcessingCreateLayer(true)
 
         // Required to be specified
@@ -414,6 +484,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }
 
     function deleteLayerInner(id) {
+        if (isPublic) return;
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';    
@@ -442,10 +513,12 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }
 
     function deleteLayer(id, message) {
+        if (isPublic) return;
         activateConfirmPopup((message || "Are you sure you want to delete this layer? This action cannot be undone."), () => deleteLayerInner(id))
     }
 
     function updateLayers(updated_layer) {
+        if (isPublic) return;
         setLayers(prevLayers => {
             return prevLayers.map(layer =>
                 layer.id === updated_layer.id ? updated_layer : layer
@@ -454,6 +527,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
     }
 
     function loadTemplate(e) {
+        if (isPublic) return;
         let layers = TEMPLATE_DATA[currentTemplate]
 
         setLoadingTemplate(true)
@@ -658,7 +732,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                 <div className={"model-toolbar-left-inner " + (toolbarLeftWidth == 15 ? "hidden" : "")} >
                     <p className={"dataset-sidebar-title " + (toolbarLeftWidth < 150 ? "dataset-sidebar-title-small" : "")}>Layers</p>
 
-                    <div className="dataset-sidebar-button-container">
+                    {!isPublic && <div className="dataset-sidebar-button-container">
                         <button type="button" 
                         className={"sidebar-button dataset-upload-button " + (toolbarLeftWidth < 150 ? "sidebar-button-small" : "")} 
                         title="Add layer"
@@ -666,10 +740,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} src={BACKEND_URL + "/static/images/plus.png"} />
                             <span>Add layer</span>
                         </button>
-                    </div>
+                    </div>}
 
                     
-                    <DragDropContext className="dataset-elements-list" onDragEnd={layersHandleDragEnd}>
+                    {!isPublic && <DragDropContext className="dataset-elements-list" onDragEnd={layersHandleDragEnd}>
                         <Droppable droppableId="models-droppable">
                             
                         {(provided) => (<div className="model-layers-list"
@@ -714,7 +788,35 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             </div>)}
                                                         
                         </Droppable>
-                    </DragDropContext>
+                    </DragDropContext>}
+
+                    {isPublic && <div className="model-layers-list">
+                        {layers.map((layer, idx) => (
+                            <div key={idx} className="model-sidebar-layer"
+                            style={{cursor: "default"}}
+                            title={getLayerName(layer)}
+                            onMouseEnter={() => {
+                                // Set a timeout to show the preview after 200ms
+                                const timeoutId = setTimeout(() => {
+                                    setHoveredLayer(layer.id)
+                                }, 0);  // Currently no delay
+
+                                // Store the timeout ID so it can be cleared later
+                                setHoveredLayerTimeout(timeoutId);
+                                
+                            }}
+                            onMouseLeave={() => {
+                                clearTimeout(hoveredLayerTimeout);
+                                setHoveredLayer(null)
+                            }}>
+                                    <span className={"model-sidebar-color model-sidebar-color-" + LAYERS[layer.layer_type].color}></span>
+
+                                    <span className="model-sidebar-layer-name">
+                                        {getLayerName(layer)}
+                                    </span>
+                            </div>
+                        ))}
+                    </div>}
                     
                 </div>
                 <div className="dataset-toolbar-resizeable" 
@@ -740,14 +842,14 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             <img className="dataset-title-expand-icon" src={BACKEND_URL + "/static/images/" + (!showModelDescription ? "plus.png" : "minus.png")} />
                         </div>}
 
-                        {model && <button type="button" title="Edit model" className="model-title-button" onClick={() => {
+                        {!isPublic && model && <button type="button" title="Edit model" className="model-title-button" onClick={() => {
                             navigate("/edit-model/" + model.id + "?expanded=true")
                         }}>
                             <img className="model-title-edit-icon" src={BACKEND_URL + "/static/images/edit.png"}/>
                             Edit model
                         </button>}
 
-                        {model && <button type="button" 
+                        {!isPublic && model && <button type="button" 
                         title="Build model" 
                         className="model-build-button" 
                         onClick={() => {
@@ -761,7 +863,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             {model.model_file ? "Rebuild" : "Build"}
                         </button>}
 
-                        {model && <button type="button" 
+                        {!isPublic && model && <button type="button" 
                         title={model.model_file ? "Train model" : "Model not yet built."}
                         className={"model-evaluate-button no-margin-right " + (model.model_file ? "" : "model-button-disabled")}
                         onClick={() => {
@@ -787,9 +889,14 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
                         {model && <button type="button" 
                         title={model.model_file ? (isTrained ? "Evaluate model" : "Model not yet trained or trained on unknown dataset.") : "Model not yet built."}
-                        className={"model-evaluate-button " + ((model.model_file && isTrained) ? "" : "model-button-disabled")}
+                        className={"model-evaluate-button " + ((model.model_file && isTrained) ? "" : "model-button-disabled ") + (isPublic ? "no-margin-right" : "")}
                         onClick={() => {
+                            
                             if ((model.model_file && isTrained)) {
+                                if (!currentProfile.user) {
+                                    checkLoggedIn("")
+                                    return;
+                                }
                                 setShowEvaluateModelPopup(true)
                             }
                         }}>
@@ -797,12 +904,25 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                             Evaluate
                         </button>}
 
+                        {isPublic && model && currentProfile && currentProfile.user && !model.saved_by.includes(currentProfile.user) && <button className="dataset-save-button" 
+                        title="Save model" 
+                        onClick={() => saveModel()}>
+                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/star.svg"}/>
+                            Save
+                        </button>}
+                        {isPublic && model && currentProfile && currentProfile.user && model.saved_by.includes(currentProfile.user) && <button className="dataset-save-button"
+                        title="Unsave model" 
+                        onClick={() => unsaveModel()}>
+                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/>
+                            Saved
+                        </button>}
+
                         {model && <button type="button" 
                         title={model.model_file ? "Create copy" : "Model not yet built."}
                         className={"model-build-button model-copy-button " + (model.model_file ? "" : "model-button-disabled")}
                         onClick={() => {
                             if (model.model_file) {
-                                navigate("/create-model?copy=" + model.id)
+                                checkLoggedIn("/create-model?copy=" + model.id)
                             }
                         }}>
                             <img className="model-download-icon" src={BACKEND_URL + "/static/images/copy.png"} />
@@ -875,7 +995,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
 
                     </div>}
 
-                    {!showModelDescription && !showModelMetrics && <DragDropContext className="model-layers-container-outer" onDragEnd={layersHandleDragEnd}>
+                    {!isPublic && !showModelDescription && !showModelMetrics && <DragDropContext className="model-layers-container-outer" onDragEnd={layersHandleDragEnd}>
                         <Droppable droppableId="models-droppable" direction="horizontal">
                         {(provided) => (<div className="model-layers-container"
                         {...provided.droppableProps}
@@ -943,6 +1063,38 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL}
                         </div>)}
                         </Droppable>
                     </DragDropContext>}
+                    {isPublic && !showModelDescription && !showModelMetrics && <div className="model-layers-container"
+                    ref={scrollRef}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={throttledMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseLeave}>
+                            {layers.map((layer, idx) => (<LayerElement key={idx} BACKEND_URL={BACKEND_URL} 
+                                        layer={layer} 
+                                        hoveredLayer={hoveredLayer} 
+                                        deleteLayer={() => {}}
+                                        layers={layers}
+                                        setLayers={setLayers}
+                                        notification={notification}
+                                        prevLayer={(idx > 0 ? layers[idx - 1] : null)}
+                                        setWarnings={setWarnings}
+                                        provided={{
+                                            draggableProps: ""
+                                        }}   // Just give this object here as not draggable
+                                        updateWarnings={false}
+                                        idx={idx}
+                                        isBuilt={model.model_file != null}
+                                        onMouseEnter={() => setMouseOnLayer(true)}
+                                        onMouseLeave={() => setMouseOnLayer(false)}
+                                        isPublic={true}>
+                                </LayerElement>)
+
+                            )}
+                            {!loading && layers.length == 0 && <div className="no-layers-container">
+                                This model does not have any layers.
+                            </div>}
+                        </div>
+                    }
 
                     {model && showModelMetrics && !showModelDescription && <ModelMetrics data={trainingMetrics} 
                         val_split={model.val_split} 
