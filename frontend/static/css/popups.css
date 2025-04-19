@@ -13,7 +13,7 @@
     z-index: 6;
 }
 
-.account-popup-container, .confirm-popup-container, .create-layer-popup-container, .build-model-popup-container, .model-download-popup-container, .train-model-popup-container {
+.account-popup-container, .confirm-popup-container, .create-layer-popup-container, .build-model-popup-container, .model-download-popup-container, .model-downloaded-popup-container, .train-model-popup-container {
     width: 450px;
     border-radius: 5px;
     background: var(--toolbar);
@@ -28,7 +28,7 @@
     width: 400px;
 }
 
-.create-layer-popup-container, .build-model-popup-container, .model-download-popup-container, .train-model-popup-container {
+.create-layer-popup-container, .build-model-popup-container, .model-download-popup-container, .model-downloaded-popup-container, .train-model-popup-container {
     height: 650px;
     max-height: 90%;
     width: 600px;

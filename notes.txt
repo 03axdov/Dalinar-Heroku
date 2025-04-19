@@ -5,6 +5,8 @@ TO-DO:
 - Load models with weights
 - Fine tuning
 - Regression models
+- Problem with testing and files on AWS not getting deleted
+- Look into deleting temp model file in get_tf_model
 
 Layers to add:
 - RandomRotation

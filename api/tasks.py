@@ -11,7 +11,6 @@ import base64
 from django.conf import settings
 import tempfile
 from django.core.files import File
-from django.core.files.storage import default_storage
 from io import BytesIO
 
 from .serializers import *
@@ -46,11 +45,39 @@ def get_temp_model_name(id, timestamp, extension, user_id=None):   # Timestamp u
     os.makedirs(base_path, exist_ok=True)  # make sure the folder exists
 
     if user_id:
-        filename = f"temp_model{id}-{user_id}.{extension}"
+        filename = f"temp_model-{id}-{user_id}.{extension}"
     else:
-        filename = f"temp_model{id}-{timestamp}.{extension}"
+        filename = f"temp_model-{id}-{timestamp}.{extension}"
     
     return os.path.join(base_path, filename)
+
+
+def get_pretrained_model(name, profile=None):
+    # Define the S3 bucket and file path
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    model_file_path = "media/" + name
+    
+    s3_client = get_s3_client()
+    
+    extension = model_file_path.split(".")[-1]
+    
+    timestamp = time.time()
+
+    # Download the model file from S3 to a local temporary file
+    temp_file_path = ""
+    if profile:
+        temp_file_path = get_temp_model_name(name, timestamp, extension, profile.user.id)
+    else:
+        temp_file_path = get_temp_model_name(name, timestamp, extension)
+
+    with open(temp_file_path, 'wb') as f:
+        s3_client.download_fileobj(bucket_name, model_file_path, f)
+        
+    # Load the TensorFlow model from the temporary file
+    model = tf.keras.models.load_model(temp_file_path)
+    model.name = name
+
+    return model
     
     
 def get_tf_model(model_instance, profile=None):     # Gets a Tensorflow model from a built Model instance, negative timestamp means ongoing operation
@@ -137,6 +164,9 @@ def get_tf_layer(layer):    # From a Layer instance
         return layers.Embedding(layer.max_tokens, layer.output_dim, name=name)
     elif layer_type == "globalaveragepooling1d":
         return layers.GlobalAveragePooling1D(name=name)
+    elif layer_type == "mobilenetv2":
+        model = get_tf_model()
+        return model
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         raise Exception("Invalid layer: " + layer_type)
@@ -1194,7 +1224,7 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
         else:
             return {"Unauthorized": "You can only recompile your own models.", "status": 401}
     except Profile.DoesNotExist:
-        return {"Not found": "Could not find profile with the id " + str(profile_id) + ".", "status": 404}
+        return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
     except Model.DoesNotExist:
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
     except Exception as e:
@@ -1261,10 +1291,8 @@ def set_to_tf_layer(layer_instance, tf_layer):
     elif isinstance(tf_layer, layers.Embedding):
         layer_instance.max_tokens = config["input_dim"]
         layer_instance.output_dim = config["output_dim"]
-    elif isinstance(tf_layer, layers.GlobalAveragePooling1D):
-        pass
-    else:
-        print("UNKNOWN LAYER OF TYPE: ", layer_instance.layer_type)
+    else:   # GlobalPooling1D and MobileNetV2 can't be reset
+        print("DID NOT UPDATE LAYER OF TYPE: ", layer_instance.layer_type)
         return # Continue instantiating model
     
     if "activation" in config.keys():
@@ -1282,7 +1310,7 @@ def reset_to_build_task(self, layer_id, user_id):
         layer_instance = Layer.objects.get(id=layer_id)
         model_instance = layer_instance.model
         
-        if not model_instance.model_file: return Response({"Bad request": "Model has not been built."}, status=status.HTTP_200_OK)
+        if not model_instance.model_file: return {"Bad request": "Model has not been built.", "status": 400}
         
         if model_instance.owner == profile:
             timestamp = ""
@@ -1321,147 +1349,3 @@ def reset_to_build_task(self, layer_id, user_id):
         return {"Bad request": str(e), "status": 400}
     
     
-    
-def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
-    config = tf_layer.get_config()
-    
-    data = {}
-    
-    input_shape = False
-    if "batch_input_shape" in config.keys():
-        input_shape = config["batch_input_shape"]
-    
-    if isinstance(tf_layer, layers.Dense):
-        data["type"] = "dense"
-        data["nodes_count"] = config["units"]
-        if input_shape:
-            data["input_x"] = input_shape[-1]
-    elif isinstance(tf_layer, layers.Conv2D):
-        data["type"] = "conv2d"
-        data["filters"] = config["filters"]
-        data["kernel_size"] = config["kernel_size"][0]
-        data["padding"] = config["padding"]
-        if input_shape:
-            data["input_x"] = input_shape[1]    # First one is None
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.MaxPool2D):
-        data["type"] = "maxpool2d"
-        data["pool_size"] = config["pool_size"][0]
-    elif isinstance(tf_layer, layers.Flatten):
-        data["type"] = "flatten"
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-    elif isinstance(tf_layer, layers.Dropout):
-        data["type"] = "dropout"
-        data["rate"] = config["rate"]
-    elif isinstance(tf_layer, layers.Rescaling):
-        data["type"] = "rescaling"
-        data["scale"] = config["scale"]
-        data["offset"] = config["offset"]
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.RandomFlip):
-        data["type"] = "randomflip"
-        data["mode"] = config["mode"]
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.RandomRotation):
-        data["type"] = "randomrotation"
-        data["factor"] = config["factor"]
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.Resizing):
-        data["type"] = "resizing"
-        data["output_x"] = config["width"]
-        data["output_y"] = config["height"]
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.TextVectorization):
-        data["type"] = "textvectorization"
-        data["max_tokens"] = config["max_tokens"]
-        data["standardize"] = config["standardize"]
-    elif isinstance(tf_layer, layers.Embedding):
-        data["type"] = "embedding"
-        data["max_tokens"] = config["input_dim"]
-        data["output_dim"] = config["output_dim"]
-    elif isinstance(tf_layer, layers.GlobalAveragePooling1D):
-        data["type"] = "globalaveragepooling1d"
-    else:
-        print("UNKNOWN LAYER OF TYPE: ", layer_instance.layer_type)
-        return # Continue instantiating model
-    
-    factory = APIRequestFactory()
-    
-    data["model"] = model_id
-    data["index"] = idx
-    data["activation_function"] = ""
-    if "activation" in config.keys():
-        data["activation_function"] = config["activation"]
-    
-    create_layer = CreateLayer.as_view()
-    
-    layer_request = factory.post('/create-layer/', data=json.dumps(data), content_type='application/json')
-    layer_request.user = request.user
-    
-    layer_response = create_layer(layer_request)
-    if layer_response.status_code != 200:
-        return Response(
-            {'Bad Request': f'Error creating layer {idx}'},
-            status=layer_response.status_code
-        )
-    else:
-        layer_id = str(layer_response.data.get('id'))
-        tf_layer.name = layer_id
-    
-    
-# Not currently a task
-def create_model_file(request, model_instance):
-    backend_temp_model_path = ""
-    try:
-        model_file = request.data["model"]
-        extension = model_file.name.split(".")[-1]
-        temp_path = "tmp/temp_models/" + model_file.name
-        file_path = default_storage.save(temp_path, model_file.file)
-        
-        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-        temp_model_file_path = "media/" + file_path
-        print(f"Model file saved at: {temp_model_file_path}")
-                
-        s3_client = get_s3_client()
-        
-        # Download the model file from S3 to a local temporary file
-        timestamp = time.time()
-        backend_temp_model_path = get_temp_model_name(model_instance.id, timestamp, extension)
-        with open(backend_temp_model_path, 'wb') as f:
-            s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
-
-        model = tf.keras.models.load_model(backend_temp_model_path)
-        
-        default_storage.delete(file_path)
-        
-        os.remove(backend_temp_model_path)
-        
-        for t, layer in enumerate(model.layers):
-            layer_model_from_tf_layer(layer, model_instance.id, request, t)
-            
-        model_instance.model_file = model_file
-        model_instance.optimizer = model.optimizer.__class__.__name__.lower()
-        model_instance.loss_function = model.loss.__name__
-        
-        model_instance.save()
-        
-        return {"status": 200}
-    except Exception as e:
-        if os.path.exists(backend_temp_model_path):
-            os.remove(backend_temp_model_path)
-        return {"Bad request": str(e), "status": 400}

@@ -123,6 +123,8 @@ class LayerSerializer(serializers.BaseSerializer):
             return EmbeddingLayerSerializer(instance).data
         elif isinstance(instance, GlobalAveragePooling1DLayer):
             return GlobalAveragePooling1DLayerSerializer(instance).data
+        elif isinstance(instance, GlobalAveragePooling1DLayer):
+            return GlobalAveragePooling1DLayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     
@@ -152,6 +154,8 @@ class CreateLayerSerializer(serializers.BaseSerializer):
             return CreateEmbeddingLayerSerializer(instance).data
         elif isinstance(instance, GlobalAveragePooling1DLayer):
             return CreateGlobalAveragePooling1DLayerSerializer(instance).data
+        elif isinstance(instance, MobileNetV2Layer):
+            return CreateMobileNetV2LayerSerializer(instance).data
         return None  # Handles unexpected cases
     
 
@@ -272,6 +276,16 @@ class GlobalAveragePooling1DLayerSerializer(serializers.ModelSerializer):
 class CreateGlobalAveragePooling1DLayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = GlobalAveragePooling1DLayer
+        fields = []
+
+
+class MobileNetV2LayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MobileNetV2Layer
+        fields = "__all__"
+class CreateMobileNetV2LayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MobileNetV2Layer
         fields = []
 
         

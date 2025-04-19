@@ -11,7 +11,7 @@ function ModelDownloadPopup({model, setShowDownloadPopup, downloadModel, isDownl
             setShowDownloadPopup(false)
             setIsDownloaded(false)
         }}>
-            {isDownloaded && <div className="model-download-popup-container" style={{background: "var(--toolbar)"}} onClick={(e) => {
+            {isDownloaded && <div className="model-downloaded-popup-container" style={{background: "var(--toolbar)"}} onClick={(e) => {
                 e.stopPropagation()
             }}>
                 <h1 className="download-successful-title">Download Successful <img className="download-successful-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/></h1>
