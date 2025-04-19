@@ -410,6 +410,15 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         {isPublic && <div className="layer-element-input" id={param.name + layer.id}>{params[param.name]}</div>}
                     </div>
                 ))}
+
+                {current_layer.default_dimensions && current_layer.default_dimensions.map((dimension, idx) => (
+                    <div className="layer-element-stat" key={idx}>
+                        <span className={"layer-element-stat-color layer-element-stat-gray2"}></span>
+                        <label className="layer-element-label">{dimension[0]}</label>
+                        <div className="layer-element-input" title="Not editable" style={{opacity: 0.75}}>{dimension[1]}</div>
+                    </div>
+                ))}
+
                 {current_layer.input_x && dimensionsX(current_layer)}
                 {current_layer.input_y && dimensionsY(current_layer)}
                 {current_layer.input_z && dimensionsZ(current_layer)}
@@ -512,7 +521,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         {(resettingToBuild ? "Processing..." : "Reset to build")}
                     </button>}
 
-                    {LAYERS[type].not_editable && <p className="layer-not-editable">This layer has no parameters to edit.</p>}
+                    {LAYERS[type].not_editable && !LAYERS[type].default_dimensions && <p className="layer-not-editable">This layer has no parameters to edit.</p>}
 
                     <div className="layer-element-index" title={"Layer #" + (idx+1)}>{idx+1}</div>
                 </div>}

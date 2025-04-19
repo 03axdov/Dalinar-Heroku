@@ -125,6 +125,8 @@ class LayerSerializer(serializers.BaseSerializer):
             return GlobalAveragePooling1DLayerSerializer(instance).data
         elif isinstance(instance, GlobalAveragePooling1DLayer):
             return GlobalAveragePooling1DLayerSerializer(instance).data
+        elif isinstance(instance, MobileNetV2Layer):
+            return MobileNetV2LayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     

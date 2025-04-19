@@ -213,6 +213,9 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                                 <option value="conv2d">Conv2D</option>
                                 <option value="maxpool2d">MaxPool2D</option>
                             </optgroup>}
+                            {modelType.toLowerCase() == "image" && <optgroup label="Pretrained Models">
+                                <option value="mobilenetv2">MobileNetV2</option>
+                            </optgroup>}
                             {modelType.toLowerCase() == "text" && <optgroup label="Text">
                                 <option value="embedding">Embedding</option>
                             </optgroup>}

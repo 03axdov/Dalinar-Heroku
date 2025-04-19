@@ -183,7 +183,7 @@ export const LAYERS = {
         "input_x": true,
         "input_y": true,
         "input_z": true,
-        "color": "green"
+        "color": "cyan"
     },
     conv2d: {
         "name": "Conv2D",
@@ -340,23 +340,37 @@ export const LAYERS = {
         "image": "global.svg",
         "color": "lightblue",
         "not_editable": true    // Formatted like this as only a few are not editable
+    },
+    mobilenetv2: {
+        "name": "MobileNetV2",
+        "params": [],
+        "image": "model.svg",
+        "color": "pink2",
+        "default_dimensions": [
+            ["Input Width", 224],
+            ["Input Height", 224],
+            ["Input Depth", 3]
+        ],
+        "not_editable": true,
+        "no_dimensions": true,  // Avoids warnings if first layer
     }
 }
 
 
 export const VALID_PREV_LAYERS = { // null means that it can be the first layer
     "dense": [null, "dense", "flatten", "dropout", "textvectorization"],
-    "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing"],
-    "maxpool2d": ["conv2d", "maxpool2d", "rescaling", "resizing"],
+    "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing", "mobilenetv2"],
+    "maxpool2d": ["conv2d", "maxpool2d", "rescaling", "resizing", "mobilenetv2"],
     "dropout": ["dense", "dropout", "flatten", "embedding", "globalaveragepooling1d"],
-    "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling", "resizing"],
+    "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling", "resizing", "mobilenetv2"],
     "rescaling": [null, "randomflip", "resizing", "randomrotation"],
     "randomflip": [null, "rescaling", "resizing", "randomrotation"],
     "randomrotation": [null, "rescaling", "resizing", "randomflip"],
     "resizing": [null],
     "textvectorization": [null],
     "embedding": [null, "textvectorization"],
-    "globalaveragepooling1d": ["embedding", "dense", "dropout"]
+    "globalaveragepooling1d": ["embedding", "dense", "dropout"],
+    "mobilenetv2": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing"],
 }
 
 export const WARNING_MESSAGES = {
@@ -372,6 +386,7 @@ export const WARNING_MESSAGES = {
     "textvectorization": "Must be the first layer.",
     "embedding": "Must be the first layer, else follow one of the following layers: [" + VALID_PREV_LAYERS["embedding"].slice(1).join(", ") + "].",
     "globalaveragepooling1d": "A GlobalAveragePooling1D layer must follow one of the following layers: [" + VALID_PREV_LAYERS["globalaveragepooling1d"].slice(1).join(", ") + "].",
+    "mobilenetv2": "A MobileNetV2 layer must be the first one, else follow one of the following layers: [" + VALID_PREV_LAYERS["mobilenetv2"].slice(1).join(", ") + "].",
 }
 
 export function getLayerName(layer) {
@@ -400,6 +415,8 @@ export function getLayerName(layer) {
         return "Embedding (" + layer.max_tokens + ", " + layer.output_dim + ")"
     } else if (type == "globalaveragepooling1d") {
         return "GlobalAveragePooling1D"
+    } else if (type == "mobilenetv2") {
+        return "MobileNetV2"
     }
 }
 
@@ -453,8 +470,6 @@ export function computeParams(layers, sequence_length = 256) {
         // Clear sequence tracking if switching from sequence to image
         current_steps = null;
         current_feats = null;
-
-        console.log(`Conv2D: input=(${current_x},${current_y},${current_z}), kernel=${kernel_size}, padding=${paddingType} → output=(${out_x},${out_y},${filters})`);
       }
   
       else if (type === 'maxpool2d') {
@@ -544,6 +559,25 @@ export function computeParams(layers, sequence_length = 256) {
       
         // Skip parameter count, these layers don't have any
         return;
+      }
+
+      else if (type === 'mobilenetv2') {
+        // MobileNetV2 with include_top=False has a fixed param count and output shape
+        // when input is (224, 224, 3)
+        const knownParams = 2257984; // MobileNetV2 (include_top=False, weights='imagenet')
+      
+        totalParams += knownParams;
+      
+        // Output shape after MobileNetV2 (include_top=False, pooling=None)
+        current_x = 7;
+        current_y = 7;
+        current_z = 1280;
+      
+        // Clear sequence and Dense state
+        current_steps = current_feats = null;
+        inUnits = null;
+      
+        console.log(`MobileNetV2: output shape = (7, 7, 1280), params = ${knownParams}`);
       }
     });
   
