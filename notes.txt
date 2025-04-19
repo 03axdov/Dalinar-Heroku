@@ -7,6 +7,7 @@ TO-DO:
 - Regression models
 - Problem with testing and files on AWS not getting deleted
 - Look into deleting temp model file in get_tf_model
+- Better dropdown for adding layers
 
 Layers to add:
 - RandomRotation

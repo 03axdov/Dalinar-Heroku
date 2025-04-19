@@ -413,7 +413,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
 
                 {current_layer.default_dimensions && current_layer.default_dimensions.map((dimension, idx) => (
                     <div className="layer-element-stat" key={idx}>
-                        <span className={"layer-element-stat-color layer-element-stat-gray2"}></span>
+                        <span className={"layer-element-stat-color layer-element-stat-" + dimension[2]}></span>
                         <label className="layer-element-label">{dimension[0]}</label>
                         <div className="layer-element-input" title="Not editable" style={{opacity: 0.75}}>{dimension[1]}</div>
                     </div>

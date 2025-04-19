@@ -55,7 +55,7 @@ def get_temp_model_name(id, timestamp, extension, user_id=None):   # Timestamp u
 def get_pretrained_model(name, profile=None):
     # Define the S3 bucket and file path
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    model_file_path = "media/" + name
+    model_file_path = "media/pretrained_models/" + name + ".keras"
     
     s3_client = get_s3_client()
     
@@ -165,7 +165,7 @@ def get_tf_layer(layer):    # From a Layer instance
     elif layer_type == "globalaveragepooling1d":
         return layers.GlobalAveragePooling1D(name=name)
     elif layer_type == "mobilenetv2":
-        model = get_tf_model()
+        model = get_pretrained_model("mobilenetv2")
         return model
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
@@ -278,6 +278,8 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     elements = []
     if dataset_instance.dataset_type == "image":
         input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z) 
+        if first_layer.layer_type == "mobilenetv2":
+            input_dims = (224,224,3)
         elements = list(map(imageMapFunc, file_paths))
         
     elif dataset_instance.dataset_type == "text":
@@ -420,8 +422,10 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
 
                     validation_size = int(dataset_length * validation_split)
                     train_size = dataset_length - validation_size
+
+                    print(train_size)
                     
-                    # model.summary() # For debugging
+                    model.summary() # For debugging
                     
                     progress_callback = TrainingProgressCallback(profile=profile, total_epochs=epochs)
 
@@ -494,6 +498,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     set_training_progress(profile, -1)
                     
                     remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
+
                     message = str(e)
                     if len(message) > 50:
                         message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
@@ -503,6 +508,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     set_training_progress(profile, -1)
                     
                     remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
+
                     return {"Bad request": str(e), "status": 400}
             else:
                 return {"Bad request": "Model has not been built.", "status": 400}

@@ -347,9 +347,11 @@ export const LAYERS = {
         "image": "model.svg",
         "color": "pink2",
         "default_dimensions": [
-            ["Input Width", 224],
-            ["Input Height", 224],
-            ["Input Depth", 3]
+            ["Trainable", "False", "pink2"],    // Name, value, color
+            ["Input Width", 224, "gray2"],
+            ["Input Height", 224, "gray2"],
+            ["Input Depth", 3, "gray2"],
+            
         ],
         "not_editable": true,
         "no_dimensions": true,  // Avoids warnings if first layer
@@ -358,10 +360,10 @@ export const LAYERS = {
 
 
 export const VALID_PREV_LAYERS = { // null means that it can be the first layer
-    "dense": [null, "dense", "flatten", "dropout", "textvectorization"],
-    "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing", "mobilenetv2"],
-    "maxpool2d": ["conv2d", "maxpool2d", "rescaling", "resizing", "mobilenetv2"],
-    "dropout": ["dense", "dropout", "flatten", "embedding", "globalaveragepooling1d"],
+    "dense": [null, "dense", "flatten", "dropout", "textvectorization", "mobilenetv2"],
+    "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing"],
+    "maxpool2d": ["conv2d", "maxpool2d", "rescaling", "resizing"],
+    "dropout": ["dense", "dropout", "flatten", "embedding", "globalaveragepooling1d", "mobilenetv2"],
     "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling", "resizing", "mobilenetv2"],
     "rescaling": [null, "randomflip", "resizing", "randomrotation"],
     "randomflip": [null, "rescaling", "resizing", "randomrotation"],
@@ -369,7 +371,7 @@ export const VALID_PREV_LAYERS = { // null means that it can be the first layer
     "resizing": [null],
     "textvectorization": [null],
     "embedding": [null, "textvectorization"],
-    "globalaveragepooling1d": ["embedding", "dense", "dropout"],
+    "globalaveragepooling1d": ["embedding", "dense", "dropout", "mobilenetv2"],
     "mobilenetv2": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing"],
 }
 
@@ -561,24 +563,20 @@ export function computeParams(layers, sequence_length = 256) {
         return;
       }
 
-      else if (type === 'mobilenetv2') {
-        // MobileNetV2 with include_top=False has a fixed param count and output shape
-        // when input is (224, 224, 3)
-        const knownParams = 2257984; // MobileNetV2 (include_top=False, weights='imagenet')
-      
-        totalParams += knownParams;
-      
-        // Output shape after MobileNetV2 (include_top=False, pooling=None)
-        current_x = 7;
-        current_y = 7;
-        current_z = 1280;
-      
-        // Clear sequence and Dense state
-        current_steps = current_feats = null;
-        inUnits = null;
-      
-        console.log(`MobileNetV2: output shape = (7, 7, 1280), params = ${knownParams}`);
-      }
+        else if (type === 'mobilenetv2') {
+            const knownParams = 2257984; // Includes trainable + non-trainable params
+
+            totalParams += knownParams;
+
+            // Output shape after GlobalAveragePooling2D
+            current_x = null;
+            current_y = null;
+            current_z = null;
+
+            current_steps = null;
+            current_feats = 1280;  // Flattened 1D vector with 1280 features
+            inUnits = 1280;
+        }
     });
   
     return totalParams;
