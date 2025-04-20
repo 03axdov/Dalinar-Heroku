@@ -19,6 +19,8 @@ import { TEMPLATE_DATA } from "../helpers/templates"
 import ProgressBar from "../components/ProgressBar";
 
 import throttle from 'lodash.throttle';
+import Select from 'react-select';
+import { customStylesNoMargin } from "../helpers/styles";
 
 
 // The default page. Login not required.
@@ -667,6 +669,17 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
         return data
     }
 
+    let template_options_image = [
+        {value: "cv-small", label: "Computer Vision (small)"},
+        {value: "cv-medium", label: "Computer Vision (medium)"},
+        {value: "cv-large", label: "Computer Vision (large)"}
+    ]
+    let template_options_text = [
+        {value: "text-small", label: "Text Model (small)"},
+        {value: "text-medium", label: "Text Model (medium)"},
+        {value: "text-large", label: "Text Model (large)"}
+    ]
+
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
 
@@ -818,6 +831,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                         ))}
                     </div>}
                     
+                    {!loading && layers.length == 0 && <p className="gray-text">Layers will show here</p>}
                 </div>
                 <div className="dataset-toolbar-resizeable" 
                 onMouseDown={resizeLeftToolbarHandleMouseDown}
@@ -1041,17 +1055,16 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                                 
                                 <p className="model-or">or</p>
 
-                                <select className="create-dataset-inp" style={{width: "100%", margin: 0}} value={currentTemplate} onChange={(e) => {
-                                    setCurrentTemplate(e.target.value)
-                                }}>
-                                    {model.model_type.toLowerCase() == "image"  && <option value="cv-small">Computer Vision (small)</option>}
-                                    {model.model_type.toLowerCase() == "image" && <option value="cv-medium">Computer Vision (medium)</option>}
-                                    {model.model_type.toLowerCase() == "image" && <option value="cv-large">Computer Vision (large)</option>}
-
-                                    {model.model_type.toLowerCase() == "text"  && <option value="text-small">Text Model (small)</option>}
-                                    {model.model_type.toLowerCase() == "text" && <option value="text-medium">Text Model (medium)</option>}
-                                    {model.model_type.toLowerCase() == "text" && <option value="text-large">Text Model (large)</option>}
-                                </select>
+                                <Select
+                                    options={(model.model_type.toLowerCase() == "image" ? template_options_image : template_options_text)}
+                                    value={(model.model_type.toLowerCase() == "image" ? template_options_image : template_options_text)
+                                        .find((opt) => opt.value === currentTemplate)}
+                                    onChange={(selected) => {
+                                        setCurrentTemplate(selected.value)
+                                    }}
+                                    styles={customStylesNoMargin}
+                                    className="w-full"
+                                />
                                 <button type="button" 
                                 className="sidebar-button dataset-upload-button"
                                 title="Load template"

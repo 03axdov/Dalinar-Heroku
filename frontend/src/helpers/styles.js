@@ -81,3 +81,12 @@ export const customStyles = {
         },
     }),
 };
+
+export const customStylesNoMargin = {
+    ...customStyles,
+    container: (base) => ({
+        ...base,
+        width: '100%',
+        marginLeft: "0"
+    }),
+  };

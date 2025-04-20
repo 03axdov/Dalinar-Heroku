@@ -158,7 +158,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     return (<div className="create-layer-label-inp" key={idx}>
                         <label className="create-dataset-label" htmlFor={param.name}>{param.name_readable}</label>
                         <Select
-                        instanceId={param.name}
+                        inputId={param.name}
                         options={options}
                         value={options
                             .find((opt) => opt.value === params[param.name])}
@@ -210,7 +210,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
             {layer.activation_function && <div className="create-layer-label-inp">
                 <label className="create-dataset-label" htmlFor="activation-function">Activation function</label>
                 <Select
-                    instanceId="activation-function"
+                    inputId="activation-function"
                     options={activation_options}
                     value={activation_options
                         .find((opt) => opt.value === params["activation_function"])}
@@ -287,7 +287,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     <div className="create-dataset-label-inp">
                         <label className="create-dataset-label" htmlFor="layer-type">Layer type</label>
                         <Select
-                        instanceId="layer-type"
+                        inputId="layer-type"
                         options={options}
                         value={options
                             .flatMap((group) => group.options)
