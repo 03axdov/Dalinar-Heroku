@@ -1,10 +1,17 @@
 import React, {useState} from "react"
 import DownloadCode from "../components/DownloadCode"
+import Select from "react-select"
+import { customStyles } from "../helpers/styles"
 
 function ModelDownloadPopup({model, setShowDownloadPopup, downloadModel, isDownloading, isDownloaded, setIsDownloaded, BACKEND_URL}) {
 
     const [format, setFormat] = useState(".keras")
     const [filename, setFilename] = useState(model.name.replaceAll(" ", "_"))
+
+    let formatOptions = [
+        {value: ".keras", label: ".keras"},
+        {value: ".h5", label: ".h5"}
+    ]
 
     return (
         <div className="popup model-download-popup" onClick={() => {
@@ -45,12 +52,16 @@ function ModelDownloadPopup({model, setShowDownloadPopup, downloadModel, isDownl
 
                     <div className="create-dataset-label-inp">
                         <label className="create-dataset-label" htmlFor="model-format">File format</label>
-                        <select className="create-dataset-inp" id="model-format" required value={format} onChange={(e) => {
-                            setFormat(e.target.value)
-                        }}>
-                            <option value=".keras">.keras</option>
-                            <option value=".h5">.h5</option>
-                        </select>
+                        <Select
+                        inputId="model-format"
+                        options={formatOptions}
+                        value={formatOptions
+                            .find((opt) => opt.value === format)}
+                        onChange={(selected) => setFormat(selected.value)}
+                        styles={customStyles}
+                        placeholder="Select a download format"
+                        className="w-full"
+                        />
                     </div>
 
                     <div className="model-download-build-container">

@@ -372,6 +372,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 <h1 className="layer-element-title">
                     <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/" + current_layer.image} />
                     <span className="layer-element-title-text" title={current_layer.name}>{current_layer.name}</span>
+                    {current_layer.info && <img className="layer-element-info" title={current_layer.info} src={BACKEND_URL + "/static/images/info.svg"} />}
                     {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
                     {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
                         deleteLayer(layer.id)

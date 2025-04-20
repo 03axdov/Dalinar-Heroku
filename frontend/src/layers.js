@@ -354,7 +354,8 @@ export const LAYERS = {
             
         ],
         "not_editable": true,
-        "no_dimensions": true,  // Avoids warnings if first layer
+        "no_dimensions": true,  // Avoids warnings if first layer,
+        "info": "The MobileNetV2 model trained on ImageNet. Output shape: (None, 1280)"
     }
 }
 
@@ -394,13 +395,13 @@ export const WARNING_MESSAGES = {
 export function getLayerName(layer) {
     let type = layer.layer_type
     if (type == "dense") {
-        return "Dense - " + layer.nodes_count + (layer.input_x ? " (" + layer.input_x + ")" : "")
+        return "Dense (" + layer.nodes_count + ")"
     } else if (type == "conv2d") {
-        return "Conv2D - (" + layer.filters + ", " + layer.kernel_size + ")"
+        return "Conv2D (" + layer.filters + ", " + layer.kernel_size + ")"
     } else if (type == "maxpool2d") {
-        return "MaxPool2D - " + layer.pool_size
+        return "MaxPool2D (" + layer.pool_size + ")"
     } else if (type == "flatten") {
-        return "Flatten" + (layer.input_x ? " - (" + layer.input_x + ", " + layer.input_y + ")" : "")
+        return "Flatten" + (layer.input_x ? " (" + layer.input_x + ", " + layer.input_y + ")" : "")
     } else if (type == "dropout") {
         return "Dropout (" + layer.rate + ")"
     } else if (type == "rescaling") {

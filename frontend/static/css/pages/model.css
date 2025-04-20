@@ -287,18 +287,26 @@
     width: 100%;
 }
 
-.layer-element-delete, .layer-element-drag {
+.layer-element-delete, .layer-element-drag, .layer-element-info {
     height: 24px;
     width: 24px;
     padding: 5px;
     box-sizing: border-box;
-    border-radius: 11px;
+    border-radius: 50%;
     margin-left: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-right: 0;
+}
+
+.layer-element-info {
+    padding: 4px;
 }
 
 .layer-element-drag {
     margin-left: auto;
+    border-radius: 0;
 }
 
 .layer-element-delete:hover {
