@@ -13,7 +13,7 @@
     z-index: 6;
 }
 
-.account-popup-container, .confirm-popup-container, .create-layer-popup-container, .build-model-popup-container, .model-download-popup-container, .model-downloaded-popup-container, .train-model-popup-container {
+.account-popup-container, .confirm-popup-container, .build-model-popup-container, .model-download-popup-container, .model-downloaded-popup-container, .train-model-popup-container {
     width: 450px;
     border-radius: 5px;
     background: var(--toolbar);
@@ -28,7 +28,7 @@
     width: 400px;
 }
 
-.create-layer-popup-container, .build-model-popup-container, .model-download-popup-container, .model-downloaded-popup-container, .train-model-popup-container {
+.build-model-popup-container, .model-download-popup-container, .model-downloaded-popup-container, .train-model-popup-container {
     height: 650px;
     max-height: 90%;
     width: 600px;
@@ -39,6 +39,28 @@
     overflow-y: auto;
     border-radius: 0;
 }
+
+.create-layer-popup {
+    justify-content: start;
+    background: rgb(25,25,25,0.3);
+}
+
+.create-layer-popup-container {
+    height: 100%;
+    width: 600px;
+    padding: 30px 40px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: var(--background);
+    border-right: 1px solid var(--border);
+    transition: transform 0.2s ease-out;
+    transform: translateX(-100%);
+}
+.create-layer-popup-container.slide-in {
+    transform: translateX(0);
+  }
 
 .create-layer-popup-container::-webkit-scrollbar {
     width: 8px;
