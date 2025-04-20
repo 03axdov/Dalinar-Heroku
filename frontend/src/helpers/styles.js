@@ -16,6 +16,7 @@ export const customStyles = {
       backgroundColor: 'var(--background-dark)',
       color: 'white',
       zIndex: 100,
+      border: "1px solid var(--border)",
     }),
     option: (base, state) => ({
         ...base,
