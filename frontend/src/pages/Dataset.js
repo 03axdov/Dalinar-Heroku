@@ -1853,7 +1853,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         const handleMouseMove = (e) => {
           const newWidth = startWidth + (e.clientX - startX)
           
-          if (newWidth < 25) { // Hide toolbar
+          if (newWidth < 40) { // Hide toolbar
             setToolbarLeftWidth(15)
           } else {  // Show toolbar
             setToolbarLeftWidth(Math.max(135, Math.min(newWidth, 250)));  // Arbitrary max and min width
@@ -1881,7 +1881,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         const handleMouseMove = (e) => {
           const newWidth = startWidth - (e.clientX - startX)
 
-          if (newWidth < 25) { // Hide toolbar
+          if (newWidth < 40) { // Hide toolbar
             setToolbarRightWidth(15)
           } else {  // Show toolbar
             setToolbarRightWidth(Math.max(135, Math.min(newWidth, 250)));  // Arbitrary max and min width
@@ -1909,7 +1909,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         const handleMouseMove = (e) => {
           const newHeight = startHeight + (e.clientY - startY)
         
-          if (newHeight < 25) { // Hide toolbar
+          if (newHeight < 40) { // Hide toolbar
             setToolbarMainHeight(15)
           } else {  // Show toolbar
             setToolbarMainHeight(50)

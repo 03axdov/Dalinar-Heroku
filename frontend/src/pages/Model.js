@@ -568,7 +568,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
         const handleMouseMove = (e) => {
           const newWidth = startWidth + (e.clientX - startX)
 
-          if (newWidth < 25) { // Hide toolbar
+          if (newWidth < 40) { // Hide toolbar
             setToolbarLeftWidth(15)
           } else {  // Show toolbar
             setToolbarLeftWidth(Math.max(135, Math.min(newWidth, 250)));  // Arbitrary max and min width
@@ -596,7 +596,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
         const handleMouseMove = (e) => {
           const newHeight = startHeight + (e.clientY - startY)
         
-          if (newHeight < 25) { // Hide toolbar
+          if (newHeight < 40) { // Hide toolbar
             setToolbarMainHeight(15)
           } else {  // Show toolbar
             setToolbarMainHeight(50)
@@ -640,6 +640,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
     function getDescriptionTableData() {
         let data = [["Owner", model.ownername]]
         data.push(["Type", model.model_type])
+        data.push(["Output type", model.output_type])
         if (model.optimizer) data.push(["Optimizer", model.optimizer])
         if (model.loss_function) data.push(["Loss function", model.loss_function])
         if (model.model_type.toLowerCase() == "text") data.push(["Input sequence length", model.input_sequence_length])

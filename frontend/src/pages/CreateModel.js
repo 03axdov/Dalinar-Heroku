@@ -17,6 +17,7 @@ function CreateModel({notification, BACKEND_URL}) {
     const [modelType, setModelType] = useState(copyModel ? "" : "image")
     const [name, setName] = useState("")
     const [description, setDescription] = useState("")
+    const [outputType, setOutputType] = useState("classification")
     const [image, setImage] = useState(null)
     const [visibility, setVisibility] = useState("private")
     const [modelFile, setModelFile] = useState(null)
@@ -224,6 +225,22 @@ function CreateModel({notification, BACKEND_URL}) {
 
                 <p className="create-dataset-image-description">
                     The image that will represent this model. Elements are displayed with a 230x190 image, but in the dataset's page description the full image will be visible.
+                </p>
+
+                <div className="create-dataset-label-inp">
+                    <p className="create-dataset-label create-dataset-type">Type of output</p>
+                    <input type="radio" id="create-dataset-type-classification" name="classification" value="classification" checked={outputType == "classification"} onChange={(e) => {
+                        setOutputType(e.target.value)
+                    }} />
+                    <label htmlFor="create-dataset-type-classification" className="create-dataset-type-label">Classification</label>
+                    <input style={{marginLeft: "20px"}} type="radio" id="create-dataset-type-regression" name="regression" value="regression" checked={outputType == "regression"}  onChange={(e) => {
+                        setOutputType(e.target.value)
+                        
+                    }} />
+                    <label htmlFor="create-dataset-type-regression" className="create-dataset-type-label">Regression</label>
+                </div>
+                <p className="create-dataset-description">
+                    {outputType == "classification" ? "The model will classify elements as belonging to specific labels (e.g. dog, cat, airplane)." : "The model will output a continuos number (e.g. price of a house)."}
                 </p>
 
                 <div className="create-dataset-label-inp create-dataset-label-inp-description">

@@ -7,7 +7,7 @@ const DescriptionTable = ({ data }) => {
         <tbody>
           {data.map((row, index) => (
             <tr key={index}>
-              <td className="description-row-1">{row[0]}</td>
+              <td className="description-row-1 gray-text">{row[0]}</td>
               <td>{row[1]}</td>
             </tr>
           ))}

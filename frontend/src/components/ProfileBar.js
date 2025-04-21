@@ -49,6 +49,23 @@ function ProfileBar({currentProfile, setShowProfileBar, BACKEND_URL}) {
             <div className="profile-bar-line" style={{marginTop: "10px"}}></div>
 
             <div className="profile-bar-row" onClick={() => {
+                setShowProfileBar(false)
+                navigate("/create-dataset")
+            }}>
+                <img className="profile-bar-icon" src={BACKEND_URL + "/static/images/databaseGray.svg"} alt="Plus" />
+                Create dataset
+            </div>
+            <div className="profile-bar-row" onClick={() => {
+                setShowProfileBar(false)
+                navigate("/create-model")
+            }}>
+                <img className="profile-bar-icon" src={BACKEND_URL + "/static/images/modelGray.svg"} alt="Plus" />
+                Create model
+            </div>
+
+            <div className="profile-bar-line" style={{marginTop: "auto"}}></div>
+
+            <div className="profile-bar-row" onClick={() => {
                 window.location.href = window.location.origin + "/accounts/email/"
             }}>
                 <img className="profile-bar-icon" src={BACKEND_URL + "/static/images/email.svg"} alt="Email" />
