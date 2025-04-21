@@ -5,9 +5,7 @@ TO-DO:
 - Regression models
 - Problem with testing and files on AWS not getting deleted
 - Look into deleting temp model file in get_tf_model
-- Better dropdown for adding layers
-- Update more dropdowns (maybe look into colors as well)
-- Info for layers
+- Maybe look into further styling of dropdowns
 
 Layers to add:
 

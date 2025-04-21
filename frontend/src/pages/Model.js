@@ -21,6 +21,7 @@ import ProgressBar from "../components/ProgressBar";
 import throttle from 'lodash.throttle';
 import Select from 'react-select';
 import { customStylesNoMargin } from "../helpers/styles";
+import TitleSetter from "../components/minor/TitleSetter";
 
 
 // The default page. Login not required.
@@ -682,6 +683,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
 
     return (
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
+            <TitleSetter title={"Dalinar " + (model ? "- " + model.name : "")} />
 
             {showPredictionPopup && <PredictionPopup setShowPredictionPopup={setShowPredictionPopup}
             model={model}

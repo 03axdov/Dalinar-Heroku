@@ -2,7 +2,7 @@ import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 import { useParams, useSearchParams } from "react-router-dom";
-
+import TitleSetter from "../components/minor/TitleSetter";
 
 function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
 
@@ -164,6 +164,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
 
     return (
         <div className="create-dataset-container">
+            <TitleSetter title={"Dalinar " + (originalName ? "- Edit " + originalName : "")} />
             <div className="create-dataset-form">
                 <div className="edit-dataset-title-container">
                     <h1 className="create-dataset-title"><span className="gray-text">Edit dataset — </span>{originalName}</h1>

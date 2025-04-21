@@ -10,6 +10,7 @@ import DownloadCode from "../components/DownloadCode";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import ProgressBar from "../components/ProgressBar";
 import DescriptionTable from "../components/DescriptionTable"
+import TitleSetter from "../components/minor/TitleSetter";
 
 
 const TOOLBAR_HEIGHT = 60
@@ -1947,6 +1948,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     return (
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
+            <TitleSetter title={"Dalinar " + (dataset ? "- " + dataset.name : "")} />
 
             {/* Download popup - Classification */}
             {showDownloadPopup && !isDownloaded && dataset && dataset.datatype == "classification" && <DownloadPopup 
