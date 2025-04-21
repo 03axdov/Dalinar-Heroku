@@ -311,6 +311,8 @@ class AbstractLayer(models.Model):
         ("textvectorization", "TextVectorization"),
         ("embedding", "Embedding"),
         ("globalaveragepooling1d", "GlobalAveragePooling1D"),
+        ("mobilenetv2", "MobileNetV2"),
+        ("mobilenetv2small", "MobileNetV2Small"),
     ]
     layer_type = models.CharField(max_length=100, choices=LAYER_CHOICES)
     
@@ -494,7 +496,16 @@ class GlobalAveragePooling1DLayer(Layer):
 
 class MobileNetV2Layer(Layer):
     def __str__(self):
-        res = "MobileNetV2 0.35"
+        res = "MobileNetV2 (224x224x3)"
+        if self.model:
+            res += " - " + self.model.name
+            
+        return res
+
+
+class MobileNetV2SmallLayer(Layer):
+    def __str__(self):
+        res = "MobileNetV2 (32x32x3)"
         if self.model:
             res += " - " + self.model.name
             

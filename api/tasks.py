@@ -167,6 +167,9 @@ def get_tf_layer(layer):    # From a Layer instance
     elif layer_type == "mobilenetv2":
         model = get_pretrained_model("mobilenetv2")
         return model
+    elif layer_type == "mobilenetv2small":
+        model = get_pretrained_model("mobilenetv2small")
+        return model
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         raise Exception("Invalid layer: " + layer_type)
