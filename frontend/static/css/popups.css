@@ -57,6 +57,7 @@
     border-right: 1px solid var(--border);
     transition: transform 0.2s ease-out;
     transform: translateX(-100%);
+    overflow-y: auto;
 }
 .create-layer-popup-container.slide-in {
     transform: translateX(0);

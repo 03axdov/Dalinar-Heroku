@@ -702,6 +702,8 @@ div.layer-element-mode-input {
     background: var(--toolbar);
     padding: 5px 10px;
     font-size: 1.1rem;
+    border-radius: 3px;
+    box-shadow: 0 0 10px 0 black;
 }
 
 .toggle-model-metrics {
@@ -714,6 +716,7 @@ div.layer-element-mode-input {
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 0 10px 0 black;
 }
 
 .metrics-icon {

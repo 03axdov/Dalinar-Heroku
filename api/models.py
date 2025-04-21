@@ -266,6 +266,12 @@ class Model(models.Model):
         ("sparse_categorical_crossentropy", "sparse_categorical_crossentropy")
     ]
     loss_function = models.CharField(max_length=100, blank=True, null=True, choices=LOSS_CHOICES)
+
+    OUTPUT_TYPE_CHOICES = [
+        ("classification", "Classification"),
+        ("regression", "Regression")
+    ]
+    output_type = models.CharField(max_length=20, choices=OUTPUT_TYPE_CHOICES, default="Classification", blank=True, null=True)   # Used for image datasets
     
     def __str__(self):
         return self.name + " - " + self.owner.name

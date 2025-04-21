@@ -39,7 +39,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
         {
             label: 'Pretrained Models',
             options: [
-            { value: 'mobilenetv2', label: 'MobileNetV2' },
+            { value: 'mobilenetv2', label: 'MobileNetV2 - 224x224x3' },
             ],
         },
     ];
@@ -223,6 +223,12 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     className="w-full"
                 />
             </div>}
+
+            {layer.params.length == 0 && (!layer.dimensions || layer.dimensions.length == 0) && !(layer.input_x || layer.input_y || layer.input_z) && !layer.activation_function && <p
+            style={{margin: 0}}
+            className="gray-text">
+                This layer does not have any parameters to set.
+            </p>}
         </div>
     }
 
