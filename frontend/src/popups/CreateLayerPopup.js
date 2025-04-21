@@ -306,7 +306,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     <div className="create-layer-popup-buttons">
                         <button type="button" className="create-layer-popup-cancel" onClick={() => setShowCreateLayerPopup(false)}>Cancel</button>
                         <button type="submit" className="create-layer-popup-submit">
-                            {processingCreateLayer && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                            {processingCreateLayer && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                             {(!processingCreateLayer ? "Create layer" : "Processing...")}
                         </button>
                     </div>

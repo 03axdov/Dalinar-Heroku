@@ -411,7 +411,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                 e.stopPropagation()
             }}>
                 <div className="explore-datasets-title-container">
-                    <h1 className="create-layer-popup-title successfully-trained-title">Successfully evaluated model<img className="trained-successfully-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/></h1>
+                    <h1 className="create-layer-popup-title successfully-trained-title">Successfully evaluated model<img className="trained-successfully-icon" src={BACKEND_URL + "/static/images/blueCheck.png"} alt="Blue checkmark" /></h1>
                 </div>
 
                 <TrainingTable data={[{accuracy: accuracy, loss: loss}]} skip_epoch={true}/>

@@ -21,7 +21,7 @@ function ModelDownloadPopup({model, setShowDownloadPopup, downloadModel, isDownl
             {isDownloaded && <div className="model-downloaded-popup-container" style={{background: "var(--toolbar)"}} onClick={(e) => {
                 e.stopPropagation()
             }}>
-                <h1 className="download-successful-title">Download Successful <img className="download-successful-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/></h1>
+                <h1 className="download-successful-title">Download Successful <img className="download-successful-icon" src={BACKEND_URL + "/static/images/blueCheck.png"} alt="Blue checkmark" /></h1>
                 <p className="download-successful-instructions">An example of how the model can be loaded using TensorFlow is found in the code below.
                     Note that TensorFlow must be installed, see the TensorFlow website or PyPI.
                 </p>
@@ -83,8 +83,8 @@ function ModelDownloadPopup({model, setShowDownloadPopup, downloadModel, isDownl
                             setShowDownloadPopup(false)
                         }}>Cancel</button>
                         <button type="submit" className="create-layer-popup-submit model-download-popup-submit">
-                            {!isDownloading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/download.svg"}/>}
-                            {isDownloading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                            {!isDownloading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/download.svg"} alt="Download" />}
+                            {isDownloading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                             {(!isDownloading ? "Download" : "Downloading...")}
                         </button>
                     </div>

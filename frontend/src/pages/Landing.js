@@ -48,7 +48,7 @@ function Landing({BACKEND_URL}) {
                     </div>
                 </div>
                 <div className="landing-header-right">
-                    <img className="landing-header-cover" src={BACKEND_URL + "/static/images/landing-cover.png"} />
+                    <img className="landing-header-cover" src={BACKEND_URL + "/static/images/landing-cover.png"} alt="Landing cover" />
                     <LandingImageRow imageUrls={imageUrlsRow1} animationDuration={70} offset={15}/>
                     <LandingImageRow imageUrls={imageUrlsRow2} animationDuration={79} offset={30}/>
                     <LandingImageRow imageUrls={imageUrlsRow3} animationDuration={65} offset={5}/>

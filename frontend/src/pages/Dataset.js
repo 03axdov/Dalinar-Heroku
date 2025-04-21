@@ -841,6 +841,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         <img ref={elementRef} 
                         className="dataset-element-view-image" 
                         src={element.file} 
+                        alt="Element image"
                         style={{
                             transform: `scale(${zoom}) translate(${(50 - position.x) * (zoom - 1)}%, ${(50 - position.y) * (zoom - 1)}%)`,
                             transformOrigin: "center",
@@ -878,6 +879,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             setUpdateArea(!updateArea)
                         }} 
                         ref={elementRef} 
+                        alt="Element image"
                         className="dataset-element-view-image-area" 
                         src={element.file} 
                         onClick={(e) => {
@@ -1937,7 +1939,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         win.focus();
                     }}>
                         {model[1]}
-                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                        <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} alt="External" />
                     </div>
                 ))}
                 {dataset.trained_with.length > 10 && <p>and {dataset.trained_with.length - 10} others</p>}
@@ -1963,7 +1965,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             Every label will have its own folder containing the elements with that label.
                         </p>
 
-                        <img className="download-element-image" src={BACKEND_URL + "/static/images/foldersAsLabels.jpg"} />
+                        <img className="download-element-image" src={BACKEND_URL + "/static/images/foldersAsLabels.jpg"} alt="Folders as labels" />
 
                     </div>
                     <div title="Download .zip file" className="download-element" onClick={labelFilenamesDownload}>
@@ -1972,7 +1974,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             One big folder, with every element named after its label and number, e.g. label1_1.png, label1_2.png, etc.
                         </p>
 
-                        <img className="download-element-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} />
+                        <img className="download-element-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} alt="Filenames as labels" />
 
 
                     </div>
@@ -1982,7 +1984,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             Will download the dataset as a .csv file, with labels in the first column and text in the second.
                         </p>
 
-                        <img className="download-element-image" src={BACKEND_URL + "/static/images/csv.jpg"} />
+                        <img className="download-element-image" src={BACKEND_URL + "/static/images/csv.jpg"} alt="csv" />
 
 
                     </div>}
@@ -1995,7 +1997,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             isArea={dataset && dataset.datatype == "area"}
             isDownloaded={isDownloaded}
             setIsDownloaded={setIsDownloaded}>
-                <h1 className="download-successful-title">Download Successful <img className="download-successful-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/></h1>
+                <h1 className="download-successful-title">Download Successful <img className="download-successful-icon" src={BACKEND_URL + "/static/images/blueCheck.png"} alt="Blue checkmark" /></h1>
                 {downloadType == "folders" || downloadType =="files" && <p className="download-successful-instructions">See below for an example of how the dataset can be loaded in Python. Note that the downloaded .zip file must be unpacked
                     and that relative paths must be updated. Also note that the instructions provided are for image datasets.
                 </p>}
@@ -2006,11 +2008,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 <div className="download-frameworks-container download-frameworks-instructions">
                     <div onClick={() => setDownloadFramework("tensorflow")} 
                         className="download-framework">
-                            <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")}/>
+                            <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")} alt="TensorFlow" />
                             <span className={downloadFramework == "tensorflow" ? "tensorflow" : "download-framework-disabled"}>TensorFlow</span>
                         </div>
                     <div onClick={() => setDownloadFramework("pytorch")} className="download-framework" >
-                        <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework == "pytorch" ? "pytorch.png": "pytorchGray.png")}/>
+                        <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework == "pytorch" ? "pytorch.png": "pytorchGray.png")} alt="Pytorch" />
                         <span className={downloadFramework == "pytorch" ? "pytorch": "download-framework-disabled"}>PyTorch</span>
                     </div>
                 </div>
@@ -2028,7 +2030,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         Will download as one big folder, with elements retaining their original filenames. A .json file ({dataset.name}.json) will contain the areas of each element.
                     </p>
 
-                    <img className="download-element-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} />
+                    <img className="download-element-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} alt="Filenames as labels" />
                 
                 </div>
             </DownloadPopup>}
@@ -2048,14 +2050,14 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             className={"sidebar-button dataset-upload-button " + (toolbarLeftWidth < 150 ? "sidebar-button-small" : "")} 
                             onClick={folderInputClick} 
                             title="Upload folder">
-                                {toolbarLeftWidth > 170 && <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />}
+                                {toolbarLeftWidth > 170 && <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />}
                                 <span>Upload folder</span>
                             </button>
                             <button type="button" 
                             className={"sidebar-button dataset-upload-button dataset-upload-files-button " + (toolbarLeftWidth < 150 ? "sidebar-button-small" : "")} 
                             onClick={fileInputClick} 
                             title="Upload files">
-                                {toolbarLeftWidth > 170 && <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />}
+                                {toolbarLeftWidth > 170 && <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />}
                                 <span>Upload files</span>
                             </button>
                         </div>}
@@ -2096,14 +2098,15 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                             style={{...provided.draggableProps.style}}
                                             ref={provided.innerRef}>
 
-                                                {dataset && dataset.dataset_type.toLowerCase() == "image" && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"}/>}
-                                                {dataset && dataset.dataset_type.toLowerCase() == "text" && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.svg"}/>}
+                                                {dataset && dataset.dataset_type.toLowerCase() == "image" && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"} alt="Image" />}
+                                                {dataset && dataset.dataset_type.toLowerCase() == "text" && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.svg"} alt="Text" />}
 
                                                 <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
 
                                                 {!isPublic && (hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
                                                     className="dataset-sidebar-options dataset-sidebar-options-margin"
                                                     src={BACKEND_URL + "/static/images/options.png"}
+                                                    alt="Edit"
                                                     onClick={(e) => {
                                                         e.stopPropagation()
                                                         setEditingElementName(element.name)
@@ -2127,7 +2130,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
                                                 {dataset && dataset.datatype == "area" && element.areas && element.areas.length > 0 && <img title="Labelled" 
                                                     className={"dataset-sidebar-labeled " + ((hoveredElement == idx && !isPublic) ? "dataset-sidebar-labeled-margin" : "")}
-                                                    src={BACKEND_URL + "/static/images/area.svg"} />}
+                                                    src={BACKEND_URL + "/static/images/area.svg"} alt="Area" />}
                                                 
                                             </div></div>)}
                                         </Draggable>
@@ -2147,7 +2150,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     }
 
                     {dataset && showElementPreview && hoveredElement != null && dataset.dataset_type.toLowerCase() == "image" && !editingElement &&
-                        <img className="dataset-sidebar-element-preview" style={{top: elementLabelTop}} src={elements[hoveredElement].file}/>
+                        <img className="dataset-sidebar-element-preview" style={{top: elementLabelTop}} src={elements[hoveredElement].file} alt="Element preview" />
                     }
 
                     {/* Editing element */}
@@ -2165,11 +2168,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             </div>
 
                             <button type="submit" className="edit-element-submit">
-                                {loadingElementEdit && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                                {loadingElementEdit && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                                 {(!loadingElementEdit ? "Save changes" : "Processing...")}
                             </button>
                             <button type="button" className="edit-element-submit edit-element-delete" onClick={deleteElement}>
-                                {loadingElementDelete && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                                {loadingElementDelete && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                                 {(!loadingElementDelete ? "Delete" : "Processing...")}
                             </button>
                         </form>       
@@ -2182,6 +2185,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 style={{width: (toolbarLeftWidth == 15 ? "15px" : "5px")}}>
                     {toolbarLeftWidth == 15 && <img 
                     className="toolbar-main-dropdown" 
+                    alt="Dropdown"
                     src={BACKEND_URL + "/static/images/down.svg"} 
                     style={{transform: "rotate(270deg)"}}/>}
                 </div>
@@ -2191,38 +2195,38 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 <div className="dataset-main-toolbar-outer" style={{height: toolbarMainHeight + "px"}}>
                     <div className="dataset-main-toolbar" style={{display: (toolbarMainHeight > 25 ? "flex" : "none")}}>
                         {dataset && <div className="dataset-title-container unselectable" onClick={() => {setShowDatasetDescription(!showDatasetDescription)}}>
-                            {dataset.dataset_type.toLowerCase() == "image" && <img title="Type: Image" className="dataset-title-icon" src={BACKEND_URL + "/static/images/image.png"}/>}
-                            {dataset.dataset_type.toLowerCase() == "text" && <img title="Type: Text" className="dataset-title-icon" src={BACKEND_URL + "/static/images/text.svg"}/>}
+                            {dataset.dataset_type.toLowerCase() == "image" && <img title="Type: Image" className="dataset-title-icon" src={BACKEND_URL + "/static/images/image.png"} alt="Image" />}
+                            {dataset.dataset_type.toLowerCase() == "text" && <img title="Type: Text" className="dataset-title-icon" src={BACKEND_URL + "/static/images/text.svg"} alt="Text" />}
                             
                             <p className="dataset-title" title={(!showDatasetDescription ? "Show description" : "Hide description")}>{dataset && dataset.name}</p>
 
-                            <img className="dataset-title-expand-icon" src={BACKEND_URL + "/static/images/" + (!showDatasetDescription ? "plus.png" : "minus.png")} />
+                            <img className="dataset-title-expand-icon" src={BACKEND_URL + "/static/images/" + (!showDatasetDescription ? "plus.png" : "minus.png")} alt="Toggle" />
                         </div>}
 
                         {!isPublic && dataset && <button type="button" title="Edit dataset" className="dataset-title-button" onClick={() => {
                             navigate("/edit-dataset/" + dataset.id + "?expanded=true")
                         }}>
-                            <img className="dataset-title-edit-icon" src={BACKEND_URL + "/static/images/edit.png"}/>
+                            <img className="dataset-title-edit-icon" src={BACKEND_URL + "/static/images/edit.png"} alt="Edit" />
                             Edit dataset
                         </button>}
 
                         {dataset && <button className={"dataset-download-button " + (isPublic && currentProfile ? "no-margin-right" : "")} onClick={() => {
                             setShowDownloadPopup(true)
                         }} title="Download dataset">
-                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>
+                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/download.svg"} alt="Download" />
                             Download
                         </button>}
 
                         {isPublic && dataset && currentProfile && currentProfile.user && !dataset.saved_by.includes(currentProfile.user) && <button className="dataset-save-button" 
                         title="Save dataset" 
                         onClick={() => saveDataset()}>
-                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/star.svg"}/>
+                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/star.svg"} alt="Star" />
                             Save
                         </button>}
                         {isPublic && dataset && currentProfile && currentProfile.user && dataset.saved_by.includes(currentProfile.user) && <button className="dataset-save-button"
                         title="Unsave dataset" 
                         onClick={() => unsaveDataset()}>
-                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/>
+                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/blueCheck.png"} alt="Blue checkmark" />
                             Saved
                         </button>}
 
@@ -2255,7 +2259,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             </div>}
 
                             {!isPublic && (!dataset.imageHeight && !dataset.imageWidth) && <button type="submit" className="resize-apply">
-                                {loadingResizeImage && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                                {loadingResizeImage && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                                 {(!loadingResizeImage ? "Apply" : "")}
                             </button>}
                         </form>}
@@ -2269,13 +2273,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         onMouseDown={resizeMainToolbarHandleMouseDown} 
                         style={{height: (toolbarMainHeight == 15 ? "15px" : "5px")}}
                         >
-                        {toolbarMainHeight == 15 && <img className="toolbar-main-dropdown" src={BACKEND_URL + "/static/images/down.svg"} />}
+                        {toolbarMainHeight == 15 && <img className="toolbar-main-dropdown" src={BACKEND_URL + "/static/images/down.svg"} alt="Dropdown" />}
                     </div>
                 </div>
                 
                 <div className="dataset-main-display" ref={datasetMainDisplayRef} style={((dataset && dataset.dataset_type.toLowerCase() == "text" && !showDatasetDescription) ? {overflowY: "scroll"} : {overflowY: "auto"})}>
                     {!isPublic && (elements.length == 0 && !loading && !uploadLoading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>
-                        <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
+                        <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
                         Upload folder
                     </button>}
                     {uploadLoading && <ProgressBar BACKEND_URL={BACKEND_URL} message={"Uploading..."} progress={uploadPercentage}></ProgressBar>}
@@ -2286,7 +2290,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     {showDatasetDescription && dataset &&<div className="dataset-description-display-container" ref={descriptionContainerRef}>
 
                         <div className="dataset-description-image-container" style={{width: "calc(100% - " + descriptionWidth + "%)"}}>
-                            <img className="dataset-description-image" src={dataset.image} />
+                            <img className="dataset-description-image" src={dataset.image} alt="Dataset image" />
                         </div>
 
                         <div className="dataset-description-resize" onMouseDown={resizeDescriptionHandleMouseDown}></div>
@@ -2298,17 +2302,17 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
                             <div className="dataset-description-stats">
                                 {dataset.downloaders && <div className="dataset-description-stats-element">
-                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/download.svg"}/>
+                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/download.svg"} alt="Download" />
                                     {dataset.downloaders.length + (dataset.downloaders.length == 1 ? " download" : " downloads")}
                                 </div>}
 
                                 {elements && <div className="dataset-description-stats-element">
-                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/classification.png"}/>
+                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/classification.png"} alt="Classification" />
                                     {elements.length + (elements.length == 1 ? " element" : " elements")}
                                 </div>}
 
                                 {labels && <div className="dataset-description-stats-element">
-                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/label.png"}/>
+                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/label.png"} alt="Label" />
                                     {labels.length + (labels.length == 1 ? " label" : " labels")}
                                 </div>}
                             </div>
@@ -2328,7 +2332,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             className="hide-description-button"
                             style={{marginTop: (dataset.keywords && dataset.keywords.length ? "0" : "auto")}}
                             onClick={() => {setShowDatasetDescription(false)}}>
-                                <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/minus.png"} />
+                                <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/minus.png"} alt="Minus" />
                                 Hide description
                             </button>
                         </div>
@@ -2345,6 +2349,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     {toolbarRightWidth == 15 && <img 
                     className="toolbar-main-dropdown" 
                     src={BACKEND_URL + "/static/images/down.svg"} 
+                    alt="Dropdown"
                     style={{transform: "rotate(90deg)"}}/>}
                 </div>
                 <div className={"dataset-labels " + (toolbarRightWidth == 15 ? "hidden" : "")}>
@@ -2364,7 +2369,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             
                         </div>}
                         {!isPublic && dataset && dataset.datatype=="classification" && <div className="dataset-sidebar-element" onClick={removeCurrentElementLabel}>
-                            <img className="dataset-sidebar-icon" src={BACKEND_URL + "/static/images/cross.svg"}/>
+                            <img className="dataset-sidebar-icon" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" />
                             Clear label
                         </div>}
                         <DragDropContext className="dataset-labels-list" onDragEnd={labelsHandleDragEnd}>
@@ -2392,7 +2397,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                                 <span className="dataset-sidebar-color" style={{background: (label.color ? label.color : "transparent")}}></span>
                                                 <span className="dataset-sidebar-label-name" title={label.name}>{label.name}</span>
                                                 
-                                                {!isPublic && hoveredLabel == idx && <img title="Edit label" 
+                                                {!isPublic && hoveredLabel == idx && <img alt="Edit" title="Edit label" 
                                                     className={"dataset-sidebar-options " + (!label.keybind ? "dataset-sidebar-options-margin" : "") }
                                                     src={BACKEND_URL + "/static/images/options.png"}
                                                     onClick={(e) => {
@@ -2443,12 +2448,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                         }
                                         
                                     }}>
-                                        <img className="dataset-element-area-icon" src={BACKEND_URL + "/static/images/area.svg"} />
+                                        <img className="dataset-element-area-icon" alt="Area" src={BACKEND_URL + "/static/images/area.svg"} />
                                         <span className="dataset-area-name">{idToLabel[area.label].name}</span>
                                         <span title={"Points: " + JSON.parse(area.area_points).length} 
                                         className={"dataset-sidebar-label-keybind no-box-shadow border " + (toolbarRightWidth < 150 ? "dataset-sidebar-label-keybind-small" : "")}
                                         style={{borderColor: (idToLabel[area.label].color)}}>{JSON.parse(area.area_points).length}</span>
                                         {!isPublic && <img title="Delete area" 
+                                        alt="Cross"
                                         className="dataset-sidebar-options dataset-delete-area" 
                                         style={{marginLeft: "3px"}}
                                         src={BACKEND_URL + "/static/images/cross.svg"} onClick={(e) => {
@@ -2495,7 +2501,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             </div>
 
                             <button type="submit" className="create-label-submit">
-                                {loadingLabelCreate && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                                {loadingLabelCreate && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                                 {(!loadingLabelCreate ? "Create label" : "Processing...")}
                             </button>
                             
@@ -2536,11 +2542,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             </div>
 
                             <button type="submit" className="create-label-submit">
-                                {loadingLabelEdit && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                                {loadingLabelEdit && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                                 {(!loadingLabelEdit ? "Save changes" : "Processing...")}
                             </button>
                             <button type="button" className="create-label-submit edit-label-delete" onClick={deleteLabel}>
-                                {loadingLabelDelete && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                                {loadingLabelDelete && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                                 {(!loadingLabelDelete ? "Delete" : "Processing...")}
                             </button>
                             

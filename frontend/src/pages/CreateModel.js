@@ -212,13 +212,13 @@ function CreateModel({notification, BACKEND_URL}) {
                         }
                     }} />
                     {imageURL && <div className="create-dataset-image-container no-border" onClick={imageOnClick}>
-                        <img className="create-dataset-image no-border" src={imageURL} onClick={imageOnClick}/>
+                        <img className="create-dataset-image no-border" src={imageURL} onClick={imageOnClick} alt="Model image" />
                         <div className="create-dataset-image-hover">
-                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} alt="Image" /> Upload image</p>
                         </div>
                     </div>}
                     {!imageURL && <div className="create-dataset-image-container" onClick={imageOnClick}>
-                        <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                        <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} alt="Image" /> Upload image</p>
                     </div>}
                 </div>
 
@@ -260,13 +260,13 @@ function CreateModel({notification, BACKEND_URL}) {
 
                     <div className="upload-model-container">
                         {!copyModel && <button type="button" className="upload-model-button" onClick={uploadInputClick}>
-                            <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
+                            <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
                             Upload model
                         </button>}
 
                         {modelFile && <div className={"uploaded-model-element " + (copyModel ? "no-margin" : "")}>
                             {(modelFileName ? modelFileName : modelFile.name)}
-                            {!copyModel && <img className="uploaded-model-cross" title="Remove uploaded model" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                            {!copyModel && <img className="uploaded-model-cross" title="Remove uploaded model" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" onClick={() => {
                                 setModelFile(null)
                                 if (hiddenFileRef.current) {
                                     hiddenFileRef.current.value = null
@@ -274,7 +274,7 @@ function CreateModel({notification, BACKEND_URL}) {
                             }}/>}
                         </div>}
                         {loadingModelFile && <div className={"uploaded-model-element " + (copyModel ? "no-margin" : "")}>
-                            <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} style={{width: "15px", height: "15px", marginRight: "10px"}}/>
+                            <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} style={{width: "15px", height: "15px", marginRight: "10px"}} alt="Loading" />
                             Loading...
                         </div>}
                     </div>
@@ -283,7 +283,7 @@ function CreateModel({notification, BACKEND_URL}) {
                 <div className="create-dataset-buttons">
                     <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home?start=models")}>Cancel</button>
                     <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>
-                        {loading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                        {loading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                         {(!loading ? "Create model" : "Processing...")}
                     </button>
                 </div>

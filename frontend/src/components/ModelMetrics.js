@@ -20,7 +20,7 @@ const ModelMetrics = ({ data, val_split, trained_on_name, model, BACKEND_URL }) 
                     }
                     
                 }}>
-                <img className="model-metrics-dataset-icon" src={BACKEND_URL + "/static/images/database.svg"} />
+                <img className="model-metrics-dataset-icon" src={BACKEND_URL + "/static/images/database.svg"} alt="Database" />
                 {trained_on_name}
             </div>
             

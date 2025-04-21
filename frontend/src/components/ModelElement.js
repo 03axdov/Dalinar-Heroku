@@ -18,14 +18,14 @@ function DatasetElement({model, BACKEND_URL, isPublic=false}) {
         <div className="dataset-element" onClick={onClick} onMouseEnter={() => setShowDescription(true)} onMouseLeave={() => {setShowDescription(false)}} >
             <div className="dataset-element-header">
                     
-                <img title="Model" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/model.svg"}/>
+                <img title="Model" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/model.svg"} alt="Model" />
                 
                 <div className="dataset-element-name" title={model.name}>
                     <p className="dataset-element-name-inner">{model.name}</p>
-                    {model.verified && <img title="Verified" className="dataset-element-name-verified" src={BACKEND_URL + "/static/images/blueCheck.png"} />}
+                    {model.verified && <img title="Verified" className="dataset-element-name-verified" src={BACKEND_URL + "/static/images/blueCheck.png"} alt="Blue checkmark" />}
                 </div>
 
-                {!isPublic && <img title="Edit model" className="dataset-element-icon dataset-element-options" src={BACKEND_URL + "/static/images/options.png"} onClick={(e) => {
+                {!isPublic && <img title="Edit model" className="dataset-element-icon dataset-element-options" src={BACKEND_URL + "/static/images/options.png"} alt="Edit" onClick={(e) => {
                     e.stopPropagation()
 
                     navigate("/edit-model/" + model.id)
@@ -34,7 +34,7 @@ function DatasetElement({model, BACKEND_URL, isPublic=false}) {
             </div>
             
             <div className="dataset-element-image-container">
-                {model.imageSmall && <img className="dataset-element-image" src={model.imageSmall}/>}
+                {model.imageSmall && <img className="dataset-element-image" src={model.imageSmall} alt="Model image" />}
                 {showDescription && model.description && <div className="model-element-description-container">
                     <p className="model-element-description">{model.description}</p>
                 </div>}

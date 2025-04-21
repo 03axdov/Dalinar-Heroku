@@ -96,11 +96,11 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
                         {isBuilt && <button type="button" className="create-layer-popup-submit build-model-recompile" onClick={() => {
                             recompileModel(optimizer, learningRate, loss, inputSequenceLength)
                         }}>
-                            {processingRecompile && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                            {processingRecompile && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                             {(!processingRecompile ? "Recompile" : "Compiling...")}
                         </button>}
                         <button type="submit" className="create-layer-popup-submit">
-                            {processingBuildModel && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                            {processingBuildModel && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                             {(!processingBuildModel ? (!isBuilt ? "Build model" : "Rebuild model") : "Building...")}
                         </button>
                     </div>

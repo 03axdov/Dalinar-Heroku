@@ -165,21 +165,21 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
 
                     <div className="predict-image-row">
                         <div className="model-prediction-left" onClick={predictionImageLeft}>
-                            <img className="model-prediction-arrow" src={BACKEND_URL + "/static/images/down.svg"} style={{transform: "rotate(90deg)"}}/>
+                            <img className="model-prediction-arrow" src={BACKEND_URL + "/static/images/down.svg"} alt="Dropdown" style={{transform: "rotate(90deg)"}}/>
                         </div>
 
                         {imageURLS[currentIndex] && <div className="create-dataset-image-container predict-image-container no-border" onClick={imageOnClick}>
-                            <img className="create-dataset-image predict-image no-border" src={imageURLS[currentIndex]} onClick={imageOnClick}/>
+                            <img className="create-dataset-image predict-image no-border" src={imageURLS[currentIndex]} alt="Uploaded image" onClick={imageOnClick}/>
                             <div className="create-dataset-image-hover">
-                                <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload images</p>
+                                <p className="create-dataset-image-text"><img className="create-dataset-image-icon" alt="Image" src={BACKEND_URL + "/static/images/image.png"} /> Upload images</p>
                             </div>
                         </div>}
                         {!imageURLS[currentIndex] && <div className="create-dataset-image-container predict-image-container" onClick={imageOnClick}>
-                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload images</p>
+                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} alt="Image" /> Upload images</p>
                         </div>}
 
                         <div className="model-prediction-right" onClick={predictionImageRight}>
-                            <img className="model-prediction-arrow" src={BACKEND_URL + "/static/images/down.svg"} style={{transform: "rotate(270deg)"}}/>
+                            <img className="model-prediction-arrow" src={BACKEND_URL + "/static/images/down.svg"} alt="Dropdown" style={{transform: "rotate(270deg)"}}/>
                         </div>
                     </div>
                     
@@ -218,7 +218,7 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
                     <div className="create-layer-popup-buttons">
                         <button type="button" className="create-layer-popup-cancel" onClick={() => setShowPredictionPopup(false)}>Cancel</button>
                         <button type="button" className="create-layer-popup-submit" onClick={predictModel}>
-                            {isPredicting && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                            {isPredicting && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                             {(!isPredicting ? "Predict" : "Predicting...")}
                         </button>
                     </div>

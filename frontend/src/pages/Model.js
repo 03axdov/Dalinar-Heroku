@@ -652,7 +652,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                     win.focus();
                 }}>
                     {model.evaluated_on.name} - {Math.round(10**6 * model.evaluated_accuracy) / 10**4 + "%"} accuracy
-                    <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                    <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} alt="External icon" />
                 </div>}
 
                 {model.evaluated_on_tensorflow && <div className="trained-on-element" onClick={() => {
@@ -660,9 +660,9 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                     var win = window.open(URL, '_blank');
                     win.focus();
                 }}>
-                    <img className="trained-on-tensorflow-icon" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} />
+                    <img className="trained-on-tensorflow-icon" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} alt="Tensorflow Logo"/>
                     {model.evaluated_on_tensorflow} - {Math.round(10**6 * model.evaluated_accuracy) / 10**4 + "%"} accuracy
-                    <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} />
+                    <img className="trained-on-icon" src={BACKEND_URL + "/static/images/external.png"} alt="External icon" />
                 </div>}
 
             </div>])
@@ -752,7 +752,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                         className={"sidebar-button dataset-upload-button " + (toolbarLeftWidth < 150 ? "sidebar-button-small" : "")} 
                         title="Add layer"
                         onClick={() => setShowCreateLayerPopup(true)}>
-                            <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} src={BACKEND_URL + "/static/images/plus.png"} />
+                            <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} src={BACKEND_URL + "/static/images/plus.png"} alt="Plus" />
                             <span>Add layer</span>
                         </button>
                     </div>}
@@ -795,7 +795,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                                         <img title="Delete layer" className="model-sidebar-delete" onClick={(e) => {
                                             e.stopPropagation()
                                             deleteLayer(layer.id)
-                                        }} src={BACKEND_URL + "/static/images/cross.svg"} />
+                                        }} src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross"/>
                                     </div>)}
                                 </Draggable>
                             ))}
@@ -841,7 +841,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                     {toolbarLeftWidth == 15 && <img 
                     className="toolbar-main-dropdown" 
                     src={BACKEND_URL + "/static/images/down.svg"} 
-                    style={{transform: "rotate(270deg)"}}/>}
+                    style={{transform: "rotate(270deg)"}}
+                    alt="Dropdown icon" />}
                 </div>
                 
             </div>
@@ -851,17 +852,17 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                     <div className="dataset-main-toolbar" style={{display: (toolbarMainHeight > 25 ? "flex" : "none")}}>
                         {model && <div className="dataset-title-container unselectable" title={(!showModelDescription ? "Show description" : "Hide description")} onClick={() => {setShowModelDescription(!showModelDescription)}}>
                            
-                            <img className="dataset-title-icon" src={BACKEND_URL + "/static/images/model.svg"}/>
+                            <img className="dataset-title-icon" src={BACKEND_URL + "/static/images/model.svg"} alt="Model icon" />
                             
                             <p className="dataset-title">{model && model.name}</p>
 
-                            <img className="dataset-title-expand-icon" src={BACKEND_URL + "/static/images/" + (!showModelDescription ? "plus.png" : "minus.png")} />
+                            <img className="dataset-title-expand-icon" src={BACKEND_URL + "/static/images/" + (!showModelDescription ? "plus.png" : "minus.png")} alt="Toggle icon" />
                         </div>}
 
                         {!isPublic && model && <button type="button" title="Edit model" className="model-title-button" onClick={() => {
                             navigate("/edit-model/" + model.id + "?expanded=true")
                         }}>
-                            <img className="model-title-edit-icon" src={BACKEND_URL + "/static/images/edit.png"}/>
+                            <img className="model-title-edit-icon" src={BACKEND_URL + "/static/images/edit.png"} alt="Edit" />
                             Edit model
                         </button>}
 
@@ -875,7 +876,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                                 notification("You must address all warnings before building the model.", "failure")
                             }
                         }}>
-                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/build.svg"} />
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/build.svg"} alt="Build" />
                             {model.model_file ? "Rebuild" : "Build"}
                         </button>}
 
@@ -887,7 +888,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                               setShowTrainModelPopup(true)  
                             }
                         }}>
-                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/lightbulb.svg"} />
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/lightbulb.svg"} alt="Lightbulb" />
                             Train
                         </button>}
 
@@ -899,7 +900,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                                 setShowPredictionPopup(true)
                             }
                         }}>
-                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/prediction.svg"} />
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/prediction.svg"} alt="Prediction" />
                             Predict
                         </button>}
 
@@ -916,20 +917,20 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                                 setShowEvaluateModelPopup(true)
                             }
                         }}>
-                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/evaluate.svg"} />
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/evaluate.svg"} alt="Evaluate" />
                             Evaluate
                         </button>}
 
                         {isPublic && model && currentProfile && currentProfile.user && !model.saved_by.includes(currentProfile.user) && <button className="dataset-save-button" 
                         title="Save model" 
                         onClick={() => saveModel()}>
-                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/star.svg"}/>
+                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/star.svg"} alt="Star" />
                             Save
                         </button>}
                         {isPublic && model && currentProfile && currentProfile.user && model.saved_by.includes(currentProfile.user) && <button className="dataset-save-button"
                         title="Unsave model" 
                         onClick={() => unsaveModel()}>
-                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/>
+                            <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/blueCheck.png"} alt="Blue check" />
                             Saved
                         </button>}
 
@@ -941,14 +942,14 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                                 checkLoggedIn("/create-model?copy=" + model.id)
                             }
                         }}>
-                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/copy.png"} />
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/copy.png"} alt="Copy" />
                             Copy
                         </button>}
 
                         {model && <button style={{marginLeft: 0}} className={"model-download-button model-download-button " + (model.model_file ? "" : "model-button-disabled")} 
                         title={model.model_file ? "Download model" : "You must build the model before downloading it."}
                         onClick={() => setShowDownloadPopup(true)}>
-                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/download.svg"}/>
+                            <img className="model-download-icon" src={BACKEND_URL + "/static/images/download.svg"} alt="Download" />
                             Download
                         </button>}
 
@@ -965,7 +966,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                 <div className="dataset-main-display" style={{overflow: "hidden"}}>
 
                     {trainingMetrics.length > 0 && <button className="toggle-model-metrics" type="button" onClick={() => setShowModelMetrics(!showModelMetrics)}>
-                        <img className="metrics-icon" src={BACKEND_URL + "/static/images/metrics.png"}/>
+                        <img className="metrics-icon" src={BACKEND_URL + "/static/images/metrics.png"} alt="Metrics" />
                         {showModelMetrics ? "Hide training metrics" : "Show training metrics"}
                     </button>}
 
@@ -975,7 +976,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
 
                     {showModelDescription && model && <div className="dataset-description-display-container" ref={descriptionContainerRef}>
                         <div className="dataset-description-image-container" style={{width: "calc(100% - " + descriptionWidth + "%)"}}>
-                            <img className="dataset-description-image" src={model.image} />
+                            <img className="dataset-description-image" src={model.image} alt="Model image" />
                         </div>
 
                         <div className="dataset-description-resize" onMouseDown={resizeDescriptionHandleMouseDown}></div>
@@ -987,12 +988,12 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
 
                             <div className="model-description-stats">
                                 {model.downloaders && <div className="model-description-stats-element">
-                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/download.svg"}/>
+                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/download.svg"} alt="Download" />
                                     {model.downloaders.length + (model.downloaders.length == 1 ? " download" : " downloads")}
                                 </div>}
 
                                 {layers && <div className="model-description-stats-element">
-                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/classification.png"}/>
+                                    <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/classification.png"} alt="Classification" />
                                     {layers.length + (layers.length == 1 ? " layer" : " layers")}
                                 </div>}
                             </div>
@@ -1004,7 +1005,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                             <button className="hide-description-button" 
                             onClick={() => {setShowModelDescription(false)}}
                             style={{marginTop: "auto"}}>
-                                <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/minus.png"} />
+                                <img className="dataset-description-stats-icon" src={BACKEND_URL + "/static/images/minus.png"} alt="Minus" />
                                 Hide description
                             </button>
                         </div>
@@ -1051,7 +1052,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                                 className="sidebar-button dataset-upload-button"
                                 title="Add layer"
                                 onClick={() => setShowCreateLayerPopup(true)}>
-                                    <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/plus.png"} />
+                                    <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/plus.png"} alt="Plus" />
                                     <span>Add layer</span>
                                 </button>
                                 

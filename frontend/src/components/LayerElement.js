@@ -370,11 +370,11 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         return (
             <form className="layer-element-inner">
                 <h1 className="layer-element-title">
-                    <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/" + current_layer.image} />
+                    <img className="layer-element-title-icon" src={BACKEND_URL + "/static/images/" + current_layer.image} alt="Layer image" />
                     <span className="layer-element-title-text" title={current_layer.name}>{current_layer.name}</span>
-                    {current_layer.info && <img className="layer-element-info" title={current_layer.info} src={BACKEND_URL + "/static/images/info.svg"} />}
-                    {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} {...provided.dragHandleProps} />}
-                    {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                    {current_layer.info && <img className="layer-element-info" title={current_layer.info} src={BACKEND_URL + "/static/images/info.svg"} alt="Info" />}
+                    {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} alt="Drag" {...provided.dragHandleProps} />}
+                    {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" onClick={() => {
                         deleteLayer(layer.id)
                     }}/>}
                 </h1>
@@ -486,16 +486,17 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                     onMouseEnter={() => setUpdatedWarningHovered(true)}
                     onMouseLeave={() => setUpdatedWarningHovered(false)}
                     ref={updatedRef}>
-                        <img className="layer-element-warning-icon" src={BACKEND_URL + "/static/images/warning.png"} />
+                        <img className="layer-element-warning-icon" src={BACKEND_URL + "/static/images/warning.png"} alt="Warning" />
                         <span className="layer-element-warning-text layer-element-updated-text" title="Updated since last build.">Updated since last build.</span>
                         {updatedWarningHovered && !isPublic && <img className="layer-element-updated-cross" 
                                                         src={BACKEND_URL + "/static/images/cross.svg"} 
                                                         title="Ignore warning"
+                                                        alt="Cross"
                                                         onClick={clearLayerUpdated}/>}
                     </p>
     
                     {errorMessage && <p className="layer-element-warning" style={{bottom: ((layer.updated && isBuilt) ? "calc(100% + 60px)" : "calc(100% + 10px)")}}>
-                        <img className="layer-element-warning-icon" src={BACKEND_URL + "/static/images/failure.png"} />
+                        <img className="layer-element-warning-icon" src={BACKEND_URL + "/static/images/failure.png"} alt="Failure" />
                         <span className="layer-element-warning-text" title={errorMessage}>{get_error_message()}</span>
                     </p>}
     
@@ -505,7 +506,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         className={"layer-element-save " + (!updated ? "layer-element-save-disabled" : "")}
                         title={(updated ? "Save changes" : "No changes")}
                         onClick={updateLayer}>
-                        {savingChanges && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                        {savingChanges && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                         {(!savingChanges ? "Save changes" : "Updating...")}
                     </button>}
                     {!isPublic && !LAYERS[type].not_editable && <button type="button" 
@@ -518,7 +519,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                         className={"layer-element-revert " + (!isBuilt ? "layer-element-button-disabled" : "")}
                         title={isBuilt ? "Reset to build" : "Disabled as the model has not been built."}
                         onClick={resetToBuild}>
-                        <img className="layer-element-button-icon" src={BACKEND_URL + "/static/images/" + (resettingToBuild ? "loading.gif" : "reset.svg")} />
+                        <img className="layer-element-button-icon" src={BACKEND_URL + "/static/images/" + (resettingToBuild ? "loading.gif" : "reset.svg")} alt="Reset" />
                         {(resettingToBuild ? "Processing..." : "Reset to build")}
                     </button>}
 

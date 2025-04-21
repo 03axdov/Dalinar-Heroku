@@ -435,7 +435,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                 {datasetTypeShown == "my" && <div className="my-datasets-container train-datasets-container" style={{padding: 0}}>
                     <div className="dataset-element no-margin tensorflow-dataset-element">
                         <div className="dataset-element-header">
-                            <img title="TensorFlow datasets" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/tensorflowWhite.png"}/>
+                            <img title="TensorFlow datasets" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} alt="TensorFlow" />
                         
                             <div className="dataset-element-name" title="TensorFlow Datasets">
                                 <p className="dataset-element-name-inner">TensorFlow</p>
@@ -467,7 +467,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                                 win.focus();
                             }}>
                                 More info
-                                <img className="tensorflow-dataset-external" src={BACKEND_URL + "/static/images/external.png"}/>
+                                <img className="tensorflow-dataset-external" src={BACKEND_URL + "/static/images/external.png"} alt="External" />
                             </button>
                         </div>
       
