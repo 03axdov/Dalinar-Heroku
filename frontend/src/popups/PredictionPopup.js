@@ -206,7 +206,7 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
                     <div className="model-prediction">
                         {predictions.length == 0 && <span className="gray-text unselectable">Press predict to make a prediction</span>}
                             
-                        {predictions.length > 0 && <span className="prediction-circle" style={{background: predictionColors[currentIndex]}}></span>}
+                        {predictions.length > 0 && model.output_type == "classification" && <span className="prediction-circle" style={{background: predictionColors[currentIndex]}}></span>}
 
                         {predictions.length > 0 && <span>
                             {predictions[currentIndex]}
