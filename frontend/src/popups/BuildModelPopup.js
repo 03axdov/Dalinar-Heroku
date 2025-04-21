@@ -1,4 +1,6 @@
 import React, {useState} from "react"
+import Select from "react-select"
+import { customStyles } from "../helpers/styles"
 
 function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildModel, BACKEND_URL, isBuilt, recompileModel, processingRecompile, activateConfirmPopup, model_type, instance_optimizer, instance_loss_function}) {
 
@@ -6,6 +8,21 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
     const [learningRate, setLearningRate] = useState(0.001)
     const [loss, setLoss] = useState(instance_loss_function || "categorical_crossentropy")
     const [inputSequenceLength, setInputSequenceLength] = useState(256)
+
+    const optimizerOptions = [
+        {value: "adam", label: "adam"},
+        {value: "adagrad", label: "adagrad"},
+        {value: "adadelta", label: "adadelta"},
+        {value: "adamax", label: "adamax"},
+        {value: "sgd", label: "sgd"},
+        {value: "rmsprop", label: "rmsprop"}
+    ]
+
+    const lossOptions = [
+        {value: "binary_crossentropy", label: "binary_crossentropy"},
+        {value: "categorical_crossentropy", label: "categorical_crossentropy"},
+        {value: "sparse_categorical_crossentropy", label: "sparse_categorical_crossentropy"}
+    ]
 
     return (
         <div className="popup build-model-popup" onClick={() => setShowBuildModelPopup(false)}>
@@ -32,17 +49,17 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
                 }}>
                     <div className="create-dataset-label-inp">
                         <label className="create-dataset-label" htmlFor="optimizer">Optimizer</label>
-                        <select className="create-dataset-inp" id="optimizer" required value={optimizer} onChange={(e) => {
-                            setOptimizer(e.target.value)
-                        }}>
-                            <option value="adam">adam</option>
-                            <option value="adagrad">adagrad</option>
-                            <option value="adadelta">adadelta</option>
-                            <option value="adamax">adamax</option>
-                            <option value="sgd">sgd</option>
-                            <option value="rmsprop">rmsprop</option>
 
-                        </select>
+                        <Select
+                        inputId="optimizer"
+                        options={optimizerOptions}
+                        value={optimizerOptions
+                            .find((opt) => opt.value === optimizer)}
+                        onChange={(selected) => setOptimizer(selected.value)}
+                        styles={customStyles}
+                        placeholder="Select an optimizer"
+                        className="w-full"
+                        />
                     </div>
 
                     <div className="create-dataset-label-inp">
@@ -54,14 +71,17 @@ function BuildModelPopup({setShowBuildModelPopup, buildModel, processingBuildMod
 
                     <div className="create-dataset-label-inp">
                         <label className="create-dataset-label" htmlFor="loss">Loss function</label>
-                        <select className="create-dataset-inp" id="loss" required value={loss} onChange={(e) => {
-                            setLoss(e.target.value)
-                        }}>
-                            <option value="binary_crossentropy">binary_crossentropy</option>
-                            <option value="categorical_crossentropy">categorical_crossentropy</option>
-                            <option value="sparse_categorical_crossentropy">sparse_categorical_crossentropy</option>
 
-                        </select>
+                        <Select
+                        inputId="loss"
+                        options={lossOptions}
+                        value={lossOptions
+                            .find((opt) => opt.value === loss)}
+                        onChange={(selected) => setLoss(selected.value)}
+                        styles={customStyles}
+                        placeholder="Select a loss function"
+                        className="w-full"
+                        />
                     </div>
                     
                     {model_type.toLowerCase() == "text" && <div className="create-dataset-label-inp">

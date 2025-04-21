@@ -287,18 +287,26 @@
     width: 100%;
 }
 
-.layer-element-delete, .layer-element-drag {
+.layer-element-delete, .layer-element-drag, .layer-element-info {
     height: 24px;
     width: 24px;
     padding: 5px;
     box-sizing: border-box;
-    border-radius: 11px;
+    border-radius: 50%;
     margin-left: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     margin-right: 0;
+}
+
+.layer-element-info {
+    padding: 4px;
 }
 
 .layer-element-drag {
     margin-left: auto;
+    border-radius: 0;
 }
 
 .layer-element-delete:hover {
@@ -510,6 +518,7 @@ div.layer-element-mode-input {
     flex-direction: row;
     align-items: center;
     margin-left: 20px;
+    gap: 5px;
 }
 
 .create-layer-dimensions-inp {
@@ -555,12 +564,12 @@ div.layer-element-mode-input {
 
 .predict-image-container {
     width: 100%;
-    height: 275px;
+    height: 350px;
 }
 
 .predict-text-container {
     width: 100%;
-    height: 275px;
+    height: 350px;
     font-size: 1rem;
     font-weight: 500;
     outline: none;
@@ -607,7 +616,7 @@ div.layer-element-mode-input {
 .predict-image-row {
     width: 100%;
     display: flex;
-    height: 275px;
+    height: 350px;
     flex-direction: space-between;
 }
 

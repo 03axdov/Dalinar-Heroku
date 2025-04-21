@@ -43,13 +43,20 @@ def save_profile(sender, instance, **kwargs):
     
 # DATASETS
 
+def image_file_path(instance, filename):
+    """Generate a dynamic path for file uploads based on dataset ID and name."""
+
+    dataset_dir = f"images/{instance.id}-{instance.name}"
+
+    return os.path.join(dataset_dir, filename)
+
 class Dataset(models.Model):
     name = models.CharField(max_length=200)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="datasets")
-    image = models.ImageField(upload_to='images/', null=True)
-    imageSmall = models.ImageField(upload_to="images/", null=True)
+    image = models.ImageField(upload_to=image_file_path, null=True)
+    imageSmall = models.ImageField(upload_to=image_file_path, null=True)
     downloaders = models.ManyToManyField(Profile, related_name="downloaded_datasets", blank=True)
     saved_by = models.ManyToManyField(Profile, related_name="saved_datasets", blank=True)
     verified = models.BooleanField(default=False)
@@ -419,6 +426,15 @@ class RandomFlipLayer(Layer):
         if self.model: res += " - " + self.model.name
         return res
     
+
+class RandomRotationLayer(Layer):
+    factor = models.FloatField()
+
+    def __str__(self):
+        res = f"RandomRotation ({self.factor})"
+        if self.model: res += " - " + self.model.name
+        return res
+    
     
 class ResizingLayer(Layer):
     output_x = models.PositiveIntegerField()
@@ -464,6 +480,15 @@ class EmbeddingLayer(Layer):
 class GlobalAveragePooling1DLayer(Layer):
     def __str__(self):
         res = "GlobalAveragePooling1D"
+        if self.model:
+            res += " - " + self.model.name
+            
+        return res
+    
+
+class MobileNetV2Layer(Layer):
+    def __str__(self):
+        res = "MobileNetV2 0.35"
         if self.model:
             res += " - " + self.model.name
             

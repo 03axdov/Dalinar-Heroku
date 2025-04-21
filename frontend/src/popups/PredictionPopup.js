@@ -148,7 +148,7 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
 
             {isPredicting && <ProgressBar progress={predictionProgress} message="Predicting..." BACKEND_URL={BACKEND_URL}></ProgressBar>}
 
-            <div className="build-model-popup-container" onClick={(e) => {
+            <div className="build-model-popup-container predict-model-popup-container" onClick={(e) => {
                 e.stopPropagation()
             }}>
                 <h1 className="create-layer-popup-title">Predict</h1>

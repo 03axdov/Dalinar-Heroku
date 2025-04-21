@@ -2,6 +2,7 @@ import React, {useState, useRef, useEffect} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 import { useParams, useSearchParams } from "react-router-dom";
+import TitleSetter from "../components/minor/TitleSetter";
 
 
 function CreateModel({notification, BACKEND_URL}) {
@@ -169,6 +170,8 @@ function CreateModel({notification, BACKEND_URL}) {
 
     return (
         <div className="create-dataset-container">
+            <TitleSetter title="Dalinar | Create model" />
+
             <div className="create-dataset-form">
                 <h1 className="create-dataset-title">Create a model</h1>
                 <p className="create-dataset-description">

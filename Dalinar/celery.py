@@ -1,6 +1,7 @@
 import os
 import ssl
 from celery import Celery
+import ssl
 from django.conf import settings
 from kombu import Exchange, Queue
 

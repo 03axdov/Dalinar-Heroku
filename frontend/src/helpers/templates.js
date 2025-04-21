@@ -85,11 +85,15 @@ export const TEMPLATE_DATA = {
     ],
     "cv-large": [
         {
-            "type": "conv2d",
-            "activation_function": "relu",
+            "type": "randomflip",
             "input_x": 32,
             "input_y": 32,
             "input_z": 3,
+            "mode": "horizontal_and_vertical"
+        },
+        {
+            "type": "conv2d",
+            "activation_function": "relu",
             "filters": 32,
             "kernel_size": 3
         },

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom";
 import DownloadCode from "../components/DownloadCode"
 import { LAYERS } from "../layers";
+import TitleSetter from "../components/minor/TitleSetter";
 
 // The default page. Login not required.
 function Guide({BACKEND_URL}) {
@@ -28,6 +29,7 @@ function Guide({BACKEND_URL}) {
 
     return (
         <div className="guide-container" ref={containerRef}>
+            <TitleSetter title="Dalinar | Guide" />
             <div className="guide-toolbar">
                 <div className="guide-toolbar-element">
                     Guide

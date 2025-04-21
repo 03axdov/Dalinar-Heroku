@@ -6,6 +6,7 @@ import ElementFilters from "../components/minor/ElementFilters"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import axios from 'axios'
 import { debounce } from 'lodash';
+import TitleSetter from "../components/minor/TitleSetter"
 
 // This is the personal view. /home
 function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_explore=false}) {
@@ -423,7 +424,8 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
     const visibleSavedModels = savedModels.filter((model) => modelShouldShow(model));
 
     return <div className="home-container">
-        
+        <TitleSetter title="Dalinar | Home" />
+
         <div className="home-sidebar">
             <button className="sidebar-button" onClick={() => {
                 if (!is_explore) {

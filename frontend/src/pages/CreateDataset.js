@@ -2,6 +2,7 @@ import React, {useState, useRef, useEffect} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 import ProgressBar from "../components/ProgressBar"
+import TitleSetter from "../components/minor/TitleSetter"
 
 
 function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
@@ -354,6 +355,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
 
     return (
         <div className="create-dataset-container">
+            <TitleSetter title="Dalinar | Create dataset" />
 
             {(uploadingDatasetFilenames || uploadingDatasetFolders || uploadingDatasetCsv) && <ProgressBar 
                 progress={uploadingPercentage}

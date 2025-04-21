@@ -46,13 +46,23 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
 
     function getDatasets() {
         setLoading(true)
+        let URL = window.location.origin + '/api/my-datasets/?' +
+            "search=" + search +
+            "&dataset_type=" + model_type +
+            "&order_by=" + sortDatasets
+
+        if (model_type.toLowerCase() == "image") {
+            URL += "&imageWidth=" + imageDimensions[0] +
+                "&imageHeight=" + imageDimensions[1]
+        }
+
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/my-datasets/' + (search ? "?search=" + search : ""),
+            url: URL,
         })
         .then((res) => {
             if (res.data) {
-                setDatasets(sort_datasets(res.data))
+                setDatasets(res.data.results)
             } else {
                 setDatasets([])
             }
@@ -312,7 +322,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                         BACKEND_URL={BACKEND_URL}
                     ></ElementFilters>}
 
-                    <button className="close-model-popup" title="Return to main display" onClick={() => setShowTrainModelPopup(false)}>Return to main display</button>
+                    <button className="close-model-popup" title="Return to main display" onClick={() => setShowEvaluateModelPopup(false)}>Return to main display</button>
                 </div>
                 
                 <p className="create-layer-popup-description">
