@@ -1657,7 +1657,7 @@ class EditLayer(APIView):
                 else:
                     return Response({'Unauthorized': 'You can only edit layers belonging to your own models.'}, status=status.HTTP_401_UNAUTHORIZED)
             except Layer.DoesNotExist:
-                return Response({'Not found': 'Could not find model with the id ' + str(model_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'Not found': 'Could not find model with the id ' + str(layer_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to edit layers.'}, status=status.HTTP_401_UNAUTHORIZED)
         
@@ -1683,7 +1683,7 @@ class ClearLayerUpdated(APIView):
                 else:
                     return Response({'Unauthorized': 'You can only edit layers belonging to your own models.'}, status=status.HTTP_401_UNAUTHORIZED)
             except Layer.DoesNotExist:
-                return Response({'Not found': 'Could not find model with the id ' + str(model_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'Not found': 'Could not find model with the id ' + str(layer_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to edit layers.'}, status=status.HTTP_401_UNAUTHORIZED)
         
