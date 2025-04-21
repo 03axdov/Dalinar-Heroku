@@ -526,6 +526,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                     {LAYERS[type].not_editable && !LAYERS[type].default_dimensions && <p className="layer-not-editable">This layer has no parameters to edit.</p>}
 
                     <div className="layer-element-index" title={"Layer #" + (idx+1)}>{idx+1}</div>
+                    <div className="layer-element-spacing"></div>
                 </div>}
 
                 

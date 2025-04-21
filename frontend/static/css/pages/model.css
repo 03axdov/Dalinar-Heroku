@@ -177,6 +177,15 @@
     cursor: default;
 }
 
+.layer-element-spacing {
+    position: absolute;
+    top: calc(100% + 125px);
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    background: rgb(0,0,0,0);
+}
+
 .layer-element-warning {
     position: absolute;
     left: 0;

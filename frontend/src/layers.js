@@ -86,7 +86,7 @@ export const LAYERS = {
         "input_x": true,
         "input_y": true,
         "input_z": true,
-        "color": "darkblue"
+        "color": "cyan"
     },
     randomflip: {
         "name": "RandomFlip",
@@ -113,7 +113,7 @@ export const LAYERS = {
         "input_x": true,
         "input_y": true,
         "input_z": true,
-        "color": "cyan"
+        "color": "green"
     },
     randomrotation: {
         "name": "RandomRotation",
@@ -137,7 +137,7 @@ export const LAYERS = {
         "input_x": true,
         "input_y": true,
         "input_z": true,
-        "color": "cyan"
+        "color": "green"
     },
     resizing: {
         "name": "Resizing",
@@ -338,14 +338,14 @@ export const LAYERS = {
         "name": "GlobalAveragePooling1D",
         "params": [],
         "image": "global.svg",
-        "color": "lightblue",
+        "color": "darkblue",
         "not_editable": true    // Formatted like this as only a few are not editable
     },
     mobilenetv2: {
         "name": "MobileNetV2",
         "params": [],
         "image": "model.svg",
-        "color": "pink2",
+        "color": "darkblue",
         "default_dimensions": [
             ["Trainable", "False", "pink2"],    // Name, value, color
             ["Input Width", 224, "gray2"],

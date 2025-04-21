@@ -12,34 +12,64 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
     const [animateIn, setAnimateIn] = useState(false)
 
+    const colorMap = {
+        dense: '#4CAF50',
+        flatten: '#FFC107',
+        dropout: '#F44336',
+        globalaveragepooling1d: '#2196F3',
+        resizing: '#9C27B0',
+        rescaling: '#00BCD4',
+        randomflip: '#E91E63',
+        randomrotation: '#795548',
+        conv2d: '#3F51B5',
+        maxpool2d: '#607D8B',
+        mobilenetv2: '#FF9800',
+        embedding: '#8BC34A',
+    };
+
+    const getLabeledOption = (value, text) => ({
+        value,
+        label: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{
+              display: 'inline-block',
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+            }} className={"layer-element-stat-" + LAYERS[value].color} />
+            {text}
+          </div>
+        ),
+    });
+
     const commonOptions = [
-        { value: 'dense', label: 'Dense' },
-        { value: 'flatten', label: 'Flatten' },
-        { value: 'dropout', label: 'Dropout' },
-        { value: 'globalaveragepooling1d', label: 'GlobalAveragePooling1D' },
+        getLabeledOption('dense', 'Dense'),
+        getLabeledOption('flatten', 'Flatten'),
+        getLabeledOption('dropout', 'Dropout'),
+        getLabeledOption('globalaveragepooling1d', 'GlobalAveragePooling1D'),
     ];
     
     const imageOptions = [
         {
             label: 'Image Preprocessing',
             options: [
-            { value: 'resizing', label: 'Resizing' },
-            { value: 'rescaling', label: 'Rescaling' },
-            { value: 'randomflip', label: 'RandomFlip' },
-            { value: 'randomrotation', label: 'RandomRotation' },
+                getLabeledOption('resizing', 'Resizing'),
+                getLabeledOption('rescaling', 'Rescaling'),
+                getLabeledOption('randomflip', 'RandomFlip'),
+                getLabeledOption('randomrotation', 'RandomRotation'),
             ],
         },
         {
             label: 'Computer Vision',
             options: [
-            { value: 'conv2d', label: 'Conv2D' },
-            { value: 'maxpool2d', label: 'MaxPool2D' },
+                getLabeledOption('conv2d', 'Conv2D'),
+                getLabeledOption('maxpool2d', 'MaxPool2D'),
             ],
         },
         {
             label: 'Pretrained Models',
             options: [
-            { value: 'mobilenetv2', label: 'MobileNetV2 - 224x224x3' },
+                getLabeledOption('mobilenetv2', 'MobileNetV2 - 224x224x3'),
             ],
         },
     ];
@@ -48,7 +78,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
         {
             label: 'Text',
             options: [
-            { value: 'embedding', label: 'Embedding' },
+                getLabeledOption('embedding', 'Embedding'),
             ],
         },
     ];
