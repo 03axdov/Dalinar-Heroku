@@ -542,20 +542,35 @@ export function computeParams(layers, sequence_length = 256) {
         return;
       }
 
-        else if (type === 'mobilenetv2') {
-            const knownParams = 2257984; // Includes trainable + non-trainable params
+    else if (type === 'mobilenetv2') {
+        const knownParams = 2257984; // Includes trainable + non-trainable params
 
-            totalParams += knownParams;
+        totalParams += knownParams;
 
-            // Output shape after GlobalAveragePooling2D
-            current_x = null;
-            current_y = null;
-            current_z = null;
+        // Output shape after GlobalAveragePooling2D
+        current_x = null;
+        current_y = null;
+        current_z = null;
 
-            current_steps = null;
-            current_feats = 1280;  // Flattened 1D vector with 1280 features
-            inUnits = 1280;
-        }
+        current_steps = null;
+        current_feats = 1280;  // Flattened 1D vector with 1280 features
+        inUnits = 1280;
+    }
+
+    else if (type === 'mobilenetv2small') {
+        const knownParams = 2257984; // UPDATE THIS
+
+        totalParams += knownParams;
+
+        // Output shape after GlobalAveragePooling2D
+        current_x = null;
+        current_y = null;
+        current_z = null;
+
+        current_steps = null;
+        current_feats = 1280;  // Flattened 1D vector with 1280 features
+        inUnits = 1280;
+    }
     });
   
     return totalParams;
