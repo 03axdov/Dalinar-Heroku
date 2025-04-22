@@ -13,6 +13,7 @@ import DescriptionTable from "../components/DescriptionTable"
 import TitleSetter from "../components/minor/TitleSetter";
 import CreateLabel from "../popups/dataset/CreateLabel";
 import EditLabel from "../popups/dataset/EditLabel";
+import EditElement from "../popups/dataset/EditElement";
 
 
 const TOOLBAR_HEIGHT = 60
@@ -48,6 +49,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [saving, setSaving] = useState(false)
     
     const [displayCreateLabel, setDisplayCreateLabel] = useState(false)
+
+    const [elementLabelTop, setElementLabelTop] = useState(0)
     
     const [labelKeybinds, setLabelKeybinds] = useState({})  // Key: keybind, value: pointer to label
     const [idToLabel, setIdToLabel] = useState({})  // Key: id, value: label
@@ -59,7 +62,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [editingLabel, setEditingLabel] = useState(null) // Either null or pointer to label
 
     const [editingElement, setEditingElement] = useState(null)
-    const [editingElementName, setEditingElementName] = useState("")
     const [editingElementIdx, setEditingElementIdx] = useState(null)
 
     const [showDownloadPopup, setShowDownloadPopup] = useState(false)
@@ -915,7 +917,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 {!isPublic && <div className="dataset-text-save-button-container">
                     <button className={"dataset-text-save-button " + (!textChanged ? "dataset-text-save-button-disabled" : "")} type="button" onClick={(e) => {
                         if (textChanged) {
-                            updateElement(e, true)
+                            updateElement(e, "", true)
                         }
                         
                     }}>Save changes</button>
@@ -1049,7 +1051,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
 
     // isText used when updating text
-    function updateElement(e, isText=false) {
+    function updateElement(e, editingElementName, isText=false) {
         e.preventDefault()
         if (isPublic) return;
         axios.defaults.withCredentials = true;
@@ -2021,6 +2023,19 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 notification={notification}
                 deleteLabel={deleteLabel}
                 BACKEND_URL={BACKEND_URL}></EditLabel>}
+
+            {editingElement && <EditElement 
+                setEditingElement={setEditingElement}
+                editingElementNameOriginal={elements[editingElementIdx].name}
+                updateElement={updateElement}
+                loadingElementEdit={loadingElementEdit}
+                loadingElementDelete={loadingElementDelete}
+                deleteElement={deleteElement}
+                inputOnFocus={inputOnFocus}
+                inputOnBlur={inputOnBlur}
+                BACKEND_URL={BACKEND_URL}>
+                
+            </EditElement>}
             
             
             {/* Uploading folders / files to elements goes through these */}
@@ -2063,6 +2078,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                                 setElementsIndex(idx)
                                             }}
                                             onMouseEnter={(e) => {
+                                                setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
                                                 setHoveredElement(idx)
 
                                                 // Set a timeout to show the preview after 200ms
@@ -2089,13 +2105,12 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
                                                 <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
 
-                                                {!isPublic && (hoveredElement == idx || editingElement == element.id) && <img title="Edit element" 
+                                                {!isPublic && (hoveredElement == idx) && <img title="Edit element" 
                                                     className="dataset-sidebar-options dataset-sidebar-options-margin"
                                                     src={BACKEND_URL + "/static/images/options.png"}
                                                     alt="Edit"
                                                     onClick={(e) => {
                                                         e.stopPropagation()
-                                                        setEditingElementName(element.name)
                                                         if (editingElement != element.id) {
                                                             setEditingElement(element.id)
                                                             setEditingElementIdx(idx)
@@ -2137,31 +2152,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     {dataset && showElementPreview && hoveredElement != null && dataset.dataset_type.toLowerCase() == "image" && !editingElement &&
                         <img className="dataset-sidebar-element-preview" style={{top: elementLabelTop}} src={elements[hoveredElement].file} alt="Element preview" />
                     }
-
-                    {/* Editing element */}
-                    {!isPublic && editingElement && <div className="dataset-element-expanded" style={{top: Math.min(0, pageRef.current.getBoundingClientRect().height - 275 + TOOLBAR_HEIGHT)}} onClick={(e) => {e.stopPropagation()}}>
-                        <form className="dataset-edit-element-form" onSubmit={updateElement}>
-                            <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" htmlFor="element-name-inp">Name</label>
-                                <input id="element-name-inp" className="dataset-create-label-inp" type="text" value={editingElementName} onChange={(e) => {
-                                    setEditingElementName(e.target.value)
-                                }} onClick={(e) => {
-                                    e.stopPropagation()
-                                }} onFocus={inputOnFocus} onBlur={() => {
-                                    inputOnBlur()
-                                }}></input>
-                            </div>
-
-                            <button type="submit" className="edit-element-submit">
-                                {loadingElementEdit && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
-                                {(!loadingElementEdit ? "Save changes" : "Processing...")}
-                            </button>
-                            <button type="button" className="edit-element-submit edit-element-delete" onClick={deleteElement}>
-                                {loadingElementDelete && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
-                                {(!loadingElementDelete ? "Delete" : "Processing...")}
-                            </button>
-                        </form>       
-                    </div>}
 
                 </div>
 
