@@ -581,7 +581,7 @@
     position: relative;
 }
 
-.dataset-create-label-container, .dataset-label-expanded, .dataset-element-expanded {
+.dataset-label-expanded, .dataset-element-expanded {
     position: absolute;
     width: 300px;
     right: calc(100% + 5px);
@@ -614,44 +614,29 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-
 }
 
 .dataset-create-label-inp {
+    width: 100%;
     padding: 5px 10px;
-    border: none;
+    margin-left: 20px;
+    border: 1px solid var(--border);
     border-radius: 4px;
     font-size: 1rem;
-    font-weight: 550;
-    font-family: 'Open Sans', sans-serif; /* 1 */
+    font-family: 'Open Sans', sans-serif;
     box-sizing: border-box;
     outline: none;
-    background: var(--background);
+    background: var(--background-dark);
     color: white;
-    width: 100%;
 }
 
 .create-label-color-container {
     border-radius: 3px;
-}
-
-.create-label-submit, .edit-element-submit {
-    width: 100%;
-    margin-top: 10px;
-    background: var(--gray);
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-}
-
-.create-label-submit:hover, .edit-element-submit:hover {
-    background: var(--blue);
+    margin-left: 20px;
 }
 
 .edit-label-delete, .edit-element-delete {
-    margin-top: 5px;
+    margin-right: 10px;
     background: var(--gray-darker);
 }
 
@@ -665,9 +650,8 @@
 
 .dataset-create-label-label {
     color: white;
-    margin-right: 10px;
-    min-width: 60px;
     font-size: 1.1rem;
+    white-space: nowrap;
 }
 
 .dataset-create-label-row {
@@ -1242,4 +1226,32 @@ canvas {
         height: 20px;
         width: 20px;
     }
+}
+
+.dataset-bar-container {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    display: flex;
+    flex-direction: row; 
+    justify-content: end;
+    background: rgb(25,25,25,0.3);
+    z-index: 5;
+}
+
+.dataset-create-label-container {
+    width: 500px;
+    height: 100%;
+    background: var(--background);
+    border-left: 1px solid var(--border);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 40px;
+    transition: transform 0.2s ease-out;
+    transform: translateX(100%);
+}
+.dataset-create-label-container.slide-in {
+    transform: translateX(0);
 }

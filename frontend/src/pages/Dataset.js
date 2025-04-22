@@ -11,6 +11,8 @@ import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import ProgressBar from "../components/ProgressBar";
 import DescriptionTable from "../components/DescriptionTable"
 import TitleSetter from "../components/minor/TitleSetter";
+import CreateLabel from "../popups/dataset/CreateLabel";
+import EditLabel from "../popups/dataset/EditLabel";
 
 
 const TOOLBAR_HEIGHT = 60
@@ -44,14 +46,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [loadingResizeImage, setLoadingResizeImage] = useState(false)
 
     const [saving, setSaving] = useState(false)
-
-    const [elementLabelTop, setElementLabelTop] = useState(0)
-    const [editExpandedTop, setEditExpandedTop] = useState(0)
     
     const [displayCreateLabel, setDisplayCreateLabel] = useState(false)
-    const [createLabelName, setCreateLabelName] = useState("")
-    const [createLabelColor, setCreateLabelColor] = useState("#07E5E9")
-    const [createLabelKeybind, setCreateLabelKeybind] = useState("")
     
     const [labelKeybinds, setLabelKeybinds] = useState({})  // Key: keybind, value: pointer to label
     const [idToLabel, setIdToLabel] = useState({})  // Key: id, value: label
@@ -61,9 +57,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [datasetMainLabelColor, setDatasetMainLabelColor] = useState("transparent") // Used to load image in low res first
 
     const [editingLabel, setEditingLabel] = useState(null) // Either null or pointer to label
-    const [editingLabelName, setEditingLabelName] = useState("")
-    const [editingLabelColor, setEditingLabelColor] = useState("")
-    const [editingLabelKeybind, setEditingLabelKeybind] = useState("")
 
     const [editingElement, setEditingElement] = useState(null)
     const [editingElementName, setEditingElementName] = useState("")
@@ -1214,9 +1207,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             url: window.location.origin + '/api/dataset-labels?dataset=' + id,
         })
         .then((res) => {
-            setLabels(res.data)
+            setLabels(res.data.results)
 
-            parseLabels(res.data)
+            parseLabels(res.data.results)
 
             setLoading(false)
         }).catch((err) => {
@@ -1225,33 +1218,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             setLoading(false)
         })
     }
-
-
-    const INVALID_KEYBINDS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Backspace", "Delete"])
-
-    const handleKeyDown = (event, type="creating-label") => {
-        event.preventDefault(); // Prevent default behavior
     
-        if (INVALID_KEYBINDS.has(event.key)) {
-            notification("This keybind is not allowed.", "failure")
-            return;
-        }
-        if (labelKeybinds[event.key] != null) {
-            notification("This keybind is already in use.", "failure")
-            return;
-        }
-    
-        if (type == "creating-label") {
-            setCreateLabelKeybind(getUserPressKeycode(event));
-        } else if (type == "editing-label") {
-            setEditingLabelKeybind(getUserPressKeycode(event));
-        }
-        
-    };
-
-    
-    function createLabelSubmit(e) {
-        e.preventDefault()
+    function createLabelSubmit(createLabelName, createLabelColor, createLabelKeybind) {
         if (isPublic) return;
 
         axios.defaults.withCredentials = true;
@@ -1278,9 +1246,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         axios.post(URL, formData, config)
         .then((data) => {
             notification("Successfully created label.", "success")
-            setCreateLabelName("")
-            setCreateLabelColor("#07E5E9")
-            setCreateLabelKeybind("")
             
             getLabels()
             setDisplayCreateLabel(false)
@@ -1290,8 +1255,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         }).finally(() => {
             setLoadingLabelCreate(false)
         })
-
-        
 
     }
 
@@ -1379,8 +1342,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         })
     }
 
-    function editLabelOnSubmit(e) {
-        e.preventDefault()
+    function editLabelOnSubmit(editingLabelName, editingLabelColor, editingLabelKeybind) {
         if (isPublic) return;
 
         axios.defaults.withCredentials = true;
@@ -1388,7 +1350,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         axios.defaults.xsrfCookieName = 'csrftoken';    
 
         let data = {
-            "label": editingLabel,
+            "label": editingLabel.id,
             "name": editingLabelName,
             "color": editingLabelColor,
             "keybind": editingLabelKeybind
@@ -1424,7 +1386,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         axios.defaults.xsrfCookieName = 'csrftoken';    
 
         let data = {
-            "label": editingLabel
+            "label": editingLabel.id
         }
 
         const URL = window.location.origin + '/api/delete-label/'
@@ -1454,7 +1416,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             setEditingLabel(null)
 
         }).catch((error) => {
-            notification("Error: " + error + ".")
+            notification("Error: " + error + ".", "failure")
 
         }).finally(() => {
             setLoading(false)
@@ -2034,6 +1996,31 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 
                 </div>
             </DownloadPopup>}
+
+            {!isPublic && displayCreateLabel && <CreateLabel 
+                setShowCreateLabel={setDisplayCreateLabel}
+                createLabelSubmit={createLabelSubmit}
+                labelKeybinds={labelKeybinds}
+                inputOnFocus={inputOnFocus}
+                inputOnBlur={inputOnBlur}
+                loadingLabelCreate={loadingLabelCreate}
+                getUserPressKeycode={getUserPressKeycode}
+                notification={notification}
+                BACKEND_URL={BACKEND_URL}></CreateLabel>}
+
+            {!isPublic && editingLabel && <EditLabel 
+                setShowEditLabel={setEditingLabel}
+                editLabelOnSubmit={editLabelOnSubmit}
+                editingLabel={editingLabel}
+                labelKeybinds={labelKeybinds}
+                inputOnFocus={inputOnFocus}
+                inputOnBlur={inputOnBlur}
+                loadingLabelEdit={loadingLabelEdit}
+                loadingLabelDelete={loadingLabelDelete}
+                getUserPressKeycode={getUserPressKeycode}
+                notification={notification}
+                deleteLabel={deleteLabel}
+                BACKEND_URL={BACKEND_URL}></EditLabel>}
             
             
             {/* Uploading folders / files to elements goes through these */}
@@ -2076,7 +2063,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                                 setElementsIndex(idx)
                                             }}
                                             onMouseEnter={(e) => {
-                                                setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
                                                 setHoveredElement(idx)
 
                                                 // Set a timeout to show the preview after 200ms
@@ -2111,7 +2097,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                                         e.stopPropagation()
                                                         setEditingElementName(element.name)
                                                         if (editingElement != element.id) {
-                                                            setEditExpandedTop(e.target.getBoundingClientRect().y - 5 - TOOLBAR_HEIGHT) // -5 due to padding, e is the image
                                                             setEditingElement(element.id)
                                                             setEditingElementIdx(idx)
                                                             closePopups("editing-element")
@@ -2154,7 +2139,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     }
 
                     {/* Editing element */}
-                    {!isPublic && editingElement && <div className="dataset-element-expanded" style={{top: Math.min(editExpandedTop, pageRef.current.getBoundingClientRect().height - 275 + TOOLBAR_HEIGHT)}} onClick={(e) => {e.stopPropagation()}}>
+                    {!isPublic && editingElement && <div className="dataset-element-expanded" style={{top: Math.min(0, pageRef.current.getBoundingClientRect().height - 275 + TOOLBAR_HEIGHT)}} onClick={(e) => {e.stopPropagation()}}>
                         <form className="dataset-edit-element-form" onSubmit={updateElement}>
                             <div className="dataset-create-label-row">
                                 <label className="dataset-create-label-label" htmlFor="element-name-inp">Name</label>
@@ -2361,10 +2346,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             onClick={(e) => {
                                 e.stopPropagation()
                                 closePopups("create-label")
-                                setEditExpandedTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
                                 setDisplayCreateLabel(!displayCreateLabel)
                             }}>
-                                {(displayCreateLabel ? (toolbarRightWidth >= 150 ? "- " : "") + "Hide form" : (toolbarRightWidth >= 150 ? "+ " : "") + "Add label")}
+                                {(toolbarRightWidth >= 150 ? "+ " : "") + "Add label"}
                             </button>
                             
                         </div>}
@@ -2406,11 +2390,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                                         if (editingLabel == label.id) {
                                                             setEditingLabel(null)
                                                         } else {
-                                                            setEditExpandedTop(e.target.getBoundingClientRect().y - 5 - TOOLBAR_HEIGHT) // -5 due to padding, e is the image
-                                                            setEditingLabelName(label.name)
-                                                            setEditingLabelColor(label.color)
-                                                            setEditingLabelKeybind(label.keybind)
-                                                            setEditingLabel(label.id)
+                                                            setEditingLabel(label)
                                                         }
 
                                                     }}/>}
@@ -2464,94 +2444,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             ))}
                         </div>}
                     </div>
-
-                    {!isPublic && <div className="dataset-create-label-container" 
-                        style={{display: (displayCreateLabel ? "flex" : "none"), top: editExpandedTop}}
-                        onClick={(e) => e.stopPropagation()}>
-                        <form className="dataset-create-label-form" onSubmit={createLabelSubmit}>
-                            <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" htmlFor="label-create-name-inp">Name</label>
-                                <input id="label-create-name-inp" className="dataset-create-label-inp" type="text"
-                                    placeholder="Name" value={createLabelName} onChange={(e) => {
-                                    setCreateLabelName(e.target.value)
-                                }} onFocus={inputOnFocus} onBlur={inputOnBlur} required/>
-                            </div>
-                            
-                            <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" htmlFor="label-create-color-inp">Color</label>
-                                <div className="create-label-color-container" style={{background: createLabelColor}}>
-                                    <input id="label-create-color-inp" className="dataset-create-label-color" type="color" required value={createLabelColor} onChange={(e) => {
-                                        setCreateLabelColor(e.target.value)
-                                    }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
-                                </div>
-                            </div>
-
-                            <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" htmlFor="label-create-keybinding">Keybind</label>
-                                <input
-                                    id="label-create-keybinding"
-                                    className="dataset-create-label-inp"
-                                    type="text"
-                                    value={createLabelKeybind}
-                                    onKeyDown={handleKeyDown}
-                                    placeholder="Press keys..."
-                                    onFocus={inputOnFocus} onBlur={inputOnBlur}
-                                    readOnly
-                                />
-                            </div>
-
-                            <button type="submit" className="create-label-submit">
-                                {loadingLabelCreate && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
-                                {(!loadingLabelCreate ? "Create label" : "Processing...")}
-                            </button>
-                            
-                        </form>
-                    </div>}
-                    
-                    {/* Editing label */}
-                    {!isPublic && editingLabel && <div className="dataset-label-expanded" style={{top: Math.min(editExpandedTop, pageRef.current.getBoundingClientRect().height - 375 + TOOLBAR_HEIGHT)}} onClick={(e) => {e.stopPropagation()}}>
-                        <form className="dataset-create-label-form" onSubmit={editLabelOnSubmit}>
-                            <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" htmlFor="label-name-inp">Name</label>
-                                <input id="label-name-inp" className="dataset-create-label-inp" type="text" placeholder="Name" value={editingLabelName} onChange={(e) => {
-                                    setEditingLabelName(e.target.value)
-                                }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
-                            </div>
-                            
-                            <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" htmlFor="label-color-inp">Color</label>
-                                <div className="create-label-color-container" style={{background: editingLabelColor}}>
-                                    <input id="label-color-inp" className="dataset-create-label-color" type="color" value={editingLabelColor} onChange={(e) => {
-                                        setEditingLabelColor(e.target.value)
-                                    }} onFocus={inputOnFocus} onBlur={inputOnBlur}/>
-                                </div>
-                            </div>
-
-                            <div className="dataset-create-label-row">
-                                <label className="dataset-create-label-label" htmlFor="keybinding">Keybind</label>
-                                <input
-                                    id="keybinding"
-                                    className="dataset-create-label-inp"
-                                    type="text"
-                                    value={editingLabelKeybind}
-                                    onKeyDown={(e) => {handleKeyDown(e, "editing-label")}}
-                                    placeholder="Press keys..."
-                                    onFocus={inputOnFocus} onBlur={inputOnBlur}
-                                    readOnly
-                                />
-                            </div>
-
-                            <button type="submit" className="create-label-submit">
-                                {loadingLabelEdit && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
-                                {(!loadingLabelEdit ? "Save changes" : "Processing...")}
-                            </button>
-                            <button type="button" className="create-label-submit edit-label-delete" onClick={deleteLabel}>
-                                {loadingLabelDelete && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
-                                {(!loadingLabelDelete ? "Delete" : "Processing...")}
-                            </button>
-                            
-                        </form>
-                        </div>}
 
                 </div>
             </div>
