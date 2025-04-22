@@ -305,7 +305,7 @@ export const LAYERS = {
         "image": "model.svg",
         "color": "darkblue",
         "default_dimensions": [
-            ["Trainable", "False", "pink2"],    // Name, value, color
+            ["Trainable", "False", "darkblue"],    // Name, value, color
             ["Input Width", 224, "gray2"],
             ["Input Height", 224, "gray2"],
             ["Input Depth", 3, "gray2"],
@@ -321,7 +321,7 @@ export const LAYERS = {
         "image": "model.svg",
         "color": "darkblue",
         "default_dimensions": [
-            ["Trainable", "False", "pink2"],    // Name, value, color
+            ["Trainable", "False", "darkblue"],    // Name, value, color
             ["Input Width", 32, "gray2"],
             ["Input Height", 32, "gray2"],
             ["Input Depth", 3, "gray2"],

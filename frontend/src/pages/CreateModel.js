@@ -233,11 +233,10 @@ function CreateModel({notification, BACKEND_URL}) {
                         setOutputType(e.target.value)
                     }} />
                     <label htmlFor="create-dataset-type-classification" className="create-dataset-type-label">Classification</label>
-                    <input style={{marginLeft: "20px"}} type="radio" id="create-dataset-type-regression" name="regression" value="regression" checked={outputType == "regression"}  onChange={(e) => {
-                        setOutputType(e.target.value)
+                    <input style={{marginLeft: "20px"}} type="radio" id="create-dataset-type-regression" title="Not currently supported" className="edit-dataset-deactivated" name="regression" value="regression" checked={outputType == "regression"}  onChange={(e) => {
                         
                     }} />
-                    <label htmlFor="create-dataset-type-regression" className="create-dataset-type-label">Regression</label>
+                    <label htmlFor="create-dataset-type-regression" className="create-dataset-type-label edit-dataset-deactivated" title="Not currently supported">Regression</label>
                 </div>
                 <p className="create-dataset-description">
                     {outputType == "classification" ? "The model will classify elements as belonging to specific labels (e.g. dog, cat, airplane)." : "The model will output a continuos number (e.g. price of a house)."}

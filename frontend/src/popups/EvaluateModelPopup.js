@@ -322,7 +322,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                         BACKEND_URL={BACKEND_URL}
                     ></ElementFilters>}
 
-                    <button className="close-model-popup" title="Return to main display" onClick={() => setShowEvaluateModelPopup(false)}>Return to main display</button>
+                    <button className="close-model-popup" title="Return to main display" onClick={() => setShowEvaluateModelPopup(false)}>Return to main display →</button>
                 </div>
                 
                 <p className="create-layer-popup-description">

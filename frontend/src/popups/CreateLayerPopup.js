@@ -12,21 +12,6 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
     const [animateIn, setAnimateIn] = useState(false)
 
-    const colorMap = {
-        dense: '#4CAF50',
-        flatten: '#FFC107',
-        dropout: '#F44336',
-        globalaveragepooling1d: '#2196F3',
-        resizing: '#9C27B0',
-        rescaling: '#00BCD4',
-        randomflip: '#E91E63',
-        randomrotation: '#795548',
-        conv2d: '#3F51B5',
-        maxpool2d: '#607D8B',
-        mobilenetv2: '#FF9800',
-        embedding: '#8BC34A',
-    };
-
     const getLabeledOption = (value, text) => ({
         value,
         label: (
@@ -70,6 +55,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
             label: 'Pretrained Models',
             options: [
                 getLabeledOption('mobilenetv2', 'MobileNetV2 - 224x224x3'),
+                getLabeledOption('mobilenetv2small', 'MobileNetV2 - 32x32x3'),
             ],
         },
     ];

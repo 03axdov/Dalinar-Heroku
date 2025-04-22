@@ -420,7 +420,9 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     
                     model, timestamp = get_tf_model(model_instance, profile=profile)
                     if timestamp < 0: return {"Bad request": "You have an ongoing task on this model. Please wait until it finishes.", "status": 400}
-                    
+                    if model.output_shape[-1] != dataset_instance.labels.count():
+                        return {"Bad request": "The model's output shape and the dataset's number of labels do not match.", "status": 400}
+
                     dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
 
                     validation_size = int(dataset_length * validation_split)
