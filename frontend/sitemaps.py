@@ -3,7 +3,13 @@ from django.urls import reverse
 
 class StaticViewSitemap(Sitemap):
     def items(self):
-        return ['home', 'about', 'contact']  # Use your actual view names
+        return ['home', 'landing', 'explore', "guide"]
 
     def location(self, item):
-        return reverse(item)
+        url_mapping = {
+            'home': '/home/',
+            'landing': '/',
+            'explore': '/explore/',
+            'guide': '/guide/',
+        }
+        return url_mapping.get(item)
