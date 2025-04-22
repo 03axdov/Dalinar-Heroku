@@ -1486,7 +1486,8 @@ class CreateLayer(APIView):
         ALLOWED_TYPES = set(["dense", "conv2d", "flatten",
                              "dropout", "maxpool2d", "rescaling",
                              "randomflip", "randomrotation", "resizing", "textvectorization",
-                             "embedding", "globalaveragepooling1d", "mobilenetv2"])
+                             "embedding", "globalaveragepooling1d", "mobilenetv2",
+                             "mobilenetv2small"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1518,6 +1519,8 @@ class CreateLayer(APIView):
             serializer = CreateGlobalAveragePooling1DLayerSerializer(data=data)
         elif layer_type == "mobilenetv2":
             serializer = CreateMobileNetV2LayerSerializer(data=data)
+        elif layer_type == "mobilenetv2small":
+            serializer = CreateMobileNetV2SmallLayerSerializer(data=data)
         
         if serializer and serializer.is_valid():
             
@@ -1535,7 +1538,7 @@ class CreateLayer(APIView):
                         if last: 
                             idx = model.layers.all().last().index + 1
                         instance = serializer.save(model=model, layer_type=layer_type, index=idx, activation_function=data["activation_function"])
-                            
+
                         return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
                     
                     
@@ -1638,7 +1641,7 @@ class EditLayer(APIView):
                     elif layer_type == "embedding":
                         layer.max_tokens = request.data["max_tokens"]
                         layer.output_dim = request.data["output_dim"]
-                    # Can't edit GlobalAveragePooling1DLayer or MobileNetV2Layer  
+                    # Can't edit GlobalAveragePooling1DLayer or pretrained model layers  
 
                     layer.activation_function = request.data["activation_function"]
                     layer.updated = True
@@ -1820,6 +1823,8 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
         data["type"] = "globalaveragepooling1d"
     elif tf_layer.name == "mobilenetv2":
         data["type"] = "mobilenetv2"
+    elif tf_layer.name == "mobilenetv2small":
+        data["type"] = "mobilenetv2small"
     else:
         print("UNKNOWN LAYER TYPE: ", tf_layer)
         return # Continue instantiating model

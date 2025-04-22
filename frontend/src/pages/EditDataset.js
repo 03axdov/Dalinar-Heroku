@@ -169,7 +169,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                 <div className="edit-dataset-title-container">
                     <h1 className="create-dataset-title"><span className="gray-text">Edit dataset — </span>{originalName}</h1>
                     <button type="button" className="edit-dataset-delete" onClick={deleteDataset}>
-                        {processingDelete && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                        {processingDelete && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                         {(!processingDelete ? "Delete dataset" : "Processing...")}
                     </button>
                 </div>
@@ -198,13 +198,13 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                         }
                     }} />
                     {imageURL && <div className="create-dataset-image-container no-border" onClick={imageOnClick}>
-                        <img className="create-dataset-image no-border" src={imageURL} onClick={imageOnClick}/>
+                        <img className="create-dataset-image no-border" src={imageURL} onClick={imageOnClick} alt="Dataset image" />
                         <div className="create-dataset-image-hover">
-                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} alt="Image" /> Upload image</p>
                         </div>
                     </div>}
                     {!imageURL && <div className="create-dataset-image-container" onClick={imageOnClick}>
-                        <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                        <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} alt="Image" /> Upload image</p>
                     </div>}
                 </div>
 
@@ -278,7 +278,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                                 setKeywordCurrent(e.target.value)
                             }} />
                             <button type="submit" className="create-dataset-keywords-button">
-                                <img className="create-dataset-keywords-icon" src={BACKEND_URL + "/static/images/plus.png"} />
+                                <img className="create-dataset-keywords-icon" src={BACKEND_URL + "/static/images/plus.png"} alt="Plus" />
                                 Add
                             </button>
                         </form>
@@ -294,7 +294,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                                 let temp = [...keywords]
                                 temp = temp.filter((keyword) => keyword != e)
                                 setKeywords(temp)
-                            }}/>
+                            }} alt="Cross" />
                         </div>
                     ))}
                 </div>}
@@ -310,7 +310,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                         
                     }}>Back</button>
                     <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>
-                        {processing && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                        {processing && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                         {(!processing ? "Save changes" : "Processing...")}
                     </button>
                 </div>

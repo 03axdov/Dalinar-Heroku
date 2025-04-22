@@ -12,34 +12,50 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
     const [animateIn, setAnimateIn] = useState(false)
 
+    const getLabeledOption = (value, text) => ({
+        value,
+        label: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{
+              display: 'inline-block',
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+            }} className={"layer-element-stat-" + LAYERS[value].color} />
+            {text}
+          </div>
+        ),
+    });
+
     const commonOptions = [
-        { value: 'dense', label: 'Dense' },
-        { value: 'flatten', label: 'Flatten' },
-        { value: 'dropout', label: 'Dropout' },
-        { value: 'globalaveragepooling1d', label: 'GlobalAveragePooling1D' },
+        getLabeledOption('dense', 'Dense'),
+        getLabeledOption('flatten', 'Flatten'),
+        getLabeledOption('dropout', 'Dropout'),
+        getLabeledOption('globalaveragepooling1d', 'GlobalAveragePooling1D'),
     ];
     
     const imageOptions = [
         {
             label: 'Image Preprocessing',
             options: [
-            { value: 'resizing', label: 'Resizing' },
-            { value: 'rescaling', label: 'Rescaling' },
-            { value: 'randomflip', label: 'RandomFlip' },
-            { value: 'randomrotation', label: 'RandomRotation' },
+                getLabeledOption('resizing', 'Resizing'),
+                getLabeledOption('rescaling', 'Rescaling'),
+                getLabeledOption('randomflip', 'RandomFlip'),
+                getLabeledOption('randomrotation', 'RandomRotation'),
             ],
         },
         {
             label: 'Computer Vision',
             options: [
-            { value: 'conv2d', label: 'Conv2D' },
-            { value: 'maxpool2d', label: 'MaxPool2D' },
+                getLabeledOption('conv2d', 'Conv2D'),
+                getLabeledOption('maxpool2d', 'MaxPool2D'),
             ],
         },
         {
             label: 'Pretrained Models',
             options: [
-            { value: 'mobilenetv2', label: 'MobileNetV2' },
+                getLabeledOption('mobilenetv2', 'MobileNetV2 - 224x224x3'),
+                getLabeledOption('mobilenetv2small', 'MobileNetV2 - 32x32x3'),
             ],
         },
     ];
@@ -48,7 +64,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
         {
             label: 'Text',
             options: [
-            { value: 'embedding', label: 'Embedding' },
+                getLabeledOption('embedding', 'Embedding'),
             ],
         },
     ];
@@ -223,6 +239,12 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     className="w-full"
                 />
             </div>}
+
+            {layer.params.length == 0 && (!layer.dimensions || layer.dimensions.length == 0) && !(layer.input_x || layer.input_y || layer.input_z) && !layer.activation_function && <p
+            style={{margin: 0}}
+            className="gray-text">
+                This layer does not have any parameters to set.
+            </p>}
         </div>
     }
 
@@ -306,7 +328,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     <div className="create-layer-popup-buttons">
                         <button type="button" className="create-layer-popup-cancel" onClick={() => setShowCreateLayerPopup(false)}>Cancel</button>
                         <button type="submit" className="create-layer-popup-submit">
-                            {processingCreateLayer && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                            {processingCreateLayer && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                             {(!processingCreateLayer ? "Create layer" : "Processing...")}
                         </button>
                     </div>

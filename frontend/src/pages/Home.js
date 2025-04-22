@@ -450,21 +450,21 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
                     setSearchParams({"start": "datasets"})
                     setTypeShown("datasets")
                 }}>
-                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/database.svg"} />Datasets
+                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/database.svg"} alt="Database" />Datasets
                 </div>
                 <div className={"sidebar-types-element " + (typeShown == "models" ? "sidebar-types-element-selected" : "")}
                 onClick={() => {
                     setSearchParams({"start": "models"})
                     setTypeShown("models")
                 }}>
-                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/model.svg"} />Models
+                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/model.svg"} alt="Model" />Models
                 </div>
                 {!is_explore && <div className={"sidebar-types-element " + (typeShown == "saved" ? "sidebar-types-element-selected" : "")}
                 onClick={() => {
                     setSearchParams({"start": "saved"})
                     setTypeShown("saved")
                 }}>
-                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/star.svg"} />Saved
+                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/star.svg"} alt="Star" />Saved
                 </div>}
             </div>
         </div>

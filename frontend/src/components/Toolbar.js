@@ -16,7 +16,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
 
     return (
         <nav id="toolbar" className={(isBaseUrl ? "toolbar-landing" : "") + (isGuideUrl ? "toolbar-guide" : "")}>
-            <img id="toolbar-logo" src={BACKEND_URL + "/static/images/logoWhite.svg"} onClick={() => navigate("/")}/>
+            <img id="toolbar-logo" src={BACKEND_URL + "/static/images/logoWhite.svg"} alt="Logo" onClick={() => navigate("/")}/>
             <a href="/" className="toolbar-text toolbar-title" onClick={(e) => {
                 e.preventDefault()
                 navigate("/")
@@ -35,7 +35,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
             <a href="/guide" className={"toolbar-text " + (window.location.pathname.replaceAll("/", "") == "guide" ? "toolbar-text-activated" : "")} onClick={(e) => {
                 e.preventDefault()
                 externalLink("/guide")
-            }}>Guide <img className="toolbar-icon" src={BACKEND_URL + "/static/images/external.png"}/></a>
+            }}>Guide <img className="toolbar-icon" src={BACKEND_URL + "/static/images/external.png"} alt="External" /></a>
 
             {!loadingCurrentProfile && currentProfile.user === "" &&
                 <div className="toolbar-auth">
@@ -52,7 +52,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
             }
             {!loadingCurrentProfile && currentProfile.user !== "" &&
                 <div className="toolbar-auth">
-                    <img className="toolbar-menu" src={BACKEND_URL + "/static/images/menu.svg"} onClick={() => {
+                    <img className="toolbar-menu" src={BACKEND_URL + "/static/images/menu.svg"} alt="Menu" onClick={() => {
                         setShowProfileBar(true)
                     }} />
                 </div>

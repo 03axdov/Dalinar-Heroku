@@ -93,7 +93,7 @@ function ElementFilters({show, setShow, isModel, sort, setSort,
                         setLoading(true)
                         setSearch(e.target.value)
                 }} /> 
-                <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
+                <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} alt="Search" />
             </div>
         </div>
     )

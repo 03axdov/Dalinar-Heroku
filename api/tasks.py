@@ -167,6 +167,9 @@ def get_tf_layer(layer):    # From a Layer instance
     elif layer_type == "mobilenetv2":
         model = get_pretrained_model("mobilenetv2")
         return model
+    elif layer_type == "mobilenetv2small":
+        model = get_pretrained_model("mobilenetv2small")
+        return model
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         raise Exception("Invalid layer: " + layer_type)
@@ -417,7 +420,9 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     
                     model, timestamp = get_tf_model(model_instance, profile=profile)
                     if timestamp < 0: return {"Bad request": "You have an ongoing task on this model. Please wait until it finishes.", "status": 400}
-                    
+                    if model.output_shape[-1] != dataset_instance.labels.count():
+                        return {"Bad request": "The model's output shape and the dataset's number of labels do not match.", "status": 400}
+
                     dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
 
                     validation_size = int(dataset_length * validation_split)
@@ -900,6 +905,8 @@ def predict_model_task(self, model_id, encoded_images, text):
                     first_layer = model_instance.layers.all().first()
                     
                     target_size = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
+                    if first_layer.layer_type == "mobilenetv2": # Doesn't have input_x, ...
+                        target_size = (224,224,3)
                     
                     model, timestamp = get_tf_model(model_instance)
                     
@@ -910,6 +917,10 @@ def predict_model_task(self, model_id, encoded_images, text):
                         image_tensor = preprocess_uploaded_image(image, target_size)
                         
                         prediction_arr = model.predict(image_tensor)
+
+                        if model_instance.output_type == "regression":
+                            prediction_names.append(prediction_arr)
+                            continue
                         
                         prediction_idx = int(np.argmax(prediction_arr))
                         if model_instance.loss_function == "binary_crossentropy":
@@ -943,6 +954,9 @@ def predict_model_task(self, model_id, encoded_images, text):
                     text = tf.convert_to_tensor(text, dtype=tf.string)
 
                     prediction_arr = model.predict(text)
+
+                    if model_instance.output_type == "regression":
+                        return {"predictions": [prediction_arr], "colors": [], "status": 200}
                     
                     prediction_idx = int(np.argmax(prediction_arr))
                     if model_instance.loss_function == "binary_crossentropy":

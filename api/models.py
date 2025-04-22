@@ -266,6 +266,12 @@ class Model(models.Model):
         ("sparse_categorical_crossentropy", "sparse_categorical_crossentropy")
     ]
     loss_function = models.CharField(max_length=100, blank=True, null=True, choices=LOSS_CHOICES)
+
+    OUTPUT_TYPE_CHOICES = [
+        ("classification", "Classification"),
+        ("regression", "Regression")
+    ]
+    output_type = models.CharField(max_length=20, choices=OUTPUT_TYPE_CHOICES, default="Classification", blank=True, null=True)   # Used for image datasets
     
     def __str__(self):
         return self.name + " - " + self.owner.name
@@ -305,6 +311,8 @@ class AbstractLayer(models.Model):
         ("textvectorization", "TextVectorization"),
         ("embedding", "Embedding"),
         ("globalaveragepooling1d", "GlobalAveragePooling1D"),
+        ("mobilenetv2", "MobileNetV2"),
+        ("mobilenetv2small", "MobileNetV2Small"),
     ]
     layer_type = models.CharField(max_length=100, choices=LAYER_CHOICES)
     
@@ -488,7 +496,16 @@ class GlobalAveragePooling1DLayer(Layer):
 
 class MobileNetV2Layer(Layer):
     def __str__(self):
-        res = "MobileNetV2 0.35"
+        res = "MobileNetV2 (224x224x3)"
+        if self.model:
+            res += " - " + self.model.name
+            
+        return res
+
+
+class MobileNetV2SmallLayer(Layer):
+    def __str__(self):
+        res = "MobileNetV2 (32x32x3)"
         if self.model:
             res += " - " + self.model.name
             

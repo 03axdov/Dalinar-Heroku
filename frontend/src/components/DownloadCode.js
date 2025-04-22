@@ -174,8 +174,8 @@ df = pd.read_csv('[YOUR_DATASET_NAME].csv')`
             return (
                 <div className="download-successful-code">
                     <button className="download-successful-code-copy" onClick={() => copyCode(FOLDERS_TF_TEXT)}>
-                        {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} />}
-                        {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} />}
+                        {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} alt="Copy" />}
+                        {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} alt="Check" />}
                         {copied ? "Copied" : "Copy"}
                     </button>
 
@@ -205,8 +205,8 @@ df = pd.read_csv('[YOUR_DATASET_NAME].csv')`
             return (
                 <div className="download-successful-code">
                     <button className="download-successful-code-copy" onClick={() => copyCode(FOLDERS_PT_TEXT)}>
-                        {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} />}
-                        {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} />}
+                        {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} alt="Copy" />}
+                        {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} alt="Check" />}
                         {copied ? "Copied" : "Copy"}
                     </button>
 
@@ -254,8 +254,8 @@ df = pd.read_csv('[YOUR_DATASET_NAME].csv')`
             return (
                 <div className="download-successful-code">
                     <button className="download-successful-code-copy" onClick={() => copyCode(FILENAMES_TF_TEXT)}>
-                        {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} />}
-                        {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} />}
+                        {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} alt="Copy" />}
+                        {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} alt="Check" />}
                         {copied ? "Copied" : "Copy"}
                     </button>
 
@@ -388,8 +388,8 @@ df = pd.read_csv('[YOUR_DATASET_NAME].csv')`
             return (
                 <div className="download-successful-code">
                     <button className="download-successful-code-copy" onClick={() => copyCode(FILENAMES_PT_TEXT)}>
-                        {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} />}
-                        {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} />}
+                        {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} alt="Copy" />}
+                        {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} alt="Check" />}
                         {copied ? "Copied" : "Copy"}
                     </button>
 
@@ -500,8 +500,8 @@ df = pd.read_csv('[YOUR_DATASET_NAME].csv')`
         return (
             <div className="download-successful-code">
                 <button className="download-successful-code-copy" onClick={() => copyCode(MODEL_TEXT)}>
-                    {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} />}
-                    {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} />}
+                    {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} alt="Copy" />}
+                    {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} alt="Check" />}
                     {copied ? "Copied" : "Copy"}
                 </button>
 
@@ -522,8 +522,8 @@ df = pd.read_csv('[YOUR_DATASET_NAME].csv')`
     } else if (downloadType == "csv") {
         return (<div className="download-successful-code">
             <button className="download-successful-code-copy" onClick={() => copyCode(CSV_TEXT)}>
-                {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} />}
-                {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} />}
+                {!copied && <img className="code-copy-icon" src={BACKEND_URL + "/static/images/copy.png"} alt="Copy" />}
+                {copied && <img className="code-copied-icon" src={BACKEND_URL + "/static/images/check.png"} alt="Check" />}
                 {copied ? "Copied" : "Copy"}
             </button>
 

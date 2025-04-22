@@ -9,7 +9,7 @@ function DatasetElementLoading({BACKEND_URL, isPublic=false, isTraining=false}) 
                 
                 <p className="dataset-element-name"></p>
 
-                {!isPublic && <img className="dataset-element-icon dataset-element-options" src={BACKEND_URL + "/static/images/options.png"} />}
+                {!isPublic && <img className="dataset-element-icon dataset-element-options" src={BACKEND_URL + "/static/images/options.png"} alt="Edit" />}
                 {isPublic && <span className="dataset-element-icon"></span>} {/* As the container is flex space-between */}
             </div>
             

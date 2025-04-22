@@ -86,7 +86,7 @@ export const LAYERS = {
         "input_x": true,
         "input_y": true,
         "input_z": true,
-        "color": "darkblue"
+        "color": "cyan"
     },
     randomflip: {
         "name": "RandomFlip",
@@ -113,7 +113,7 @@ export const LAYERS = {
         "input_x": true,
         "input_y": true,
         "input_z": true,
-        "color": "cyan"
+        "color": "green"
     },
     randomrotation: {
         "name": "RandomRotation",
@@ -137,7 +137,7 @@ export const LAYERS = {
         "input_x": true,
         "input_y": true,
         "input_z": true,
-        "color": "cyan"
+        "color": "green"
     },
     resizing: {
         "name": "Resizing",
@@ -257,48 +257,6 @@ export const LAYERS = {
         "image": "image.png",
         "color": "pink2"
     },
-    /* textvectorization: {
-        "name": "TextVectorization",
-        "params": [
-            {
-                "name": "max_tokens",
-                "name_readable": "Max tokens",
-                "default": 10000,
-                "type": "number",
-                "required": true
-            },
-            {
-                "name": "standardize",
-                "name_readable": "Standardize",
-                "choices": [
-                    {
-                        "value": "",
-                        "name": "(none)"
-                    },
-                    {
-                        "value": "lower_and_strip_punctuation",
-                    },
-                    {
-                        "value": "lower",
-                    },
-                    {
-                        "value": "strip_punctuation"
-                    }
-                ],
-                "default": "lower_and_strip_punctuation"
-            },
-            {
-                "name": "output_sequence_length",
-                "name_readable": "Output length",
-                "type": "number",
-                "default": 256,
-                "required": true
-            }
-        ],
-        "image": "text.png",
-        "color": "cyan",
-        "no_dimensions": true
-    }, */
     embedding: {
         "name": "Embedding",
         "params": [
@@ -338,16 +296,16 @@ export const LAYERS = {
         "name": "GlobalAveragePooling1D",
         "params": [],
         "image": "global.svg",
-        "color": "lightblue",
+        "color": "darkblue",
         "not_editable": true    // Formatted like this as only a few are not editable
     },
     mobilenetv2: {
         "name": "MobileNetV2",
         "params": [],
         "image": "model.svg",
-        "color": "pink2",
+        "color": "darkblue",
         "default_dimensions": [
-            ["Trainable", "False", "pink2"],    // Name, value, color
+            ["Trainable", "False", "darkblue"],    // Name, value, color
             ["Input Width", 224, "gray2"],
             ["Input Height", 224, "gray2"],
             ["Input Depth", 3, "gray2"],
@@ -356,24 +314,41 @@ export const LAYERS = {
         "not_editable": true,
         "no_dimensions": true,  // Avoids warnings if first layer,
         "info": "The MobileNetV2 model trained on ImageNet. Output shape: (None, 1280)"
+    },
+    mobilenetv2small: {
+        "name": "MobileNetV2",
+        "params": [],
+        "image": "model.svg",
+        "color": "darkblue",
+        "default_dimensions": [
+            ["Trainable", "False", "darkblue"],    // Name, value, color
+            ["Input Width", 32, "gray2"],
+            ["Input Height", 32, "gray2"],
+            ["Input Depth", 3, "gray2"],
+            
+        ],
+        "not_editable": true,
+        "no_dimensions": true,  // Avoids warnings if first layer,
+        "info": "The MobileNetV2 model trained on cifar10. Output shape: (None, 1280)"
     }
 }
 
 
 export const VALID_PREV_LAYERS = { // null means that it can be the first layer
-    "dense": [null, "dense", "flatten", "dropout", "textvectorization", "mobilenetv2"],
+    "dense": [null, "dense", "flatten", "dropout", "textvectorization", "mobilenetv2", "mobilenetv2small"],
     "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing"],
     "maxpool2d": ["conv2d", "maxpool2d", "rescaling", "resizing"],
-    "dropout": ["dense", "dropout", "flatten", "embedding", "globalaveragepooling1d", "mobilenetv2"],
-    "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling", "resizing", "mobilenetv2"],
+    "dropout": ["dense", "dropout", "flatten", "embedding", "globalaveragepooling1d", "mobilenetv2", "mobilenetv2small"],
+    "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling", "resizing", "mobilenetv2", "mobilenetv2small"],
     "rescaling": [null, "randomflip", "resizing", "randomrotation"],
     "randomflip": [null, "rescaling", "resizing", "randomrotation"],
     "randomrotation": [null, "rescaling", "resizing", "randomflip"],
     "resizing": [null],
     "textvectorization": [null],
     "embedding": [null, "textvectorization"],
-    "globalaveragepooling1d": ["embedding", "dense", "dropout", "mobilenetv2"],
+    "globalaveragepooling1d": ["embedding", "dense", "dropout", "mobilenetv2", "mobilenetv2small"],
     "mobilenetv2": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing"],
+    "mobilenetv2small": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing"],
 }
 
 export const WARNING_MESSAGES = {
@@ -390,6 +365,7 @@ export const WARNING_MESSAGES = {
     "embedding": "Must be the first layer, else follow one of the following layers: [" + VALID_PREV_LAYERS["embedding"].slice(1).join(", ") + "].",
     "globalaveragepooling1d": "A GlobalAveragePooling1D layer must follow one of the following layers: [" + VALID_PREV_LAYERS["globalaveragepooling1d"].slice(1).join(", ") + "].",
     "mobilenetv2": "A MobileNetV2 layer must be the first one, else follow one of the following layers: [" + VALID_PREV_LAYERS["mobilenetv2"].slice(1).join(", ") + "].",
+    "mobilenetv2small": "A MobileNetV2 layer must be the first one, else follow one of the following layers: [" + VALID_PREV_LAYERS["mobilenetv2small"].slice(1).join(", ") + "].",
 }
 
 export function getLayerName(layer) {
@@ -419,6 +395,8 @@ export function getLayerName(layer) {
     } else if (type == "globalaveragepooling1d") {
         return "GlobalAveragePooling1D"
     } else if (type == "mobilenetv2") {
+        return "MobileNetV2"
+    } else if (type == "mobilenetv2small") {
         return "MobileNetV2"
     }
 }
@@ -564,20 +542,35 @@ export function computeParams(layers, sequence_length = 256) {
         return;
       }
 
-        else if (type === 'mobilenetv2') {
-            const knownParams = 2257984; // Includes trainable + non-trainable params
+    else if (type === 'mobilenetv2') {
+        const knownParams = 2257984; // Includes trainable + non-trainable params
 
-            totalParams += knownParams;
+        totalParams += knownParams;
 
-            // Output shape after GlobalAveragePooling2D
-            current_x = null;
-            current_y = null;
-            current_z = null;
+        // Output shape after GlobalAveragePooling2D
+        current_x = null;
+        current_y = null;
+        current_z = null;
 
-            current_steps = null;
-            current_feats = 1280;  // Flattened 1D vector with 1280 features
-            inUnits = 1280;
-        }
+        current_steps = null;
+        current_feats = 1280;  // Flattened 1D vector with 1280 features
+        inUnits = 1280;
+    }
+
+    else if (type === 'mobilenetv2small') {
+        const knownParams = 2257984; // UPDATE THIS
+
+        totalParams += knownParams;
+
+        // Output shape after GlobalAveragePooling2D
+        current_x = null;
+        current_y = null;
+        current_z = null;
+
+        current_steps = null;
+        current_feats = 1280;  // Flattened 1D vector with 1280 features
+        inUnits = 1280;
+    }
     });
   
     return totalParams;

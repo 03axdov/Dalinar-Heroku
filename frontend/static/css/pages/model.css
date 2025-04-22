@@ -33,7 +33,7 @@
     padding: 3px 10px;
     margin: 0 3px;
     border-radius: 5px;
-    background: var(--sidebar-button);
+    background: var(--background-light);
     white-space: nowrap;
 }
 
@@ -175,6 +175,15 @@
     justify-content: center;
     user-select: none;
     cursor: default;
+}
+
+.layer-element-spacing {
+    position: absolute;
+    top: calc(100% + 125px);
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    background: rgb(0,0,0,0);
 }
 
 .layer-element-warning {
@@ -345,7 +354,7 @@
 .trained-on-element {
     padding: 3px 7px;
     border-radius: 3px;
-    background: var(--sidebar-button);
+    background: var(--background-lighter);
     margin-right: 5px;
     display: flex;
     flex-direction: row;
@@ -354,7 +363,7 @@
 
 .trained-on-element:hover {
     cursor: pointer;
-    background: var(--sidebar-button-hover);
+    background: var(--sidebar-lighter);
 }
 
 .trained-on-icon {
@@ -657,6 +666,10 @@ div.layer-element-mode-input {
     overflow: hidden;
 }
 
+.description-table {
+    border: none;
+}
+
 .training-table {
     table-layout: auto;
     width: 100%; /* or whatever you want */
@@ -674,6 +687,10 @@ div.layer-element-mode-input {
     font-size: 1.2rem;
 }
 
+.description-table td {
+    border: none;
+}
+
 .description-row-1 {
     white-space: nowrap;
     width: 1px; /* prevents it from stretching unnecessarily */
@@ -682,6 +699,7 @@ div.layer-element-mode-input {
 
 .description-table-container {
     margin-bottom: 20px;
+    background: var(--background-light);
 }
 
 .train-model-after-container {
@@ -702,6 +720,8 @@ div.layer-element-mode-input {
     background: var(--toolbar);
     padding: 5px 10px;
     font-size: 1.1rem;
+    border-radius: 3px;
+    box-shadow: 0 0 10px 0 black;
 }
 
 .toggle-model-metrics {
@@ -714,6 +734,7 @@ div.layer-element-mode-input {
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 0 10px 0 black;
 }
 
 .metrics-icon {

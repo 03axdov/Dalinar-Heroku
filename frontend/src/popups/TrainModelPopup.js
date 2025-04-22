@@ -382,7 +382,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         BACKEND_URL={BACKEND_URL}
                     ></ElementFilters>}
                     
-                    <button className="close-model-popup" title="Return to main display" onClick={() => setShowTrainModelPopup(false)}>Return to main display</button>
+                    <button className="close-model-popup" title="Return to main display" onClick={() => setShowTrainModelPopup(false)}>Return to main display →</button>
                 </div>
                 
                 <p className="create-layer-popup-description">
@@ -435,7 +435,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                 {datasetTypeShown == "my" && <div className="my-datasets-container train-datasets-container" style={{padding: 0}}>
                     <div className="dataset-element no-margin tensorflow-dataset-element">
                         <div className="dataset-element-header">
-                            <img title="TensorFlow datasets" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/tensorflowWhite.png"}/>
+                            <img title="TensorFlow datasets" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/tensorflowWhite.png"} alt="TensorFlow" />
                         
                             <div className="dataset-element-name" title="TensorFlow Datasets">
                                 <p className="dataset-element-name-inner">TensorFlow</p>
@@ -449,8 +449,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                                 setTensorflowDataset(e.target.value)
                             }}>
                                 
-                                {model_type.toLowerCase() == "image" && <option value="cifar10" title="50,000 images, 10 labels, 32x32x3 grayscale images">cifar10</option>}
-                                {model_type.toLowerCase() == "image" && <option value="cifar100" title="50,000 images, 100 labels, 32x32x3 grayscale images">cifar100</option>}
+                                {model_type.toLowerCase() == "image" && <option value="cifar10" title="50,000 images, 10 labels, 32x32x3 rgb images">cifar10</option>}
+                                {model_type.toLowerCase() == "image" && <option value="cifar100" title="50,000 images, 100 labels, 32x32x3 rgb images">cifar100</option>}
                                 {model_type.toLowerCase() == "image" && <option value="mnist" title="60,000 images, 10 labels, 28x28 grayscale images">mnist</option>}
                                 {model_type.toLowerCase() == "image" && <option value="fashion_mnist" title="60,000 images, 10 labels, 28x28 grayscale images">fashion_mnist</option>}
 
@@ -467,7 +467,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                                 win.focus();
                             }}>
                                 More info
-                                <img className="tensorflow-dataset-external" src={BACKEND_URL + "/static/images/external.png"}/>
+                                <img className="tensorflow-dataset-external" src={BACKEND_URL + "/static/images/external.png"} alt="External" />
                             </button>
                         </div>
       

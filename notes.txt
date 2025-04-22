@@ -1,11 +1,8 @@
 TO-DO:
 - Presave tensorflow datasets?
 - Upload datasets directly for training (don't store for longer than used)
-- alt tag for images
-- Regression models
 - Problem with testing and files on AWS not getting deleted
 - Look into deleting temp model file in get_tf_model
-- Maybe look into further styling of dropdowns
 
 Layers to add:
 
