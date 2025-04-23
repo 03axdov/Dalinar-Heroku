@@ -70,6 +70,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
     }, [currentProfile])
 
     const getDatasets = () => {
+        console.log("GET DATASETS")
         setLoading(true)
 
         let URL = window.location.origin + "/api/" + (is_explore ? "datasets/?" : "my-datasets/?")
@@ -153,6 +154,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
     }, [loaderRef.current, nextPageDatasets, loading]);
 
     const getModels = () => {
+        console.log("GET MODELS")
         setLoadingModels(true)
 
         const BASE_URL = window.location.origin + "/api/" + (is_explore ? "models/?" : "my-models/?")

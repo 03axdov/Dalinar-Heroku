@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from "react"
+import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 
 function ElementFilters({show, setShow, isModel, sort, setSort,
@@ -9,8 +9,12 @@ function ElementFilters({show, setShow, isModel, sort, setSort,
     const [imageWidth, setImageWidth] = useState("")
     const [imageHeight, setImageHeight] = useState("")
 
+    const firstCall = useRef(true)
     useEffect(() => {
-        if (!imageDimensions) return;
+        if (firstCall.current) {
+            firstCall.current = false; // Set to false after first render
+            return;
+        }
         const handler = setTimeout(() => {
             let prevDims = [...imageDimensions]
             prevDims[0] = imageWidth

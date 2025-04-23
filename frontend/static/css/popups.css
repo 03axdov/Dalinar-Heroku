@@ -387,7 +387,7 @@
     color: #9CDCFE;
 }
 
-.download-popup, .create-layer-popup, .build-model-popup, .model-download-popup, .train-model-popup {
+.download-popup, .build-model-popup, .model-download-popup, .train-model-popup {
     padding-bottom: var(--toolbar-height);
     height: calc(100% - var(--toolbar-height));
     box-sizing: border-box;
@@ -679,12 +679,6 @@
 }
 .close-model-popup:hover {
     background: var(--gray-dark);
-}
-
-@media all and (max-height: 800px) {
-    .download-popup, .create-layer-popup, .model-download-popup {
-        padding-bottom: 0;
-    }
 }
 
 .build-model-popup, .train-model-popup {
