@@ -3,7 +3,7 @@ TO-DO:
 - Parameter titles if needed
 - Maybe update for moving layers
 - Presave tensorflow datasets
-- AWS lambda
+- AWS Sagemaker
 
 For building:
 - Update DEBUG and PRODUCTION in settings.py
