@@ -15,7 +15,7 @@ const LandingImageRow = ({ imageUrls, animationDuration = 20, offset = 0 }) => {
         <div className="landing-right-row">
         <div className="landing-right-row-track" ref={trackRef}>
             {[...imageUrls, ...imageUrls].map((url, idx) => (
-            <img key={idx} src={url} className="landing-rotating-img" />
+            <img key={idx} src={url} className="landing-rotating-img" alt="Statistics" />
             ))}
         </div>
         </div>

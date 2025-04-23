@@ -1,5 +1,7 @@
 import React, {useState, useEffect} from "react"
 import {LAYERS} from "../layers"
+import Select from 'react-select';
+import { customStyles } from "../helpers/styles";
 
 function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, processingCreateLayer, notification, modelType}) {
 
@@ -7,6 +9,91 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
     const [type, setType] = useState("dense")
     
     const [params, setParams] = useState({})
+
+    const [animateIn, setAnimateIn] = useState(false)
+
+    const getLabeledOption = (value, text) => ({
+        value,
+        label: (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{
+              display: 'inline-block',
+              width: '10px',
+              height: '10px',
+              borderRadius: '50%',
+            }} className={"layer-element-stat-" + LAYERS[value].color} />
+            {text}
+          </div>
+        ),
+    });
+
+    const commonOptions = [
+        getLabeledOption('dense', 'Dense'),
+        getLabeledOption('flatten', 'Flatten'),
+        getLabeledOption('dropout', 'Dropout'),
+        getLabeledOption('globalaveragepooling1d', 'GlobalAveragePooling1D'),
+    ];
+    
+    const imageOptions = [
+        {
+            label: 'Image Preprocessing',
+            options: [
+                getLabeledOption('resizing', 'Resizing'),
+                getLabeledOption('rescaling', 'Rescaling'),
+                getLabeledOption('randomflip', 'RandomFlip'),
+                getLabeledOption('randomrotation', 'RandomRotation'),
+            ],
+        },
+        {
+            label: 'Computer Vision',
+            options: [
+                getLabeledOption('conv2d', 'Conv2D'),
+                getLabeledOption('maxpool2d', 'MaxPool2D'),
+            ],
+        },
+        {
+            label: 'Pretrained Models',
+            options: [
+                getLabeledOption('mobilenetv2', 'MobileNetV2 - 224x224x3'),
+                getLabeledOption('mobilenetv2small', 'MobileNetV2 - 32x32x3'),
+            ],
+        },
+    ];
+    
+    const textOptions = [
+        {
+            label: 'Text',
+            options: [
+                getLabeledOption('embedding', 'Embedding'),
+            ],
+        },
+    ];
+    
+    // Final merged structure
+    const getLayerTypeOptions = (modelType) => {
+        if (modelType.toLowerCase() === 'image') {
+            return [
+            { label: 'Miscellaneous', options: commonOptions },
+            ...imageOptions,
+            ];
+        } else if (modelType.toLowerCase() === 'text') {
+            return [
+            { label: 'Miscellaneous', options: commonOptions },
+            ...textOptions,
+            ];
+        } else {
+            return [
+            { label: 'Miscellaneous', options: commonOptions },
+            ];
+        }
+    };
+
+    const options = getLayerTypeOptions(modelType)
+    
+    useEffect(() => {
+        // Trigger animation on mount
+        setAnimateIn(true)
+    }, [])
 
     useEffect(() => {
         let temp = {
@@ -55,6 +142,13 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
         }
     }
 
+    let activation_options = [
+        {value:"", label: "-"},
+        {value: "relu", label: "ReLU"},
+        {value: "softmax", label: "Softmax"},
+        {value: "sigmoid", label: "Sigmoid"}
+    ]
+
     function getInputs(type) {
         let layer = LAYERS[type]
 
@@ -63,24 +157,35 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                 if (!param.choices) {
                     return (<div key={idx} className="create-layer-label-inp">
                         <label className="create-dataset-label" htmlFor={param.name}>{param.name_readable}</label>
-                        <input className="create-dataset-inp" id={param.name} type={param.type} value={params[param.name]} onChange={(e) => {
+                        <input className="create-dataset-inp" id={param.name} type={param.type} step={(param.step || 1)} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value
                             setParams(temp)
                         }} {...(param.required ? { required: true } : {})}/>
                     </div>)
                 } else {
+                    let options = []
+                    for (let i=0; i < param.choices.length; i++) {
+                        let choice = param.choices[i]
+                        options.push({
+                            value: choice.value, label: choice.name || choice.value
+                        })
+                    }
                     return (<div className="create-layer-label-inp" key={idx}>
                         <label className="create-dataset-label" htmlFor={param.name}>{param.name_readable}</label>
-                        <select className="create-dataset-inp" id={param.name} value={params[param.name]} onChange={(e) => {
+                        <Select
+                        inputId={param.name}
+                        options={options}
+                        value={options
+                            .find((opt) => opt.value === params[param.name])}
+                        onChange={(selected) => {
                             let temp = {...params}
-                            temp[param.name] = e.target.value
+                            temp[param.name] = selected.value
                             setParams(temp)
-                        }}>
-                            {param.choices.map((choice, idx2) => (
-                                <option key={idx2} value={choice.value}>{(choice.name || choice.value)}</option>
-                            ))}
-                        </select>
+                        }}
+                        styles={customStyles}
+                        className="w-full"
+                        />
                     </div>)
                 }
             })}
@@ -120,17 +225,26 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
             </div>}
             {layer.activation_function && <div className="create-layer-label-inp">
                 <label className="create-dataset-label" htmlFor="activation-function">Activation function</label>
-                <select className="create-dataset-inp" id="activation-function" value={params["activation_function"]} onChange={(e) => {
-                    let temp = {...params}
-                    temp["activation_function"] = e.target.value
-                    setParams(temp)
-                }}>
-                    <option value="">-</option>
-                    <option value="relu">ReLU</option>
-                    <option value="softmax">Softmax</option>
-                    <option value="sigmoid">Sigmoid</option>
-                </select>
+                <Select
+                    inputId="activation-function"
+                    options={activation_options}
+                    value={activation_options
+                        .find((opt) => opt.value === params["activation_function"])}
+                    onChange={(selected) => {
+                        let temp = {...params}
+                        temp["activation_function"] = selected.value
+                        setParams(temp)
+                    }}
+                    styles={customStyles}
+                    className="w-full"
+                />
             </div>}
+
+            {layer.params.length == 0 && (!layer.dimensions || layer.dimensions.length == 0) && !(layer.input_x || layer.input_y || layer.input_z) && !layer.activation_function && <p
+            style={{margin: 0}}
+            className="gray-text">
+                This layer does not have any parameters to set.
+            </p>}
         </div>
     }
 
@@ -140,7 +254,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
     return (
         <div className="popup create-layer-popup" onClick={() => setShowCreateLayerPopup(false)}>
-            <div className="create-layer-popup-container" onClick={(e) => {
+            <div className={"create-layer-popup-container " + (animateIn ? "slide-in" : "")} onClick={(e) => {
                 e.stopPropagation()
             }}>
                 <h1 className="create-layer-popup-title">Add layer</h1>
@@ -194,29 +308,17 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                 }}>
                     <div className="create-dataset-label-inp">
                         <label className="create-dataset-label" htmlFor="layer-type">Layer type</label>
-                        <select className="create-dataset-inp" id="layer-type" required value={type} onChange={(e) => {
-                            setType(e.target.value)
-                        }}>
-                            <optgroup label="Miscellaneous">
-                                <option value="dense">Dense</option>
-                                <option value="flatten">Flatten</option>
-                                <option value="dropout">Dropout</option>
-                                <option value="globalaveragepooling1d">GlobalAveragePooling1D</option>
-                            </optgroup>
-                            {modelType.toLowerCase() == "image" && <optgroup label="Image Preprocessing">
-                                <option value="resizing">Resizing</option>
-                                <option value="rescaling">Rescaling</option>
-                                <option value="randomflip">RandomFlip</option>
-                            </optgroup>}
-                            {modelType.toLowerCase() == "image" && <optgroup label="Computer Vision">
-                                <option value="conv2d">Conv2D</option>
-                                <option value="maxpool2d">MaxPool2D</option>
-                            </optgroup>}
-                            {modelType.toLowerCase() == "text" && <optgroup label="Text">
-                                <option value="embedding">Embedding</option>
-                            </optgroup>}
-                            
-                        </select>
+                        <Select
+                        inputId="layer-type"
+                        options={options}
+                        value={options
+                            .flatMap((group) => group.options)
+                            .find((opt) => opt.value === type)}
+                        onChange={(selected) => setType(selected.value)}
+                        styles={customStyles}
+                        placeholder="Select a layer type"
+                        className="w-full"
+                        />
                     </div>
 
                     <div className="create-layer-line"></div>
@@ -226,7 +328,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     <div className="create-layer-popup-buttons">
                         <button type="button" className="create-layer-popup-cancel" onClick={() => setShowCreateLayerPopup(false)}>Cancel</button>
                         <button type="submit" className="create-layer-popup-submit">
-                            {processingCreateLayer && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                            {processingCreateLayer && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                             {(!processingCreateLayer ? "Create layer" : "Processing...")}
                         </button>
                     </div>

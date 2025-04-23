@@ -1,15 +1,11 @@
 TO-DO:
-- Filter by image and text for models as well
-- Parameter titles if needed
-- Maybe update for moving layers
-- Presave tensorflow datasets
-- AWS Sagemaker
+- Presave tensorflow datasets?
+- Upload datasets directly for training (don't store for longer than used)
+- Problem with testing and files on AWS not getting deleted
+- Look into deleting temp model file in get_tf_model
 
-For building:
-- Update DEBUG and PRODUCTION in settings.py
-- Update SECRET_KEY and AWS_SECRET_KEY
-- Remove migrations (not __init__.py)
-- python manage.py makemigrations api
+Layers to add:
+
 
 Start Celery Worker: 
-celery -A Dalinar.celery worker --pool=solo -l info
+celery -A Dalinar.celery worker --pool=solo -l info -Q default

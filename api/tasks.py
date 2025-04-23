@@ -11,7 +11,6 @@ import base64
 from django.conf import settings
 import tempfile
 from django.core.files import File
-from django.core.files.storage import default_storage
 from io import BytesIO
 
 from .serializers import *
@@ -46,11 +45,39 @@ def get_temp_model_name(id, timestamp, extension, user_id=None):   # Timestamp u
     os.makedirs(base_path, exist_ok=True)  # make sure the folder exists
 
     if user_id:
-        filename = f"temp_model{id}-{user_id}.{extension}"
+        filename = f"temp_model-{id}-{user_id}.{extension}"
     else:
-        filename = f"temp_model{id}-{timestamp}.{extension}"
+        filename = f"temp_model-{id}-{timestamp}.{extension}"
     
     return os.path.join(base_path, filename)
+
+
+def get_pretrained_model(name, profile=None):
+    # Define the S3 bucket and file path
+    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+    model_file_path = "media/pretrained_models/" + name + ".keras"
+    
+    s3_client = get_s3_client()
+    
+    extension = model_file_path.split(".")[-1]
+    
+    timestamp = time.time()
+
+    # Download the model file from S3 to a local temporary file
+    temp_file_path = ""
+    if profile:
+        temp_file_path = get_temp_model_name(name, timestamp, extension, profile.user.id)
+    else:
+        temp_file_path = get_temp_model_name(name, timestamp, extension)
+
+    with open(temp_file_path, 'wb') as f:
+        s3_client.download_fileobj(bucket_name, model_file_path, f)
+        
+    # Load the TensorFlow model from the temporary file
+    model = tf.keras.models.load_model(temp_file_path)
+    model.name = name
+
+    return model
     
     
 def get_tf_model(model_instance, profile=None):     # Gets a Tensorflow model from a built Model instance, negative timestamp means ongoing operation
@@ -121,6 +148,11 @@ def get_tf_layer(layer):    # From a Layer instance
             return layers.RandomFlip(mode=layer.mode, input_shape=(layer.input_x, layer.input_y, layer.input_z), name=name)
         else:
             return layers.RandomFlip(mode=layer.mode, name=name)
+    elif layer_type == "randomrotation":
+        if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
+            return layers.RandomRotation(layer.factor, input_shape=(layer.input_x, layer.input_y, layer.input_z), name=name)
+        else:
+            return layers.RandomRotation(layer.factor, name=name)
     elif layer_type == "resizing":
         if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
             return layers.Resizing(layer.output_y, layer.output_x, input_shape=(layer.input_x, layer.input_y, layer.input_z),name=name)
@@ -132,6 +164,12 @@ def get_tf_layer(layer):    # From a Layer instance
         return layers.Embedding(layer.max_tokens, layer.output_dim, name=name)
     elif layer_type == "globalaveragepooling1d":
         return layers.GlobalAveragePooling1D(name=name)
+    elif layer_type == "mobilenetv2":
+        model = get_pretrained_model("mobilenetv2")
+        return model
+    elif layer_type == "mobilenetv2small":
+        model = get_pretrained_model("mobilenetv2small")
+        return model
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         raise Exception("Invalid layer: " + layer_type)
@@ -243,6 +281,8 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     elements = []
     if dataset_instance.dataset_type == "image":
         input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z) 
+        if first_layer.layer_type == "mobilenetv2":
+            input_dims = (224,224,3)
         elements = list(map(imageMapFunc, file_paths))
         
     elif dataset_instance.dataset_type == "text":
@@ -380,13 +420,17 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     
                     model, timestamp = get_tf_model(model_instance, profile=profile)
                     if timestamp < 0: return {"Bad request": "You have an ongoing task on this model. Please wait until it finishes.", "status": 400}
-                    
+                    if model.output_shape[-1] != dataset_instance.labels.count():
+                        return {"Bad request": "The model's output shape and the dataset's number of labels do not match.", "status": 400}
+
                     dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
 
                     validation_size = int(dataset_length * validation_split)
                     train_size = dataset_length - validation_size
+
+                    print(train_size)
                     
-                    # model.summary() # For debugging
+                    model.summary() # For debugging
                     
                     progress_callback = TrainingProgressCallback(profile=profile, total_epochs=epochs)
 
@@ -459,6 +503,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     set_training_progress(profile, -1)
                     
                     remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
+
                     message = str(e)
                     if len(message) > 50:
                         message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
@@ -468,6 +513,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     set_training_progress(profile, -1)
                     
                     remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
+
                     return {"Bad request": str(e), "status": 400}
             else:
                 return {"Bad request": "Model has not been built.", "status": 400}
@@ -859,6 +905,8 @@ def predict_model_task(self, model_id, encoded_images, text):
                     first_layer = model_instance.layers.all().first()
                     
                     target_size = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
+                    if first_layer.layer_type == "mobilenetv2": # Doesn't have input_x, ...
+                        target_size = (224,224,3)
                     
                     model, timestamp = get_tf_model(model_instance)
                     
@@ -869,6 +917,10 @@ def predict_model_task(self, model_id, encoded_images, text):
                         image_tensor = preprocess_uploaded_image(image, target_size)
                         
                         prediction_arr = model.predict(image_tensor)
+
+                        if model_instance.output_type == "regression":
+                            prediction_names.append(prediction_arr)
+                            continue
                         
                         prediction_idx = int(np.argmax(prediction_arr))
                         if model_instance.loss_function == "binary_crossentropy":
@@ -902,6 +954,9 @@ def predict_model_task(self, model_id, encoded_images, text):
                     text = tf.convert_to_tensor(text, dtype=tf.string)
 
                     prediction_arr = model.predict(text)
+
+                    if model_instance.output_type == "regression":
+                        return {"predictions": [prediction_arr], "colors": [], "status": 200}
                     
                     prediction_idx = int(np.argmax(prediction_arr))
                     if model_instance.loss_function == "binary_crossentropy":
@@ -971,6 +1026,22 @@ def get_tf_optimizer(optimizer_str, learning_rate):
     else:
         raise Exception("Could not find optimzier of type " + optimizer_str)
     
+
+def find_layer_by_name(layer_container, name):
+    """
+    Recursively search for a layer by name in a model or nested container.
+    """
+    for layer in getattr(layer_container, 'layers', []):
+        if layer.name == name:
+            return layer
+        # if it's a nested model or Sequential, search inside it
+        if hasattr(layer, 'layers'):
+            found = find_layer_by_name(layer, name)
+            if found:
+                return found
+    return None
+
+    
 @shared_task(bind=True)
 def build_model_task(self, model_id, optimizer, learning_rate, loss_function, user_id, input_sequence_length):
     
@@ -995,16 +1066,21 @@ def build_model_task(self, model_id, optimizer, learning_rate, loss_function, us
                             old_model, timestamp = get_tf_model(instance, profile=profile)
                             if timestamp < 0: return {"Bad request": "You have an ongoing task on this model. Please wait until it finishes.", "status": 400}
                         
-                        for old_layer in old_model.layers:
-                            if old_layer.name == str(layer.id):
-                                model.add(old_layer)
-                                break
+                        matched_layer = find_layer_by_name(old_model, str(layer.id))
+                        if matched_layer:
+                            model.add(matched_layer)
                     else:
                         new_layer = get_tf_layer(layer)
                         new_layer.trainable = layer.trainable
                         model.add(new_layer)
 
+                # Must build in this case
+                if instance.model_type.lower() == "text":
+                    model.build(input_sequence_length)
+
                 metrics = get_metrics(loss_function)
+
+                model.summary()
                 
                 if model.count_params() > 5 * 10**6:
                     return {"Bad request": "A model cannot have more than 5 million parameters. Current parameter count: " + str(model.count_params()), "status": 400}
@@ -1083,6 +1159,20 @@ def build_model_task(self, model_id, optimizer, learning_rate, loss_function, us
     except Exception as e:
         return {"Bad request": str(e), "status": 400}
     
+
+def set_trainable_recursive(layer, names_to_freeze):
+    """
+    Recursively set trainable attribute on a layer and its sublayers.
+    """
+    if hasattr(layer, 'layers'):  # it's a model or a container
+        for sublayer in layer.layers:
+            set_trainable_recursive(sublayer, names_to_freeze)
+    else:
+        if layer.name in names_to_freeze:
+            layer.trainable = False
+        else:
+            layer.trainable = True
+
     
 @shared_task(bind=True)
 def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function, user_id, input_sequence_length):
@@ -1108,10 +1198,7 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
                         names_to_freeze.add(str(layer.id))
                 
                 for layer in model.layers:
-                    if layer.name in names_to_freeze:
-                        layer.trainable = False
-                    else:
-                        layer.trainable = True
+                    set_trainable_recursive(layer, names_to_freeze)
                         
                 model.summary()
 
@@ -1142,7 +1229,7 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
                 model_instance.loss_function = loss_function
                 
                 if input_sequence_length:
-                    instance.input_sequence_length = input_sequence_length
+                    model_instance.input_sequence_length = input_sequence_length
                 
                 model_instance.save()
                 
@@ -1157,7 +1244,7 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
         else:
             return {"Unauthorized": "You can only recompile your own models.", "status": 401}
     except Profile.DoesNotExist:
-        return {"Not found": "Could not find profile with the id " + str(profile_id) + ".", "status": 404}
+        return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
     except Model.DoesNotExist:
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
     except Exception as e:
@@ -1205,6 +1292,12 @@ def set_to_tf_layer(layer_instance, tf_layer):
             layer_instance.input_x = input_shape[1]
             layer_instance.input_y = input_shape[2]
             layer_instance.input_z = input_shape[3]
+    elif isinstance(tf_layer, layers.RandomRotation):
+        layer_instance.factor = config["factor"]
+        if input_shape:
+            layer_instance.input_x = input_shape[1]
+            layer_instance.input_y = input_shape[2]
+            layer_instance.input_z = input_shape[3]
     elif isinstance(tf_layer, layers.Resizing):
         layer_instance.output_x = config["width"]
         layer_instance.output_y = config["height"]
@@ -1218,10 +1311,8 @@ def set_to_tf_layer(layer_instance, tf_layer):
     elif isinstance(tf_layer, layers.Embedding):
         layer_instance.max_tokens = config["input_dim"]
         layer_instance.output_dim = config["output_dim"]
-    elif isinstance(tf_layer, layers.GlobalAveragePooling1D):
-        pass
-    else:
-        print("UNKNOWN LAYER OF TYPE: ", layer_instance.layer_type)
+    else:   # GlobalPooling1D and MobileNetV2 can't be reset
+        print("DID NOT UPDATE LAYER OF TYPE: ", layer_instance.layer_type)
         return # Continue instantiating model
     
     if "activation" in config.keys():
@@ -1239,7 +1330,7 @@ def reset_to_build_task(self, layer_id, user_id):
         layer_instance = Layer.objects.get(id=layer_id)
         model_instance = layer_instance.model
         
-        if not model_instance.model_file: return Response({"Bad request": "Model has not been built."}, status=status.HTTP_200_OK)
+        if not model_instance.model_file: return {"Bad request": "Model has not been built.", "status": 400}
         
         if model_instance.owner == profile:
             timestamp = ""
@@ -1278,140 +1369,3 @@ def reset_to_build_task(self, layer_id, user_id):
         return {"Bad request": str(e), "status": 400}
     
     
-    
-def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
-    config = tf_layer.get_config()
-    
-    data = {}
-    
-    input_shape = False
-    if "batch_input_shape" in config.keys():
-        input_shape = config["batch_input_shape"]
-    
-    if isinstance(tf_layer, layers.Dense):
-        data["type"] = "dense"
-        data["nodes_count"] = config["units"]
-        if input_shape:
-            data["input_x"] = input_shape[-1]
-    elif isinstance(tf_layer, layers.Conv2D):
-        data["type"] = "conv2d"
-        data["filters"] = config["filters"]
-        data["kernel_size"] = config["kernel_size"][0]
-        data["padding"] = config["padding"]
-        if input_shape:
-            data["input_x"] = input_shape[1]    # First one is None
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.MaxPool2D):
-        data["type"] = "maxpool2d"
-        data["pool_size"] = config["pool_size"][0]
-    elif isinstance(tf_layer, layers.Flatten):
-        data["type"] = "flatten"
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-    elif isinstance(tf_layer, layers.Dropout):
-        data["type"] = "dropout"
-        data["rate"] = config["rate"]
-    elif isinstance(tf_layer, layers.Rescaling):
-        data["type"] = "rescaling"
-        data["scale"] = config["scale"]
-        data["offset"] = config["offset"]
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.RandomFlip):
-        data["type"] = "randomflip"
-        data["mode"] = config["mode"]
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.Resizing):
-        data["type"] = "resizing"
-        data["output_x"] = config["width"]
-        data["output_y"] = config["height"]
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.TextVectorization):
-        data["type"] = "textvectorization"
-        data["max_tokens"] = config["max_tokens"]
-        data["standardize"] = config["standardize"]
-    elif isinstance(tf_layer, layers.Embedding):
-        data["type"] = "embedding"
-        data["max_tokens"] = config["input_dim"]
-        data["output_dim"] = config["output_dim"]
-    elif isinstance(tf_layer, layers.GlobalAveragePooling1D):
-        data["type"] = "globalaveragepooling1d"
-    else:
-        print("UNKNOWN LAYER OF TYPE: ", layer_instance.layer_type)
-        return # Continue instantiating model
-    
-    factory = APIRequestFactory()
-    
-    data["model"] = model_id
-    data["index"] = idx
-    data["activation_function"] = ""
-    if "activation" in config.keys():
-        data["activation_function"] = config["activation"]
-    
-    create_layer = CreateLayer.as_view()
-    
-    layer_request = factory.post('/create-layer/', data=json.dumps(data), content_type='application/json')
-    layer_request.user = request.user
-    
-    layer_response = create_layer(layer_request)
-    if layer_response.status_code != 200:
-        return Response(
-            {'Bad Request': f'Error creating layer {idx}'},
-            status=layer_response.status_code
-        )
-    else:
-        layer_id = str(layer_response.data.get('id'))
-        tf_layer.name = layer_id
-    
-    
-# Not currently a task
-def create_model_file(request, model_instance):
-    backend_temp_model_path = ""
-    try:
-        model_file = request.data["model"]
-        extension = model_file.name.split(".")[-1]
-        temp_path = "tmp/temp_models/" + model_file.name
-        file_path = default_storage.save(temp_path, model_file.file)
-        
-        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-        temp_model_file_path = "media/" + file_path
-        print(f"Model file saved at: {temp_model_file_path}")
-                
-        s3_client = get_s3_client()
-        
-        # Download the model file from S3 to a local temporary file
-        timestamp = time.time()
-        backend_temp_model_path = get_temp_model_name(model_instance.id, timestamp, extension)
-        with open(backend_temp_model_path, 'wb') as f:
-            s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
-
-        model = tf.keras.models.load_model(backend_temp_model_path)
-        
-        default_storage.delete(file_path)
-        
-        os.remove(backend_temp_model_path)
-        
-        for t, layer in enumerate(model.layers):
-            layer_model_from_tf_layer(layer, model_instance.id, request, t)
-            
-        model_instance.model_file = model_file
-        model_instance.optimizer = model.optimizer.__class__.__name__.lower()
-        model_instance.loss_function = model.loss.__name__
-        
-        model_instance.save()
-        
-        return {"status": 200}
-    except Exception as e:
-        if os.path.exists(backend_temp_model_path):
-            os.remove(backend_temp_model_path)
-        return {"Bad request": str(e), "status": 400}

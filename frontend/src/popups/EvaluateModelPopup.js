@@ -46,13 +46,23 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
 
     function getDatasets() {
         setLoading(true)
+        let URL = window.location.origin + '/api/my-datasets/?' +
+            "search=" + search +
+            "&dataset_type=" + model_type +
+            "&order_by=" + sortDatasets
+
+        if (model_type.toLowerCase() == "image") {
+            URL += "&imageWidth=" + imageDimensions[0] +
+                "&imageHeight=" + imageDimensions[1]
+        }
+
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/my-datasets/' + (search ? "?search=" + search : ""),
+            url: URL,
         })
         .then((res) => {
             if (res.data) {
-                setDatasets(sort_datasets(res.data))
+                setDatasets(res.data.results)
             } else {
                 setDatasets([])
             }
@@ -286,6 +296,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                 e.stopPropagation()
             }}>
                 <div className="explore-datasets-title-container">
+                
                     <h1 className="create-layer-popup-title" style={{width: "auto"}}>Evaluate model</h1>
 
                     {datasetTypeShown == "my" && <ElementFilters 
@@ -310,6 +321,8 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                         setLoading={setLoading}
                         BACKEND_URL={BACKEND_URL}
                     ></ElementFilters>}
+
+                    <button className="close-model-popup" title="Return to main display" onClick={() => setShowEvaluateModelPopup(false)}>Return to main display →</button>
                 </div>
                 
                 <p className="create-layer-popup-description">
@@ -347,7 +360,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                     {!loading && visibleDatasets.length === 0 && datasets.length > 0 && <p className="gray-text">No such datasets found.</p>}
 
                     {!loading && datasets.length === 0 && search.length === 0 && (
-                        <p>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
+                        <p style={{width: "250px"}}>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
                     )}
 
                     {!loading && datasets.length === 0 && search.length > 0 && (
@@ -379,7 +392,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                     {!loading && visibleSavedDatasets.length === 0 && savedDatasets.length > 0 && <p className="gray-text">No such datasets found.</p>}
 
                     {!loading && savedDatasets.length === 0 && searchSaved.length === 0 && (
-                        <p>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
+                        <p style={{width: "250px"}}>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
                     )}
 
                     {!loading && savedDatasets.length === 0 && searchSaved.length > 0 && (
@@ -398,7 +411,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                 e.stopPropagation()
             }}>
                 <div className="explore-datasets-title-container">
-                    <h1 className="create-layer-popup-title successfully-trained-title">Successfully evaluated model<img className="trained-successfully-icon" src={BACKEND_URL + "/static/images/blueCheck.png"}/></h1>
+                    <h1 className="create-layer-popup-title successfully-trained-title">Successfully evaluated model<img className="trained-successfully-icon" src={BACKEND_URL + "/static/images/blueCheck.png"} alt="Blue checkmark" /></h1>
                 </div>
 
                 <TrainingTable data={[{accuracy: accuracy, loss: loss}]} skip_epoch={true}/>

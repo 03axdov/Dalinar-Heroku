@@ -111,6 +111,20 @@ def random_light_color():   # Slightly biased towards lighter shades
     return "#{:02x}{:02x}{:02x}".format(r, g, b)
 
 
+def dataset_order_by(datasets, order_by):
+    if order_by == "downloads": 
+        return datasets.order_by("downloaders")
+    if order_by == "elements":
+        return datasets.annotate(num_elements=Count('elements', distinct=True)).order_by('-num_elements')
+    if order_by == "labels":
+        return datasets.annotate(num_labels=Count('labels', distinct=True)).order_by('-num_labels')
+    if order_by == "alphabetical": 
+        return datasets.order_by("name")
+    if order_by == "date": 
+        return datasets.order_by("created_at")
+
+    return datasets
+
 # PROFILE HANDLING
 
 class GetCurrentProfile(APIView):
@@ -136,7 +150,11 @@ class DatasetListPublic(generics.ListAPIView):
     
     def get_queryset(self):
         search = self.request.GET.get("search")
-        if search == None: search = ""
+        dataset_type = self.request.GET.get("dataset_type")
+        order_by = self.request.GET.get("order_by")
+        imageWidth = self.request.GET.get("imageWidth")
+        imageHeight = self.request.GET.get("imageHeight")
+        
         datasets = Dataset.objects.filter(Q(visibility="public") & (
             # Search handling
             Q(name__icontains=search) | (
@@ -145,6 +163,16 @@ class DatasetListPublic(generics.ListAPIView):
                 )
             )
         ))
+        if dataset_type != "all":
+            datasets = datasets.filter(dataset_type=dataset_type)
+        if imageWidth:
+            datasets = datasets.filter(imageWidth=imageWidth)
+        if imageHeight:
+            datasets = datasets.filter(imageHeight=imageHeight)
+
+        if order_by:
+            datasets = dataset_order_by(datasets, order_by)
+
         return datasets
 
 
@@ -158,12 +186,26 @@ class DatasetListProfile(generics.ListCreateAPIView):
         datasets = profile.datasets
         
         search = self.request.GET.get("search")
+        dataset_type = self.request.GET.get("dataset_type")
+        order_by = self.request.GET.get("order_by")
+        imageWidth = self.request.GET.get("imageWidth")
+        imageHeight = self.request.GET.get("imageHeight")
+
         if (search):
             datasets = datasets.filter(Q(name__contains=search) | (
                 Q(
                     keywords__icontains=search
                 )
             ))
+        if dataset_type != "all":
+            datasets = datasets.filter(dataset_type=dataset_type)
+        if imageWidth:
+            datasets = datasets.filter(imageWidth=imageWidth)
+        if imageHeight:
+            datasets = datasets.filter(imageHeight=imageHeight)
+
+        if order_by:
+            datasets = dataset_order_by(datasets, order_by)
 
         return datasets
 
@@ -728,43 +770,46 @@ class ResizeElementImage(APIView):
         user = self.request.user
         
         if user.is_authenticated:
-            try:
-                element = Element.objects.get(id=element_id)
-                
-                if element.owner == user.profile:
-                    file = element.file
-                    new_name = file.name.split("/")[-1]     # Otherwise includes files
-                    new_name, extension = new_name.split(".")     
-                    new_name = new_name.split("-")[0]   # Remove previous resize information      
-                    new_name += ("-" + str(newWidth) + "x" + str(newHeight) + "." + extension) 
+            if newWidth > 0 and newWidth <= 1024 and newHeight > 0 and newHeight <= 1024:
+                try:
+                    element = Element.objects.get(id=element_id)
                     
-                    try:
+                    if element.owner == user.profile:
+                        file = element.file
+                        new_name = file.name.split("/")[-1]     # Otherwise includes files
+                        new_name, extension = new_name.split(".")     
+                        new_name = new_name.split("-")[0]   # Remove previous resize information      
+                        new_name += ("-" + str(newWidth) + "x" + str(newHeight) + "." + extension) 
                         
-                        img = Image.open(file)
-                        img = img.resize([newWidth, newHeight], Image.LANCZOS)
+                        try:
+                            
+                            img = Image.open(file)
+                            img = img.resize([newWidth, newHeight], Image.LANCZOS)
+                            
+                            if default_storage.exists(file.name):
+                                default_storage.delete(file.name)
+                            
+                            # Save to BytesIO buffer
+                            buffer = BytesIO()
+                            img_format = img.format if img.format else "JPEG"  # Default to JPEG
+                            img.save(buffer, format=img_format, quality=90)
+                            buffer.seek(0)
+                                                
+                            element.file.save(new_name, ContentFile(buffer.read()), save=False)
+                            element.imageWidth = newWidth
+                            element.imageHeight = newHeight
+                            element.save()
+                            
+                            return Response(self.serializer_class(element).data, status=status.HTTP_200_OK)
                         
-                        if default_storage.exists(file.name):
-                            default_storage.delete(file.name)
-                        
-                        # Save to BytesIO buffer
-                        buffer = BytesIO()
-                        img_format = img.format if img.format else "JPEG"  # Default to JPEG
-                        img.save(buffer, format=img_format, quality=90)
-                        buffer.seek(0)
-                                            
-                        element.file.save(new_name, ContentFile(buffer.read()), save=False)
-                        element.imageWidth = newWidth
-                        element.imageHeight = newHeight
-                        element.save()
-                        
-                        return Response(self.serializer_class(element).data, status=status.HTTP_200_OK)
-                    
-                    except IOError:
-                        return Response({"Bad Request": "Not an image."}, status=status.HTTP_400_BAD_REQUEST)
-                else:
-                    return Response({"Unauthorized": "You can only resize images for your own elements."}, status=status.HTTP_401_UNAUTHORIZED)
-            except Element.DoesNotExist:
-                return Response({"Not found": "Could not find element with the id " + str(element_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+                        except IOError:
+                            return Response({"Bad Request": "Not an image."}, status=status.HTTP_400_BAD_REQUEST)
+                    else:
+                        return Response({"Unauthorized": "You can only resize images for your own elements."}, status=status.HTTP_401_UNAUTHORIZED)
+                except Element.DoesNotExist:
+                    return Response({"Not found": "Could not find element with the id " + str(element_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({"Bad request": "Dimensions must be between 0 and 1024."}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"Unauthorized": "Must be logged in to resize element images."}, status=status.HTTP_401_UNAUTHORIZED)
         
@@ -995,17 +1040,41 @@ class DeleteArea(APIView):
         
 # MODEL FUNCTIONALITY
 
+def model_order_by(models, order_by):
+    if order_by == "downloads": 
+        return models.order_by("downloaders")
+    if order_by == "layers":
+        return models.annotate(num_layers=Count('layers', distinct=True)).order_by('-num_layers')
+    if order_by == "alphabetical": 
+        return models.order_by("name")
+    if order_by == "date": 
+        return models.order_by("created_at")
+    return models
+
 class ModelListPublic(generics.ListAPIView):
     serializer_class = ModelSerializer
     permission_classes = [AllowAny]
     
     def get_queryset(self):
         search = self.request.GET.get("search")
-        if search == None: search = ""
+        model_type = self.request.GET.get("model_type")
+        model_build_type = self.request.GET.get("model_build_type")
+        order_by = self.request.GET.get("order_by")
+        
         models = Model.objects.filter(Q(visibility="public") & (
             # Search handling
             Q(name__icontains=search)
         ))
+        if model_type != "all":
+            models = models.filter(model_type=model_type)
+        if model_build_type != "all":
+            if model_build_type == "built":
+                models = models.filter(Q(model_file__isnull=False))
+            else:
+                models = models.filter(Q(model_file__isnull=True) | Q(model_file=''))
+        if order_by:
+            models = model_order_by(models, order_by)
+
         return models
 
 
@@ -1019,8 +1088,21 @@ class ModelListProfile(generics.ListCreateAPIView):
         models = profile.models
         
         search = self.request.GET.get("search")
+        model_type = self.request.GET.get("model_type")
+        model_build_type = self.request.GET.get("model_build_type")
+        order_by = self.request.GET.get("order_by")
+
         if (search):
             models = models.filter(Q(name__contains=search))
+        if model_type != "all":
+            models = models.filter(model_type=model_type)
+        if model_build_type != "all":
+            if model_build_type == "built":
+                models = models.filter(Q(model_file__isnull=False))
+            else:
+                models = models.filter(Q(model_file__isnull=True) | Q(model_file=''))
+        if order_by:
+            models = model_order_by(models, order_by)
 
         return models
     
@@ -1100,6 +1182,7 @@ class CreateModel(APIView):
                 if "model" in request.data.keys() and request.data["model"]:   # Uploaded model
                     res = create_model_file(request, model_instance)
                     if res["status"] != 200:
+                        print(res)
                         return Response({'Bad Request': res["Bad request"]}, status=status.HTTP_400_BAD_REQUEST)
                        
                 return Response(serializer.data, status=status.HTTP_200_OK)
@@ -1402,8 +1485,9 @@ class CreateLayer(APIView):
         
         ALLOWED_TYPES = set(["dense", "conv2d", "flatten",
                              "dropout", "maxpool2d", "rescaling",
-                             "randomflip", "resizing", "textvectorization",
-                             "embedding", "globalaveragepooling1d"])
+                             "randomflip", "randomrotation", "resizing", "textvectorization",
+                             "embedding", "globalaveragepooling1d", "mobilenetv2",
+                             "mobilenetv2small"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1423,6 +1507,8 @@ class CreateLayer(APIView):
             serializer = CreateRescalingLayerSerializer(data=data)
         elif layer_type == "randomflip":
             serializer = CreateRandomFlipLayerSerializer(data=data)
+        elif layer_type == "randomrotation":
+            serializer = CreateRandomRotationLayerSerializer(data=data)
         elif layer_type == "resizing":
             serializer = CreateResizingLayerSerializer(data=data)
         elif layer_type == "textvectorization":
@@ -1431,6 +1517,10 @@ class CreateLayer(APIView):
             serializer = CreateEmbeddingLayerSerializer(data=data)
         elif layer_type == "globalaveragepooling1d":
             serializer = CreateGlobalAveragePooling1DLayerSerializer(data=data)
+        elif layer_type == "mobilenetv2":
+            serializer = CreateMobileNetV2LayerSerializer(data=data)
+        elif layer_type == "mobilenetv2small":
+            serializer = CreateMobileNetV2SmallLayerSerializer(data=data)
         
         if serializer and serializer.is_valid():
             
@@ -1448,7 +1538,7 @@ class CreateLayer(APIView):
                         if last: 
                             idx = model.layers.all().last().index + 1
                         instance = serializer.save(model=model, layer_type=layer_type, index=idx, activation_function=data["activation_function"])
-                            
+
                         return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
                     
                     
@@ -1529,6 +1619,14 @@ class EditLayer(APIView):
                         layer.input_z = request.data["input_z"]
                     elif layer_type == "randomflip":
                         layer.mode = request.data["mode"]
+                        layer.input_x = request.data["input_x"]
+                        layer.input_y = request.data["input_y"]
+                        layer.input_z = request.data["input_z"]
+                    elif layer_type == "randomrotation":
+                        layer.factor = request.data["factor"]
+                        layer.input_x = request.data["input_x"]
+                        layer.input_y = request.data["input_y"]
+                        layer.input_z = request.data["input_z"]
                     elif layer_type == "resizing":
                         layer.input_x = request.data["input_x"]
                         layer.input_y = request.data["input_y"]
@@ -1543,7 +1641,7 @@ class EditLayer(APIView):
                     elif layer_type == "embedding":
                         layer.max_tokens = request.data["max_tokens"]
                         layer.output_dim = request.data["output_dim"]
-                    # Can't edit GlobalAveragePooling1DLayer    
+                    # Can't edit GlobalAveragePooling1DLayer or pretrained model layers  
 
                     layer.activation_function = request.data["activation_function"]
                     layer.updated = True
@@ -1562,7 +1660,7 @@ class EditLayer(APIView):
                 else:
                     return Response({'Unauthorized': 'You can only edit layers belonging to your own models.'}, status=status.HTTP_401_UNAUTHORIZED)
             except Layer.DoesNotExist:
-                return Response({'Not found': 'Could not find model with the id ' + str(model_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'Not found': 'Could not find model with the id ' + str(layer_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to edit layers.'}, status=status.HTTP_401_UNAUTHORIZED)
         
@@ -1588,7 +1686,7 @@ class ClearLayerUpdated(APIView):
                 else:
                     return Response({'Unauthorized': 'You can only edit layers belonging to your own models.'}, status=status.HTTP_401_UNAUTHORIZED)
             except Layer.DoesNotExist:
-                return Response({'Not found': 'Could not find model with the id ' + str(model_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response({'Not found': 'Could not find model with the id ' + str(layer_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to edit layers.'}, status=status.HTTP_401_UNAUTHORIZED)
         
@@ -1647,3 +1745,162 @@ class GetTaskResult(APIView):
             if len(message) > 400:
                 message = message[:400] + "..."
             return Response({'status': 'failed', "message": message}, status=status.HTTP_200_OK)
+        
+
+def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
+    config = tf_layer.get_config()
+    
+    data = {}
+    
+    input_shape = False
+    if "batch_input_shape" in config.keys():
+        input_shape = config["batch_input_shape"]
+    
+    if isinstance(tf_layer, layers.Dense):
+        data["type"] = "dense"
+        data["nodes_count"] = config["units"]
+        if input_shape:
+            data["input_x"] = input_shape[-1]
+    elif isinstance(tf_layer, layers.Conv2D):
+        data["type"] = "conv2d"
+        data["filters"] = config["filters"]
+        data["kernel_size"] = config["kernel_size"][0]
+        data["padding"] = config["padding"]
+        if input_shape:
+            data["input_x"] = input_shape[1]    # First one is None
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.MaxPool2D):
+        data["type"] = "maxpool2d"
+        data["pool_size"] = config["pool_size"][0]
+    elif isinstance(tf_layer, layers.Flatten):
+        data["type"] = "flatten"
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+    elif isinstance(tf_layer, layers.Dropout):
+        data["type"] = "dropout"
+        data["rate"] = config["rate"]
+    elif isinstance(tf_layer, layers.Rescaling):
+        data["type"] = "rescaling"
+        data["scale"] = config["scale"]
+        data["offset"] = config["offset"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.RandomFlip):
+        data["type"] = "randomflip"
+        data["mode"] = config["mode"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.RandomRotation):
+        data["type"] = "randomrotation"
+        data["factor"] = config["factor"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.Resizing):
+        data["type"] = "resizing"
+        data["output_x"] = config["width"]
+        data["output_y"] = config["height"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.TextVectorization):
+        data["type"] = "textvectorization"
+        data["max_tokens"] = config["max_tokens"]
+        data["standardize"] = config["standardize"]
+    elif isinstance(tf_layer, layers.Embedding):
+        data["type"] = "embedding"
+        data["max_tokens"] = config["input_dim"]
+        data["output_dim"] = config["output_dim"]
+    elif isinstance(tf_layer, layers.GlobalAveragePooling1D):
+        data["type"] = "globalaveragepooling1d"
+    elif tf_layer.name == "mobilenetv2":
+        data["type"] = "mobilenetv2"
+    elif tf_layer.name == "mobilenetv2small":
+        data["type"] = "mobilenetv2small"
+    else:
+        print("UNKNOWN LAYER TYPE: ", tf_layer)
+        return # Continue instantiating model
+    
+    factory = APIRequestFactory()
+    
+    data["model"] = model_id
+    data["index"] = idx
+    data["activation_function"] = ""
+    if "activation" in config.keys():
+        data["activation_function"] = config["activation"]
+    
+    create_layer = CreateLayer.as_view()
+    
+    layer_request = factory.post('/create-layer/', data=json.dumps(data), content_type='application/json')
+    layer_request.user = request.user
+    
+    layer_response = create_layer(layer_request)
+    if layer_response.status_code != 200:
+        return {'Bad Request': f'Error creating layer {idx}', "status": layer_response.status_code}
+        
+    else:
+        layer_id = str(layer_response.data.get('id'))
+        tf_layer.name = layer_id
+    
+    
+# Not currently a task
+def create_model_file(request, model_instance):
+    backend_temp_model_path = ""
+    try:
+        model_file = request.data["model"]
+        extension = model_file.name.split(".")[-1]
+        temp_path = "tmp/temp_models/" + model_file.name
+        file_path = default_storage.save(temp_path, model_file.file)
+        
+        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+        temp_model_file_path = "media/" + file_path
+        print(f"Model file saved at: {temp_model_file_path}")
+                
+        s3_client = get_s3_client()
+        
+        # Download the model file from S3 to a local temporary file
+        timestamp = time.time()
+        backend_temp_model_path = get_temp_model_name(model_instance.id, timestamp, extension)
+        with open(backend_temp_model_path, 'wb') as f:
+            s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
+
+        model = tf.keras.models.load_model(backend_temp_model_path)
+        
+        default_storage.delete(file_path)
+        
+        os.remove(backend_temp_model_path)
+        
+        for t, layer in enumerate(model.layers):
+            layer_model_from_tf_layer(layer, model_instance.id, request, t)
+            
+        model_instance.model_file = model_file
+        model_instance.optimizer = model.optimizer.__class__.__name__.lower()
+
+        def get_loss_name(loss):
+            if isinstance(loss, str):
+                return loss
+            elif hasattr(loss, '__name__'):
+                return loss.__name__
+            elif hasattr(loss, 'name'):
+                return loss.name
+            elif hasattr(loss, '__class__'):
+                return loss.__class__.__name__
+            return str(loss)
+
+        model_instance.loss_function = get_loss_name(model.loss)
+        
+        model_instance.save()
+        
+        return {"status": 200}
+    except Exception as e:
+        if os.path.exists(backend_temp_model_path):
+            os.remove(backend_temp_model_path)
+        return {"Bad request": str(e), "status": 400}

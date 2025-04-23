@@ -81,7 +81,7 @@ html, body {
 }
 .profile-bar.slide-in {
     transform: translateX(0);
-  }
+}
 
 .profile-bar-title {
     height: var(--toolbar-height);

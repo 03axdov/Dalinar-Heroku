@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom";
 import DownloadCode from "../components/DownloadCode"
 import { LAYERS } from "../layers";
+import TitleSetter from "../components/minor/TitleSetter";
 
 // The default page. Login not required.
 function Guide({BACKEND_URL}) {
@@ -28,6 +29,7 @@ function Guide({BACKEND_URL}) {
 
     return (
         <div className="guide-container" ref={containerRef}>
+            <TitleSetter title="Dalinar | Guide" />
             <div className="guide-toolbar">
                 <div className="guide-toolbar-element">
                     Guide
@@ -94,7 +96,7 @@ function Guide({BACKEND_URL}) {
                             Users are able to create both area and classification datasets. Dalinar currently supports both images and text.
                             Elements are listed to the left with labels and areas, if applicable, to the right.
                         </p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.webp"} style={{height: "505px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.webp"} alt="Example page" style={{height: "505px"}} />
                         
                         <p className="guide-subheader" id="models">Models</p>
                         <p className="instructions-text">
@@ -102,7 +104,7 @@ function Guide({BACKEND_URL}) {
                             These all have different parameters that can be tailored to your needs.
                             Once you've construct a model it must be built (i.e. compiled) and can then be trained or exported. 
                         </p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.webp"} style={{height: "505px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.webp"} alt="Example model page" style={{height: "505px"}} />
                         <p className="instructions-text">
                             Please see the more detailed pages for further explanations.
                         </p>
@@ -125,11 +127,11 @@ function Guide({BACKEND_URL}) {
                             <div className="download-frameworks-container download-frameworks-instructions">
                                 <div onClick={() => setDownloadFramework1("tensorflow")} 
                                     className="download-framework">
-                                        <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework1 == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")}/>
+                                        <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework1 == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")} alt="TensorFlow" />
                                         <span className={downloadFramework1 == "tensorflow" ? "tensorflow" : "download-framework-disabled"}>TensorFlow</span>
                                     </div>
                                 <div onClick={() => setDownloadFramework1("pytorch")} className="download-framework" >
-                                    <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework1 == "pytorch" ? "pytorch.png": "pytorchGray.png")}/>
+                                    <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework1 == "pytorch" ? "pytorch.png": "pytorchGray.png")} alt="Pytorch" />
                                     <span className={downloadFramework1 == "pytorch" ? "pytorch": "download-framework-disabled"}>PyTorch</span>
                                 </div>
                             </div>
@@ -143,11 +145,11 @@ function Guide({BACKEND_URL}) {
                             <div className="download-frameworks-container download-frameworks-instructions">
                                 <div onClick={() => setDownloadFramework2("tensorflow")} 
                                     className="download-framework">
-                                        <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework2 == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")}/>
+                                        <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework2 == "tensorflow" ? "tensorflow.png" : "tensorflowGray.png")} alt="TensorFlow"/>
                                         <span className={downloadFramework2 == "tensorflow" ? "tensorflow" : "download-framework-disabled"}>TensorFlow</span>
                                     </div>
                                 <div onClick={() => setDownloadFramework2("pytorch")} className="download-framework" >
-                                    <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework2 == "pytorch" ? "pytorch.png": "pytorchGray.png")}/>
+                                    <img className="download-framework-icon" src={BACKEND_URL + "/static/images/" + (downloadFramework2 == "pytorch" ? "pytorch.png": "pytorchGray.png")} alt="Pytorch" />
                                     <span className={downloadFramework2 == "pytorch" ? "pytorch": "download-framework-disabled"}>PyTorch</span>
                                 </div>
                             </div>
@@ -167,7 +169,7 @@ function Guide({BACKEND_URL}) {
                     </div>
 
                     <div className="instructions-container">
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.webp"} style={{height: "505px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.webp"} style={{height: "505px"}} alt="Example classification" />
 
                         <p className="guide-subheader" id="labelling">Labelling</p>
                         <p className="instructions-text">
@@ -183,7 +185,7 @@ function Guide({BACKEND_URL}) {
                             The second format is filenames as labels, where elements are saved with names according to the format {"{label}_{idx}.{file extension}"}.
                             The third format, which is only supported for text datasets, is as a .csv file. Label names will be placed in the first row, and text in the second. Each row represents an element.
                         </p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/dataset-download.jpg"} style={{height: "394px"}}/>
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/dataset-download.jpg"} style={{height: "394px"}} alt="Dataset download" />
                     </div>
                     
                 </div>}
@@ -199,7 +201,7 @@ function Guide({BACKEND_URL}) {
                     </div>
 
                     <div className="instructions-container">
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.webp"} style={{height: "505px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.webp"} style={{height: "505px"}} alt="Example page" />
 
                         <p className="guide-subheader" id="area-creation">Area Creation</p>
                         <p className="instructions-text">
@@ -224,7 +226,7 @@ function Guide({BACKEND_URL}) {
                             They can either be image models or text models, which will determine which types of datasets are shown when e.g. training or evaluating.
                             Added layers are displayed in the toolbar to the left as well as the main display. Once a model is created or changed, it must be built before it can be trained, downloaded, etc. (see the section on Building).
                         </p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.webp"} style={{height: "505px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.webp"} style={{height: "505px"}} alt="Example page model" />
                     </div>
 
                     <div className="instructions-container">
@@ -234,7 +236,7 @@ function Guide({BACKEND_URL}) {
                             Built models can be downloaded as either .h5 or .keras files. These can then be loaded outside of Dalinar, or uploaded when creating a new model in order to create a copy (this can also be done by clicking the Copy button).
                         </p>
                         <div className="guide-center">
-                            <img className="guide-image" src={BACKEND_URL + "/static/images/model-download.jpg"} style={{width: "455px", height: "564px"}} />
+                            <img className="guide-image" src={BACKEND_URL + "/static/images/model-download.jpg"} style={{width: "455px", height: "564px"}} alt="Model download" />
                         </div>
                         
                     </div>
@@ -271,7 +273,7 @@ function Guide({BACKEND_URL}) {
                             The parameter Trainable can be specified for all layers with weights. If set to false, the layer will not be updated while training.
                         </p>
                         <div className="guide-center">
-                            <img className="guide-image" src={BACKEND_URL + "/static/images/layer-element.jpg"} style={{width: "303px", height: "500px"}} />
+                            <img className="guide-image" src={BACKEND_URL + "/static/images/layer-element.jpg"} style={{width: "303px", height: "500px"}} alt="Layer element" />
                         </div>
                         <p className="guide-subheader" id="layer-update">Updating Layers</p>
                         <p className="instructions-text">
@@ -291,7 +293,7 @@ function Guide({BACKEND_URL}) {
                             Building the model creates a model file based on the current layers and compiles this file according to specified optimizer and loss function.
                         </p>
                         <div className="guide-center">
-                            <img className="guide-image" src={BACKEND_URL + "/static/images/build-model.jpg"} style={{width: "592px", height: "632px"}} />
+                            <img className="guide-image" src={BACKEND_URL + "/static/images/build-model.jpg"} style={{width: "592px", height: "632px"}} alt="Build model" />
                         </div>
                     </div>
 
@@ -313,7 +315,7 @@ function Guide({BACKEND_URL}) {
                             
                         </p>
                         <div className="guide-center">
-                            <img className="guide-image" src={BACKEND_URL + "/static/images/build-model.jpg"} style={{width: "600px", height: "658px"}} />
+                            <img className="guide-image" src={BACKEND_URL + "/static/images/build-model.jpg"} style={{width: "600px", height: "658px"}} alt="Build model" />
                         </div>
                     </div>
 
@@ -332,13 +334,13 @@ function Guide({BACKEND_URL}) {
                         <p className="instructions-text">
                             Built models, see the section on Building, can be trained on any of your own datasets or any datasets you've saved, so long as the type of dataset aligns with that of the model.
                         </p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/train-model.jpg"} style={{height: "678px"}}/>
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/train-model.jpg"} style={{height: "678px"}} alt="Train model" />
                     </div>
 
                     <div className="instructions-container">
                         <p className="guide-subheader" id="training-metrics">Training Metrics</p>
                         <p className="instructions-text">Metrics, i.e. loss and accuracy for the different epochs of training, from the last dataset the model was trained on can be viewed by clicking Show metrics in the main view.</p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/model-metrics.jpg"} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/model-metrics.jpg"} alt="Model metrics" />
                     </div>
                 </div>}
             </div>

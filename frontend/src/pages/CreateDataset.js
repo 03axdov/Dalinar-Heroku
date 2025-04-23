@@ -2,6 +2,7 @@ import React, {useState, useRef, useEffect} from "react"
 import {useNavigate} from "react-router-dom"
 import axios from "axios"
 import ProgressBar from "../components/ProgressBar"
+import TitleSetter from "../components/minor/TitleSetter"
 
 
 function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
@@ -354,6 +355,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
 
     return (
         <div className="create-dataset-container">
+            <TitleSetter title="Dalinar | Create dataset" />
 
             {(uploadingDatasetFilenames || uploadingDatasetFolders || uploadingDatasetCsv) && <ProgressBar 
                 progress={uploadingPercentage}
@@ -392,13 +394,13 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                         }
                     }} />
                     {imageURL && <div className="create-dataset-image-container no-border" onClick={imageOnClick}>
-                        <img className="create-dataset-image no-border" src={imageURL} onClick={imageOnClick}/>
+                        <img className="create-dataset-image no-border" src={imageURL} alt="Dataset image" onClick={imageOnClick}/>
                         <div className="create-dataset-image-hover">
-                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                            <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} alt="Image" /> Upload image</p>
                         </div>
                     </div>}
                     {!imageURL && <div className="create-dataset-image-container" onClick={imageOnClick}>
-                        <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} /> Upload image</p>
+                        <p className="create-dataset-image-text"><img className="create-dataset-image-icon" src={BACKEND_URL + "/static/images/image.png"} alt="Image" /> Upload image</p>
                     </div>}
                 </div>
 
@@ -481,7 +483,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                                 setKeywordCurrent(e.target.value)
                             }} />
                             <button type="submit" className="create-dataset-keywords-button">
-                                <img className="create-dataset-keywords-icon" src={BACKEND_URL + "/static/images/plus.png"} />
+                                <img className="create-dataset-keywords-icon" src={BACKEND_URL + "/static/images/plus.png"} alt="Plus" />
                                 Add
                             </button>
                         </form>
@@ -494,7 +496,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                     {keywords.map((e, i) => (
                         <div key={i} className="create-dataset-keyword-element">
                             {e}
-                            <img className="create-dataset-keyword-element-remove" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                            <img className="create-dataset-keyword-element-remove" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" onClick={() => {
                                 let temp = [...keywords]
                                 temp = temp.filter((keyword) => keyword != e)
                                 setKeywords(temp)
@@ -512,7 +514,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                         setUploadDropdownVisible(!uploadDropdownVisible)
                     }}>Upload dataset 
                     <span className="create-dataset-title-optional">(optional)</span>
-                    <img style={{rotate: (uploadDropdownVisible ? "180deg" : "0deg")}} className="upload-dataset-dropdown" src={BACKEND_URL + "/static/images/down.svg"}/>
+                    <img style={{rotate: (uploadDropdownVisible ? "180deg" : "0deg")}} className="upload-dataset-dropdown" src={BACKEND_URL + "/static/images/down.svg"} alt="Dropdown" />
                 </h1>}
                 
                 {uploadDropdownVisible && type == "classification" && <div className="upload-dataset-form">
@@ -536,11 +538,11 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                             </p>
 
                             <div className="upload-dataset-type-image-container">
-                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/foldersAsLabels.jpg"} onClick={folderInputClick} />
+                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/foldersAsLabels.jpg"} alt="Folders as labels" onClick={folderInputClick} />
                             </div>
                             
                             <button type="button" className="upload-dataset-button" onClick={folderInputClick}>
-                                <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
+                                <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
                                 Upload dataset
                             </button>
 
@@ -560,11 +562,11 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                             </p>
 
                             <div className="upload-dataset-type-image-container">
-                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} onClick={filenamesInputClick}/>
+                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/filenamesAsLabels.jpg"} alt="Filenames as labels" onClick={filenamesInputClick}/>
                             </div>
 
                             <button type="button" className="upload-dataset-button" onClick={filenamesInputClick}>
-                                <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
+                                <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
                                 Upload dataset
                             </button>
 
@@ -585,11 +587,11 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                             </p>
 
                             <div className="upload-dataset-type-image-container">
-                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/csv.jpg"} onClick={csvInputClick} />
+                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/csv.jpg"} onClick={csvInputClick} alt="csv" />
                             </div>
                             
                             <button type="button" className="upload-dataset-button" onClick={csvInputClick}>
-                                <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} />
+                                <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
                                 Upload dataset
                             </button>
 
@@ -612,7 +614,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                                     {uploadedDatasets[label].map((element, idx) => (
                                         <div key={idx} className="uploaded-datasets-element">
                                             {element.name}
-                                            <img className="uploaded-datasets-element-cross" src={BACKEND_URL + "/static/images/cross.svg"} onClick={() => {
+                                            <img className="uploaded-datasets-element-cross" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" onClick={() => {
                                                 let tempDatasets = {...uploadedDatasets}
                                                 tempDatasets[label] = tempDatasets[label].filter((el) => {return el.webkitRelativePath != element.webkitRelativePath})
                                                 setUploadedDatasets(tempDatasets)
@@ -628,7 +630,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                 <div className="create-dataset-buttons">
                     <button type="button" className="create-dataset-cancel" onClick={() => navigate("/home")}>Cancel</button>
                     <button type="button" className="create-dataset-submit" onClick={formOnSubmit}>
-                        {loading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
+                        {loading && <img className="create-dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"} alt="Loading" />}
                         {(!loading ? "Create dataset" : "Processing...")}
                     </button>
                 </div>

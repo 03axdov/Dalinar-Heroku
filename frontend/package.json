@@ -26,8 +26,11 @@
     "axios": "^1.7.8",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.1",
+    "lodash": "^4.17.21",
+    "lodash.throttle": "^4.1.1",
     "react-beautiful-dnd": "^13.1.1",
     "react-router-dom": "^7.0.1",
+    "react-select": "^5.10.1",
     "recharts": "^2.15.1"
   }
 }

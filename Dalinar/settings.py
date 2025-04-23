@@ -7,15 +7,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-with open('./SECRET_KEY.txt') as f:
-    SECRET_KEY = f.read().strip() 
-
 # SECURITY WARNING: don't run with debug turned on in production!
+SITE_URL = 'https://www.dalinar.net'
+
 DEBUG = True
 PRODUCTION = False
 
+# SECURITY WARNING: keep the secret key used in production secret!
+if DEBUG:
+    with open('./SECRET_KEY.txt') as f:
+        SECRET_KEY = f.read().strip()
+else:
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+
 ALLOWED_HOSTS = ["dalinar-041d6630f0a7.herokuapp.com", "127.0.0.1", "www.dalinar.net", "dalinar.net"]
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
 
 
 # Application definition
@@ -28,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'django.contrib.sitemaps',
     
     'allauth',
     'allauth.account',
@@ -42,7 +51,7 @@ INSTALLED_APPS = [
     "storages"
 ]
 
-SITE_ID = 2
+SITE_ID = 1
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
@@ -90,8 +99,11 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'dalinar.net@gmail.com'
 
-with open('./EMAIL_PASSWORD.txt') as f:
-    EMAIL_HOST_PASSWORD = f.read().strip() 
+if DEBUG:
+    with open('./EMAIL_PASSWORD.txt') as f:
+        EMAIL_HOST_PASSWORD = f.read().strip() 
+else:
+    EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 
 TEMPLATES = [
     {
@@ -116,6 +128,8 @@ WSGI_APPLICATION = 'Dalinar.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+
+import dj_database_url
 
 if not DEBUG:
     DATABASES = {
@@ -150,6 +164,9 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.BasicAuthentication'
     ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,  # or however many items you want per page
+
 }
 
 
@@ -180,11 +197,14 @@ LOGOUT_REDIRECT_URL = '/accounts/login'
 
 AWS_ACCESS_KEY_ID = 'AKIA5JXOPCQYY5WKJEPD'
 
-with open('./AWS_SECRET_KEY.txt') as f:
-    AWS_SECRET_ACCESS_KEY = f.read().strip()
+if DEBUG:
+    with open('./AWS_SECRET_KEY.txt') as f:
+        AWS_SECRET_ACCESS_KEY = f.read().strip()
+else:
+    AWS_SECRET_ACCESS_KEY = os.environ.get("AWS_SECRET_ACCESS_KEY")
     
 AWS_STORAGE_BUCKET_NAME = 'dalinar'
-AWS_S3_SIGNATURE_NAME = 's3v4',
+AWS_S3_SIGNATURE_NAME = 's3v4'
 AWS_S3_REGION_NAME = 'eu-north-1'
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com'
 AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}

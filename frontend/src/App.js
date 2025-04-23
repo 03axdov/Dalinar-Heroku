@@ -10,13 +10,10 @@ import CreateDataset from "./pages/CreateDataset"
 import EditDataset from "./pages/EditDataset"
 import Dataset from "./pages/Dataset"
 import axios from "axios"
-import Explore from "./pages/Explore"
 import Guide from "./pages/Guide"
-import PublicDataset from "./pages/PublicDataset"
 import Notification from "./components/Notification"
 import CreateModel from "./pages/CreateModel"
 import Model from "./pages/Model"
-import PublicModel from "./pages/PublicModel"
 import EditModel from "./pages/EditModel"
 import { TaskProvider } from "./contexts/TaskContext"
 import ProfileBar from "./components/ProfileBar"
@@ -120,16 +117,20 @@ export default function App() {
             <div id="app">
                 <Routes>
                     <Route path="/" element={<Landing BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/explore" element={<Explore checkLoggedIn={checkLoggedIn} BACKEND_URL={BACKEND_URL} notification={notification}/>}/>
+                    <Route path="/explore" element={<Home currentProfile={null} 
+            notification={notification} 
+            BACKEND_URL={BACKEND_URL} 
+            checkLoggedIn={checkLoggedIn} 
+            is_explore={true}/>}/>
                     <Route path="/guide" element={<Guide BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/home" element={<Home currentProfile={currentProfile} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/create-dataset" element={<CreateDataset notification={notification} BACKEND_URL={BACKEND_URL} activateConfirmPopup={activateConfirmPopup}/>}/>
                     <Route path="/create-model" element={<CreateModel notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/datasets/public/:id" element={<PublicDataset currentProfile={currentProfile} BACKEND_URL={BACKEND_URL} notification={notification}/>}/>
-                    <Route path="/models/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/models/public/:id" element={<PublicModel checkLoggedIn={checkLoggedIn} currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/datasets/public/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} isPublic={true}/>}/>
+                    <Route path="/models/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} checkLoggedIn={checkLoggedIn}/>}/>
+                    <Route path="/models/public/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} checkLoggedIn={checkLoggedIn} isPublic={true}/>}/>
                     <Route path="/edit-model/:id" element={<EditModel activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                 </Routes>
             </div>

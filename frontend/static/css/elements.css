@@ -1,17 +1,17 @@
 /* For elements, such as dataset-element */
 
 .dataset-element {
-    width: 250px;
-    height: 250px;
-    border-radius: 5px;
+    width: 245px;
+    height: 245px;
+    border-radius: 10px;
     padding: 10px;
     box-sizing: border-box;
     background: var(--element);
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin-right: 20px;
     position: relative;
+    box-shadow: 0 0 10px 0 black;
 }
 
 .dataset-element:hover {
@@ -162,7 +162,7 @@
     padding: 2px 5px;
     margin: 0;
     border-radius: 3px;
-    background: var(--element);
+    background: rgb(0,0,0,0.75);
     bottom: 17px;
     color: white;
 }

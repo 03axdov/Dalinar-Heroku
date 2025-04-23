@@ -3,7 +3,8 @@ import {useNavigate} from "react-router-dom"
 
 function ElementFilters({show, setShow, isModel, sort, setSort,
                         imageDimensions, setImageDimensions, search, setSearch, setLoading, 
-                        BACKEND_URL, savedTypeShown, setSavedTypeShown, setSearchParams, startParam}) {
+                        BACKEND_URL, savedTypeShown, setSavedTypeShown, setSearchParams, startParam,
+                        showModelType, setShowModelType}) {
 
     const [imageWidth, setImageWidth] = useState("")
     const [imageHeight, setImageHeight] = useState("")
@@ -41,7 +42,14 @@ function ElementFilters({show, setShow, isModel, sort, setSort,
             {setShow && !isModel && <select title="Show which types" className="explore-datasets-sort" value={show} onChange={(e) => {
                     setShow(e.target.value)
                 }}>
-                <option value="all">All</option>
+                <option value="all">All types</option>
+                <option value="image">Image</option>
+                <option value="text">Text</option>
+            </select>}
+            {setShowModelType && <select title="Show which types" className="explore-datasets-sort" value={showModelType} onChange={(e) => {
+                    setShowModelType(e.target.value)
+                }}>
+                <option value="all">All types</option>
                 <option value="image">Image</option>
                 <option value="text">Text</option>
             </select>}
@@ -53,7 +61,7 @@ function ElementFilters({show, setShow, isModel, sort, setSort,
                 <option value="not-built">Not built</option>
             </select>}
 
-            <select title="Sort by" className="explore-datasets-sort" value={sort} onChange={(e) => {
+            {!isModel && <select title="Sort by" className="explore-datasets-sort" value={sort} onChange={(e) => {
                 setSort(e.target.value)
             }}>
                 <option value="downloads">Downloads</option>
@@ -61,7 +69,15 @@ function ElementFilters({show, setShow, isModel, sort, setSort,
                 <option value="labels">Labels</option>
                 <option value="alphabetical">Alphabetical</option>
                 <option value="date">Created</option>
-            </select>
+            </select>}
+            {isModel && <select title="Sort by" className="explore-datasets-sort" value={sort} onChange={(e) => {
+                setSort(e.target.value)
+            }}>
+                <option value="downloads">Downloads</option>
+                <option value="layers">Layers</option>
+                <option value="alphabetical">Alphabetical</option>
+                <option value="date">Created</option>
+            </select>}
 
             {show == "image" && imageDimensions && setImageDimensions && <div className="image-dimensions-filter-container">
                 <input type="number" title="Image width" placeholder="Width" className="image-dimensions-filter" value={imageWidth} onChange={(e) => {
@@ -77,7 +93,7 @@ function ElementFilters({show, setShow, isModel, sort, setSort,
                         setLoading(true)
                         setSearch(e.target.value)
                 }} /> 
-                <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} />
+                <img className="explore-datasets-search-icon" src={BACKEND_URL + "/static/images/search.png"} alt="Search" />
             </div>
         </div>
     )

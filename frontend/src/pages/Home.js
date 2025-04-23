@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef, useCallback } from "react"
 import DatasetElement from "../components/DatasetElement"
 import ModelElement from "../components/ModelElement"
 import DatasetElementLoading from "../components/DatasetElementLoading"
 import ElementFilters from "../components/minor/ElementFilters"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import axios from 'axios'
+import { debounce } from 'lodash';
+import TitleSetter from "../components/minor/TitleSetter"
 
 // This is the personal view. /home
-function Home({currentProfile, notification, BACKEND_URL}) {
+function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_explore=false}) {
     const navigate = useNavigate()
     const [searchParams, setSearchParams] = useSearchParams();
     const startParam = searchParams.get("start"); // Get the 'start' param
@@ -17,6 +19,9 @@ function Home({currentProfile, notification, BACKEND_URL}) {
     const [savedDatasets, setSavedDatasets] = useState([])
     const [models, setModels] = useState([])
     const [savedModels, setSavedModels] = useState([])
+
+    const [nextPageDatasets, setNextPageDatasets] = useState(null);
+    const [nextPageModels, setNextPageModels] = useState(null)
 
     const [loading, setLoading] = useState(true)
     const [loadingModels, setLoadingModels] = useState(true)
@@ -37,15 +42,20 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
     const [datasetShow, setDatasetShow] = useState("all")
     const [modelShow, setModelShow] = useState("all")
+    const [modelShowType, setModelShowType] = useState("all")
 
     const [imageDimensions, setImageDimensions] = useState(["", ""])
 
     useEffect(() => {
-        getDatasets()
         getModels()
-    }, [])
+    }, [modelShow, modelShowType, sortModels])
 
     useEffect(() => {
+        getDatasets()
+    }, [datasetShow, sortDatasets, imageDimensions])
+
+    useEffect(() => {
+        if (is_explore) return;
         if (currentProfile && (currentProfile.saved_datasets || currentProfile.saved_models)) {
             setLoadingSaved(true)
             if (currentProfile.saved_datasets) {
@@ -57,20 +67,33 @@ function Home({currentProfile, notification, BACKEND_URL}) {
             setLoadingSaved(false)
         }
         
-        
     }, [currentProfile])
 
     const getDatasets = () => {
         setLoading(true)
+
+        let URL = window.location.origin + "/api/" + (is_explore ? "datasets/?" : "my-datasets/?")
+        URL += "search=" + search +
+                "&dataset_type=" + datasetShow +
+                "&order_by=" + sortDatasets
+
+        if (datasetShow == "image") {
+            URL += "&imageWidth=" + imageDimensions[0] +
+                "&imageHeight=" + imageDimensions[1]
+        }
+
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/my-datasets/' + (search ? "?search=" + search : ""),
+            url: URL
         })
         .then((res) => {
             if (res.data) {
-                setDatasets(sort_datasets(res.data))
+                console.log(res.data)
+                setDatasets(res.data.results)
+                setNextPageDatasets(res.data.next)
             } else {
                 setDatasets([])
+                setNextPageDatasets(null)
             }
 
         }).catch((err) => {
@@ -79,20 +102,76 @@ function Home({currentProfile, notification, BACKEND_URL}) {
         }).finally(() => {
             setLoading(false)
         })
-
     }
+
+    const loadMoreDatasets = useCallback(debounce(() => {
+        if (!nextPageDatasets || loading) return;
+        setLoading(true);
+        axios.get(nextPageDatasets)
+            .then((res) => {
+                if (res.data) {
+                    setDatasets(prev => {
+                        const combined = [...prev, ...res.data.results];
+
+                        // Deduplicate based on dataset.id
+                        const unique = Array.from(
+                            new Map(combined.map(item => [item.id, item])).values()
+                        );
+
+                        return unique;
+                    });
+                    setNextPageDatasets(res.data.next);
+                }
+            })
+            .catch(err => {
+                notification("An error occurred while loading more datasets.", "failure");
+            })
+            .finally(() => setLoading(false));
+    }, 500), [nextPageDatasets, loading]);
+
+    const loaderRef = useRef(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && nextPageDatasets) {
+                    loadMoreDatasets();
+                }
+            },
+            { threshold: 1.0 }
+        );
+
+        if (loaderRef.current) {
+            observer.observe(loaderRef.current);
+        }
+
+        return () => {
+            if (loaderRef.current) {
+                observer.unobserve(loaderRef.current);
+            }
+        };
+    }, [loaderRef.current, nextPageDatasets, loading]);
 
     const getModels = () => {
         setLoadingModels(true)
+
+        const BASE_URL = window.location.origin + "/api/" + (is_explore ? "models/?" : "my-models/?")
+
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/my-models/' + (searchModels ? "?search=" + searchModels : ""),
+            url: BASE_URL + 
+            "search=" + searchModels +
+            "&model_type=" + modelShowType +
+            "&model_build_type=" + modelShow +
+            "&order_by=" + sortModels,
         })
         .then((res) => {
             if (res.data) {
-                setModels(sort_models(res.data))
+                setModels(res.data.results)
+                setNextPageModels(res.data.next)
             } else {
                 setModels([])
+                setNextPageModels(null)
             }
 
         }).catch((err) => {
@@ -104,66 +183,53 @@ function Home({currentProfile, notification, BACKEND_URL}) {
 
     }
 
-    function sort_models(ms) {
-        let tempModels = [...ms]
-        
-        tempModels.sort((m1, m2) => {
-            if (sortModels == "downloads") {
-                if (m1.downloaders.length != m2.downloaders.length) {
-                    return m2.downloaders.length - m1.downloaders.length
-                } else {
-                    return m1.name.localeCompare(m2.name)
-                }
+    const loadMoreModels = useCallback(debounce(() => {
+        if (!nextPageModels || loadingModels) return;
+        setLoadingModels(true);
+        axios.get(nextPageModels)
+            .then((res) => {
+                if (res.data) {
+                    setModels(prev => {
+                        const combined = [...prev, ...res.data.results];
 
-            } else if (sortModels == "alphabetical") {
-                return m1.name.localeCompare(m2.name)
+                        // Deduplicate based on dataset.id
+                        const unique = Array.from(
+                            new Map(combined.map(item => [item.id, item])).values()
+                        );
 
-            } else if (sortModels == "layers") {
-                if (m1.layers.length != m2.layers.length) {
-                    return m2.layers.length - m1.layers.length
-                } else {
-                    return m1.name.localeCompare(m2.name)
+                        return unique;
+                    });
+                    setNextPageModels(res.data.next);
                 }
+            })
+            .catch(err => {
+                notification("An error occurred while loading more datasets.", "failure");
+            })
+            .finally(() => setLoadingModels(false));
+    }, 500), [nextPageModels, loadingModels]);
+
+    const loaderRefModels = useRef(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && nextPageModels) {
+                    loadMoreModels();
+                }
+            },
+            { threshold: 1.0 }
+        );
+
+        if (loaderRefModels.current) {
+            observer.observe(loaderRefModels.current);
+        }
+
+        return () => {
+            if (loaderRefModels.current) {
+                observer.unobserve(loaderRefModels.current);
             }
-        })
-
-        return tempModels
-    }
-
-    function sort_datasets(ds) {
-        let tempDatasets = [...ds]
-        
-        tempDatasets.sort((d1, d2) => {
-            if (sortDatasets == "downloads") {
-                if (d1.downloaders.length != d2.downloaders.length) {
-                    return d2.downloaders.length - d1.downloaders.length
-                } else {
-                    return d1.name.localeCompare(d2.name)
-                }
-                
-            } else if (sortDatasets == "alphabetical") {
-                return d1.name.localeCompare(d2.name)
-            } else if (sortDatasets == "date") {
-                return new Date(d2.created_at) - new Date(d1.created_at)
-            } else if (sortDatasets == "elements") {
-                if (d1.elements.length != d2.elements.length) {
-                    return d2.elements.length - d1.elements.length
-                } else {
-                    return d1.name.localeCompare(d2.name)
-                }
-                
-            } else if (sortDatasets == "labels") {
-                if (d1.labels.length != d2.labels.length) {
-                    return d2.labels.length - d1.labels.length
-                } else {
-                    return d1.name.localeCompare(d2.name)
-                }
-                
-            }
-        })
-
-        return tempDatasets
-    }
+        };
+    }, [loaderRefModels.current, nextPageModels, loadingModels]);
 
     function sort_saved_datasets(ds) {
         let tempDatasets = [...ds]
@@ -229,18 +295,6 @@ function Home({currentProfile, notification, BACKEND_URL}) {
             setSavedDatasets(sort_saved_datasets(savedDatasets))
         }
     }, [sortSavedDatasets])
-
-    useEffect(() => {
-        if (!loading) {
-            setDatasets(sort_datasets(datasets))
-        }
-    }, [sortDatasets])
-
-    useEffect(() => {
-        if (!loadingModels) {
-            setModels(sort_models(models))
-        }
-    }, [sortModels])
 
     useEffect(() => {
         if (!loadingSaved) {
@@ -358,24 +412,36 @@ function Home({currentProfile, notification, BACKEND_URL}) {
     }
 
     function modelShouldShow(model) {
-        if (modelShow == "all") return true
-        if (modelShow == "built") return model.model_file != null
-        if (modelShow == "not-built") return model.model_file == null
+        if (modelShowType == "all" || modelShowType == model.model_type.toLowerCase()) {
+            if (modelShow == "all") return true
+            if (modelShow == "built") return model.model_file != null
+            if (modelShow == "not-built") return model.model_file == null
+        }
+        return false
     }
 
-    const visibleDatasets = datasets.filter((dataset) => datasetShouldShow(dataset));
-    const visibleModels = models.filter((model) => modelShouldShow(model));
     const visibleSavedDatasets = savedDatasets.filter((dataset) => datasetShouldShow(dataset));
     const visibleSavedModels = savedModels.filter((model) => modelShouldShow(model));
 
     return <div className="home-container">
-        
+        <TitleSetter title="Dalinar | Home" />
+
         <div className="home-sidebar">
             <button className="sidebar-button" onClick={() => {
-                navigate("/create-dataset")
+                if (!is_explore) {
+                    navigate("/create-dataset")
+                } else {
+                    checkLoggedIn("/create-dataset")
+                }
+                
             }}>+ Create dataset</button>
             <button title="Work in progress" className="sidebar-button create-model" onClick={() => {
-                navigate("/create-model")
+                if (!is_explore) {
+                    navigate("/create-model")
+                } else {
+                    checkLoggedIn("/create-model")
+                }
+                
             }}>+ Create model</button>
 
             <div className="sidebar-types-container">
@@ -384,28 +450,28 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                     setSearchParams({"start": "datasets"})
                     setTypeShown("datasets")
                 }}>
-                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/database.svg"} />Datasets
+                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/database.svg"} alt="Database" />Datasets
                 </div>
                 <div className={"sidebar-types-element " + (typeShown == "models" ? "sidebar-types-element-selected" : "")}
                 onClick={() => {
                     setSearchParams({"start": "models"})
                     setTypeShown("models")
                 }}>
-                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/model.svg"} />Models
+                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/model.svg"} alt="Model" />Models
                 </div>
-                <div className={"sidebar-types-element " + (typeShown == "saved" ? "sidebar-types-element-selected" : "")}
+                {!is_explore && <div className={"sidebar-types-element " + (typeShown == "saved" ? "sidebar-types-element-selected" : "")}
                 onClick={() => {
                     setSearchParams({"start": "saved"})
                     setTypeShown("saved")
                 }}>
-                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/star.svg"} />Saved
-                </div>
+                    <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/star.svg"} alt="Star" />Saved
+                </div>}
             </div>
         </div>
         <div className="home-non-sidebar">
             {typeShown == "datasets" && <div>
                 <div className="explore-datasets-title-container">
-                    <h2 className="my-datasets-title">My Datasets</h2>
+                    <h2 className="my-datasets-title">{is_explore ? "Public Datasets" : "My Datasets"}</h2>
 
                     <ElementFilters 
                         show={datasetShow}
@@ -422,36 +488,44 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 </div>
                 
                 <div className="my-datasets-container">
-                    {visibleDatasets.map((dataset) => (
-                        <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL}/>
+                    {datasets.map((dataset) => (
+                        <DatasetElement dataset={dataset} key={dataset.id} BACKEND_URL={BACKEND_URL} isPublic={is_explore}/>
                     ))}
                     
-                    {!loading && visibleDatasets.length === 0 && datasets.length > 0 && <p className="gray-text">No such datasets found.</p>}
+                    {!loading && !is_explore && datasets.length === 0 && currentProfile.datasetsCount > 0 && <p className="gray-text">No such datasets found.</p>}
+                    {!loading && is_explore && datasets.length === 0 && <p className="gray-text">No such datasets found.</p>}
 
-                    {!loading && datasets.length === 0 && search.length === 0 && (
+                    {!loading && !is_explore && currentProfile.datasetsCount == 0 && (
                         <p>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
                     )}
 
-                    {!loading && datasets.length === 0 && search.length > 0 && (
-                        <p className="gray-text">No such datasets found.</p>
-                    )}
-
-                    {loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && (
+                    {loading && !is_explore && datasets.length === 0 && currentProfile.datasetsCount > 0 && (
                         [...Array(currentProfile.datasetsCount)].map((e, i) => (
                             <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
                         ))
                     )}
+                    {loading && is_explore && datasets.length === 0 && (
+                        [...Array(4)].map((e, i) => (
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
+                        ))
+                    )}
+
+                    {nextPageDatasets && <div ref={loaderRef}><DatasetElementLoading BACKEND_URL={BACKEND_URL} isPublic={is_explore}></DatasetElementLoading></div>}
                 </div>
                 
             </div>}
 
             {typeShown == "models" && <div>
                 <div className="explore-datasets-title-container">
-                    <h2 className="my-datasets-title">My Models</h2>
+                    <h2 className="my-datasets-title">
+                        {is_explore ? "Public Models" : "My Models"}
+                    </h2>
 
                     <ElementFilters 
                         show={modelShow}
                         setShow={setModelShow}
+                        showModelType={modelShowType}
+                        setShowModelType={setModelShowType}
                         isModel={true}
                         sort={sortModels}
                         setSort={setSortModels}
@@ -464,30 +538,34 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                 
                 <div className="my-datasets-container">
 
-                    {visibleModels.map((model) => (
-                        <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL}/>
+                    {models.map((model) => (
+                        <ModelElement model={model} key={model.id} BACKEND_URL={BACKEND_URL} isPublic={is_explore}/>
                     ))}
                     
-                    {!loadingModels && visibleModels.length === 0 && models.length > 0 && <p className="gray-text">No such models found.</p>}
+                    {!loadingModels && !is_explore && models.length === 0 && currentProfile.modelsCount > 0 && <p className="gray-text">No such models found.</p>}
+                    {!loadingModels && is_explore && models.length === 0 && <p className="gray-text">No such models found.</p>}
 
-                    {!loadingModels && models.length === 0 && searchModels.length === 0 && (
+                    {!loadingModels && !is_explore && models.length === 0 && currentProfile.modelsCount == 0 && (
                         <p>You don't have any models. Click <span className="link" onClick={() => navigate("/create-model")}>here</span> to create one.</p>
                     )}
 
-                    {!loadingModels && models.length === 0 && searchModels.length > 0 && (
-                        <p className="gray-text">No such datasets found.</p>
-                    )}
-
-                    {loadingModels && models.length === 0 && currentProfile.modelsCount > 0 && (
+                    {loadingModels && !is_explore && models.length === 0 && currentProfile.modelsCount > 0 && (
                         [...Array(currentProfile.modelsCount)].map((e, i) => (
                             <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
                         ))
                     )}
+                    {loadingModels && is_explore && models.length === 0 && (
+                        [...Array(4)].map((e, i) => (
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
+                        ))
+                    )}
+
+                    {nextPageModels && <div ref={loaderRefModels}><DatasetElementLoading BACKEND_URL={BACKEND_URL} isPublic={is_explore}></DatasetElementLoading></div>}
                 </div>
                 
             </div>}
 
-            {typeShown == "saved" && <div>
+            {!is_explore && typeShown == "saved" && <div>
                 <div className="explore-datasets-title-container">
                     <h2 className="my-datasets-title">Saved {savedTypeShown == "datasets" ? "Datasets" : "Models"}</h2>
 
@@ -511,6 +589,8 @@ function Home({currentProfile, notification, BACKEND_URL}) {
                     {savedTypeShown == "models" && <ElementFilters 
                         show={modelShow}
                         setShow={setModelShow}
+                        showModelType={modelShowType}
+                        setShowModelType={setModelShowType}
                         isModel={true}
                         sort={sortSavedModels}
                         setSort={setSortSavedModels}
