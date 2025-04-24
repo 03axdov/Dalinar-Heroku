@@ -322,8 +322,8 @@ export const LAYERS = {
         "color": "darkblue",
         "default_dimensions": [
             ["Trainable", "False", "darkblue"],    // Name, value, color
-            ["Input Width", 32, "gray2"],
-            ["Input Height", 32, "gray2"],
+            ["Input Width", 96, "gray2"],
+            ["Input Height", 96, "gray2"],
             ["Input Depth", 3, "gray2"],
             
         ],

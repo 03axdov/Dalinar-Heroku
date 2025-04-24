@@ -190,6 +190,8 @@ def load_and_preprocess_image(file_path,input_dims,file_key):
     # Decode the image
     image = tf.image.decode_jpeg(image_bytes, channels=input_dims[-1])  # Assuming JPEG images
     
+    image = image / 255.0
+    
     image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
     
     return image
@@ -802,6 +804,7 @@ def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Conve
     
     # Resize the image to fit model requirements
     image = image.resize((target_size[0], target_size[1]))
+    image = image / 255.0
     
     # Convert image to NumPy array
     image_array = np.array(image)
@@ -907,6 +910,8 @@ def predict_model_task(self, model_id, encoded_images, text):
                     target_size = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
                     if first_layer.layer_type == "mobilenetv2": # Doesn't have input_x, ...
                         target_size = (224,224,3)
+                    if first_layer.layer_type == "mobilenetv2small": # Doesn't have input_x, ...
+                        target_size = (96,96,3)
                     
                     model, timestamp = get_tf_model(model_instance)
                     
