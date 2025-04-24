@@ -392,6 +392,10 @@
     height: calc(100% - var(--toolbar-height));
     box-sizing: border-box;
 }
+.build-model-popup, .train-model-popup, .model-download-popup {
+    padding-bottom: 0;
+}
+
 
 .confirm-popup {
     z-index: 11;
@@ -679,10 +683,6 @@
 }
 .close-model-popup:hover {
     background: var(--gray-dark);
-}
-
-.build-model-popup, .train-model-popup {
-    padding-bottom: 0;
 }
 
 .build-model-popup-container, .train-model-popup-container, .model-download-popup-container {

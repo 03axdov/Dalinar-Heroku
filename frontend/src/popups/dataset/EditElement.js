@@ -15,7 +15,7 @@ function EditElement({setEditingElement, editingElementNameOriginal, updateEleme
 
     return (
         <div className="dataset-bar-container" onClick={() => setEditingElement(null)}>
-            <div className={"dataset-create-label-container " + (animateIn ? "slide-in" : "")} 
+            <div className={"dataset-edit-element-container " + (animateIn ? "slide-in" : "")} 
                 onClick={(e) => e.stopPropagation()}>
                 <h1 className="create-layer-popup-title">Edit element</h1>
                 <p className="create-layer-popup-description">

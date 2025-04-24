@@ -490,7 +490,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                     {!loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && <p className="gray-text train-no-datasets">No such datasets found.</p>}
 
                     {!loading && currentProfile.datasetsCount === 0 && (
-                        <p style={{width: "250px"}}>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
+                        <p className="gray-text train-no-datasets">You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
                     )}
 
                     {loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && (
@@ -521,7 +521,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                     {!loading && visibleSavedDatasets.length === 0 && savedDatasets.length > 0 && <p className="gray-text train-no-datasets">No such datasets found.</p>}
 
                     {!loading && savedDatasets.length === 0 && searchSaved.length === 0 && (
-                        <p style={{width: "250px"}}>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
+                        <p className="gray-text train-no-datasets">You don't have any saved datasets.</p>
                     )}
 
                     {!loading && savedDatasets.length === 0 && searchSaved.length > 0 && (

@@ -790,32 +790,58 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     // Element Scroll Functionality (doesn't work for area datasets because of the way points work)
     const minZoom = 1
-    const maxZoom = 2
+    const maxZoom = 10
 
     const handleElementScroll = (e) => {
 
-        const rect = elementContainerRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        if (zoom < 2) {
+            const rect = elementContainerRef.current.getBoundingClientRect();
+
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            
+            setPosition({ x, y });
+        }
         
-        setPosition({ x, y });
 
         const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.00125, minZoom), maxZoom);
         setZoom(newZoom);
     };
 
+    const [lastMousePos, setLastMousePos] = useState(null);
+
     const handleElementMouseMove = (e) => {
         setCursor("")
-        if (zoom == 1 || e.buttons != 2) {return}  // Allow user to move with cursor if zoomed in and holding right mouse
-
-        if (e.buttons == 2) {setCursor("grabbing")}
-
+        if (zoom === 1 || e.buttons !== 2) {
+            setLastMousePos(null); // Reset when not grabbing
+            return;
+        }
+    
+        if (e.buttons === 2) {
+            setCursor("grabbing");
+        }
+    
         const rect = elementContainerRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        
-        
-        setPosition({ x, y });
+        const currentX = e.clientX;
+        const currentY = e.clientY;
+    
+        if (lastMousePos) {
+            const dx = currentX - lastMousePos.x;
+            const dy = currentY - lastMousePos.y;
+    
+            const DAMPENING = 0.5;  // try values like 0.3 - 0.7
+
+            const percentX = (dx / rect.width) * 100 * DAMPENING;
+            const percentY = (dy / rect.height) * 100 * DAMPENING;
+
+    
+            setPosition(prev => ({
+                x: prev.x + percentX,
+                y: prev.y + percentY,
+            }));
+        }
+    
+        setLastMousePos({ x: currentX, y: currentY });
     
     };
 

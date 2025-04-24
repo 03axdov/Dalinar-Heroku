@@ -34,7 +34,7 @@ function CreateLabel({setShowCreateLabel, createLabelSubmit, labelKeybinds,
     };
 
     return (
-        <div className="dataset-bar-container" onClick={() => setShowCreateLabel(false)}>
+        <div className="dataset-bar-container" style={{justifyContent: "start"}} onClick={() => setShowCreateLabel(false)}>
             <div className={"dataset-create-label-container " + (animateIn ? "slide-in" : "")} 
                 onClick={(e) => e.stopPropagation()}>
                 <h1 className="create-layer-popup-title">Create label</h1>
@@ -55,7 +55,7 @@ function CreateLabel({setShowCreateLabel, createLabelSubmit, labelKeybinds,
                     <div className="dataset-create-label-row" style={{marginTop: "40px"}}>
                         <label className="dataset-create-label-label" htmlFor="label-create-name-inp">Name</label>
                         <input id="label-create-name-inp" className="dataset-create-label-inp" type="text"
-                            placeholder="Name" value={createLabelName} onChange={(e) => {
+                            value={createLabelName} onChange={(e) => {
                             setCreateLabelName(e.target.value)
                         }} onFocus={inputOnFocus} onBlur={inputOnBlur} required/>
                     </div>
