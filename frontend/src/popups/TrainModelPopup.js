@@ -17,7 +17,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
     const [trainingProgress, setTrainingProgress] = useState(-1)    // Negative means processing
     const [trainingData, setTrainingData] = useState([])
 
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     const [sortDatasets, setSortDatasets] = useState("downloads")
     const [search, setSearch] = useState("")

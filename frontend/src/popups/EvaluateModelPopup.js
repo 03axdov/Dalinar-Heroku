@@ -16,7 +16,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
     const [isEvaluating, setIsEvaluating] = useState(false)
     const [evaluationProgress, setEvaluationProgress] = useState(0)
 
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     const [sortDatasets, setSortDatasets] = useState("downloads")
     const [search, setSearch] = useState("")
@@ -45,6 +45,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
     }, [currentProfile])
 
     function getDatasets() {
+        console.log("GET DATASETS")
         setLoading(true)
         let URL = window.location.origin + '/api/my-datasets/?' +
             "search=" + search +
@@ -360,7 +361,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                     {!loading && visibleDatasets.length === 0 && datasets.length > 0 && <p className="gray-text">No such datasets found.</p>}
 
                     {!loading && datasets.length === 0 && search.length === 0 && (
-                        <p style={{width: "250px"}}>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
+                        <p className="gray-text train-no-datasets">You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
                     )}
 
                     {!loading && datasets.length === 0 && search.length > 0 && (
@@ -392,7 +393,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                     {!loading && visibleSavedDatasets.length === 0 && savedDatasets.length > 0 && <p className="gray-text">No such datasets found.</p>}
 
                     {!loading && savedDatasets.length === 0 && searchSaved.length === 0 && (
-                        <p style={{width: "250px"}}>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
+                        <p className="gray-text train-no-datasets">You don't have any saved datasets.</p>
                     )}
 
                     {!loading && savedDatasets.length === 0 && searchSaved.length > 0 && (

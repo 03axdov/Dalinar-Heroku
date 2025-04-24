@@ -264,18 +264,22 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
 
     function pointOnDrag(e) {
-        if (pointSelected[0] == -1 || pointSelected[1] == -1) {return}
+        if (pointSelected[0] === -1 || pointSelected[1] === -1) return;
 
         const imageElement = elementRef.current;
         const boundingRect = imageElement.getBoundingClientRect();
-
-        const clickX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
-        const clickY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
-
-        const newX = Math.round((clickX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
-        const newY = Math.round((clickY / boundingRect.height) * 100 * 10) / 10
-
-        setPointSelectedCoords([newX, newY])
+    
+        // Adjust for zoom (assuming zoom is a numeric value like 1 to 5)
+        const zoomAdjustedLeft = (e.clientX - boundingRect.left) / zoom;
+        const zoomAdjustedTop = (e.clientY - boundingRect.top) / zoom;
+    
+        const clickX = Math.max(0, zoomAdjustedLeft - (DOT_SIZE / 2));
+        const clickY = Math.max(0, zoomAdjustedTop - (DOT_SIZE / 2));
+    
+        const newX = Math.round((clickX / (boundingRect.width / zoom)) * 1000) / 10;  // Round to 1 decimal
+        const newY = Math.round((clickY / (boundingRect.height / zoom)) * 1000) / 10;
+    
+        setPointSelectedCoords([newX, newY]);
 
     }
 
@@ -309,6 +313,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             setPointSelectedCoords([point[0], point[1]])
                             setSelectedAreaIdx(areaIdx)
                             setSelectedArea(area)
+                            setLabelSelected(null)
                             setPointSelected([area.id, idx])
                         } else {
                             updatePoints(area, pointSelectedCoords, idx)
@@ -324,6 +329,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             display: ((pointSelected[0] == area.id && pointSelected[1] == 0) ? "none" : "block")}}
                     onClick={(e) => e.stopPropagation()}>
                         {(idToLabel[area.label] ? idToLabel[area.label].name : "")}
+                        {idToLabel[area.label] && <span> ({areaIdx + 1})</span>}
                     </div>}
                 </div>
             ))}
@@ -790,7 +796,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     // Element Scroll Functionality (doesn't work for area datasets because of the way points work)
     const minZoom = 1
-    const maxZoom = 10
+    const maxZoom = 5
 
     const handleElementScroll = (e) => {
 
@@ -855,7 +861,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     onWheel={handleElementScroll}
                     onMouseMove={handleElementMouseMove}
                     style={{overflow: "hidden"}}>
-                        {element.label && idToLabel[element.label] && <div className="dataset-element-view-label" style={{background: "var(--toolbar)", border: "none"}}>
+                        {element.label && idToLabel[element.label] && <div className="dataset-element-view-label">
                             <span className="text-label-color" style={{background: idToLabel[element.label].color}}></span>
                             {idToLabel[element.label].name}
                         </div>}
@@ -887,6 +893,15 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 onWheel={handleElementScroll}
                 onMouseMove={handleElementMouseMove}
                 style={{overflow: "hidden"}}>
+                    {selectedArea && <div className="dataset-element-view-label">
+                        <span className="text-label-color" style={{background: idToLabel[selectedArea.label].color}}></span>
+                        {idToLabel[selectedArea.label].name}
+                        <span className="gray-text" style={{marginLeft: "5px"}}>({selectedAreaIdx + 1})</span>
+                    </div>}
+                    {labelSelected && <div className="dataset-element-view-label">
+                        <span className="text-label-color" style={{background: idToLabel[labelSelected].color}}></span>
+                        {idToLabel[labelSelected].name}
+                    </div>}
                     <div className="dataset-element-view-image-wrapper" 
                     onMouseMove={(e) => pointOnDrag(e)}
                     style={{
@@ -2427,7 +2442,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         {dataset && dataset.datatype == "area" && elements.length > 0 && <div className="dataset-areas-container">
                             {elements[elementsIndex].areas.map((area, areaIdx) => (
                                 <div className={"dataset-sidebar-element-area " + (selectedAreaIdx == areaIdx ? "dataset-sidebar-element-selected " : "") + + (toolbarRightWidth < 150 ? "dataset-sidebar-element-small" : "")} 
-                                    title={"Area: " + idToLabel[area.label].name}
+                                    title={"Area: " + idToLabel[area.label].name + " (" + (areaIdx + 1) + ")"}
                                     onMouseEnter={(e) => setHoveredAreaId(area.id)}
                                     onMouseLeave={(e) => setHoveredAreaId(null)}
                                     key={areaIdx}
@@ -2445,7 +2460,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                         
                                     }}>
                                         <img className="dataset-element-area-icon" alt="Area" src={BACKEND_URL + "/static/images/area.svg"} />
-                                        <span className="dataset-area-name">{idToLabel[area.label].name}</span>
+                                        <span className="dataset-area-name">{idToLabel[area.label].name} <span className="gray-text">({areaIdx + 1})</span></span>
                                         <span title={"Points: " + JSON.parse(area.area_points).length} 
                                         className={"dataset-sidebar-label-keybind no-box-shadow border " + (toolbarRightWidth < 150 ? "dataset-sidebar-label-keybind-small" : "")}
                                         style={{borderColor: (idToLabel[area.label].color)}}>{JSON.parse(area.area_points).length}</span>
