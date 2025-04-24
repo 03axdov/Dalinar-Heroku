@@ -10,7 +10,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Dalinar.settings')
 app = Celery('Dalinar')
 app.config_from_object(settings, namespace='CELERY')
 
-redis_url = "redis://127.0.0.1:6379"    # Change for production
+redis_url = os.environ.get('REDIS_URL')
 
 # Only apply SSL if using rediss:// scheme
 if redis_url.startswith("rediss://"):

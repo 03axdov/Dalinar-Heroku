@@ -10,8 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: don't run with debug turned on in production!
 SITE_URL = 'https://www.dalinar.net'
 
-DEBUG = True
-PRODUCTION = False
+DEBUG = False
+PRODUCTION = True
 
 # SECURITY WARNING: keep the secret key used in production secret!
 if DEBUG:
