@@ -803,13 +803,23 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         const x = ((e.clientX - rect.left) / rect.width) * 100;
         const y = ((e.clientY - rect.top) / rect.height) * 100;
-        
-        setPosition({ x, y }); 
 
         const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.00125, minZoom), maxZoom);
+
+        if (zoom < 1.25) {
+            setPosition({ x: x, y: y }); 
+        } else {
+            const newX = position.x - (position.x - x) / 10
+            const newY = position.y - (position.y - y) / 10
+            setPosition({ x: newX, y: newY }); 
+        }
+
+        
         setZoom(newZoom);
     };
+    
 
+    
     const [lastMousePos, setLastMousePos] = useState(null);
 
     const handleElementMouseMove = (e) => {
@@ -2463,7 +2473,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                         {!isPublic && <img title="Delete area" 
                                         alt="Cross"
                                         className="dataset-sidebar-options dataset-delete-area" 
-                                        style={{marginLeft: "3px"}}
+                                        style={{marginLeft: "5px"}}
                                         src={BACKEND_URL + "/static/images/cross.svg"} onClick={(e) => {
                                             deleteArea(area, elementsIndex, areaIdx)
                                         }}/>}

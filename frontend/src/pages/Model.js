@@ -203,6 +203,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
             notification("Please add layers before building the model.", "failure")
             return
         }
+        if (learningRate == 0) {
+            notification("Learning rate must be positive.", "failure")
+            return
+        }
         if (processingBuildModel) {return}
         setProcessingBuildModel(true)
 
