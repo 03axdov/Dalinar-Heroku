@@ -322,11 +322,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     
                 >
                     {idx == 0 && <div 
-                    title={(idToLabel[area.label] ? idToLabel[area.label].name : "")} 
                     className="dataset-element-view-point-label"
                     style={{background: idToLabel[area.label].color, 
                             color: getTextColor(idToLabel[area.label].color),
-                            display: ((pointSelected[0] == area.id && pointSelected[1] == 0) ? "none" : "block")}}
+                            display: ((pointSelected[0] == area.id && pointSelected[1] == 0) ? "none" : "block"),
+                            pointerEvents: "none"}}
                     onClick={(e) => e.stopPropagation()}>
                         {(idToLabel[area.label] ? idToLabel[area.label].name : "")}
                         {idToLabel[area.label] && <span> ({areaIdx + 1})</span>}
@@ -374,7 +374,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             setImageMouseDown(true)
         
             const handleMouseMove = (e) => {
-                console.log("MOVED")
                 const newX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
                 const newY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
 
@@ -796,19 +795,16 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     // Element Scroll Functionality (doesn't work for area datasets because of the way points work)
     const minZoom = 1
-    const maxZoom = 5
+    const maxZoom = 3
 
     const handleElementScroll = (e) => {
 
-        if (zoom < 2) {
-            const rect = elementContainerRef.current.getBoundingClientRect();
+        const rect = elementContainerRef.current.getBoundingClientRect();
 
-            const x = ((e.clientX - rect.left) / rect.width) * 100;
-            const y = ((e.clientY - rect.top) / rect.height) * 100;
-            
-            setPosition({ x, y });
-        }
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
         
+        setPosition({ x, y }); 
 
         const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.00125, minZoom), maxZoom);
         setZoom(newZoom);
