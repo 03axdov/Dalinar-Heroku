@@ -1372,5 +1372,3 @@ def reset_to_build_task(self, layer_id, user_id):
         return {"Not found": "Could not find layer with the id " + str(layer_id) + ".", "status": 404}
     except Exception as e:
         return {"Bad request": str(e), "status": 400}
-    
-    
