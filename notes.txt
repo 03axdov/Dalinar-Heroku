@@ -3,6 +3,7 @@ TO-DO:
 - Upload datasets directly for training (don't store for longer than used)
 - Problem with testing and files on AWS not getting deleted
 - Look into deleting temp model file in get_tf_model
+- Reset entire model to build
 
 Layers to add:
 

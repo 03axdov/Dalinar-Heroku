@@ -127,8 +127,8 @@ class LayerSerializer(serializers.BaseSerializer):
             return GlobalAveragePooling1DLayerSerializer(instance).data
         elif isinstance(instance, MobileNetV2Layer):
             return MobileNetV2LayerSerializer(instance).data
-        elif isinstance(instance, MobileNetV2SmallLayer):
-            return MobileNetV2SmallLayerSerializer(instance).data
+        elif isinstance(instance, MobileNetV2_96x96Layer):
+            return MobileNetV2_96x96LayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     
@@ -160,8 +160,8 @@ class CreateLayerSerializer(serializers.BaseSerializer):
             return CreateGlobalAveragePooling1DLayerSerializer(instance).data
         elif isinstance(instance, MobileNetV2Layer):
             return CreateMobileNetV2LayerSerializer(instance).data
-        elif isinstance(instance, MobileNetV2SmallLayer):
-            return CreateMobileNetV2SmallLayerSerializer(instance).data
+        elif isinstance(instance, MobileNetV2_96x96Layer):
+            return CreateMobileNetV2_96x96LayerSerializer(instance).data
         return None  # Handles unexpected cases
     
 
@@ -295,13 +295,13 @@ class CreateMobileNetV2LayerSerializer(serializers.ModelSerializer):
         fields = []
 
 
-class MobileNetV2SmallLayerSerializer(serializers.ModelSerializer):
+class MobileNetV2_96x96LayerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MobileNetV2SmallLayer
+        model = MobileNetV2_96x96Layer
         fields = "__all__"
-class CreateMobileNetV2SmallLayerSerializer(serializers.ModelSerializer):
+class CreateMobileNetV2_96x96LayerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MobileNetV2SmallLayer
+        model = MobileNetV2_96x96Layer
         fields = []
 
         

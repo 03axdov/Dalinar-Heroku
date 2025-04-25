@@ -315,7 +315,7 @@ export const LAYERS = {
         "no_dimensions": true,  // Avoids warnings if first layer,
         "info": "The MobileNetV2 model trained on ImageNet. Output shape: (None, 1280)"
     },
-    mobilenetv2small: {
+    mobilenetv2_96x96: {
         "name": "MobileNetV2",
         "params": [],
         "image": "model.svg",
@@ -329,26 +329,26 @@ export const LAYERS = {
         ],
         "not_editable": true,
         "no_dimensions": true,  // Avoids warnings if first layer,
-        "info": "The MobileNetV2 model trained on cifar10. Output shape: (None, 1280)"
+        "info": "The MobileNetV2 model trained on ImageNet. Output shape: (None, 1280)"
     }
 }
 
 
 export const VALID_PREV_LAYERS = { // null means that it can be the first layer
-    "dense": [null, "dense", "flatten", "dropout", "textvectorization", "mobilenetv2", "mobilenetv2small"],
+    "dense": [null, "dense", "flatten", "dropout", "textvectorization", "mobilenetv2", "mobilenetv2_96x96"],
     "conv2d": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing"],
     "maxpool2d": ["conv2d", "maxpool2d", "rescaling", "resizing"],
-    "dropout": ["dense", "dropout", "flatten", "embedding", "globalaveragepooling1d", "mobilenetv2", "mobilenetv2small"],
-    "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling", "resizing", "mobilenetv2", "mobilenetv2small"],
+    "dropout": ["dense", "dropout", "flatten", "embedding", "globalaveragepooling1d", "mobilenetv2", "mobilenetv2_96x96"],
+    "flatten": [null, "dense", "dropout", "flatten", "conv2d", "maxpool2d", "rescaling", "resizing", "mobilenetv2", "mobilenetv2_96x96"],
     "rescaling": [null, "randomflip", "resizing", "randomrotation"],
     "randomflip": [null, "rescaling", "resizing", "randomrotation"],
     "randomrotation": [null, "rescaling", "resizing", "randomflip"],
     "resizing": [null],
     "textvectorization": [null],
     "embedding": [null, "textvectorization"],
-    "globalaveragepooling1d": ["embedding", "dense", "dropout", "mobilenetv2", "mobilenetv2small"],
+    "globalaveragepooling1d": ["embedding", "dense", "dropout", "mobilenetv2", "mobilenetv2_96x96"],
     "mobilenetv2": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing"],
-    "mobilenetv2small": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing"],
+    "mobilenetv2_96x96": [null, "conv2d", "maxpool2d", "rescaling", "randomflip", "randomrotation", "resizing"],
 }
 
 export const WARNING_MESSAGES = {
@@ -365,7 +365,7 @@ export const WARNING_MESSAGES = {
     "embedding": "Must be the first layer, else follow one of the following layers: [" + VALID_PREV_LAYERS["embedding"].slice(1).join(", ") + "].",
     "globalaveragepooling1d": "A GlobalAveragePooling1D layer must follow one of the following layers: [" + VALID_PREV_LAYERS["globalaveragepooling1d"].slice(1).join(", ") + "].",
     "mobilenetv2": "A MobileNetV2 layer must be the first one, else follow one of the following layers: [" + VALID_PREV_LAYERS["mobilenetv2"].slice(1).join(", ") + "].",
-    "mobilenetv2small": "A MobileNetV2 layer must be the first one, else follow one of the following layers: [" + VALID_PREV_LAYERS["mobilenetv2small"].slice(1).join(", ") + "].",
+    "mobilenetv2_96x96": "A MobileNetV2 layer must be the first one, else follow one of the following layers: [" + VALID_PREV_LAYERS["mobilenetv2_96x96"].slice(1).join(", ") + "].",
 }
 
 export function getLayerName(layer) {
@@ -396,7 +396,7 @@ export function getLayerName(layer) {
         return "GlobalAveragePooling1D"
     } else if (type == "mobilenetv2") {
         return "MobileNetV2"
-    } else if (type == "mobilenetv2small") {
+    } else if (type == "mobilenetv2_96x96") {
         return "MobileNetV2"
     }
 }
@@ -557,7 +557,7 @@ export function computeParams(layers, sequence_length = 256) {
         inUnits = 1280;
     }
 
-    else if (type === 'mobilenetv2small') {
+    else if (type === 'mobilenetv2_96x96') {
         const knownParams = 2257984; // UPDATE THIS
 
         totalParams += knownParams;

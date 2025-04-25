@@ -55,7 +55,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
             label: 'Pretrained Models',
             options: [
                 getLabeledOption('mobilenetv2', 'MobileNetV2 - 224x224x3'),
-                getLabeledOption('mobilenetv2small', 'MobileNetV2 - 96x96x3'),
+                getLabeledOption('mobilenetv2_96x96', 'MobileNetV2 - 96x96x3'),
             ],
         },
     ];
