@@ -52,13 +52,18 @@
         <meta property="og:url" content="https://www.dalinar.net/" />
         <meta property="og:image" content="https://dalinar.s3.eu-north-1.amazonaws.com/static/images/logo.png" />
 
+        <link rel="image_src" href="https://dalinar.s3.eu-north-1.amazonaws.com/static/images/logo.png">
+
         <script type="application/ld+json">
             {
               "@context": "https://schema.org",
               "@type": "Organization",
               "name": "Dalinar Technologies",
               "url": "https://dalinar.net",
-              "logo": "https://dalinar.s3.eu-north-1.amazonaws.com/static/images/logo.png"
+              "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://dalinar.s3.eu-north-1.amazonaws.com/static/images/logo.png"
+                }
             }
         </script>
     </head>
