@@ -841,7 +841,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             const dx = currentX - lastMousePos.x;
             const dy = currentY - lastMousePos.y;
     
-            const DAMPENING = 0.5;  // try values like 0.3 - 0.7
+            const DAMPENING = 1 / (zoom * 1.5);  // try values like 0.3 - 0.7
 
             const percentX = (dx / rect.width) * 100 * DAMPENING;
             const percentY = (dy / rect.height) * 100 * DAMPENING;

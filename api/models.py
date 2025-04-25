@@ -312,7 +312,8 @@ class AbstractLayer(models.Model):
         ("embedding", "Embedding"),
         ("globalaveragepooling1d", "GlobalAveragePooling1D"),
         ("mobilenetv2", "MobileNetV2"),
-        ("mobilenetv2_96x96", "MobileNetV2S_96x96"),
+        ("mobilenetv2_96x96", "MobileNetV2_96x96"),
+        ("mobilenetv2_32x32", "MobileNetV2_32x32"),
     ]
     layer_type = models.CharField(max_length=100, choices=LAYER_CHOICES)
     
@@ -520,6 +521,22 @@ class MobileNetV2_96x96Layer(Layer):
         
     def __str__(self):
         res = "MobileNetV2 (96x96x3)"
+        if self.model:
+            res += " - " + self.model.name
+            
+        return res
+    
+    
+class MobileNetV2_32x32Layer(Layer):
+    def save(self, *args, **kwargs):
+        self.trainable = False
+        self.input_x = 32
+        self.input_y = 32
+        self.input_z = 3
+        super().save(*args, **kwargs)
+        
+    def __str__(self):
+        res = "MobileNetV2 (32x32x3)"
         if self.model:
             res += " - " + self.model.name
             

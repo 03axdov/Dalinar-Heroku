@@ -129,6 +129,8 @@ class LayerSerializer(serializers.BaseSerializer):
             return MobileNetV2LayerSerializer(instance).data
         elif isinstance(instance, MobileNetV2_96x96Layer):
             return MobileNetV2_96x96LayerSerializer(instance).data
+        elif isinstance(instance, MobileNetV2_32x32Layer):
+            return MobileNetV2_32x32LayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     
@@ -162,6 +164,8 @@ class CreateLayerSerializer(serializers.BaseSerializer):
             return CreateMobileNetV2LayerSerializer(instance).data
         elif isinstance(instance, MobileNetV2_96x96Layer):
             return CreateMobileNetV2_96x96LayerSerializer(instance).data
+        elif isinstance(instance, MobileNetV2_32x32Layer):
+            return CreateMobileNetV2_32x32LayerSerializer(instance).data
         return None  # Handles unexpected cases
     
 
@@ -302,6 +306,16 @@ class MobileNetV2_96x96LayerSerializer(serializers.ModelSerializer):
 class CreateMobileNetV2_96x96LayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = MobileNetV2_96x96Layer
+        fields = []
+        
+
+class MobileNetV2_32x32LayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MobileNetV2_32x32Layer
+        fields = "__all__"
+class CreateMobileNetV2_32x32LayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MobileNetV2_32x32Layer
         fields = []
 
         

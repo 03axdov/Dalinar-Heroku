@@ -172,6 +172,9 @@ def get_tf_layer(layer):    # From a Layer instance
     elif layer_type == "mobilenetv2_96x96":
         model = get_pretrained_model("mobilenetv2_96x96")
         return model
+    elif layer_type == "mobilenetv2_32x32":
+        model = get_pretrained_model("mobilenetv2_32x32")
+        return model
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         raise Exception("Invalid layer: " + layer_type)
@@ -1286,7 +1289,7 @@ def set_to_tf_layer(layer_instance, tf_layer):
     elif isinstance(tf_layer, layers.Embedding):
         layer_instance.max_tokens = config["input_dim"]
         layer_instance.output_dim = config["output_dim"]
-    else:   # GlobalPooling1D and MobileNetV2 can't be reset
+    else:   # GlobalPooling1D and pretrained models can't be reset
         print("DID NOT UPDATE LAYER OF TYPE: ", layer_instance.layer_type)
         return # Continue instantiating model
     
