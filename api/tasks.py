@@ -103,6 +103,11 @@ def get_tf_model(model_instance, profile=None):     # Gets a Tensorflow model fr
         
     # Load the TensorFlow model from the temporary file
     model = tf.keras.models.load_model(temp_file_path)
+    
+    user_id = None
+    if profile:
+        user_id = profile.user.id
+    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
 
     return model, timestamp
     
@@ -190,7 +195,7 @@ def load_and_preprocess_image(file_path,input_dims,file_key):
     # Decode the image
     image = tf.image.decode_jpeg(image_bytes, channels=input_dims[-1])  # Assuming JPEG images
     
-    image = image / 255.0
+    image = tf.cast(image, tf.float32) / 255.0
     
     image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
     
@@ -478,9 +483,6 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     # Open the file and save it to Django's FileField
                     with open(temp_path, 'rb') as model_file:
                         model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
-
-                    # Delete the temporary file after saving
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                     
                     accuracy, val_accuracy, loss, val_loss = get_accuracy_loss(history, model_instance, validation_size)
                     
@@ -503,8 +505,6 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                 
                 except ValueError as e: # In case of invalid layer combination
                     set_training_progress(profile, -1)
-                    
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
 
                     message = str(e)
                     if len(message) > 50:
@@ -513,8 +513,6 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     return {"Bad request": str(message), "status": 400}
                 except Exception as e:
                     set_training_progress(profile, -1)
-                    
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
 
                     return {"Bad request": str(e), "status": 400}
             else:
@@ -660,9 +658,6 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     # Open the file and save it to Django's FileField
                     with open(temp_path, 'rb') as model_file:
                         model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
-
-                    # Delete the temporary file after saving
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                     
                     accuracy, val_accuracy, loss, val_loss = get_accuracy_loss(history, model_instance, validation_size)
                         
@@ -685,7 +680,6 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                 except ValueError as e: # In case of invalid layer combination
                     set_training_progress(profile, -1)
                     
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                     message = str(e)
 
                     if len(message) > 50:
@@ -695,7 +689,6 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                 except Exception as e:
                     set_training_progress(profile, -1)
                     
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                     return {"Bad request": str(e), "status": 400}
             else:
                 return {"Bad request": "Model has not been built.", "status": 400}
@@ -739,13 +732,9 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
                 try:
                     set_evaluation_progress(profile, 0)
                 
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                     res = model.evaluate(dataset, return_dict=True)
                 except Exception as e:
                     return {"Bad request": "Could not evaluate on given dataset.", "status": 400} 
-                
-                # Delete the temporary file after saving
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 
                 set_evaluation_progress(profile, 0.8)
                 
@@ -767,7 +756,6 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
                 set_evaluation_progress(profile, 0)
                 
                 message = str(e)
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 if len(message) > 50:
                     message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
                 
@@ -776,8 +764,6 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
                 return {"Bad request": str(message), "status": 400}
             except Exception as e:
                 set_evaluation_progress(profile, 0)
-                
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Bad request": "Model has not been built.", "status": 400}
@@ -804,10 +790,10 @@ def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Conve
     
     # Resize the image to fit model requirements
     image = image.resize((target_size[0], target_size[1]))
-    image = image / 255.0
     
     # Convert image to NumPy array
     image_array = np.array(image)
+    image_array = image_array / 255.0
     
     # Expand dimensions to match TensorFlow model input
     image_array = np.expand_dims(image_array, axis=0)  # Shape: (1, height, width, channels)
@@ -943,8 +929,6 @@ def predict_model_task(self, model_id, encoded_images, text):
                             prediction_names.append(predicted_label["name"])
                             prediction_colors.append(predicted_label["color"])
                     
-                    remove_temp_tf_model(model_instance, timestamp)
-                    
                     return {"predictions": prediction_names, "colors": prediction_colors, "status": 200}
                     
                 elif model_instance.model_type.lower() == "text":
@@ -967,8 +951,6 @@ def predict_model_task(self, model_id, encoded_images, text):
                     if model_instance.loss_function == "binary_crossentropy":
                         prediction_idx = int(prediction_arr[0][0] >= 0.5)
                     
-                    remove_temp_tf_model(model_instance, timestamp)
-                    
                     predicted_label = None
                     if model_instance.trained_on:
                         predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
@@ -979,14 +961,12 @@ def predict_model_task(self, model_id, encoded_images, text):
             
                 return {"status": 200}
             except ValueError as e: # In case of invalid layer combination
-                remove_temp_tf_model(model_instance, timestamp)
                 message = str(e)
                 if len(message) > 50:
                     message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
 
                 return {"Bad request": str(message), "status": 400}
             except Exception as e:
-                remove_temp_tf_model(model_instance, timestamp)
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Bad request": "Model has not been trained.", "status": 400}
@@ -1116,8 +1096,6 @@ def build_model_task(self, model_id, optimizer, learning_rate, loss_function, us
                 # Open the file and save it to Django's FileField
                 with open(temp_path, 'rb') as model_file:
                     instance.model_file.save(instance.name + ".keras", File(model_file))
-                    
-                remove_temp_tf_model(instance, timestamp, user_id)
 
                 # Delete the temporary file after saving
                 os.remove(temp_path)
@@ -1148,12 +1126,10 @@ def build_model_task(self, model_id, optimizer, learning_rate, loss_function, us
         
             except ValueError as e: # In case of invalid layer combination
                 print("Error: ", e)
-                remove_temp_tf_model(instance, timestamp, user_id=user_id)
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
                 return {"Bad request": str(e), "status": 400}
             except Exception as e:
-                remove_temp_tf_model(instance, timestamp, user_id=user_id)
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
                 return {"Bad request": str(e), "status": 400}
@@ -1226,9 +1202,6 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
                 # Open the file and save it to Django's FileField
                 with open(temp_path, 'rb') as model_file:
                     model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
-
-                # Delete the temporary file after saving
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 
                 model_instance.optimizer = optimizer
                 model_instance.loss_function = loss_function
@@ -1241,10 +1214,8 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
                 return {"status": 200}
         
             except ValueError as e: # In case of invalid layer combination
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 return {"Bad request": str(e), "status": 400}
             except Exception as e:
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Unauthorized": "You can only recompile your own models.", "status": 401}
@@ -1350,18 +1321,14 @@ def reset_to_build_task(self, layer_id, user_id):
                     if layer.name == str(layer_id):
                         found = True
                         layer_instance = set_to_tf_layer(layer_instance, layer)
-                        
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 
                 if not found: return {"data": None, "status": 200}
                 
                 return {"data": LayerSerializer(layer_instance).data,"status": 200}
         
             except ValueError as e: # In case of invalid layer combination
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 return {"Bad request": str(e), "status": 400}
             except Exception as e:
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Unauthorized": "You can only recompile your own models.", "status": 401}
