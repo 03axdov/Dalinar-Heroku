@@ -494,7 +494,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
                     {!loading && !is_explore && datasets.length === 0 && currentProfile.datasetsCount > 0 && <p className="gray-text">No such datasets found.</p>}
                     {!loading && is_explore && datasets.length === 0 && <p className="gray-text">No such datasets found.</p>}
 
-                    {!loading && !is_explore && currentProfile.datasetsCount == 0 && (
+                    {!loading && !is_explore && datasets.length === 0 && currentProfile.datasetsCount == 0 && (
                         <p>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
                     )}
 
