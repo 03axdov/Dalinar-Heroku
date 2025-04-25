@@ -808,7 +808,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         if (zoom < 1.25) {
             setPosition({ x: x, y: y }); 
-        } else {
+        } else if (zoom < 3) {
             const newX = position.x - (position.x - x) / 10
             const newY = position.y - (position.y - y) / 10
             setPosition({ x: newX, y: newY }); 
@@ -848,8 +848,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     
             setPosition(prev => ({
-                x: prev.x + percentX,
-                y: prev.y + percentY,
+                x: prev.x - percentX,
+                y: prev.y - percentY,
             }));
         }
     

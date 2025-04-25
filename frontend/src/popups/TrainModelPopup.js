@@ -6,6 +6,8 @@ import ProgressBar from "../components/ProgressBar"
 import ElementFilters from "../components/minor/ElementFilters"
 import { useTask } from "../contexts/TaskContext"
 import { debounce } from 'lodash';
+import Select from "react-select"
+import { customStylesNoMargin } from "../helpers/styles"
 
 function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentProfile, BACKEND_URL, notification, activateConfirmPopup, getModel}) {
     const { getTaskResult } = useTask();
@@ -346,6 +348,45 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
 
     const visibleSavedDatasets = savedDatasets.filter((dataset) => datasetShouldShow(dataset));
 
+    const getLabeledOption = ({value, label, title, color}) => ({
+        value,
+        label: (
+            <div title={title} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{
+                display: 'inline-block',
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+            }} className={"layer-element-stat-" + color} />
+            {label}
+            </div>
+        ),
+    });
+
+    const imageOptions = [
+        getLabeledOption({value: "cifar10", label: "cifar10", title: "50,000 images, 10 labels, 32x32x3 rgb images", color: "cyan"}),
+        getLabeledOption({value: "cifar100", label: "cifar100", title: "50,000 images, 100 labels, 32x32x3 rgb images", color: "blue"}),
+        getLabeledOption({value: "mnist", label: "mnist", title: "60,000 images, 10 labels, 28x28 grayscale images", color: "purple"}),
+        getLabeledOption({value: "fashion_mnist", label: "fashion_mnist", title: "60,000 images, 10 labels, 28x28 grayscale images", color: "pink"})
+    ];
+    
+    const textOptions = [
+        getLabeledOption({value: "imdb", label: "imdb", title: "25,000 elements, 2 labels", color: "cyan"}),
+        getLabeledOption({value: "reuters", label: "reuters", title: "11,228 elements, 46 labels", color: "green"}),
+    ];
+
+    const getLayerTypeOptions = (modelType) => {
+        if (modelType.toLowerCase() === 'image') {
+            return imageOptions
+        } else if (modelType.toLowerCase() === 'text') {
+            return textOptions
+        };
+    }
+
+    const tensorFlowOptions = getLayerTypeOptions(model_type)
+
+    console.log(tensorFlowOptions)
+
     return (
         <div className="popup train-model-popup" onClick={() => {
             setShowTrainModelPopup(false)
@@ -445,18 +486,17 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         </div>
 
                         <div className="tensorflow-dataset-container">
-                            <select className="tensorflow-dataset-select" value={tensorflowDataset} onChange={(e) => {
-                                setTensorflowDataset(e.target.value)
-                            }}>
-                                
-                                {model_type.toLowerCase() == "image" && <option value="cifar10" title="50,000 images, 10 labels, 32x32x3 rgb images">cifar10</option>}
-                                {model_type.toLowerCase() == "image" && <option value="cifar100" title="50,000 images, 100 labels, 32x32x3 rgb images">cifar100</option>}
-                                {model_type.toLowerCase() == "image" && <option value="mnist" title="60,000 images, 10 labels, 28x28 grayscale images">mnist</option>}
-                                {model_type.toLowerCase() == "image" && <option value="fashion_mnist" title="60,000 images, 10 labels, 28x28 grayscale images">fashion_mnist</option>}
 
-                                {model_type.toLowerCase() == "text" && <option value="imdb" title="25,000 elements, 2 labels">imdb</option>}
-                                {model_type.toLowerCase() == "text" && <option value="imdb" title="11,228 elements, 46 labels">reuters</option>}
-                            </select>
+                            <Select
+                            options={tensorFlowOptions}
+                            value={tensorFlowOptions
+                                .find((opt) => opt.value === tensorflowDataset)}
+                            onChange={(selected) => {
+                                setTensorflowDataset(selected.value)
+                            }}
+                            styles={customStylesNoMargin}
+                            className="w-full"
+                            />
 
                             <button className="tensorflow-dataset-train-button" onClick={() => {
                                 tensorflowDatasetOnClick()
