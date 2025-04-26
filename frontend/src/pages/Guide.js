@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DownloadCode from "../components/DownloadCode"
 import { LAYERS } from "../layers";
 import TitleSetter from "../components/minor/TitleSetter";
+import { Helmet } from "react-helmet";
 
 // The default page. Login not required.
 function Guide({BACKEND_URL}) {
@@ -27,8 +28,15 @@ function Guide({BACKEND_URL}) {
         win.focus();
     }
 
-    return (
+    return (<>
+        <Helmet>
+            <meta
+            name="description"
+            content="Learn how to use Dalinar to create datasets, train machine learning models, and explore AI tools — all without coding. Step-by-step guides and best practices to help you succeed."
+            />
+        </Helmet>
         <div className="guide-container" ref={containerRef}>
+            
             <TitleSetter title="Dalinar | Guide" />
             <div className="guide-toolbar">
                 <div className="guide-toolbar-element">
@@ -442,7 +450,7 @@ function Guide({BACKEND_URL}) {
                 </div>
             </div>}
         </div>
-    )
+    </>)
 }
 
 export default Guide

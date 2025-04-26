@@ -719,7 +719,13 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
         {value: "text-large", label: "Text Model (large)"}
     ]
 
-    return (
+    return (<>
+        <Helmet>
+            <meta
+            name="description"
+            content={"Explore " + (model ? "the " + model.name : "this") + " model on Dalinar. Ready-to-use data for machine learning projects — view, analyze, and train models without coding."}
+            />
+        </Helmet>
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
             <TitleSetter title={"Dalinar " + (model ? "- " + model.name : "")} />
 
@@ -1168,7 +1174,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                 </div>
             </div>
         </div>
-    )
+    </>)
 
     
 }

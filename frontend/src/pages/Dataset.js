@@ -14,6 +14,7 @@ import TitleSetter from "../components/minor/TitleSetter";
 import CreateLabel from "../popups/dataset/CreateLabel";
 import EditLabel from "../popups/dataset/EditLabel";
 import EditElement from "../popups/dataset/EditElement";
+import { Helmet } from "react-helmet";
 
 
 const TOOLBAR_HEIGHT = 60
@@ -1962,7 +1963,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         return data
     }
 
-    return (
+    return (<>
+        <Helmet>
+            <meta
+            name="description"
+            content={"Explore " + (dataset ? "the " + dataset.name : "this") + " dataset on Dalinar. Ready-to-use data for machine learning projects — view, analyze, and train models without coding."}
+            />
+        </Helmet>
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
             <TitleSetter title={"Dalinar " + (dataset ? "- " + dataset.name : "")} />
 
@@ -2488,7 +2495,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 </div>
             </div>
         </div>
-    )
+    </>)
 
     
 }
