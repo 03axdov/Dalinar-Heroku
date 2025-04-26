@@ -7,6 +7,7 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import axios from 'axios'
 import { debounce } from 'lodash';
 import TitleSetter from "../components/minor/TitleSetter"
+import { Helmet } from "react-helmet"
 
 // This is the personal view. /home
 function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_explore=false}) {
@@ -422,7 +423,14 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
     const visibleSavedDatasets = savedDatasets.filter((dataset) => datasetShouldShow(dataset));
     const visibleSavedModels = savedModels.filter((model) => modelShouldShow(model));
 
-    return <div className="home-container">
+    return <>
+        <Helmet>
+            <meta
+            name="description"
+            content={"Browse and manage " + (typeShown == "models" ? "models" : "datasets") +" on Dalinar. Prepare your data for machine learning models easily and quickly."}
+            />
+        </Helmet>
+        <div className="home-container">
         <TitleSetter title="Dalinar | Home" />
 
         <div className="home-sidebar">
@@ -659,6 +667,6 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
 
         
     </div>
-}
+</>}
 
 export default Home

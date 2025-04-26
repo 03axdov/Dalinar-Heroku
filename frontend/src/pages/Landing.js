@@ -32,7 +32,13 @@ function Landing({BACKEND_URL}) {
         BACKEND_URL + "/static/images/landing9.webp",
     ];
 
-    return (
+    return (<>
+        <Helmet>
+            <meta
+            name="description"
+            content="Welcome to Dalinar - Create and train machine learning models without coding. Upload datasets, build models, and explore AI easily."
+            />
+        </Helmet>
         <div className="landing-container">
             <TitleSetter title="Dalinar | AI made easy" />
             <div className="landing-header">
@@ -57,7 +63,7 @@ function Landing({BACKEND_URL}) {
             </div>
 
         </div>
-    )
+    </>)
 }
 
 export default Landing
