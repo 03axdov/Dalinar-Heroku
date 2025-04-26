@@ -806,13 +806,16 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.00125, minZoom), maxZoom);
 
-        if (zoom < 1.25) {
-            setPosition({ x: x, y: y }); 
-        } else if (zoom < 3) {
-            const newX = position.x - (position.x - x) / 10
-            const newY = position.y - (position.y - y) / 10
-            setPosition({ x: newX, y: newY }); 
+        if (newZoom > zoom) {
+            if (zoom < 1.25) {
+                setPosition({ x: x, y: y }); 
+            } else if (zoom < 3) {
+                const newX = position.x - (position.x - x) / 10
+                const newY = position.y - (position.y - y) / 10
+                setPosition({ x: newX, y: newY }); 
+            }
         }
+        
 
         
         setZoom(newZoom);

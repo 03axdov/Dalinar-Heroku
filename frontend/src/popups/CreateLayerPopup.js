@@ -56,6 +56,7 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
             options: [
                 getLabeledOption('mobilenetv2', 'MobileNetV2 - 224x224x3'),
                 getLabeledOption('mobilenetv2_96x96', 'MobileNetV2 - 96x96x3'),
+               // getLabeledOption('mobilenetv2_32x32', 'MobileNetV2 - 32x32x3'), // Shouldn't be used as this seems pointless
             ],
         },
     ];

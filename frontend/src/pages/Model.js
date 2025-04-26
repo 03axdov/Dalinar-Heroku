@@ -535,7 +535,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
         setLoading(true)
         axios.post(URL, data, config)
         .then((data) => {
-
+            setWarnings((prevWarnings) => {
+                const newWarnings = new Set(prevWarnings); // clone the Set
+                newWarnings.delete(id);              // remove the item
+                return newWarnings;                        // return new Set
+            });
             getModel()
 
             notification("Successfully deleted layer.", "success")

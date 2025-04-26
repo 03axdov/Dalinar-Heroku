@@ -331,7 +331,7 @@ export const LAYERS = {
         "no_dimensions": true,  // Avoids warnings if first layer,
         "info": "The MobileNetV2 model trained on ImageNet. Output shape: (None, 1280)"
     },
-    mobilenetv2_32x32: {
+    /* mobilenetv2_32x32: {
         "name": "MobileNetV2 (32x32)",
         "params": [],
         "image": "model.svg",
@@ -346,7 +346,7 @@ export const LAYERS = {
         "not_editable": true,
         "no_dimensions": true,  // Avoids warnings if first layer,
         "info": "The MobileNetV2 model trained on ImageNet. Output shape: (None, 1280)"
-    }
+    } */
 }
 
 
@@ -416,7 +416,7 @@ export function getLayerName(layer) {
         return "MobileNetV2"
     } else if (type == "mobilenetv2_96x96") {
         return "MobileNetV2 (96x96)"
-    } else if (type == "mobilenetv2_96x96") {
+    } else if (type == "mobilenetv2_32x32") {
         return "MobileNetV2 (32x32)"
     }
 }
