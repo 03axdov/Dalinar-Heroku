@@ -1299,6 +1299,18 @@ def set_to_tf_layer(layer_instance, tf_layer):
     layer_instance.updated = False
     layer_instance.save()
     return layer_instance
+
+
+@shared_task(bind=True)
+def reset_model_to_build_task(self, model_id, user_id):
+    try:
+        pass
+    except Profile.DoesNotExist:
+        return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
+    except Layer.DoesNotExist:
+        return {"Not found": "Could not find layer with the id " + str(layer_id) + ".", "status": 404}
+    except Exception as e:
+        return {"Bad request": str(e), "status": 400}
     
 
 @shared_task(bind=True)

@@ -33,6 +33,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
     const [layers, setLayers] = useState([])
 
     const [saving, setSaving] = useState(false)
+    const [resetting, setResetting] = useState(false)
 
     const [loading, setLoading] = useState(true)
     const [processingBuildModel, setProcessingBuildModel] = useState(false)
@@ -409,6 +410,34 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
             
         }).finally(() => {
             setSaving(false)
+        })
+    }
+
+    function resetModelToBuild() {
+        if (!currentProfile) {return}
+
+        const URL = window.location.origin + '/api/reset-model/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": model.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        if (resetting) {return}
+        setResetting(true)
+
+        axios.post(URL, data, config)
+        .then((data) => {
+            notification("Successfully reset model to last build.", "success")
+        }).catch((error) => {
+            notification("Error: " + error, "failure")
+        }).finally(() => {
+            getModel()
+            setResetting(false)
         })
     }
     
@@ -839,6 +868,15 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                     </div>}
                     
                     {!loading && layers.length == 0 && <p className="gray-text">Layers will show here</p>}
+
+                    {!isPublic && model && model.model_file && <div className="model-reset-button-container">
+                        <button type="button" 
+                        className={"sidebar-button dataset-upload-button " + (toolbarLeftWidth < 150 ? "sidebar-button-small" : "")} 
+                        title="Reset to build"
+                        onClick={() => activateConfirmPopup("Are you sure you want to reset the entire model to the latest build?", resetModelToBuild, "blue")}>
+                            <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} src={BACKEND_URL + "/static/images/" + (resetting ? "loading.gif" : "reset.svg")} alt="Reset" />
+                            <span>{(resetting ? "Resetting..." : "Reset to build")}</span>
+                    </button></div>}
                 </div>
                 <div className="dataset-toolbar-resizeable" 
                 onMouseDown={resizeLeftToolbarHandleMouseDown}
