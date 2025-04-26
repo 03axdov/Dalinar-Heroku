@@ -75,7 +75,10 @@ def get_pretrained_model(name, profile=None):
         
     # Load the TensorFlow model from the temporary file
     model = tf.keras.models.load_model(temp_file_path)
-    model.name = name
+    model.trainable = False
+    
+    if os.path.exists(temp_file_path):
+        os.remove(temp_file_path) 
 
     return model
     
@@ -111,12 +114,6 @@ def get_tf_model(model_instance, profile=None):     # Gets a Tensorflow model fr
 
     return model, timestamp
     
-    
-def remove_temp_tf_model(model_instance, timestamp, user_id=None):
-    extension = str(model_instance.model_file).split(".")[-1]
-    file_path = get_temp_model_name(model_instance.id, timestamp, extension, user_id)
-    if os.path.exists(file_path):
-        os.remove(file_path) 
 
 
 def get_tf_layer(layer):    # From a Layer instance
@@ -172,8 +169,11 @@ def get_tf_layer(layer):    # From a Layer instance
     elif layer_type == "mobilenetv2":
         model = get_pretrained_model("mobilenetv2")
         return model
-    elif layer_type == "mobilenetv2small":
-        model = get_pretrained_model("mobilenetv2small")
+    elif layer_type == "mobilenetv2_96x96":
+        model = get_pretrained_model("mobilenetv2_96x96")
+        return model
+    elif layer_type == "mobilenetv2_32x32":
+        model = get_pretrained_model("mobilenetv2_32x32")
         return model
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
@@ -896,7 +896,7 @@ def predict_model_task(self, model_id, encoded_images, text):
                     target_size = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
                     if first_layer.layer_type == "mobilenetv2": # Doesn't have input_x, ...
                         target_size = (224,224,3)
-                    if first_layer.layer_type == "mobilenetv2small": # Doesn't have input_x, ...
+                    if first_layer.layer_type == "mobilenetv2_96x96": # Doesn't have input_x, ...
                         target_size = (96,96,3)
                     
                     model, timestamp = get_tf_model(model_instance)
@@ -1146,6 +1146,8 @@ def set_trainable_recursive(layer, names_to_freeze):
     Recursively set trainable attribute on a layer and its sublayers.
     """
     if hasattr(layer, 'layers'):  # it's a model or a container
+        PRETRAINED_SET = set("mobilenetv2", "mobilenetv2_96x96", "mobilenetv2_32x32")
+        if layer.name in PRETRAINED_SET: return
         for sublayer in layer.layers:
             set_trainable_recursive(sublayer, names_to_freeze)
     else:
@@ -1287,7 +1289,7 @@ def set_to_tf_layer(layer_instance, tf_layer):
     elif isinstance(tf_layer, layers.Embedding):
         layer_instance.max_tokens = config["input_dim"]
         layer_instance.output_dim = config["output_dim"]
-    else:   # GlobalPooling1D and MobileNetV2 can't be reset
+    else:   # GlobalPooling1D and pretrained models can't be reset
         print("DID NOT UPDATE LAYER OF TYPE: ", layer_instance.layer_type)
         return # Continue instantiating model
     

@@ -24,6 +24,10 @@
     box-shadow: 0 0 0 1px var(--border-light);
 }
 
+.account-popup-container {
+    max-width: 85%;
+}
+
 .confirm-popup-container {
     width: 400px;
 }

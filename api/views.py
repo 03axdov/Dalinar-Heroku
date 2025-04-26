@@ -1487,7 +1487,7 @@ class CreateLayer(APIView):
                              "dropout", "maxpool2d", "rescaling",
                              "randomflip", "randomrotation", "resizing", "textvectorization",
                              "embedding", "globalaveragepooling1d", "mobilenetv2",
-                             "mobilenetv2small"])
+                             "mobilenetv2_96x96", "mobilenetv2_32x32"])
         if not layer_type in ALLOWED_TYPES:
             return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
         
@@ -1519,8 +1519,10 @@ class CreateLayer(APIView):
             serializer = CreateGlobalAveragePooling1DLayerSerializer(data=data)
         elif layer_type == "mobilenetv2":
             serializer = CreateMobileNetV2LayerSerializer(data=data)
-        elif layer_type == "mobilenetv2small":
-            serializer = CreateMobileNetV2SmallLayerSerializer(data=data)
+        elif layer_type == "mobilenetv2_96x96":
+            serializer = CreateMobileNetV2_96x96LayerSerializer(data=data)
+        elif layer_type == "mobilenetv2_32x32":
+            serializer = CreateMobileNetV2_32x32LayerSerializer(data=data)
         
         if serializer and serializer.is_valid():
             
@@ -1823,8 +1825,10 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
         data["type"] = "globalaveragepooling1d"
     elif tf_layer.name == "mobilenetv2":
         data["type"] = "mobilenetv2"
-    elif tf_layer.name == "mobilenetv2small":
-        data["type"] = "mobilenetv2small"
+    elif tf_layer.name == "mobilenetv2_96x96":
+        data["type"] = "mobilenetv2_96x96"
+    elif tf_layer.name == "mobilenetv2_32x32":
+        data["type"] = "mobilenetv2_32x32"
     else:
         print("UNKNOWN LAYER TYPE: ", tf_layer)
         return # Continue instantiating model

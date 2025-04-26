@@ -808,7 +808,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         if (zoom < 1.25) {
             setPosition({ x: x, y: y }); 
-        } else {
+        } else if (zoom < 3) {
             const newX = position.x - (position.x - x) / 10
             const newY = position.y - (position.y - y) / 10
             setPosition({ x: newX, y: newY }); 
@@ -841,15 +841,15 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             const dx = currentX - lastMousePos.x;
             const dy = currentY - lastMousePos.y;
     
-            const DAMPENING = 0.5;  // try values like 0.3 - 0.7
+            const DAMPENING = 1 / (zoom * 1.5);  // try values like 0.3 - 0.7
 
             const percentX = (dx / rect.width) * 100 * DAMPENING;
             const percentY = (dy / rect.height) * 100 * DAMPENING;
 
     
             setPosition(prev => ({
-                x: prev.x + percentX,
-                y: prev.y + percentY,
+                x: prev.x - percentX,
+                y: prev.y - percentY,
             }));
         }
     
