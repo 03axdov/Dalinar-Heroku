@@ -174,3 +174,10 @@
         font-size: 1rem;
     }
 }
+
+@media all and (max-width: 550px) {
+    .title-forms {
+        justify-content: center;
+        width: 100%;
+    }
+}

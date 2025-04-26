@@ -100,3 +100,27 @@
 .sidebar-types-element-selected {
     background: var(--sidebar-lighter)!important;
 }
+
+@media all and (max-width: 550px) {
+    .sidebar-types-element-icon {
+        display: none;
+    }
+
+    .my-datasets-title {
+        padding-right: 0;
+        text-align: center;
+        width: 100%;
+    }
+
+    .my-datasets-container {
+        padding: 0;
+    }
+
+    .home-non-sidebar {
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+    .home-non-sidebar::-webkit-scrollbar {
+        width: 7px;
+    }
+}

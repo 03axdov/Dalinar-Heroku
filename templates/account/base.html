@@ -59,14 +59,14 @@
       <a class="accounts-logo" href="/"><img id="toolbar-logo" src={% static 'images/logoWhite.svg' %} /></a>
       <a href="/" class="toolbar-text toolbar-title">Dalinar</a>
 
-      <a href="/home" class="toolbar-text">Home</a>
+      <a href="/home" class="toolbar-text toolbar-mobile-hide">Home</a>
 
       <a href="/explore" class="toolbar-text">Explore</a>
 
-      <a href="/guide" target="_blank" class="toolbar-text">Guide <img class="toolbar-icon" src={% static 'images/external.png' %} /></a>
+      <a href="/guide" target="_blank" class="toolbar-text toolbar-mobile-hide">Guide <img class="toolbar-icon" src={% static 'images/external.png' %} /></a>
 
       {% if not user.is_authenticated %}
-      <div class="toolbar-auth">
+      <div class="toolbar-auth toolbar-mobile-hide">
           <a class="toolbar-text" href="/accounts/signup">Register</a>
           <a href="/accounts/login" class="toolbar-button toolbar-register">Sign in</a>
       </div>
