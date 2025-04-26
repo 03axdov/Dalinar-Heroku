@@ -54,6 +54,7 @@ urlpatterns = [
     path("predict-model/", PredictModel.as_view(), name="predict-model"),
     path("save-model/", SaveModel.as_view(), name="save-model"),
     path("unsave-model/", UnsaveModel.as_view(), name="unsave-model"),
+    path("reset-model/", ResetModelToBuild.as_view(), name="reset-model"),
     
     # LAYER HANDLING
     path("create-layer/", CreateLayer.as_view(), name="create-layer"),

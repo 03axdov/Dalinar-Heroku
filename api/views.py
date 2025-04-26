@@ -1470,6 +1470,90 @@ class UnsaveModel(APIView):
                 return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Unauthorized": "You must be signed in to unsave models."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class ResetModelToBuild(APIView):
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        model_id = request.data["id"]
+        
+        user = self.request.user
+        
+        backend_temp_model_path = ""
+        
+        if user.is_authenticated:
+            try:
+                model_instance = Model.objects.get(id=model_id)
+                
+                if model_instance.owner == user.profile:  
+                    for layer in model_instance.layers.all():    # Workaround due to bug with Django Polymorphic
+                        layer.delete()
+                    
+                    model_file = model_instance.model_file
+                    extension = model_file.name.split(".")[-1]
+                    temp_path = "tmp/temp_models/" + model_file.name
+                    file_path = default_storage.save(temp_path, model_file.file)
+                    
+                    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+                    temp_model_file_path = "media/" + file_path
+                    print(f"Model file saved at: {temp_model_file_path}")
+                            
+                    s3_client = get_s3_client()
+                    
+                    # Download the model file from S3 to a local temporary file
+                    timestamp = time.time()
+                    backend_temp_model_path = get_temp_model_name(model_instance.id, timestamp, extension)
+                    with open(backend_temp_model_path, 'wb') as f:
+                        s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
+
+                    model = tf.keras.models.load_model(backend_temp_model_path)
+                    
+                    model.summary()
+                    
+                    default_storage.delete(file_path)
+                    
+                    os.remove(backend_temp_model_path)
+                    
+                    for t, layer in enumerate(model.layers):
+                        layer_model_from_tf_layer(layer, model_instance.id, request, t)
+                        
+                    model.summary()
+                        
+                    model_instance.model_file = model_file
+                    model_instance.optimizer = model.optimizer.__class__.__name__.lower()
+
+                    def get_loss_name(loss):
+                        if isinstance(loss, str):
+                            return loss
+                        elif hasattr(loss, '__name__'):
+                            return loss.__name__
+                        elif hasattr(loss, 'name'):
+                            return loss.name
+                        elif hasattr(loss, '__class__'):
+                            return loss.__class__.__name__
+                        return str(loss)
+
+                    model_instance.loss_function = get_loss_name(model.loss)
+                    
+                    model_instance.save()
+                    
+                    for layer in model_instance.layers.all():
+                        layer.updated = False
+                        layer.save()
+                    
+                    return Response(None, status=status.HTTP_200_OK)
+            
+                else:
+                    return Response({"Unauthorized": "You can only reset your own models."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Model.DoesNotExist: 
+                return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+            except Exception as e:
+                if backend_temp_model_path and os.path.exists(backend_temp_model_path):
+                    os.remove(backend_temp_model_path)
+                return Response({"Bad request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"Unauthorized": "You must be signed in to reset models to build."}, status=status.HTTP_401_UNAUTHORIZED)
 
            
 # LAYER FUNCTIONALITY
@@ -1847,12 +1931,10 @@ def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a Te
     layer_request.user = request.user
     
     layer_response = create_layer(layer_request)
+    
     if layer_response.status_code != 200:
-        return {'Bad Request': f'Error creating layer {idx}', "status": layer_response.status_code}
-        
-    else:
-        layer_id = str(layer_response.data.get('id'))
-        tf_layer.name = layer_id
+        return {'Bad Request': f'Error creating layer {idx}', "status": layer_response.status_code} 
+
     
     
 # Not currently a task

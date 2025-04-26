@@ -18,6 +18,8 @@ import EditModel from "./pages/EditModel"
 import { TaskProvider } from "./contexts/TaskContext"
 import ProfileBar from "./components/ProfileBar"
 
+import { Helmet } from "react-helmet";
+
 
 // Local: "http://127.0.0.1:8000"
 // Production: "https://dalinar.s3.eu-north-1.amazonaws.com"
@@ -104,7 +106,20 @@ export default function App() {
         }, delay)
     }
 
-    return (
+    return (<>
+        <Helmet>
+            <script type="application/ld+json">
+            {`
+                {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Dalinar Technologies",
+                "url": "https://dalinar.net",
+                "logo": "https://dalinar.s3.eu-north-1.amazonaws.com/static/images/logo.jpg"
+                }
+            `}
+            </script>
+        </Helmet>
         <div id="main">
             <TaskProvider>
             <Notification show={showNotification} message={notificationMessage} type={notificationType} notificationHover={notificationHover} BACKEND_URL={BACKEND_URL}/>
@@ -137,5 +152,5 @@ export default function App() {
             
             </TaskProvider>
         </div>
-    )
+    </>)
 }

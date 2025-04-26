@@ -835,6 +835,14 @@ div.layer-element-mode-input {
     color: var(--gray-text);
 }
 
+.model-reset-button-container {
+    margin-bottom: 20px;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    width: calc(100% - 20px);
+}
+
 @media all and (max-width: 1400px) {
     .model-evaluate-button {
         font-size: 0rem;

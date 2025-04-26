@@ -114,7 +114,13 @@ def get_tf_model(model_instance, profile=None):     # Gets a Tensorflow model fr
 
     return model, timestamp
     
-
+    
+def remove_temp_tf_model(model_instance, timestamp, user_id=None):
+    extension = str(model_instance.model_file).split(".")[-1]
+    file_path = get_temp_model_name(model_instance.id, timestamp, extension, user_id)
+    if os.path.exists(file_path):
+        os.remove(file_path) 
+        
 
 def get_tf_layer(layer):    # From a Layer instance
     layer_type = layer.layer_type
@@ -185,6 +191,7 @@ def download_s3_file(bucket_name, file_key):
     response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
     return response['Body'].read()  # Returns the raw bytes
 
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 # Function to load and preprocess the images
 def load_and_preprocess_image(file_path,input_dims,file_key):
@@ -195,9 +202,13 @@ def load_and_preprocess_image(file_path,input_dims,file_key):
     # Decode the image
     image = tf.image.decode_jpeg(image_bytes, channels=input_dims[-1])  # Assuming JPEG images
     
-    image = tf.cast(image, tf.float32) / 255.0
+    image = tf.cast(image, tf.float32)
     
     image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
+    
+    print(f"image.shape: {image.shape}")
+    
+    image = preprocess_input(image)
     
     return image
 
@@ -290,6 +301,8 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
         input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z) 
         if first_layer.layer_type == "mobilenetv2":
             input_dims = (224,224,3)
+        if first_layer.layer_type == "mobilenetv2_96x96":
+            input_dims = (96,96,3)
         elements = list(map(imageMapFunc, file_paths))
         
     elif dataset_instance.dataset_type == "text":
@@ -583,8 +596,24 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
             x_train = pad_sequences(x_train, maxlen=model_instance.input_sequence_length)
         if last_layer.layer_type == "dense" and last_layer.nodes_count > 1 and model_instance.loss_function != "sparse_categorical_crossentropy":
             y_train = to_categorical(y_train, num_classes=tf_dataset_num_classes[tensorflowDataset])
-
+            
         dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+        
+        if model_instance.model_type.lower() == "image":
+            first_layer = model_instance.layers.first()
+            input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z) 
+            if first_layer.layer_type == "mobilenetv2":
+                input_dims = (224,224,3)
+            if first_layer.layer_type == "mobilenetv2_96x96":
+                input_dims = (96,96,3)
+                
+            def imageMapFunc(image, label):
+                image = tf.cast(image, tf.float32)
+                image = tf.image.resize(image, [input_dims[0], input_dims[1]])
+                image = preprocess_input(image)
+                return image, label
+
+            dataset = dataset.map(imageMapFunc, num_parallel_calls=tf.data.AUTOTUNE)
         
         if model_instance.owner == profile:
             
@@ -793,7 +822,7 @@ def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Conve
     
     # Convert image to NumPy array
     image_array = np.array(image)
-    image_array = image_array / 255.0
+    image_array = preprocess_input(image_array)
     
     # Expand dimensions to match TensorFlow model input
     image_array = np.expand_dims(image_array, axis=0)  # Shape: (1, height, width, channels)
@@ -1299,6 +1328,18 @@ def set_to_tf_layer(layer_instance, tf_layer):
     layer_instance.updated = False
     layer_instance.save()
     return layer_instance
+
+
+@shared_task(bind=True)
+def reset_model_to_build_task(self, model_id, user_id):
+    try:
+        pass
+    except Profile.DoesNotExist:
+        return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
+    except Layer.DoesNotExist:
+        return {"Not found": "Could not find layer with the id " + str(layer_id) + ".", "status": 404}
+    except Exception as e:
+        return {"Bad request": str(e), "status": 400}
     
 
 @shared_task(bind=True)
