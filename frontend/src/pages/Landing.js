@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { useNavigate } from "react-router-dom";
 import LandingImageRow from "../components/LandingImageRow"
 import TitleSetter from "../components/minor/TitleSetter";
+import { Helmet } from "react-helmet"
 
 // The default page. Login not required.
 function Landing({BACKEND_URL}) {
