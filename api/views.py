@@ -581,6 +581,14 @@ class CreateElement(APIView):
                             # Resize images if dataset has specified dimensions
                             if dataset.imageHeight and dataset.imageWidth and fileExtension in ALLOWED_IMAGE_FILE_EXTENSIONS:
                                 resize_element_image(instance, dataset.imageWidth, dataset.imageHeight)
+                                
+                        if "label" in data.keys():
+                            try:
+                                label = Label.objects.get(id=data["label"])
+                                instance.label = label
+                                instance.save()
+                            except Label.DoesNotExist:
+                                return Response({'Not found': 'Could not find label with the id ' + str(data["label"]) + '.'}, status=status.HTTP_404_NOT_FOUND)
                             
                         return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
                     

@@ -153,6 +153,8 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
     function deleteDataset(e) {
         e.preventDefault()
 
+        if (processingDelete) return;
+
         activateConfirmPopup("Are you sure you want to delete the dataset " + originalName + "? This action cannot be undone.", deleteDatasetInner)
     }
 

@@ -56,6 +56,17 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
     function formOnSubmit(e) {
         e.preventDefault()
 
+        let totalSize = 0;
+        Object.entries(uploadedDatasets).forEach(([label, fileList]) => {
+            fileList.forEach((file) => {
+                totalSize += file.size
+            })
+        })
+        if (totalSize > 1 * 10**9) {
+            notification("A maximum of 1 Gb can be uploaded at a time.", "failure")
+            return;
+        }
+
         if ((imageWidth && !imageHeight) || (!imageWidth && imageHeight)) {
             notification("You must specify either both image dimensions or neither.", "failure")
             return;
@@ -141,38 +152,54 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         throw new Error("Upload failed after multiple retries due to rate limits.");
     }
 
+    function randomColor() {
+        const r = Math.floor(Math.random() * 256);  // 0–255
+        const g = Math.floor(Math.random() * 256);
+        const b = Math.floor(Math.random() * 256);
+    
+        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    }
+
     function createElements(dataset_id) {
         setLoading(true);
     
-        const URL = window.location.origin + '/api/create-element/';
-        const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+        const labelPromises = [];
+        const fileLabelPairs = [];
     
-        const allFiles = [];
-        const allLabels = [];
-    
-        // Flatten all files to a single array with metadata
         Object.entries(uploadedDatasets).forEach(([label, fileList]) => {
-            let formData = new FormData()
-
-            formData.append('name', label)
-            formData.append('color', "#ffffff")
-            formData.append('dataset', dataset_id)
-
-            const URL = window.location.origin + '/api/create-label/'
-            const config = {headers: {'Content-Type': 'application/json'}}
-
-            axios.post(URL, formData, config)
-            .then((res) => {
-                fileList.forEach((file) => {
-                    allFiles.push(file);
-                    allLabels.push(res.data.id)
+            const formData = new FormData();
+            formData.append('name', label);
+            formData.append('color', randomColor());
+            formData.append('dataset', dataset_id);
+    
+            const URL = window.location.origin + '/api/create-label/';
+            const config = { headers: { 'Content-Type': 'application/json' } };
+    
+            const labelPromise = axios.post(URL, formData, config)
+                .then((res) => {
+                    const labelId = res.data.id;
+                    fileList.forEach(file => {
+                        fileLabelPairs.push({ file, label: labelId });
+                    });
+                })
+                .catch((error) => {
+                    notification("Failed to create label " + label, "failure");
                 });
-            }).catch((error) => {
-                notification("Failed to create label " + label, "failure")
-            })
-            
+    
+            labelPromises.push(labelPromise);
         });
     
+        Promise.all(labelPromises).then(() => {
+            const allFiles = fileLabelPairs.map(p => p.file);
+            const allLabels = fileLabelPairs.map(p => p.label);
+            createElementsInner(dataset_id, allFiles, allLabels);
+        });
+    }    
+
+    function createElementsInner(dataset_id, allFiles, allLabels) {
+        const URL = window.location.origin + '/api/create-element/';
+        const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+
         let currentIndex = 0;
         let activeUploads = 0;
         let completedUploads = 0;
@@ -181,8 +208,9 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
     
         function startNext() {
             while (activeUploads < MAX_CONCURRENT_UPLOADS && currentIndex < allFiles.length) {
-                const file = allFiles[currentIndex++];
-                const label = allLabels[currentIndex++];
+                const file = allFiles[currentIndex];
+                const label = allLabels[currentIndex];
+                currentIndex += 1
                 const formData = new FormData();
                 formData.append('file', file);
                 formData.append('dataset', dataset_id);
@@ -632,8 +660,8 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                                 Will create labels for all subfolders in the uploaded folder, with elements in each subfolder belonging to that label.
                             </p>
 
-                            <div className="upload-dataset-type-image-container">
-                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/foldersAsLabels.jpg"} alt="Folders as labels" onClick={folderInputClick} />
+                            <div className="upload-dataset-type-image-container" onClick={folderInputClick}>
+                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/foldersAsLabels.jpg"} alt="Folders as labels"  />
                             </div>
                             
                             <button type="button" className="upload-dataset-button" onClick={folderInputClick}>

@@ -4,6 +4,7 @@ TO-DO:
 - Problem with testing and files on AWS not getting deleted
 - Look into deleting temp model file in get_tf_model
 - Reset entire model to build
+- Progress bar create dataset
 
 Layers to add:
 
