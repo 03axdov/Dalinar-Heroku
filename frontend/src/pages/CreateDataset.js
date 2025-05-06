@@ -89,15 +89,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         
         formData.append("imageWidth", imageWidth)
         formData.append("imageHeight", imageHeight)
-
-        if (type != "area") {
-            Object.entries(uploadedDatasets).forEach(([key, fileList]) => {
-                formData.append("labels", key)
-                fileList.forEach((file) => {
-                    formData.append(key, file)
-                })
-            })
-        }
         
         const URL = window.location.origin + '/api/create-dataset/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
@@ -108,17 +99,121 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
 
         setLoading(true)
         axios.post(URL, formData, config)
-        .then((data) => {
-            console.log("Success:", data);
-            navigate("/home")
-            notification("Successfully created dataset " + name + ".", "success")
+        .then((res) => {
+            console.log("Success:", res.data);
+            
+            
+            if (!isEmpty(uploadedDatasets)) {
+                createElements(res.data.id)
+            } else {
+                navigate("/home")
+                notification("Successfully created dataset " + name + ".", "success")
+            }
+            
         }).catch((error) => {
             notification("An error occured.", "failure")
             console.log("Error: ", error)
         }).finally(() => {
-            setLoading(false)
+            if (isEmpty(uploadedDatasets)) {
+                setLoading(false)
+            }
         })
     }
+
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    async function uploadWithRetry(url, formData, config, retries = 5, delayMs = 1000) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                await axios.post(url, formData, config);
+                return;  // success
+            } catch (error) {
+                if (error.response && error.response.status === 429) {
+                    console.warn(`Rate limited. Waiting before retry... (${i+1}/${retries})`);
+                    await delay(delayMs * (i + 1)); // exponential backoff
+                } else {
+                    throw error;  // propagate non-429 errors
+                }
+            }
+        }
+        throw new Error("Upload failed after multiple retries due to rate limits.");
+    }
+
+    function createElements(dataset_id) {
+        setLoading(true);
+    
+        const URL = window.location.origin + '/api/create-element/';
+        const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+    
+        const allFiles = [];
+        const allLabels = [];
+    
+        // Flatten all files to a single array with metadata
+        Object.entries(uploadedDatasets).forEach(([label, fileList]) => {
+            let formData = new FormData()
+
+            formData.append('name', label)
+            formData.append('color', "#ffffff")
+            formData.append('dataset', dataset_id)
+
+            const URL = window.location.origin + '/api/create-label/'
+            const config = {headers: {'Content-Type': 'application/json'}}
+
+            axios.post(URL, formData, config)
+            .then((res) => {
+                fileList.forEach((file) => {
+                    allFiles.push(file);
+                    allLabels.push(res.data.id)
+                });
+            }).catch((error) => {
+                notification("Failed to create label " + label, "failure")
+            })
+            
+        });
+    
+        let currentIndex = 0;
+        let activeUploads = 0;
+        let completedUploads = 0;
+    
+        const MAX_CONCURRENT_UPLOADS = 10;
+    
+        function startNext() {
+            while (activeUploads < MAX_CONCURRENT_UPLOADS && currentIndex < allFiles.length) {
+                const file = allFiles[currentIndex++];
+                const label = allLabels[currentIndex++];
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('dataset', dataset_id);
+                formData.append("label", label)
+    
+                activeUploads++;
+    
+                uploadWithRetry(URL, formData, config)
+                    .catch((error) => {
+                        console.error("Upload failed:", error);
+                        notification("Upload failed for one or more files.", "failure");
+                    })
+                    .finally(() => {
+                        activeUploads--;
+                        completedUploads++;
+    
+                        if (completedUploads === allFiles.length) {
+                            navigate("/home");
+                            notification("Successfully created dataset " + name + ".", "success");
+                            setLoading(false);
+                        } else {
+                            startNext(); // start next upload if available
+                        }
+                    });
+            }
+        }
+    
+        // Start initial batch
+        startNext();
+    }
+    
 
     function folderInputClick() {
         if (hiddenFolderInputRef.current) {
