@@ -9,3 +9,4 @@ Layers to add:
 
 Start Celery Worker: 
 celery -A Dalinar.celery worker --pool=solo -l info -Q default
+celery -A Dalinar.celery worker --pool=solo -l info -Q training
