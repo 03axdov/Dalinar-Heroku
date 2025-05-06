@@ -22,6 +22,7 @@ import throttle from 'lodash.throttle';
 import Select from 'react-select';
 import { customStylesNoMargin } from "../helpers/styles";
 import TitleSetter from "../components/minor/TitleSetter";
+import { Helmet } from "react-helmet"
 
 
 // The default page. Login not required.
