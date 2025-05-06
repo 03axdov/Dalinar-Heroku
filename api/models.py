@@ -46,7 +46,7 @@ def save_profile(sender, instance, **kwargs):
 def image_file_path(instance, filename):
     """Generate a dynamic path for file uploads based on dataset ID and name."""
 
-    dataset_dir = f"images/{instance.id}-{instance.name}"
+    dataset_dir = f"images/{instance.id}-{instance.name} (D)"
 
     return os.path.join(dataset_dir, filename)
 
@@ -208,6 +208,13 @@ class Area(models.Model):   # Only used for datasets of datatype "area"
     def __str__(self):
         return "Element: " + self.element.name + ", Label: " + self.label.name + ". Points: " + str(self.area_points)
     
+
+def model_image_path(instance, filename):
+    """Generate a dynamic path for file uploads based on dataset ID and name."""
+
+    dataset_dir = f"images/{instance.id}-{instance.name} (M)"
+
+    return os.path.join(dataset_dir, filename)
     
 # MODELS
 class Model(models.Model):
@@ -215,8 +222,8 @@ class Model(models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="models")
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    image = models.ImageField(upload_to='images/', null=True)
-    imageSmall = models.ImageField(upload_to="images/", null=True)
+    image = models.ImageField(upload_to=model_image_path, null=True)
+    imageSmall = models.ImageField(upload_to=model_image_path, null=True)
     downloaders = models.ManyToManyField(Profile, related_name="downloaded_models", blank=True)
     verified = models.BooleanField(default=False)
     saved_by = models.ManyToManyField(Profile, related_name="saved_models", blank=True)

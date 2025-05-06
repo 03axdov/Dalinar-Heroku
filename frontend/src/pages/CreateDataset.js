@@ -15,6 +15,9 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
     const [uploadingDatasetCsv, setUploadingDatasetCsv] = useState(false)
     const [uploadingPercentage, setUploadingPercentage] = useState(false)
 
+    const [creatingElements, setCreatingElements] = useState(false)
+    const [creatingElementsProgress, setCreatingElementsProgress] = useState(0)
+
     const [datasetType, setDatasetType] = useState("image")
     const [type, setType] = useState("classification")  // used for image datasets, either "classification" or "area"
     const [name, setName] = useState("")
@@ -142,10 +145,19 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                 return;  // success
             } catch (error) {
                 if (error.response && error.response.status === 429) {
-                    console.warn(`Rate limited. Waiting before retry... (${i+1}/${retries})`);
-                    await delay(delayMs * (i + 1)); // exponential backoff
+                    let waitTime = delayMs * (i + 1); // default backoff
+    
+                    const retryAfter = error.response.headers['retry-after'];
+                    if (retryAfter) {
+                        const parsed = parseInt(retryAfter, 10);
+                        // Retry-After can be seconds or HTTP date. Assume seconds if numeric.
+                        waitTime = isNaN(parsed) ? delayMs * (i + 1) : parsed * 1000;
+                    }
+    
+                    console.warn(`Rate limited. Waiting ${waitTime} ms before retry... (${i + 1}/${retries})`);
+                    await delay(waitTime);
                 } else {
-                    throw error;  // propagate non-429 errors
+                    throw error;  // non-rate-limit errors
                 }
             }
         }
@@ -161,7 +173,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
     }
 
     function createElements(dataset_id) {
-        setLoading(true);
+        setCreatingElements(true)
     
         const labelPromises = [];
         const fileLabelPairs = [];
@@ -226,11 +238,15 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                     .finally(() => {
                         activeUploads--;
                         completedUploads++;
-    
+                        setCreatingElementsProgress((completedUploads / allFiles.length) * 100)
+                        
                         if (completedUploads === allFiles.length) {
-                            navigate("/home");
-                            notification("Successfully created dataset " + name + ".", "success");
-                            setLoading(false);
+                            setCreatingElementsProgress(100)
+                            setTimeout(() => {
+                                navigate("/home");
+                                notification("Successfully created dataset " + name + ".", "success");
+                            }, 200)
+                            
                         } else {
                             startNext(); // start next upload if available
                         }
@@ -483,6 +499,11 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
             {(uploadingDatasetFilenames || uploadingDatasetFolders || uploadingDatasetCsv) && <ProgressBar 
                 progress={uploadingPercentage}
                 message="Uploading..."
+                BACKEND_URL={BACKEND_URL}></ProgressBar>}
+
+            {creatingElements && <ProgressBar 
+                progress={creatingElementsProgress}
+                message="Processing..."
                 BACKEND_URL={BACKEND_URL}></ProgressBar>}
 
             <div className="create-dataset-form">
