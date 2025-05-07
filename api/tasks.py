@@ -372,6 +372,25 @@ def get_vectorize_layer(model_instance, model, train_ds, vocabulary=None):
     else:
         return model
     
+    
+@shared_task(bind=True)
+def delete_dataset_task(self, dataset_id, user_id):
+    try:
+        profile = Profile.objects.get(user_id=user_id)
+        dataset = Dataset.objects.get(id=dataset_id)
+        
+        if dataset.owner == profile:
+            dataset.delete()
+            
+            return {"status": 200}
+        
+        else:
+            return {"Unauthorized": "You can only delete your own datasets.", "status": 401}
+    except Dataset.DoesNotExist:
+        return {"Not found": "Could not find dataset with the id " + str(dataset_id + "."), "status": 404}
+    except Profile.DoesNotExist:
+        return {"Not found": "Could not find profile with the id " + str(user_id + "."), "status": 404}
+    
 
 class TrainingProgressCallback(tf.keras.callbacks.Callback):
     def __init__(self, profile, total_epochs):

@@ -447,18 +447,12 @@ class DeleteDataset(APIView):
         user = self.request.user
         
         if user.is_authenticated:
-            try:
-                dataset = Dataset.objects.get(id=dataset_id)
-                
-                if dataset.owner == user.profile:
-                    dataset.delete()
-                    
-                    return Response(None, status=status.HTTP_200_OK)
-                
-                else:
-                    return Response({"Unauthorized": "You can only delete your own datasets."}, status=status.HTTP_401_UNAUTHORIZED)
-            except Dataset.DoesNotExist:
-                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id + ".")}, status=status.HTTP_404_NOT_FOUND)
+            task = delete_dataset_task.delay(dataset_id, user.id)
+
+            return Response({
+                "message": "Deleting started",
+                "task_id": task.id
+            }, status=status.HTTP_200_OK)
         else:
             return Response({'Unauthorized': 'Must be logged in to delete datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
         
