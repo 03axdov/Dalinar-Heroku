@@ -162,9 +162,10 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
     }
     
     function randomColor() {
-        const r = Math.floor(Math.random() * 256);
-        const g = Math.floor(Math.random() * 256);
-        const b = Math.floor(Math.random() * 256);
+        const min = 50; // Avoid dark colors
+        const r = Math.floor(Math.random() * (256 - min) + min);
+        const g = Math.floor(Math.random() * (256 - min) + min);
+        const b = Math.floor(Math.random() * (256 - min) + min);
         return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     }
     
@@ -217,11 +218,12 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         const chunks = chunkArray(fileLabelPairs, 10);
         let completed = 0;
     
-        async function uploadChunk(chunk) {
+        async function uploadChunk(chunk, i) {
             const formData = new FormData();
             chunk.forEach(pair => formData.append('files', pair.file));
     
             formData.append('dataset', dataset_id);
+            formData.append('index', i*10)
             // If all files in this chunk share the same label, send it
             const uniqueLabels = new Set(chunk.map(p => p.label));
             if (uniqueLabels.size === 1) {
@@ -234,7 +236,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         async function uploadAllChunks() {
             await Promise.all(chunks.map(async (chunk, i) => {
                 try {
-                    await uploadChunk(chunk);
+                    await uploadChunk(chunk, i);
                 } catch (e) {
                     console.error("Chunk upload failed:", e);
                     notification("Upload failed for one or more batches.", "failure");
