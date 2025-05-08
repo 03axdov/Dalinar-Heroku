@@ -206,8 +206,6 @@ def load_and_preprocess_image(file_path,input_dims,file_key):
     
     image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
     
-    print(f"image.shape: {image.shape}")
-    
     image = preprocess_input(image)
     
     return image

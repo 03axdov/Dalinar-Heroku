@@ -498,6 +498,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                             className="w-full"
                             />
 
+                            <p style={{fontSize: "0.9rem", textAlign: "center", width: "100%"}}>Hover datasets for details.</p>
+
                             <button className="tensorflow-dataset-train-button" onClick={() => {
                                 tensorflowDatasetOnClick()
                             }}>Train</button>
