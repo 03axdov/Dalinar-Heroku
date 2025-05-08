@@ -596,6 +596,63 @@ class CreateElement(APIView):
         else:
             return Response({"Bad Request": "An error occured while creating element"}, status=status.HTTP_400_BAD_REQUEST)
         
+
+class CreateElements(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, format=None):
+        files = request.FILES.getlist("files")
+        dataset_id = request.data.get("dataset")
+        index = request.data.get("index")
+        label_id = request.data.get("label", None)
+        user = request.user
+
+        if not files:
+            return Response({"error": "No files provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            dataset = Dataset.objects.get(id=dataset_id)
+        except Dataset.DoesNotExist:
+            return Response({'error': f'Could not find dataset with id {dataset_id}.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not user.is_authenticated or user.profile != dataset.owner:
+            return Response({'error': 'Unauthorized to add elements to this dataset.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        created_elements = []
+
+        for i, file in enumerate(files):
+            data = {
+                "file": file,
+                "dataset": dataset.id,
+            }
+            if index:
+                data["index"] = int(index) + i
+
+            serializer = CreateElementSerializer(data=data)
+            if serializer.is_valid():
+                instance = serializer.save(owner=user.profile)
+
+                # Resize if applicable
+                if dataset.dataset_type.lower() == "image":
+                    ext = file.name.split(".")[-1].lower()
+                    if dataset.imageHeight and dataset.imageWidth and ext in ALLOWED_IMAGE_FILE_EXTENSIONS:
+                        resize_element_image(instance, dataset.imageWidth, dataset.imageHeight)
+
+                # Attach label if provided
+                if label_id:
+                    try:
+                        label = Label.objects.get(id=label_id)
+                        instance.label = label
+                        instance.save()
+                    except Label.DoesNotExist:
+                        return Response({'error': f'Label with id {label_id} not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+                created_elements.append({"id": instance.id, "file": file.name})
+            else:
+                return Response({"error": "Validation failed", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({"success": True, "created": created_elements}, status=status.HTTP_201_CREATED)
+        
         
 class EditElementLabel(APIView):   # Currently only used for labelling
     serializer_class = EditElementSerializer

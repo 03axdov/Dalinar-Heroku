@@ -142,38 +142,42 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         for (let i = 0; i < retries; i++) {
             try {
                 await axios.post(url, formData, config);
-                return;  // success
+                return;
             } catch (error) {
                 if (error.response && error.response.status === 429) {
-                    let waitTime = delayMs * (i + 1); // default backoff
-    
+                    let waitTime = delayMs * (i + 1);
                     const retryAfter = error.response.headers['retry-after'];
                     if (retryAfter) {
                         const parsed = parseInt(retryAfter, 10);
-                        // Retry-After can be seconds or HTTP date. Assume seconds if numeric.
                         waitTime = isNaN(parsed) ? delayMs * (i + 1) : parsed * 1000;
                     }
-    
                     console.warn(`Rate limited. Waiting ${waitTime} ms before retry... (${i + 1}/${retries})`);
                     await delay(waitTime);
                 } else {
-                    throw error;  // non-rate-limit errors
+                    throw error;
                 }
             }
         }
         throw new Error("Upload failed after multiple retries due to rate limits.");
     }
-
+    
     function randomColor() {
-        const r = Math.floor(Math.random() * 256);  // 0–255
+        const r = Math.floor(Math.random() * 256);
         const g = Math.floor(Math.random() * 256);
         const b = Math.floor(Math.random() * 256);
-    
         return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     }
-
+    
+    function chunkArray(array, size) {
+        const result = [];
+        for (let i = 0; i < array.length; i += size) {
+            result.push(array.slice(i, i + size));
+        }
+        return result;
+    }
+    
     function createElements(dataset_id) {
-        setCreatingElements(true)
+        setCreatingElements(true);
     
         const labelPromises = [];
         const fileLabelPairs = [];
@@ -202,61 +206,54 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         });
     
         Promise.all(labelPromises).then(() => {
-            const allFiles = fileLabelPairs.map(p => p.file);
-            const allLabels = fileLabelPairs.map(p => p.label);
-            createElementsInner(dataset_id, allFiles, allLabels);
+            createElementsInner(dataset_id, fileLabelPairs);
         });
-    }    
-
-    function createElementsInner(dataset_id, allFiles, allLabels) {
-        const URL = window.location.origin + '/api/create-element/';
+    }
+    
+    function createElementsInner(dataset_id, fileLabelPairs) {
+        const URL = window.location.origin + '/api/create-elements/';
         const config = { headers: { 'Content-Type': 'multipart/form-data' } };
-
-        let currentIndex = 0;
-        let activeUploads = 0;
-        let completedUploads = 0;
     
-        const MAX_CONCURRENT_UPLOADS = 10;
+        const chunks = chunkArray(fileLabelPairs, 10);
+        let completed = 0;
     
-        function startNext() {
-            while (activeUploads < MAX_CONCURRENT_UPLOADS && currentIndex < allFiles.length) {
-                const file = allFiles[currentIndex];
-                const label = allLabels[currentIndex];
-                currentIndex += 1
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('dataset', dataset_id);
-                formData.append("label", label)
+        async function uploadChunk(chunk) {
+            const formData = new FormData();
+            chunk.forEach(pair => formData.append('files', pair.file));
     
-                activeUploads++;
-    
-                uploadWithRetry(URL, formData, config)
-                    .catch((error) => {
-                        console.error("Upload failed:", error);
-                        notification("Upload failed for one or more files.", "failure");
-                    })
-                    .finally(() => {
-                        activeUploads--;
-                        completedUploads++;
-                        setCreatingElementsProgress((completedUploads / allFiles.length) * 100)
-                        
-                        if (completedUploads === allFiles.length) {
-                            setCreatingElementsProgress(100)
-                            setTimeout(() => {
-                                navigate("/home");
-                                notification("Successfully created dataset " + name + ".", "success");
-                            }, 200)
-                            
-                        } else {
-                            startNext(); // start next upload if available
-                        }
-                    });
+            formData.append('dataset', dataset_id);
+            // If all files in this chunk share the same label, send it
+            const uniqueLabels = new Set(chunk.map(p => p.label));
+            if (uniqueLabels.size === 1) {
+                formData.append('label', chunk[0].label);
             }
+    
+            await uploadWithRetry(URL, formData, config);
         }
     
-        // Start initial batch
-        startNext();
+        async function uploadAllChunks() {
+            await Promise.all(chunks.map(async (chunk, i) => {
+                try {
+                    await uploadChunk(chunk);
+                } catch (e) {
+                    console.error("Chunk upload failed:", e);
+                    notification("Upload failed for one or more batches.", "failure");
+                } finally {
+                    completed++;
+                    setCreatingElementsProgress((completed / chunks.length) * 100);
+                }
+            }));
+        
+            setCreatingElementsProgress(100);
+            setTimeout(() => {
+                navigate("/home");
+                notification("Successfully created dataset " + name + ".", "success");
+            }, 200);
+        }
+    
+        uploadAllChunks();
     }
+    
     
 
     function folderInputClick() {

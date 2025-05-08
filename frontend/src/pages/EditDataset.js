@@ -155,9 +155,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                 (data) => {
                     notification("Deleting model failed: " + data["message"], "failure")
                 },
-                () => {
-                    
-                },
+                () => {},
                 () => {
                     setProcessingDelete(false)
                 }
