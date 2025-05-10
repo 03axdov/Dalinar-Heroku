@@ -26,6 +26,7 @@ from django.core.files.storage import default_storage
 from .serializers import *
 from .models import *
 from .tasks import *
+from .model_utils import create_layer_instance
 import base64
 
 
@@ -1575,79 +1576,15 @@ class CreateLayer(APIView):
     parser_classes = [JSONParser]
     
     def post(self, request, format=None):
-        data = self.request.data
-        
-        layer_type = data["type"]
-        
-        ALLOWED_TYPES = set(["dense", "conv2d", "flatten",
-                             "dropout", "maxpool2d", "rescaling",
-                             "randomflip", "randomrotation", "resizing", "textvectorization",
-                             "embedding", "globalaveragepooling1d", "mobilenetv2",
-                             "mobilenetv2_96x96", "mobilenetv2_32x32"])
-        if not layer_type in ALLOWED_TYPES:
-            return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
-        
-        serializer = None
-        parse_dimensions(request.data)
-        if layer_type == "dense":
-            serializer = CreateDenseLayerSerializer(data=data)
-        elif layer_type == "conv2d":
-            serializer = CreateConv2DLayerSerializer(data=data)
-        elif layer_type == "maxpool2d":
-            serializer = CreateMaxPool2DLayerSerializer(data=data)
-        elif layer_type == "flatten":
-            serializer = CreateFlattenLayerSerializer(data=data)
-        elif layer_type == "dropout":
-            serializer = CreateDropoutLayerSerializer(data=data)
-        elif layer_type == "rescaling":
-            serializer = CreateRescalingLayerSerializer(data=data)
-        elif layer_type == "randomflip":
-            serializer = CreateRandomFlipLayerSerializer(data=data)
-        elif layer_type == "randomrotation":
-            serializer = CreateRandomRotationLayerSerializer(data=data)
-        elif layer_type == "resizing":
-            serializer = CreateResizingLayerSerializer(data=data)
-        elif layer_type == "textvectorization":
-            serializer = CreateTextVectorizationLayerSerializer(data=data)
-        elif layer_type == "embedding":
-            serializer = CreateEmbeddingLayerSerializer(data=data)
-        elif layer_type == "globalaveragepooling1d":
-            serializer = CreateGlobalAveragePooling1DLayerSerializer(data=data)
-        elif layer_type == "mobilenetv2":
-            serializer = CreateMobileNetV2LayerSerializer(data=data)
-        elif layer_type == "mobilenetv2_96x96":
-            serializer = CreateMobileNetV2_96x96LayerSerializer(data=data)
-        elif layer_type == "mobilenetv2_32x32":
-            serializer = CreateMobileNetV2_32x32LayerSerializer(data=data)
-        
-        if serializer and serializer.is_valid():
-            
-            model_id = data["model"]
-            try:
-                model = Model.objects.get(id=model_id)
-                
-                user = self.request.user
-                
-                if user.is_authenticated:
-                    
-                    if user.profile == model.owner:
-                        last = model.layers.all().last()
-                        idx = 0
-                        if last: 
-                            idx = model.layers.all().last().index + 1
-                        instance = serializer.save(model=model, layer_type=layer_type, index=idx, activation_function=data["activation_function"])
-
-                        return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
-                    
-                    
-                    else:
-                        return Response({'Unauthorized': 'You can only add layers to your own models.'}, status=status.HTTP_401_UNAUTHORIZED)
-                else:
-                    return Response({'Unauthorized': 'Must be logged in to create layers.'}, status=status.HTTP_401_UNAUTHORIZED)
-            except Model.DoesNotExist:
-                return Response({'Not found': 'Could not find model with the id ' + str(model_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            return Response({"Bad Request": "An error occured while creating layer."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            instance = create_layer_instance(request.data, request.user)
+            return Response({"data": self.serializer_class(instance).data, "id": instance.id}, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response({"Bad Request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except serializers.ValidationError:
+            return Response({"Bad Request": "Validation failed."}, status=status.HTTP_400_BAD_REQUEST)
+        except PermissionError as e:
+            return Response({"Unauthorized": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
         
         
 class DeleteLayer(APIView):

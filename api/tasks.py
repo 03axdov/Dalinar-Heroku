@@ -12,6 +12,7 @@ from django.conf import settings
 import tempfile
 from django.core.files import File
 from io import BytesIO
+from rest_framework.test import APIRequestFactory
 
 from .serializers import *
 from .models import *
@@ -1401,3 +1402,80 @@ def reset_to_build_task(self, layer_id, user_id):
         return {"Bad request": str(e), "status": 400}
     
     
+
+@shared_task(bind=True)
+def reset_model_to_build_task(self, model_id, user_id):
+    backend_temp_model_path = ""
+    
+    try:
+        profile = Profile.objects.get(user_id=user_id)
+        model_instance = Model.objects.get(id=model_id)
+        
+        if model_instance.owner == user.profile:  
+            for layer in model_instance.layers.all():    # Workaround due to bug with Django Polymorphic
+                layer.delete()
+            
+            model_file = model_instance.model_file
+            extension = model_file.name.split(".")[-1]
+            temp_path = "tmp/temp_models/" + model_file.name
+            file_path = default_storage.save(temp_path, model_file.file)
+            
+            bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+            temp_model_file_path = "media/" + file_path
+            print(f"Model file saved at: {temp_model_file_path}")
+                    
+            s3_client = get_s3_client()
+            
+            # Download the model file from S3 to a local temporary file
+            timestamp = time.time()
+            backend_temp_model_path = get_temp_model_name(model_instance.id, timestamp, extension)
+            with open(backend_temp_model_path, 'wb') as f:
+                s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
+
+            model = tf.keras.models.load_model(backend_temp_model_path)
+            
+            model.summary()
+            
+            default_storage.delete(file_path)
+            
+            os.remove(backend_temp_model_path)
+            
+            for t, layer in enumerate(model.layers):
+                layer_model_from_tf_layer(layer, model_instance.id, request, t)
+                
+            model.summary()
+                
+            model_instance.model_file = model_file
+            model_instance.optimizer = model.optimizer.__class__.__name__.lower()
+
+            def get_loss_name(loss):
+                if isinstance(loss, str):
+                    return loss
+                elif hasattr(loss, '__name__'):
+                    return loss.__name__
+                elif hasattr(loss, 'name'):
+                    return loss.name
+                elif hasattr(loss, '__class__'):
+                    return loss.__class__.__name__
+                return str(loss)
+
+            model_instance.loss_function = get_loss_name(model.loss)
+            
+            model_instance.save()
+            
+            for layer in model_instance.layers.all():
+                layer.updated = False
+                layer.save()
+            
+            return {"status": 200}
+    
+        else:
+            return {"Unauthorized": "You can only reset your own models.", "status": 401}
+    except Model.DoesNotExist: 
+        return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    except Profile.DoesNotExist: 
+        return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    except Exception as e:
+        if backend_temp_model_path and os.path.exists(backend_temp_model_path):
+            os.remove(backend_temp_model_path)
+        return {"Bad request": str(e), "status": 400}
