@@ -36,7 +36,6 @@ ALLOWED_TYPES = {
 
 
 def create_layer_instance(data, user):
-    print(data)
     layer_type = data.get("type")
     if layer_type not in ALLOWED_TYPES:
         raise ValueError(f"Invalid layer type: {layer_type}")

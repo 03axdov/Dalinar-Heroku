@@ -431,14 +431,26 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
         if (resetting) {return}
         setResetting(true)
 
+        let resettingInterval = null;
+
         axios.post(URL, data, config)
-        .then((data) => {
-            notification("Successfully reset model to last build.", "success")
+        .then((res) => {
+            resettingInterval = setInterval(() => getTaskResult(
+                "reset_model",
+                resettingInterval,
+                res.data["task_id"],
+                () => {
+                    notification("Successfully reset model.", "success")
+                    getModel()
+                },
+                (data) => notification("Resetting model failed: " + data["message"], "failure"),
+                () => {},
+                () => {
+                    setResetting(false)
+                }
+            ), 2000)
         }).catch((error) => {
             notification("Error: " + error, "failure")
-        }).finally(() => {
-            getModel()
-            setResetting(false)
         })
     }
     
