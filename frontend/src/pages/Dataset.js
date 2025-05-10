@@ -1015,7 +1015,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';    
 
-        let errorMessages = ""
         let totalSize = 0
         for (let i=0; i < files.length; i++) {
             let file = files[i]
@@ -1027,77 +1026,89 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             return;
         }
         
-        setUploadLoading(true)
-        const NUM_FILES = files.length;
-        let AXIOS_OUTSTANDING = files.length
-        for (let i=0; i < files.length; i++) {
-            let file = files[i]
+        createElements(files)
 
-            let extension = file.name.split(".").pop()
-            if (!ALLOWED_FILE_EXTENSIONS.has(extension)) {
-                if (errorMessages) {errorMessages += "\n\n"}
-                errorMessages += "Did not upload file of type ." + extension + " as this filetype is not supported for " + dataset.dataset_type + " datasets."
+    }
 
-                if (i == files.length - 1) {
-                    notification(errorMessages, "failure")
-                    setUploadPercentage(100)
-
-                    setTimeout(() => {
-                        setUploadLoading(false)
-                        setUploadPercentage(0)
-                        getDataset()
-                    }, 200)
-                    
-                    break
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    async function uploadWithRetry(url, formData, config, retries = 5, delayMs = 1000) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                await axios.post(url, formData, config);
+                return;  // success
+            } catch (error) {
+                if (error.response && error.response.status === 429) {
+                    let waitTime = delayMs * (i + 1); // default backoff
+    
+                    const retryAfter = error.response.headers['retry-after'];
+                    if (retryAfter) {
+                        const parsed = parseInt(retryAfter, 10);
+                        // Retry-After can be seconds or HTTP date. Assume seconds if numeric.
+                        waitTime = isNaN(parsed) ? delayMs * (i + 1) : parsed * 1000;
+                    }
+    
+                    console.warn(`Rate limited. Waiting ${waitTime} ms before retry... (${i + 1}/${retries})`);
+                    await delay(waitTime);
                 } else {
-                    AXIOS_OUTSTANDING -= 1
-                    setUploadPercentage(Math.round(100 * (1- AXIOS_OUTSTANDING / NUM_FILES)))
-                    continue
+                    throw error;  // non-rate-limit errors
                 }
-
             }
-
-            let formData = new FormData()
-
-            // For text datasets include text in addition to file
-            formData.append('file', file)
-            
-            formData.append('dataset', dataset.id)
-            if (elements.length > 0) {  // So it's added to the bottom of the list
-                formData.append("index", elements.length)
-            }
-
-            const URL = window.location.origin + '/api/create-element/'
-            const config = {headers: {'Content-Type': 'multipart/form-data'}}
-
-            axios.post(URL, formData, config)
-            .then((data) => {
-                console.log("Success: ", data)
-                
-            }).catch((error) => {
-                if (errorMessages) {errorMessages += "\n\n"}
-                errorMessages += "Failed to upload " + file.name + "."
-                console.log("Error: ", error)
-            }).finally(() => {
-                AXIOS_OUTSTANDING -= 1
-                setUploadPercentage(Math.round(100 * (1- AXIOS_OUTSTANDING / NUM_FILES)))
-                if (AXIOS_OUTSTANDING == 0) {
-
-                    setTimeout(() => {
-                        setUploadLoading(false)
-                        setUploadPercentage(0)
-                        getDataset()
-                        if (errorMessages) {
-                            notification(errorMessages, "failure")
-                        } else {
-                            notification("Successfully uploaded file" + (NUM_FILES != 1 ? "s" : "") + ".", "success")
-                        }
-                    }, 200)
-                    
-                }
-            })
         }
-
+        throw new Error("Upload failed after multiple retries due to rate limits.");
+    }
+    
+    function chunkArray(array, size) {
+        const result = [];
+        for (let i = 0; i < array.length; i += size) {
+            result.push(array.slice(i, i + size));
+        }
+        return result;
+    }
+    
+    function createElements(files) {
+        if (isPublic) return;
+        setUploadLoading(true);
+    
+        const URL = window.location.origin + '/api/create-elements/';  // plural endpoint
+        const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+    
+        const fileChunks = chunkArray([...files].filter(f => ALLOWED_FILE_EXTENSIONS.has(f.name.split(".").pop())), 10);
+        let completedUploads = 0;
+    
+        const uploadChunk = async (chunk) => {
+            const formData = new FormData();
+            chunk.forEach((file, i) => formData.append('files', file));  // Django: request.FILES.getlist("files")
+            formData.append('dataset', dataset.id);
+            if (elements.length > 0) formData.append("index", elements.length);
+    
+            await uploadWithRetry(URL, formData, config);
+        };
+    
+        async function uploadAllChunks() {
+            await Promise.all(fileChunks.map(async (chunk, i) => {
+                try {
+                    await uploadChunk(chunk);
+                } catch (e) {
+                    console.error("Chunk upload failed:", e);
+                    notification("Upload failed for one or more batches.", "failure");
+                } finally {
+                    completedUploads++;
+                    setUploadPercentage((completedUploads / fileChunks.length) * 100);
+                }
+            }));
+        
+            setTimeout(() => {
+                setUploadPercentage(0);
+                setUploadLoading(false);
+                notification("Successfully uploaded files.", "success");
+                getDataset();
+            }, 200);
+        }
+    
+        uploadAllChunks();
     }
 
 

@@ -38,7 +38,7 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false, isTraining=false,
                 {dataset.dataset_type.toLowerCase() == "text" && <img title="Text" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/text.svg"} alt="Text"/>}
                 
                 <div className="dataset-element-name" title={dataset.name}>
-                    <p className="dataset-element-name-inner">{dataset.name}</p>
+                    <a href={"/datasets/" + (isPublic ? "public/" : "") + dataset.id} onClick={(e) => e.preventDefault()} className="dataset-element-name-inner">{dataset.name}</a>
                     
                     {dataset.verified && <img title="Verified" className="dataset-element-name-verified" src={BACKEND_URL + "/static/images/blueCheck.png"} alt="Blue checkmark" />}
                 </div>

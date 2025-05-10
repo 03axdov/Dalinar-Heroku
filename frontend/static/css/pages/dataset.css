@@ -1236,7 +1236,7 @@ canvas {
     display: flex;
     flex-direction: row; 
     justify-content: end;
-    background: rgb(25,25,25,0.5);
+    background: rgb(25,25,25,0.3);
     z-index: 5;
 }
 

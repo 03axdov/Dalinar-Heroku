@@ -405,7 +405,7 @@ export function getLayerName(layer) {
     } else if (type == "randomrotation") {
         return "RandomRotation (" + layer.factor + ")"
     } else if (type == "resizing") {
-        return "Resizing (" + layer.input_x + ", " + layer.input_y + ")"
+        return "Resizing"
     } else if (type == "textvectorization") {
         return "TextVectorization (" + layer.max_tokens + ")"
     } else if (type == "embedding") {

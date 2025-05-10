@@ -3,8 +3,10 @@ import {useNavigate} from "react-router-dom"
 import axios from "axios"
 import { useParams, useSearchParams } from "react-router-dom";
 import TitleSetter from "../components/minor/TitleSetter";
+import { useTask } from "../contexts/TaskContext"
 
 function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
+    const { getTaskResult } = useTask();
 
     const navigate = useNavigate()
     const [searchParams] = useSearchParams();
@@ -138,20 +140,36 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         const config = {headers: {'Content-Type': 'application/json'}}
 
         setProcessingDelete(true)
+
+        let resInterval = null;
         axios.post(URL, data, config)
-        .then((data) => {
-            navigate("/home")
-            notification("Successfully deleted dataset " + name + ".", "success")
+        .then((res) => {
+            resInterval = setInterval(() => getTaskResult(
+                "deleting_dataset",
+                resInterval,
+                res.data["task_id"],
+                () => {
+                    navigate("/home")
+                    notification("Successfully deleted dataset " + name + ".", "success")
+                },
+                (data) => {
+                    notification("Deleting model failed: " + data["message"], "failure")
+                },
+                () => {},
+                () => {
+                    setProcessingDelete(false)
+                }
+            ), 3000)    // ping every 3 seconds
 
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
-        }).finally(() => {
-            setProcessingDelete(false)
         })
     }
 
     function deleteDataset(e) {
         e.preventDefault()
+
+        if (processingDelete) return;
 
         activateConfirmPopup("Are you sure you want to delete the dataset " + originalName + "? This action cannot be undone.", deleteDatasetInner)
     }

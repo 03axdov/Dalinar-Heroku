@@ -38,6 +38,15 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 let param = current_layer.params[i]
                 temp[param.name] = layer[param.name]
             }
+            if (current_layer.dimensions) {
+                for (let i=0; i < current_layer.dimensions.length; i++) {
+                    let dimension = current_layer.dimensions[i]
+                    for (let j=0; j < dimension.params.length; j++) {
+                        let param = dimension.params[j]
+                        temp[param.name] = layer[param.name]
+                    }
+                }
+            }
             
         })
         temp["input_x"] = layer.input_x || ""
@@ -71,7 +80,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         if (current_layer.dimensions) {
             for (let i=0; i < current_layer.dimensions.length; i++) {
                 let dim = current_layer.dimensions[i]
-                for (let j=0; j < dim.params.length; i++) {
+                for (let j=0; j < dim.params.length; j++) {
                     let param = dim.params[j]
                     if (params[param.name] != layer[param.name]) {
                         setUpdated(true)

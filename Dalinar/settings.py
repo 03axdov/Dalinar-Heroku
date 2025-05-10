@@ -167,7 +167,14 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,  # or however many items you want per page
-
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.UserRateThrottle',     # Authenticated users
+        'rest_framework.throttling.AnonRateThrottle',     # Unauthenticated users (if relevant)
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '10/second',     # Adjust based on your needs
+        'anon': '5/second',
+    }
 }
 
 
@@ -256,3 +263,5 @@ CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
+
+DATA_UPLOAD_MAX_NUMBER_FILES = 10

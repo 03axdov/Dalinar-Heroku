@@ -3,9 +3,11 @@ import {useNavigate} from "react-router-dom"
 import axios from "axios"
 import { useParams, useSearchParams } from "react-router-dom";
 import TitleSetter from "../components/minor/TitleSetter";
+import { useTask } from "../contexts/TaskContext";
 
 
 function CreateModel({notification, BACKEND_URL}) {
+    const { getTaskResult } = useTask();
 
     const navigate = useNavigate()
 
@@ -60,8 +62,6 @@ function CreateModel({notification, BACKEND_URL}) {
             console.log(err)
         })
     }
-
-    console.log(modelFile)
 
     async function createFileFromUrl(url) {
         try {
@@ -137,17 +137,34 @@ function CreateModel({notification, BACKEND_URL}) {
             return;
         }
 
+        let creatingInterval = null;
+
         setLoading(true)
         axios.post(URL, formData, config)
-        .then((data) => {
-            console.log("Success:", data);
-            navigate("/home?start=models")
-            notification("Successfully created model " + name + ".", "success")
+        .then((res) => {
+            if (res.data["task_id"]) {
+                creatingInterval = setInterval(() => getTaskResult(
+                    "creating_model",
+                    creatingInterval,
+                    res.data["task_id"],
+                    () => {
+                        navigate("/home?start=models")
+                        notification("Successfully created model " + name + ".", "success")
+                    },
+                    (data) => notification(data["message"], "failure"),
+                    () => {},
+                    () => {
+                        setLoading(false)
+                    }
+                ), 2000)
+            } else {
+                navigate("/home?start=models")
+                notification("Successfully created model " + name + ".", "success")
+            }
+            
         }).catch((error) => {
             notification("An error occured.", "failure")
             console.log("Error: ", error)
-        }).finally(() => {
-            setLoading(false)
         })
     }
 

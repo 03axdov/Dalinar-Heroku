@@ -15,6 +15,9 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
     const [uploadingDatasetCsv, setUploadingDatasetCsv] = useState(false)
     const [uploadingPercentage, setUploadingPercentage] = useState(false)
 
+    const [creatingElements, setCreatingElements] = useState(false)
+    const [creatingElementsProgress, setCreatingElementsProgress] = useState(0)
+
     const [datasetType, setDatasetType] = useState("image")
     const [type, setType] = useState("classification")  // used for image datasets, either "classification" or "area"
     const [name, setName] = useState("")
@@ -56,6 +59,17 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
     function formOnSubmit(e) {
         e.preventDefault()
 
+        let totalSize = 0;
+        Object.entries(uploadedDatasets).forEach(([label, fileList]) => {
+            fileList.forEach((file) => {
+                totalSize += file.size
+            })
+        })
+        if (totalSize > 1 * 10**9) {
+            notification("A maximum of 1 Gb can be uploaded at a time.", "failure")
+            return;
+        }
+
         if ((imageWidth && !imageHeight) || (!imageWidth && imageHeight)) {
             notification("You must specify either both image dimensions or neither.", "failure")
             return;
@@ -89,15 +103,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         
         formData.append("imageWidth", imageWidth)
         formData.append("imageHeight", imageHeight)
-
-        if (type != "area") {
-            Object.entries(uploadedDatasets).forEach(([key, fileList]) => {
-                formData.append("labels", key)
-                fileList.forEach((file) => {
-                    formData.append(key, file)
-                })
-            })
-        }
         
         const URL = window.location.origin + '/api/create-dataset/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
@@ -108,17 +113,150 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
 
         setLoading(true)
         axios.post(URL, formData, config)
-        .then((data) => {
-            console.log("Success:", data);
-            navigate("/home")
-            notification("Successfully created dataset " + name + ".", "success")
+        .then((res) => {
+            console.log("Success:", res.data);
+            
+            
+            if (!isEmpty(uploadedDatasets)) {
+                createElements(res.data.id)
+            } else {
+                navigate("/home")
+                notification("Successfully created dataset " + name + ".", "success")
+            }
+            
         }).catch((error) => {
             notification("An error occured.", "failure")
             console.log("Error: ", error)
         }).finally(() => {
-            setLoading(false)
+            if (isEmpty(uploadedDatasets)) {
+                setLoading(false)
+            }
         })
     }
+
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    async function uploadWithRetry(url, formData, config, retries = 5, delayMs = 1000) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                await axios.post(url, formData, config);
+                return;
+            } catch (error) {
+                if (error.response && error.response.status === 429) {
+                    let waitTime = delayMs * (i + 1);
+                    const retryAfter = error.response.headers['retry-after'];
+                    if (retryAfter) {
+                        const parsed = parseInt(retryAfter, 10);
+                        waitTime = isNaN(parsed) ? delayMs * (i + 1) : parsed * 1000;
+                    }
+                    console.warn(`Rate limited. Waiting ${waitTime} ms before retry... (${i + 1}/${retries})`);
+                    await delay(waitTime);
+                } else {
+                    throw error;
+                }
+            }
+        }
+        throw new Error("Upload failed after multiple retries due to rate limits.");
+    }
+    
+    function randomColor() {
+        const min = 50; // Avoid dark colors
+        const r = Math.floor(Math.random() * (256 - min) + min);
+        const g = Math.floor(Math.random() * (256 - min) + min);
+        const b = Math.floor(Math.random() * (256 - min) + min);
+        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    }
+    
+    function chunkArray(array, size) {
+        const result = [];
+        for (let i = 0; i < array.length; i += size) {
+            result.push(array.slice(i, i + size));
+        }
+        return result;
+    }
+    
+    function createElements(dataset_id) {
+        setCreatingElements(true);
+    
+        const labelPromises = [];
+        const fileLabelPairs = [];
+    
+        Object.entries(uploadedDatasets).forEach(([label, fileList]) => {
+            const formData = new FormData();
+            formData.append('name', label);
+            formData.append('color', randomColor());
+            formData.append('dataset', dataset_id);
+    
+            const URL = window.location.origin + '/api/create-label/';
+            const config = { headers: { 'Content-Type': 'application/json' } };
+    
+            const labelPromise = axios.post(URL, formData, config)
+                .then((res) => {
+                    const labelId = res.data.id;
+                    fileList.forEach(file => {
+                        fileLabelPairs.push({ file, label: labelId });
+                    });
+                })
+                .catch((error) => {
+                    notification("Failed to create label " + label, "failure");
+                });
+    
+            labelPromises.push(labelPromise);
+        });
+    
+        Promise.all(labelPromises).then(() => {
+            createElementsInner(dataset_id, fileLabelPairs);
+        });
+    }
+    
+    function createElementsInner(dataset_id, fileLabelPairs) {
+        const URL = window.location.origin + '/api/create-elements/';
+        const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+    
+        const chunks = chunkArray(fileLabelPairs, 10);
+        let completed = 0;
+    
+        async function uploadChunk(chunk, i) {
+            const formData = new FormData();
+            chunk.forEach(pair => formData.append('files', pair.file));
+    
+            formData.append('dataset', dataset_id);
+            formData.append('index', i*10)
+            // If all files in this chunk share the same label, send it
+            const uniqueLabels = new Set(chunk.map(p => p.label));
+            if (uniqueLabels.size === 1) {
+                formData.append('label', chunk[0].label);
+            }
+    
+            await uploadWithRetry(URL, formData, config);
+        }
+    
+        async function uploadAllChunks() {
+            await Promise.all(chunks.map(async (chunk, i) => {
+                try {
+                    await uploadChunk(chunk, i);
+                } catch (e) {
+                    console.error("Chunk upload failed:", e);
+                    notification("Upload failed for one or more batches.", "failure");
+                } finally {
+                    completed++;
+                    setCreatingElementsProgress((completed / chunks.length) * 100);
+                }
+            }));
+        
+            setCreatingElementsProgress(100);
+            setTimeout(() => {
+                navigate("/home");
+                notification("Successfully created dataset " + name + ".", "success");
+            }, 200);
+        }
+    
+        uploadAllChunks();
+    }
+    
+    
 
     function folderInputClick() {
         if (hiddenFolderInputRef.current) {
@@ -362,6 +500,11 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                 message="Uploading..."
                 BACKEND_URL={BACKEND_URL}></ProgressBar>}
 
+            {creatingElements && <ProgressBar 
+                progress={creatingElementsProgress}
+                message="Processing..."
+                BACKEND_URL={BACKEND_URL}></ProgressBar>}
+
             <div className="create-dataset-form">
                 <h1 className="create-dataset-title">Create a dataset</h1>
                 <p className="create-dataset-description">Datasets allow you to upload files (images or text) and label these accordingly. Datasets can then be passed to models in order to train or evaluate these.</p>
@@ -537,8 +680,8 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                                 Will create labels for all subfolders in the uploaded folder, with elements in each subfolder belonging to that label.
                             </p>
 
-                            <div className="upload-dataset-type-image-container">
-                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/foldersAsLabels.jpg"} alt="Folders as labels" onClick={folderInputClick} />
+                            <div className="upload-dataset-type-image-container" onClick={folderInputClick}>
+                                <img className="upload-dataset-type-image" src={BACKEND_URL + "/static/images/foldersAsLabels.jpg"} alt="Folders as labels"  />
                             </div>
                             
                             <button type="button" className="upload-dataset-button" onClick={folderInputClick}>
