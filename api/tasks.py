@@ -196,8 +196,10 @@ def download_s3_file(bucket_name, file_key):
 
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
+i = 1
 # Function to load and preprocess the images
 def load_and_preprocess_image(file_path,input_dims,file_key):
+    global i
     
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
     image_bytes = download_s3_file(bucket_name, file_key)
@@ -207,7 +209,16 @@ def load_and_preprocess_image(file_path,input_dims,file_key):
     
     image = tf.cast(image, tf.float32)
     
-    image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
+    image_shape = image.shape
+    if i == 1:
+        print(f"image_shape: {image_shape}")
+    if image_shape[0] != input_dims[0] or image_shape[1] != input_dims[1]:
+        if i == 1:
+            print("resize")
+        image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
+        
+    print(i)
+    i += 1
     
     image = preprocess_input(image)
     
@@ -1111,8 +1122,6 @@ def build_model_task(self, model_id, optimizer, learning_rate, loss_function, us
                     model.build(input_sequence_length)
 
                 metrics = get_metrics(loss_function)
-
-                model.summary()
                 
                 if model.count_params() > 5 * 10**6:
                     return {"Bad request": "A model cannot have more than 5 million parameters. Current parameter count: " + str(model.count_params()), "status": 400}
@@ -1527,8 +1536,6 @@ def reset_model_to_build_task(self, model_id, user_id):
 
             model = tf.keras.models.load_model(backend_temp_model_path)
             
-            # model.summary()
-            
             default_storage.delete(file_path)
             
             os.remove(backend_temp_model_path)
@@ -1644,3 +1651,58 @@ def create_model_task(self, model_id, user_id):
         return {'Bad Request': res["Bad request"], "status": 400}
                 
     return {"status": 200}
+
+
+def resize_element_image(instance, newWidth, newHeight):
+    new_name = instance.file.name.split("/")[-1]     # Otherwise includes files
+    new_name, extension = new_name.split(".")     
+    new_name = new_name.split("-")[0]   # Remove previous resize information      
+    
+    new_name += ("-" + str(newWidth) + "x" + str(newHeight) + "." + extension) 
+    
+    try:
+        
+        img = Image.open(instance.file)
+        img = img.resize([newWidth, newHeight], Image.LANCZOS)
+        
+        if default_storage.exists(instance.file.name):
+            default_storage.delete(instance.file.name)
+        
+        # Save to BytesIO buffer
+        buffer = BytesIO()
+        img_format = img.format if img.format else "JPEG"  # Default to JPEG
+        img.save(buffer, format=img_format, quality=90)
+        buffer.seek(0)
+                            
+        instance.file.save(new_name, ContentFile(buffer.read()), save=False)
+        instance.imageWidth = newWidth
+        instance.imageHeight = newHeight
+        instance.save()
+        
+    except IOError:
+        print("Element ignored: not an image.")
+
+
+@shared_task(bind=True)
+def resize_dataset_images_task(self, dataset_id, user_id, imageWidth, imageHeight):
+    try:
+        try:
+            profile = Profile.objects.get(user_id=user_id)
+        except Profile.DoesNotExist:
+            return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
+        
+        try:
+            dataset = Dataset.objects.get(id=dataset_id)
+        except Dataset.DoesNotExist:
+            return {"Not found": "Could not find dataset with the id " + str(dataset_id) + ".", "status": 404}
+        
+        if dataset.owner != profile:
+            return {"Unauthorized": "You can only edit your own datasets.", "status": 401}
+        
+        for element in dataset.elements.all():
+            resize_element_image(element, int(imageHeight), int(imageWidth))
+            
+        return {"status": 200}
+    
+    except Exception as e:
+        return {"Bad request": str(e), "status": 400}    

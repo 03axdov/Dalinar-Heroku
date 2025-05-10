@@ -565,9 +565,14 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
         })
     }
 
-    function deleteLayer(id, message) {
+    function deleteLayer(id, message, callback) {
         if (isPublic) return;
-        activateConfirmPopup((message || "Are you sure you want to delete this layer? This action cannot be undone."), () => deleteLayerInner(id))
+        activateConfirmPopup((message || "Are you sure you want to delete this layer? This action cannot be undone."), () => {
+            if (callback) {
+                callback()
+            }
+            deleteLayerInner(id)
+        })
     }
 
     function updateLayers(updated_layer) {

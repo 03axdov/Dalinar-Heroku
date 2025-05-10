@@ -108,20 +108,48 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         const URL = window.location.origin + '/api/edit-dataset/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
 
+        let resizingInterval = null;
+
         setProcessing(true)
         axios.post(URL, formData, config)
-        .then((data) => {
-            console.log("Success:", data);
-            if (expandedParam) {
-                navigate("/datasets/" + id)
+        .then((res) => {
+
+            if (res.data["task_id"]) {
+                resizingInterval = setInterval(() => getTaskResult(
+                    "resizing_dataset_images",
+                    resizingInterval,
+                    res.data["task_id"],
+                    () => {
+                        if (expandedParam) {
+                            navigate("/datasets/" + id)
+                        } else {
+                            navigate("/home")
+                        }
+        
+                        notification("Successfully updated dataset " + name + ".", "success")
+                    },
+                    (data) => {
+                        notification("Deleting model failed: " + data["message"], "failure")
+                    },
+                    () => {},
+                    () => {
+                        setProcessing(false)
+                    }
+                ), 3000)    // ping every 3 seconds
             } else {
-                navigate("/home")
+                if (expandedParam) {
+                    navigate("/datasets/" + id)
+                } else {
+                    navigate("/home")
+                }
+
+                notification("Successfully updated dataset " + name + ".", "success")
             }
-            notification("Successfully updated dataset " + name + ".", "success")
+            
+            
         }).catch((error) => {
             notification("An error occurred.", "failure")
             console.log("Error: ", error)
-        }).finally(() => {
             setProcessing(false)
         })
     }

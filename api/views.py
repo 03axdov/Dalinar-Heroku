@@ -355,14 +355,16 @@ class EditDataset(APIView):
                     if imageHeight:
                         dataset.imageHeight = int(imageHeight)
                     else: dataset.imageHeight = None
+                    
+                    dataset.save()
                         
                     if imageWidth and imageHeight:
-                        for element in dataset.elements.all():
-                            resize_element_image(element, int(imageHeight), int(imageWidth))
-                        
-                    else: dataset.imageHeight = None
-                        
-                    dataset.save()
+                        task = resize_dataset_images_task.delay(dataset_id, user.id, imageWidth, imageHeight)
+
+                        return Response({
+                            "message": "Resizing started",
+                            "task_id": task.id
+                        }, status=status.HTTP_200_OK)
                 
                     return Response(None, status=status.HTTP_200_OK)
                 

@@ -19,6 +19,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     const [revertChanges, setRevertChanges] = useState(false)
 
     const [savingChanges, setSavingChanges] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const [errorMessage, setErrorMessage] = useState("")
 
@@ -271,7 +272,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 res.data["task_id"],
                 (data) => {
                     if (!data["data"]) {
-                        deleteLayer(layer.id, "This will delete the layer, as it was not in the last build. Are you sure you want to proceed?")
+                        deleteLayer(layer.id, "This will delete the layer, as it was not in the last build. Are you sure you want to proceed?", () => setIsDeleting(false))
                     } else {
                         let updated_layer = data["data"]
                         updateLayers(updated_layer)
@@ -383,8 +384,8 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                     <span className="layer-element-title-text" title={current_layer.name}>{current_layer.name}</span>
                     {current_layer.info && <img className="layer-element-info" title={current_layer.info} src={BACKEND_URL + "/static/images/info.svg"} alt="Info" />}
                     {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} alt="Drag" {...provided.dragHandleProps} />}
-                    {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" onClick={() => {
-                        deleteLayer(layer.id)
+                    {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/" + (isDeleting ? "loading.gif" : "cross.svg")} alt="Cross" onClick={() => {
+                        deleteLayer(layer.id, "", () => setIsDeleting(true))
                     }}/>}
                 </h1>
                 {current_layer.params.map((param, idx) => (
