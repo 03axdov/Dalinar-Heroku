@@ -122,7 +122,7 @@ class Label(models.Model):
 def element_file_path(instance, filename):
     """Generate a dynamic path for file uploads based on dataset ID and name."""
     if instance.dataset:
-        dataset_dir = f"files/{instance.dataset.id}-{instance.dataset.name}"
+        dataset_dir = f"files/{instance.dataset.id}"
     else:
         dataset_dir = "files/unknown_dataset"  # Fallback if dataset is missing
 

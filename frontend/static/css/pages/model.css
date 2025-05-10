@@ -647,7 +647,6 @@ div.layer-element-mode-input {
     margin-bottom: 20px;
     min-height: 400px;
     padding: 20px;
-    border: 1px solid var(--border);
     box-sizing: border-box;
     background: var(--background-dark);
     display: flex;
@@ -751,6 +750,10 @@ div.layer-element-mode-input {
     overflow-y: auto;
 }
 
+.model-metrics-container::-webkit-scrollbar {
+    width: 8px;
+}
+
 .train-model-successful-row {
     display: flex;
     flex-direction: row;
@@ -758,7 +761,6 @@ div.layer-element-mode-input {
     align-items: center;
     padding: 10px 20px;
     margin-top: 25px;
-    border: 1px solid var(--border);
     box-sizing: border-box;
     margin-bottom: 20px;
     width: 100%;
