@@ -14,6 +14,7 @@ from django.core.files import File
 from io import BytesIO
 from rest_framework.test import APIRequestFactory
 from django.core.files.storage import default_storage
+import shutil
 
 from .serializers import *
 from .models import *
@@ -194,15 +195,47 @@ def download_s3_file(bucket_name, file_key):
     response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
     return response['Body'].read()  # Returns the raw bytes
 
+
+def download_dataset_from_s3(bucket_name, prefix, local_dir):
+    s3 = get_s3_client()
+    paginator = s3.get_paginator('list_objects_v2')
+
+    # Make sure the root download folder exists
+    os.makedirs(local_dir, exist_ok=True)
+
+    for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
+        contents = page.get('Contents', [])
+
+        for obj in contents:
+            key = obj['Key']
+            if key.endswith('/'):
+                continue
+
+            found_any = True
+            # Construct relative and full local path
+            relative_path = os.path.relpath(key, prefix)
+            local_path = os.path.join(local_dir, relative_path)
+
+            # Ensure subdirectory exists
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+
+            # Download the file
+            try:
+                s3.download_file(bucket_name, key, local_path)
+            except Exception as e:
+                print(f"Error downloading {key}: {e}")
+
+
+
+
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 i = 1
 # Function to load and preprocess the images
-def load_and_preprocess_image(file_path,input_dims,file_key):
+def load_and_preprocess_image(file_path,input_dims):
     global i
     
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    image_bytes = download_s3_file(bucket_name, file_key)
+    image_bytes = tf.io.read_file(file_path)
 
     # Decode the image
     image = tf.image.decode_jpeg(image_bytes, channels=input_dims[-1])  # Assuming JPEG images
@@ -210,11 +243,8 @@ def load_and_preprocess_image(file_path,input_dims,file_key):
     image = tf.cast(image, tf.float32)
     
     image_shape = image.shape
-    if i == 1:
-        print(f"image_shape: {image_shape}")
+
     if image_shape[0] != input_dims[0] or image_shape[1] != input_dims[1]:
-        if i == 1:
-            print("resize")
         image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
         
     print(i)
@@ -229,13 +259,10 @@ def load_and_preprocess_image(file_path,input_dims,file_key):
 def remove_non_ascii(s):
     return re.sub(r'[^\x00-\x7F]', '', s)
 
-def load_and_preprocess_text(file_path, file_key):
+def load_and_preprocess_text(file_path):
+    with open(file_path, "r", encoding="utf-8") as f:
+        text = f.read()
     
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    text_bytes = download_s3_file(bucket_name, file_key)
-    
-    # Decode the text bytes into a string
-    text = text_bytes.decode("utf-8")  # Assuming UTF-8 encoded text
     text = remove_non_ascii(text)
     
     return tf.convert_to_tensor(text, dtype=tf.string)
@@ -262,7 +289,7 @@ def label_to_tensor(label):
     return tf.constant(label, dtype=tf.int32)
 
 
-def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns tensorflow dataset, number of elements in the dataset
+def create_tensorflow_dataset(dataset_instance, model_instance, profile):    # Returns tensorflow dataset, number of elements in the dataset
     global label_map
     global currentLabel
     
@@ -281,60 +308,82 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     currentLabel = 0
 
     elements = dataset_instance.elements.all()
+    
+    AWS_DIR = f"media/files/{dataset_instance.id}-{dataset_instance.name}/" # Update when changed
+    local_dir = os.path.abspath(f"tmp/temp_datasets/{dataset_instance.name}-{profile.user.id}")
+    
+    try:
+        download_dataset_from_s3(
+            bucket_name=settings.AWS_STORAGE_BUCKET_NAME,
+            prefix=AWS_DIR,
+            local_dir=local_dir
+        )
+        
+        def get_all_file_paths(directory):
+            return [
+                os.path.join(directory, f)
+                for f in os.listdir(directory)
+                if os.path.isfile(os.path.join(directory, f))
+            ]
+            
+        file_paths = []
+        labels = []
 
-    file_paths = ["media/" + str(element.file) for element in elements]
-    labels = []
+        for t, element in enumerate(elements):
+            if element.label:
+                filename = os.path.basename(element.file.name)
+                if t == 0:
+                    print(f"filename: {filename}")
+                file_paths.append(os.path.join(local_dir, filename))
+                labels.append(element.label.name)
 
-    for t, element in enumerate(elements):
-        if element.label:
-            labels.append(element.label.name)
+
+        def imageMapFunc(file_path):
+            element = load_and_preprocess_image(file_path,input_dims)
+            return element
+            
+        def textMapFunc(file_path):
+            element = load_and_preprocess_text(file_path,file_paths[elementIdx])
+            return element
+
+
+        elements = []
+        if dataset_instance.dataset_type == "image":
+            input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z) 
+            if first_layer.layer_type == "mobilenetv2":
+                input_dims = (224,224,3)
+            if first_layer.layer_type == "mobilenetv2_96x96":
+                input_dims = (96,96,3)
+            elements = list(map(imageMapFunc, file_paths))
+            
+        elif dataset_instance.dataset_type == "text":
+            elements = list(map(textMapFunc, file_paths))
+
         else:
-            file_paths.pop(t)   # Don't include elements without labels
-
-
-    elementIdx = 0
-    def imageMapFunc(file_path):
-        nonlocal elementIdx
+            print("Invalid dataset type.")
+            return None
         
-        element = load_and_preprocess_image(file_path,input_dims,file_path)
-        elementIdx += 1
-        return element
+        if os.path.exists(local_dir):
+            shutil.rmtree(local_dir)
         
-    def textMapFunc(file_path):
-        nonlocal elementIdx
+        loss_function = model_instance.loss_function
+        if loss_function == "binary_crossentropy":
+            labels = list(map(lambda label: label_to_tensor(map_labels(label)), labels))
+        elif loss_function == "categorical_crossentropy":
+            labels = list(map(lambda label: one_hot_encode(map_labels(label), num_labels), labels))
+        elif loss_function == "sparse_categorical_crossentropy":
+            labels = list(map(lambda label: map_labels(label), labels))
+
+        dataset = tf.data.Dataset.from_tensor_slices((elements, labels))
         
-        element = load_and_preprocess_text(file_path,file_paths[elementIdx])
-        elementIdx += 1
-        return element
-
-
-    elements = []
-    if dataset_instance.dataset_type == "image":
-        input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z) 
-        if first_layer.layer_type == "mobilenetv2":
-            input_dims = (224,224,3)
-        if first_layer.layer_type == "mobilenetv2_96x96":
-            input_dims = (96,96,3)
-        elements = list(map(imageMapFunc, file_paths))
-        
-    elif dataset_instance.dataset_type == "text":
-        elements = list(map(textMapFunc, file_paths))
-
-    else:
-        print("Invalid dataset type.")
-        return None
+        return dataset, len(elements)
     
-    loss_function = model_instance.loss_function
-    if loss_function == "binary_crossentropy":
-        labels = list(map(lambda label: label_to_tensor(map_labels(label)), labels))
-    elif loss_function == "categorical_crossentropy":
-        labels = list(map(lambda label: one_hot_encode(map_labels(label), num_labels), labels))
-    elif loss_function == "sparse_categorical_crossentropy":
-        labels = list(map(lambda label: map_labels(label), labels))
+    except Exception as e:
+        if os.path.exists(local_dir):
+            shutil.rmtree(local_dir)
 
-    dataset = tf.data.Dataset.from_tensor_slices((elements, labels))
+        raise Exception(e)
     
-    return dataset, len(elements)
 
 def clean_vocab(vocab):
     seen = set()
@@ -474,7 +523,7 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     if model.output_shape[-1] != dataset_instance.labels.count():
                         return {"Bad request": "The model's output shape and the dataset's number of labels do not match.", "status": 400}
 
-                    dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
+                    dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance, profile)
 
                     validation_size = int(dataset_length * validation_split)
                     train_size = dataset_length - validation_size
@@ -779,7 +828,7 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
                 
                 set_evaluation_progress(profile, 0.25)
 
-                dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance) 
+                dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance, profile) 
                 
                 set_evaluation_progress(profile, 0.5)
                 
