@@ -309,7 +309,7 @@ def create_tensorflow_dataset(dataset_instance, model_instance, profile):    # R
 
     elements = dataset_instance.elements.all()
     
-    AWS_DIR = f"media/files/{dataset_instance.id}-{dataset_instance.name}/" # Update when changed
+    AWS_DIR = f"media/files/{dataset_instance.id}/" # Update when changed
     local_dir = os.path.abspath(f"tmp/temp_datasets/{dataset_instance.name}-{profile.user.id}")
     
     try:
