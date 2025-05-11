@@ -78,7 +78,7 @@ def get_pretrained_model(name):
     print("AFTER PATH EXISTS")
 
     print("BEFORE LOAD MODEL")
-    model = tf.keras.models.load_model(temp_file_path)
+    model = tf.keras.models.load_model(temp_file_path, compile=False)
     print("AFTER LOAD MODEL")
     model.trainable = False
 
