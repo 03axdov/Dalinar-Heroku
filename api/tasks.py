@@ -79,14 +79,15 @@ def get_pretrained_model(name):
 
     print("BEFORE LOAD MODEL")
 
-    with open(temp_file_path, "rb") as f:
-        model = tf.keras.models.load_model(f)
+    try:
+        model = tf.keras.models.load_model(temp_file_path)
+        model.trainable = False
+        print("AFTER LOAD MODEL")
+    finally:
+        # Only delete after loading is fully complete
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
 
-    print("AFTER LOAD MODEL")
-    model.trainable = False
-
-    if os.path.exists(temp_file_path):
-        os.remove(temp_file_path)
     print("AFTER GET_PRETRAINED_MODEL")
     return model
     
