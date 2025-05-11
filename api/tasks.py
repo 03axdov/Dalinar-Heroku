@@ -64,18 +64,27 @@ def get_pretrained_model(name):
     with tempfile.NamedTemporaryFile(suffix=".keras", delete=False) as tmp:
         s3_client.download_fileobj(bucket_name, model_file_path, tmp)
         temp_file_path = tmp.name
+        tmp.flush()  # <-- Important
 
     # Optional debug
+    print("BEFORE PATH EXISTS")
+    print(f"temp_file_path: {temp_file_path}")
+    print(f"File exists? {os.path.exists(temp_file_path)}")
+    print(f"File size: {os.path.getsize(temp_file_path)} bytes")
     if not os.path.exists(temp_file_path):
         raise FileNotFoundError(f"Temp file was not created: {temp_file_path}")
     if os.path.getsize(temp_file_path) == 0:
         raise ValueError("Downloaded model file is empty.")
+    print("AFTER PATH EXISTS")
 
+    print("BEFORE LOAD MODEL")
     model = tf.keras.models.load_model(temp_file_path)
+    print("AFTER LOAD MODEL")
     model.trainable = False
 
     if os.path.exists(temp_file_path):
         os.remove(temp_file_path)
+    print("AFTER GET_PRETRAINED_MODEL")
     return model
     
     
