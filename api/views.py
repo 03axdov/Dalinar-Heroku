@@ -337,6 +337,9 @@ class EditDataset(APIView):
             try:
                 dataset = Dataset.objects.get(id=dataset_id)
                 
+                prevImageWidth = dataset.imageWidth
+                prevImageHeight = dataset.imageHeight
+                
                 if dataset.owner == user.profile:
                     dataset.name = name
                     dataset.description = description   
@@ -358,7 +361,7 @@ class EditDataset(APIView):
                     
                     dataset.save()
                         
-                    if imageWidth and imageHeight:
+                    if imageWidth and imageHeight and (imageWidth != prevImageWidth or imageHeight != prevImageHeight):
                         task = resize_dataset_images_task.delay(dataset_id, user.id, imageWidth, imageHeight)
 
                         return Response({
