@@ -78,13 +78,10 @@ def get_pretrained_model(name):
     print("AFTER PATH EXISTS")
 
     print("BEFORE LOAD MODEL")
-    try:
-        model = tf.keras.models.load_model(temp_file_path)
-    except Exception as e:
-        print("Load model failed with:")
-        import traceback
-        traceback.print_exc()
-        raise
+
+    with open(temp_file_path, "rb") as f:
+        model = tf.keras.models.load_model(f)
+
     print("AFTER LOAD MODEL")
     model.trainable = False
 
