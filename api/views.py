@@ -361,7 +361,7 @@ class EditDataset(APIView):
                     
                     dataset.save()
                         
-                    if imageWidth and imageHeight and (imageWidth != prevImageWidth or imageHeight != prevImageHeight):
+                    if imageWidth and imageHeight and (dataset.imageWidth != prevImageWidth or dataset.imageHeight != prevImageHeight):
                         task = resize_dataset_images_task.delay(dataset_id, user.id, imageWidth, imageHeight)
 
                         return Response({
