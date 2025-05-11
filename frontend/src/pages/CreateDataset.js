@@ -38,6 +38,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
     const [uploadedFilenamesAsLabels, setUploadedFilenamesAsLabels] = useState([])
     const [uploadedCsvs, setUploadedCsvs] = useState([])
 
+    const [numberFiles, setNumberFiles] = useState("")
     const [uploadedDatasets, setUploadedDatasets] = useState({}) // Labels as keys, with the value as an array of files with that label
 
     const hiddenFolderInputRef = useRef(null)
@@ -256,7 +257,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         uploadAllChunks();
     }
     
-    
 
     function folderInputClick() {
         if (hiddenFolderInputRef.current) {
@@ -273,6 +273,23 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
     function csvInputClick() {
         if (hiddenCsvInputRef.current) {
             hiddenCsvInputRef.current.click();
+        }
+    }
+
+    function filterUploadedDatasets(tempObj) {
+        if (!isEmpty(tempObj) && numberFiles) {
+            let totalNumberLabels = 0;
+            Object.entries(tempObj).forEach(([label, fileList]) => {
+                totalNumberLabels += 1
+            })
+            let toTake = Math.floor(numberFiles / totalNumberLabels)
+            Object.entries(tempObj).forEach(([label, fileList]) => {
+                tempObj[label] = fileList.slice(0, toTake)
+            })
+            console.log(toTake)
+            return tempObj
+        } else {
+            return tempObj
         }
     }
 
@@ -311,7 +328,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                 tempObj[label].push(file)
             }
 
-            setUploadedDatasets(tempObj)
+            setUploadedDatasets(filterUploadedDatasets(tempObj))
 
         } catch (e) {
             notification("An error occured. This may be due to incorrect formatting of uploaded dataset.", "failure")
@@ -369,7 +386,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                 
             }
 
-            setUploadedDatasets(tempObj)
+            setUploadedDatasets(filterUploadedDatasets(tempObj))
 
         } catch (e) {
             notification("An error occured. This may be due to incorrect formatting of uploaded dataset.", "failure")
@@ -429,7 +446,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
             tempObj[label].push(file)
             setUploadingPercentage(100 * (i+1.0) / rows.length)
         }
-        setUploadedDatasets(tempObj)
+        setUploadedDatasets(filterUploadedDatasets(tempObj))
 
         setTimeout(() => {
             setUploadingDatasetCsv(false)
@@ -489,7 +506,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
             setDatasetTypeTextInner(e)
         }
     }
-
 
     return (
         <div className="create-dataset-container">
@@ -667,6 +683,17 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                         Note that improper formatting of uploaded datasets (see instructions below) may result in errors or incorrect labels.
                         Also note that label names will be set to lowercase.
                     </p>
+
+                    <div className="create-dataset-label-inp" style={{width: "100%"}}>
+                        <label className="create-dataset-label" htmlFor="dataset-number-files">Maximum number of files</label>
+                        <input style={{width: "200px"}} className="create-dataset-inp" id="dataset-number-files" type="number" required value={numberFiles} onChange={(e) => {
+                            setNumberFiles(e.target.value ? Math.max(0, e.target.value) : "")
+                        }} />
+                    </div>
+
+                    <p className="create-dataset-description" >
+                        The maximum number of files to take on uploads. Will take evenly from different labels, so the number taken may not be exactly the one specified. If omitted, all files will be uploaded.
+                    </p>
                 
                     <div className="upload-dataset-types-container">
                         {/* Uploading datasets goes through these */}
@@ -746,7 +773,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                     </div>}
 
                     {!isEmpty(uploadedDatasets) && <div className="uploaded-datasets-labels-container">
-                        <div className="uploaded-datasets-label-element no-margin">
+                        <div className="uploaded-datasets-label-element no-margin" style={{padding: 0}}>
                             <div className="uploaded-datasets-label uploaded-datasets-label-element-title">Label</div>
                             <div className="uploaded-datasets-elements uploaded-datasets-label-element-title">Elements</div>
                         </div>
@@ -756,7 +783,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                                 <div className="uploaded-datasets-elements">
                                     {uploadedDatasets[label].map((element, idx) => (
                                         <div key={idx} className="uploaded-datasets-element">
-                                            {element.name}
+                                            <span className="uploaded-datasets-element-name" title={element.name}>{element.name}</span>
                                             <img className="uploaded-datasets-element-cross" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" onClick={() => {
                                                 let tempDatasets = {...uploadedDatasets}
                                                 tempDatasets[label] = tempDatasets[label].filter((el) => {return el.webkitRelativePath != element.webkitRelativePath})
