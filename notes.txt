@@ -4,7 +4,6 @@ TO-DO:
 - Problem with testing and files on AWS not getting deleted
 - Reset entire model to build (in task)
 - Download entire dataset at once for performance
-- Only resize on edit if dimensions changed
 
 
 Layers to add:

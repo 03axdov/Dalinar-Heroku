@@ -57,73 +57,49 @@ def get_temp_model_name(id, timestamp, extension, user_id=None):   # Timestamp u
 
 
 def get_pretrained_model(name, profile=None):
-    # Define the S3 bucket and file path
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    model_file_path = "media/pretrained_models/" + name + ".keras"
-    
+    model_file_path = f"media/pretrained_models/{name}.keras"
+
     s3_client = get_s3_client()
-    
-    extension = model_file_path.split(".")[-1]
-    
-    timestamp = time.time()
 
-    # Download the model file from S3 to a local temporary file
-    temp_file_path = ""
-    if profile:
-        temp_file_path = get_temp_model_name(name, timestamp, extension, profile.user.id)
-    else:
-        temp_file_path = get_temp_model_name(name, timestamp, extension)
+    # Create a temp file in the system's temporary directory (e.g., /tmp)
+    with tempfile.NamedTemporaryFile(suffix=".keras", delete=False) as tmp:
+        temp_file_path = tmp.name
+        s3_client.download_fileobj(bucket_name, model_file_path, tmp)
 
-    with open(temp_file_path, 'wb') as f:
-        s3_client.download_fileobj(bucket_name, model_file_path, f)
-        
-    # Load the TensorFlow model from the temporary file
+    # Load and use the model
     model = tf.keras.models.load_model(temp_file_path)
     model.trainable = False
-    
+
+    # Cleanup
     if os.path.exists(temp_file_path):
-        os.remove(temp_file_path) 
+        os.remove(temp_file_path)
 
     return model
     
     
-def get_tf_model(model_instance, profile=None):     # Gets a Tensorflow model from a built Model instance, negative timestamp means ongoing operation
-    # Define the S3 bucket and file path
+def get_tf_model(model_instance, profile=None):
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
     model_file_path = "media/" + model_instance.model_file.name
-    
     s3_client = get_s3_client()
-    
+
     extension = model_file_path.split(".")[-1]
-    
     timestamp = time.time()
 
-    # Download the model file from S3 to a local temporary file
-    temp_file_path = ""
-    if profile:
-        temp_file_path = get_temp_model_name(model_instance.id, timestamp, extension, profile.user.id)
-    else:
-        temp_file_path = get_temp_model_name(model_instance.id, timestamp, extension)
+    # Download model to a temp file
+    with tempfile.NamedTemporaryFile(suffix=f".{extension}", delete=False) as tmp:
+        s3_client.download_fileobj(bucket_name, model_file_path, tmp)
+        temp_file_path = tmp.name
 
-    with open(temp_file_path, 'wb') as f:
-        s3_client.download_fileobj(bucket_name, model_file_path, f)
-        
-    # Load the TensorFlow model from the temporary file
-    model = tf.keras.models.load_model(temp_file_path)
-    
-    user_id = None
-    if profile:
-        user_id = profile.user.id
-    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
+    try:
+        model = tf.keras.models.load_model(temp_file_path)
+    finally:
+        # Always clean up
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
 
+    # Return model and timestamp (still useful for logging or ongoing tasks)
     return model, timestamp
-    
-    
-def remove_temp_tf_model(model_instance, timestamp, user_id=None):
-    extension = str(model_instance.model_file).split(".")[-1]
-    file_path = get_temp_model_name(model_instance.id, timestamp, extension, user_id)
-    if os.path.exists(file_path):
-        os.remove(file_path) 
         
 
 def get_tf_layer(layer):    # From a Layer instance
@@ -1251,7 +1227,7 @@ def set_trainable_recursive(layer, names_to_freeze):
     Recursively set trainable attribute on a layer and its sublayers.
     """
     if hasattr(layer, 'layers'):  # it's a model or a container
-        PRETRAINED_SET = set("mobilenetv2", "mobilenetv2_96x96", "mobilenetv2_32x32")
+        PRETRAINED_SET = set(["mobilenetv2", "mobilenetv2_96x96", "mobilenetv2_32x32"])
         if layer.name in PRETRAINED_SET: return
         for sublayer in layer.layers:
             set_trainable_recursive(sublayer, names_to_freeze)
