@@ -56,25 +56,26 @@ def get_temp_model_name(id, timestamp, extension, user_id=None):   # Timestamp u
     return os.path.join(base_path, filename)
 
 
-def get_pretrained_model(name, profile=None):
+def get_pretrained_model(name):
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
     model_file_path = f"media/pretrained_models/{name}.keras"
-
     s3_client = get_s3_client()
 
-    # Create a temp file in the system's temporary directory (e.g., /tmp)
     with tempfile.NamedTemporaryFile(suffix=".keras", delete=False) as tmp:
-        temp_file_path = tmp.name
         s3_client.download_fileobj(bucket_name, model_file_path, tmp)
+        temp_file_path = tmp.name
 
-    # Load and use the model
+    # Optional debug
+    if not os.path.exists(temp_file_path):
+        raise FileNotFoundError(f"Temp file was not created: {temp_file_path}")
+    if os.path.getsize(temp_file_path) == 0:
+        raise ValueError("Downloaded model file is empty.")
+
     model = tf.keras.models.load_model(temp_file_path)
     model.trainable = False
 
-    # Cleanup
     if os.path.exists(temp_file_path):
         os.remove(temp_file_path)
-
     return model
     
     
@@ -90,6 +91,7 @@ def get_tf_model(model_instance, profile=None):
     with tempfile.NamedTemporaryFile(suffix=f".{extension}", delete=False) as tmp:
         s3_client.download_fileobj(bucket_name, model_file_path, tmp)
         temp_file_path = tmp.name
+        tmp.flush()  # <-- Important
 
     try:
         model = tf.keras.models.load_model(temp_file_path)
