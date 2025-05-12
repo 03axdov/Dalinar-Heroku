@@ -58,10 +58,10 @@ def get_temp_model_name(id, timestamp, extension, user_id=None):   # Timestamp u
 
 def get_pretrained_model(name):
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    model_file_path = f"media/pretrained_models/{name}.keras"
+    model_file_path = f"media/pretrained_models/{name}.h5"
     s3_client = get_s3_client()
 
-    with tempfile.NamedTemporaryFile(suffix=".keras", delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(suffix=".h5", delete=False) as tmp:
         s3_client.download_fileobj(bucket_name, model_file_path, tmp)
         temp_file_path = tmp.name
         tmp.flush()  # <-- Important
@@ -173,9 +173,7 @@ def get_tf_layer(layer):    # From a Layer instance
     elif layer_type == "mobilenetv2_96x96":
         model = get_pretrained_model("mobilenetv2_96x96")
         return model
-    elif layer_type == "mobilenetv2_32x32":
-        model = get_pretrained_model("mobilenetv2_32x32")
-        return model
+
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         raise Exception("Invalid layer: " + layer_type)
