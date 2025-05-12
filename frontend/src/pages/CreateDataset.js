@@ -772,7 +772,17 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                     </div>}
 
                     {!isEmpty(uploadedDatasets) && <div className="uploaded-datasets-labels-container">
-                        <div className="uploaded-datasets-label-element no-margin" style={{padding: 0}}>
+                        <button type="button" className="create-dataset-clear" onClick={() => {
+                            activateConfirmPopup("Are you sure you want to remove all uploaded datasets?", () => {
+                                setUploadedDatasets({})
+                                setUploadedFoldersAsLabels([])
+                                setUploadedFilenamesAsLabels([])
+                                setUploadedCsvs([])
+                                notification("Removed all uploaded datasets.", "success")
+                            }, "blue")
+                        }}>Clear uploads</button>
+
+                        <div className="uploaded-datasets-label-element no-margin" style={{padding: 0, borderColor: "var(--border-light)"}}>
                             <div className="uploaded-datasets-label uploaded-datasets-label-element-title">Label</div>
                             <div className="uploaded-datasets-elements uploaded-datasets-label-element-title">Elements</div>
                         </div>
