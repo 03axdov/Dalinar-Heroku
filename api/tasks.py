@@ -58,10 +58,10 @@ def get_temp_model_name(id, timestamp, extension, user_id=None):   # Timestamp u
 
 def get_pretrained_model(name):
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    model_file_path = f"media/pretrained_models/{name}.h5"
+    model_file_path = f"media/pretrained_models/{name}.keras"
     s3_client = get_s3_client()
 
-    with tempfile.NamedTemporaryFile(suffix=".h5", delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(suffix=".keras", delete=False) as tmp:
         s3_client.download_fileobj(bucket_name, model_file_path, tmp)
         temp_file_path = tmp.name
         tmp.flush()  # <-- Important
