@@ -226,10 +226,9 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
             formData.append('dataset', dataset_id);
             formData.append('index', i*10)
             // If all files in this chunk share the same label, send it
-            const uniqueLabels = new Set(chunk.map(p => p.label));
-            if (uniqueLabels.size === 1) {
-                formData.append('label', chunk[0].label);
-            }
+            const labels = chunk.map(p => p.label)
+            formData.append('labels', labels);
+            
     
             await uploadWithRetry(URL, formData, config);
         }

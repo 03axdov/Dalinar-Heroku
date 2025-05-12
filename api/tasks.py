@@ -66,29 +66,15 @@ def get_pretrained_model(name):
         temp_file_path = tmp.name
         tmp.flush()  # <-- Important
 
-    # Optional debug
-    print("BEFORE PATH EXISTS")
-    print(f"temp_file_path: {temp_file_path}")
-    print(f"File exists? {os.path.exists(temp_file_path)}")
-    print(f"File size: {os.path.getsize(temp_file_path)} bytes")
-    if not os.path.exists(temp_file_path):
-        raise FileNotFoundError(f"Temp file was not created: {temp_file_path}")
-    if os.path.getsize(temp_file_path) == 0:
-        raise ValueError("Downloaded model file is empty.")
-    print("AFTER PATH EXISTS")
-
-    print("BEFORE LOAD MODEL")
-
     try:
         model = tf.keras.models.load_model(temp_file_path)
         model.trainable = False
-        print("AFTER LOAD MODEL")
+
     finally:
         # Only delete after loading is fully complete
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
 
-    print("AFTER GET_PRETRAINED_MODEL")
     return model
     
     
@@ -185,7 +171,7 @@ def download_s3_file(bucket_name, file_key):
     return response['Body'].read()  # Returns the raw bytes
 
 
-def download_dataset_from_s3(bucket_name, prefix, local_dir):
+def download_dataset_from_s3(bucket_name, prefix, local_dir, profile, nbr_files):
     s3 = get_s3_client()
     paginator = s3.get_paginator('list_objects_v2')
 
@@ -195,7 +181,7 @@ def download_dataset_from_s3(bucket_name, prefix, local_dir):
     for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
         contents = page.get('Contents', [])
 
-        for obj in contents:
+        for t, obj in enumerate(contents):
             key = obj['Key']
             if key.endswith('/'):
                 continue
@@ -213,16 +199,14 @@ def download_dataset_from_s3(bucket_name, prefix, local_dir):
                 s3.download_file(bucket_name, key, local_path)
             except Exception as e:
                 print(f"Error downloading {key}: {e}")
-
-
-
+            
+            profile.processing_data_progress = (t + 1) / nbr_files
+            profile.save()
 
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
-i = 1
 # Function to load and preprocess the images
 def load_and_preprocess_image(file_path,input_dims):
-    global i
     
     image_bytes = tf.io.read_file(file_path)
 
@@ -235,9 +219,6 @@ def load_and_preprocess_image(file_path,input_dims):
 
     if image_shape[0] != input_dims[0] or image_shape[1] != input_dims[1]:
         image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
-        
-    print(i)
-    i += 1
     
     image = preprocess_input(image)
     
@@ -305,8 +286,13 @@ def create_tensorflow_dataset(dataset_instance, model_instance, profile):    # R
         download_dataset_from_s3(
             bucket_name=settings.AWS_STORAGE_BUCKET_NAME,
             prefix=AWS_DIR,
-            local_dir=local_dir
+            local_dir=local_dir,
+            profile=profile,
+            nbr_files = elements.count()
         )
+        
+        profile.processing_data_progress = 0
+        profile.save()
         
         def get_all_file_paths(directory):
             return [
@@ -321,8 +307,6 @@ def create_tensorflow_dataset(dataset_instance, model_instance, profile):    # R
         for t, element in enumerate(elements):
             if element.label:
                 filename = os.path.basename(element.file.name)
-                if t == 0:
-                    print(f"filename: {filename}")
                 file_paths.append(os.path.join(local_dir, filename))
                 labels.append(element.label.name)
 
@@ -1330,6 +1314,8 @@ def set_to_tf_layer(layer_instance, tf_layer):
     input_shape = False
     if "batch_input_shape" in config.keys():
         input_shape = config["batch_input_shape"]
+    else:
+        input_shape = [None, None, None, None]
     
     if isinstance(tf_layer, layers.Dense):
         layer_instance.nodes_count = config["units"]
@@ -1396,18 +1382,6 @@ def set_to_tf_layer(layer_instance, tf_layer):
 
 
 @shared_task(bind=True)
-def reset_model_to_build_task(self, model_id, user_id):
-    try:
-        pass
-    except Profile.DoesNotExist:
-        return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
-    except Layer.DoesNotExist:
-        return {"Not found": "Could not find layer with the id " + str(layer_id) + ".", "status": 404}
-    except Exception as e:
-        return {"Bad request": str(e), "status": 400}
-    
-
-@shared_task(bind=True)
 def reset_to_build_task(self, layer_id, user_id):
     try:
         profile = Profile.objects.get(user_id=user_id)
@@ -1449,14 +1423,10 @@ def reset_to_build_task(self, layer_id, user_id):
         return {"Bad request": str(e), "status": 400}
 
 
-def layer_model_from_tf_layer(tf_layer, model_id, idx, user):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
+def layer_model_from_tf_layer(tf_layer, model_id, idx, user, input_shape=False):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
     config = tf_layer.get_config()
-    
+        
     data = {}
-    
-    input_shape = False
-    if "batch_input_shape" in config.keys():
-        input_shape = config["batch_input_shape"]
     
     if isinstance(tf_layer, layers.Dense):
         data["type"] = "dense"
@@ -1506,6 +1476,7 @@ def layer_model_from_tf_layer(tf_layer, model_id, idx, user):    # Takes a Tenso
             data["input_y"] = input_shape[2]
             data["input_z"] = input_shape[3]
     elif isinstance(tf_layer, layers.Resizing):
+        print(config)
         data["type"] = "resizing"
         data["output_x"] = config["width"]
         data["output_y"] = config["height"]
@@ -1543,7 +1514,6 @@ def layer_model_from_tf_layer(tf_layer, model_id, idx, user):    # Takes a Tenso
     return instance  # Or return {'id': instance.id} or whatever you need
 
 
-
 @shared_task(bind=True)
 def reset_model_to_build_task(self, model_id, user_id):
     backend_temp_model_path = ""
@@ -1552,8 +1522,12 @@ def reset_model_to_build_task(self, model_id, user_id):
         profile = Profile.objects.get(user_id=user_id)
         model_instance = Model.objects.get(id=model_id)
         
+        input_shape = []
+        
         if model_instance.owner == profile:  
-            for layer in model_instance.layers.all():    # Workaround due to bug with Django Polymorphic
+            for t, layer in enumerate(model_instance.layers.all()):    # Workaround due to bug with Django Polymorphic
+                if t == 0:
+                    input_shape = [None, layer.input_x, layer.input_y, layer.input_z]
                 layer.delete()
             
             model_file = model_instance.model_file
@@ -1579,7 +1553,10 @@ def reset_model_to_build_task(self, model_id, user_id):
             os.remove(backend_temp_model_path)
             
             for t, layer in enumerate(model.layers):
-                layer_model_from_tf_layer(layer, model_id, t, profile.user)
+                if t == 0:
+                    layer_model_from_tf_layer(layer, model_id, t, profile.user, input_shape)
+                else:
+                    layer_model_from_tf_layer(layer, model_id, t, profile.user)
                 
                 
             model_instance.model_file = model_file

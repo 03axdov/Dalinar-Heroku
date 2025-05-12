@@ -2,9 +2,7 @@ TO-DO:
 - Presave tensorflow datasets?
 - Upload datasets directly for training (don't store for longer than used)
 - Problem with testing and files on AWS not getting deleted
-- Reset entire model to build (in task)
-- Download entire dataset at once for performance
-
+- Bug with warnings and building
 
 Layers to add:
 

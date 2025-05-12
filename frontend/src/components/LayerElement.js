@@ -155,9 +155,9 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         }
         if (current_layer.dimensions) {
             for (let i=0; i < current_layer.dimensions.length; i++) {
-                let dim = current_layer.dimensions[j]
-                for (let i=0; i < dim.params.length; i++) {
-                    let param = dim.params[i]
+                let dim = current_layer.dimensions[i]
+                for (let j=0; j < dim.params.length; j++) {
+                    let param = dim.params[j]
                     if (param.validator) {
                         let message = param.validator(params[param.name])
                         if (message.length > 0) {
