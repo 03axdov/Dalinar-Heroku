@@ -610,7 +610,10 @@ class CreateElements(APIView):
         files = request.FILES.getlist("files")
         dataset_id = request.data.get("dataset")
         index = request.data.get("index")
-        label_id = request.data.get("label", None)
+        labels = request.data.get("labels", None)
+        if labels:
+            labels = labels.split(",")
+        print(f"labels: {labels}")
         user = request.user
 
         if not files:
@@ -645,13 +648,13 @@ class CreateElements(APIView):
                         resize_element_image(instance, dataset.imageWidth, dataset.imageHeight)
 
                 # Attach label if provided
-                if label_id:
+                if labels:
                     try:
-                        label = Label.objects.get(id=label_id)
+                        label = Label.objects.get(id=labels[i])
                         instance.label = label
                         instance.save()
                     except Label.DoesNotExist:
-                        return Response({'error': f'Label with id {label_id} not found.'}, status=status.HTTP_404_NOT_FOUND)
+                        return Response({'error': f'Label with id {labels[i]} not found.'}, status=status.HTTP_404_NOT_FOUND)
 
                 created_elements.append({"id": instance.id, "file": file.name})
             else:
@@ -1713,6 +1716,7 @@ class GetTaskResult(APIView):
             if user.is_authenticated:
                 training_progress = user.profile.training_progress
                 training_accuracy = user.profile.training_accuracy
+                processing_data_progress = user.profile.processing_data_progress
                 training_loss = user.profile.training_loss
                 training_time_remaining = user.profile.training_time_remaining
                 
@@ -1720,6 +1724,7 @@ class GetTaskResult(APIView):
                 return Response({'status': 'in progress', 
                                  "training_progress": training_progress, 
                                  "training_accuracy": training_accuracy,
+                                 "processing_data_progress": processing_data_progress,
                                  "training_loss": training_loss,
                                  "training_time_remaining": training_time_remaining,
                                  "evaluation_progress": evaluation_progress}, status=status.HTTP_200_OK)

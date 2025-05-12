@@ -185,7 +185,7 @@ def download_s3_file(bucket_name, file_key):
     return response['Body'].read()  # Returns the raw bytes
 
 
-def download_dataset_from_s3(bucket_name, prefix, local_dir):
+def download_dataset_from_s3(bucket_name, prefix, local_dir, profile, nbr_files):
     s3 = get_s3_client()
     paginator = s3.get_paginator('list_objects_v2')
 
@@ -195,7 +195,7 @@ def download_dataset_from_s3(bucket_name, prefix, local_dir):
     for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
         contents = page.get('Contents', [])
 
-        for obj in contents:
+        for t, obj in enumerate(contents):
             key = obj['Key']
             if key.endswith('/'):
                 continue
@@ -213,16 +213,15 @@ def download_dataset_from_s3(bucket_name, prefix, local_dir):
                 s3.download_file(bucket_name, key, local_path)
             except Exception as e:
                 print(f"Error downloading {key}: {e}")
-
-
-
+            
+            print(t)
+            profile.processing_data_progress = (t + 1) / nbr_files
+            profile.save()
 
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
-i = 1
 # Function to load and preprocess the images
 def load_and_preprocess_image(file_path,input_dims):
-    global i
     
     image_bytes = tf.io.read_file(file_path)
 
@@ -235,9 +234,6 @@ def load_and_preprocess_image(file_path,input_dims):
 
     if image_shape[0] != input_dims[0] or image_shape[1] != input_dims[1]:
         image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
-        
-    print(i)
-    i += 1
     
     image = preprocess_input(image)
     
@@ -305,8 +301,13 @@ def create_tensorflow_dataset(dataset_instance, model_instance, profile):    # R
         download_dataset_from_s3(
             bucket_name=settings.AWS_STORAGE_BUCKET_NAME,
             prefix=AWS_DIR,
-            local_dir=local_dir
+            local_dir=local_dir,
+            profile=profile,
+            nbr_files = elements.count()
         )
+        
+        profile.processing_data_progress = 0
+        profile.save()
         
         def get_all_file_paths(directory):
             return [
@@ -321,8 +322,6 @@ def create_tensorflow_dataset(dataset_instance, model_instance, profile):    # R
         for t, element in enumerate(elements):
             if element.label:
                 filename = os.path.basename(element.file.name)
-                if t == 0:
-                    print(f"filename: {filename}")
                 file_paths.append(os.path.join(local_dir, filename))
                 labels.append(element.label.name)
 
