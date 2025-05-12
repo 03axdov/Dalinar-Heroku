@@ -66,29 +66,15 @@ def get_pretrained_model(name):
         temp_file_path = tmp.name
         tmp.flush()  # <-- Important
 
-    # Optional debug
-    print("BEFORE PATH EXISTS")
-    print(f"temp_file_path: {temp_file_path}")
-    print(f"File exists? {os.path.exists(temp_file_path)}")
-    print(f"File size: {os.path.getsize(temp_file_path)} bytes")
-    if not os.path.exists(temp_file_path):
-        raise FileNotFoundError(f"Temp file was not created: {temp_file_path}")
-    if os.path.getsize(temp_file_path) == 0:
-        raise ValueError("Downloaded model file is empty.")
-    print("AFTER PATH EXISTS")
-
-    print("BEFORE LOAD MODEL")
-
     try:
         model = tf.keras.models.load_model(temp_file_path)
         model.trainable = False
-        print("AFTER LOAD MODEL")
+
     finally:
         # Only delete after loading is fully complete
         if os.path.exists(temp_file_path):
             os.remove(temp_file_path)
 
-    print("AFTER GET_PRETRAINED_MODEL")
     return model
     
     
@@ -158,6 +144,7 @@ def get_tf_layer(layer):    # From a Layer instance
             return layers.RandomRotation(layer.factor, name=name)
     elif layer_type == "resizing":
         if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
+            print("A")
             return layers.Resizing(layer.output_y, layer.output_x, input_shape=(layer.input_x, layer.input_y, layer.input_z),name=name)
         else:
             return layers.Resizing(layer.output_y, layer.output_x)
@@ -214,7 +201,6 @@ def download_dataset_from_s3(bucket_name, prefix, local_dir, profile, nbr_files)
             except Exception as e:
                 print(f"Error downloading {key}: {e}")
             
-            print(t)
             profile.processing_data_progress = (t + 1) / nbr_files
             profile.save()
 
@@ -1329,6 +1315,8 @@ def set_to_tf_layer(layer_instance, tf_layer):
     input_shape = False
     if "batch_input_shape" in config.keys():
         input_shape = config["batch_input_shape"]
+    else:
+        input_shape = [None, None, None, None]
     
     if isinstance(tf_layer, layers.Dense):
         layer_instance.nodes_count = config["units"]
@@ -1395,18 +1383,6 @@ def set_to_tf_layer(layer_instance, tf_layer):
 
 
 @shared_task(bind=True)
-def reset_model_to_build_task(self, model_id, user_id):
-    try:
-        pass
-    except Profile.DoesNotExist:
-        return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
-    except Layer.DoesNotExist:
-        return {"Not found": "Could not find layer with the id " + str(layer_id) + ".", "status": 404}
-    except Exception as e:
-        return {"Bad request": str(e), "status": 400}
-    
-
-@shared_task(bind=True)
 def reset_to_build_task(self, layer_id, user_id):
     try:
         profile = Profile.objects.get(user_id=user_id)
@@ -1450,12 +1426,15 @@ def reset_to_build_task(self, layer_id, user_id):
 
 def layer_model_from_tf_layer(tf_layer, model_id, idx, user):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
     config = tf_layer.get_config()
-    
+        
     data = {}
     
     input_shape = False
+    if idx == 0: print(config)
     if "batch_input_shape" in config.keys():
         input_shape = config["batch_input_shape"]
+        
+    print(input_shape)
     
     if isinstance(tf_layer, layers.Dense):
         data["type"] = "dense"
@@ -1505,6 +1484,7 @@ def layer_model_from_tf_layer(tf_layer, model_id, idx, user):    # Takes a Tenso
             data["input_y"] = input_shape[2]
             data["input_z"] = input_shape[3]
     elif isinstance(tf_layer, layers.Resizing):
+        print(config)
         data["type"] = "resizing"
         data["output_x"] = config["width"]
         data["output_y"] = config["height"]
@@ -1540,7 +1520,6 @@ def layer_model_from_tf_layer(tf_layer, model_id, idx, user):    # Takes a Tenso
     instance = create_layer_instance(data, user)
     
     return instance  # Or return {'id': instance.id} or whatever you need
-
 
 
 @shared_task(bind=True)
