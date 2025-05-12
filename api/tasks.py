@@ -144,7 +144,6 @@ def get_tf_layer(layer):    # From a Layer instance
             return layers.RandomRotation(layer.factor, name=name)
     elif layer_type == "resizing":
         if layer.input_x or layer.input_y or layer.input_z:   # Dimensions specified
-            print("A")
             return layers.Resizing(layer.output_y, layer.output_x, input_shape=(layer.input_x, layer.input_y, layer.input_z),name=name)
         else:
             return layers.Resizing(layer.output_y, layer.output_x)
@@ -1424,17 +1423,10 @@ def reset_to_build_task(self, layer_id, user_id):
         return {"Bad request": str(e), "status": 400}
 
 
-def layer_model_from_tf_layer(tf_layer, model_id, idx, user):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
+def layer_model_from_tf_layer(tf_layer, model_id, idx, user, input_shape=False):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
     config = tf_layer.get_config()
         
     data = {}
-    
-    input_shape = False
-    if idx == 0: print(config)
-    if "batch_input_shape" in config.keys():
-        input_shape = config["batch_input_shape"]
-        
-    print(input_shape)
     
     if isinstance(tf_layer, layers.Dense):
         data["type"] = "dense"
@@ -1530,8 +1522,12 @@ def reset_model_to_build_task(self, model_id, user_id):
         profile = Profile.objects.get(user_id=user_id)
         model_instance = Model.objects.get(id=model_id)
         
+        input_shape = []
+        
         if model_instance.owner == profile:  
-            for layer in model_instance.layers.all():    # Workaround due to bug with Django Polymorphic
+            for t, layer in enumerate(model_instance.layers.all()):    # Workaround due to bug with Django Polymorphic
+                if t == 0:
+                    input_shape = [None, layer.input_x, layer.input_y, layer.input_z]
                 layer.delete()
             
             model_file = model_instance.model_file
@@ -1557,7 +1553,10 @@ def reset_model_to_build_task(self, model_id, user_id):
             os.remove(backend_temp_model_path)
             
             for t, layer in enumerate(model.layers):
-                layer_model_from_tf_layer(layer, model_id, t, profile.user)
+                if t == 0:
+                    layer_model_from_tf_layer(layer, model_id, t, profile.user, input_shape)
+                else:
+                    layer_model_from_tf_layer(layer, model_id, t, profile.user)
                 
                 
             model_instance.model_file = model_file
