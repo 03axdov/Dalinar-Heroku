@@ -60,6 +60,7 @@ urlpatterns = [
     # LAYER HANDLING
     path("create-layer/", CreateLayer.as_view(), name="create-layer"),
     path("delete-layer/", DeleteLayer.as_view(), name="delete-layer"),
+    path("delete-all-layers/", DeleteAllLayers.as_view(), name="delete-all-layers"),
     path("edit-layer/", EditLayer.as_view(), name="edit-layer"),
     path("clear-layer-updated/", ClearLayerUpdated.as_view(), name="clear-layer-updated"),
     path("reset-to-build/", ResetLayerToBuild.as_view(), name="reset-to-layer"),

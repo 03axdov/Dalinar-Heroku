@@ -1565,6 +1565,30 @@ class DeleteLayer(APIView):
             return Response({'Unauthorized': 'Must be logged in to delete layers.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         
+class DeleteAllLayers(APIView):
+    def post(self, request, format=None):
+        model_id = request.data["model"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                model = Model.objects.get(id=model_id)
+                
+                if model.owner == user.profile:
+                    for layer in model.layers.all():
+                        layer.delete()
+                    
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only delete your own layers."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Layer.DoesNotExist:
+                return Response({"Not found": "Could not find model with the id " + str(model_id + ".")}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to delete layers.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
 class EditLayer(APIView):
     parser_classes = [JSONParser]
 

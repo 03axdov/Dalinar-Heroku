@@ -1553,6 +1553,7 @@ def reset_model_to_build_task(self, model_id, user_id):
             os.remove(backend_temp_model_path)
             
             for t, layer in enumerate(model.layers):
+                print(t)
                 if t == 0:
                     layer_model_from_tf_layer(layer, model_id, t, profile.user, input_shape)
                 else:

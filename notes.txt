@@ -2,10 +2,8 @@ TO-DO:
 - Presave tensorflow datasets?
 - Upload datasets directly for training (don't store for longer than used)
 - Problem with testing and files on AWS not getting deleted
-- Bug with warnings and building?
 
 Layers to add:
-
 
 Start Celery Worker: 
 celery -A Dalinar.celery worker --pool=solo -l info -Q default
