@@ -592,3 +592,11 @@
     cursor: pointer;
     background: #384358;
 }
+
+.create-dataset-clear {
+    margin-bottom: 20px;
+    background: var(--background-light);
+}
+.create-dataset-clear:hover {
+    background: var(--background-lighter);
+}

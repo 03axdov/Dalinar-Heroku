@@ -127,6 +127,10 @@ function CreateModel({notification, BACKEND_URL}) {
         formData.append('model_type', modelType)
 
         if (modelFile) {
+            if (modelFile.size > 20 * 10**6) {
+                notification("Cannot upload models larger than 20 Mb.", "failure")
+                return
+            }
             formData.append("model", modelFile)
         }
 
