@@ -743,6 +743,10 @@
     user-select: none;
 }
 
+.dataset-element-view-image-expanded {
+    object-fit: contain;
+}
+
 .dataset-element-view-point {
     position: absolute;
     width: 6px;
@@ -1119,7 +1123,6 @@ canvas {
 }
 
 .resize-form {
-    margin-left: auto;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -1261,4 +1264,29 @@ canvas {
 
 .dataset-create-label-container.slide-in, .dataset-edit-element-container.slide-in {
     transform: translateX(0);
+}
+
+.dataset-image-expand-button {
+    padding: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto;
+    background: none;
+    margin-right: 20px;
+}
+.dataset-image-expand-button:hover {
+    background: none;
+}
+
+.dataset-expand-icon {
+    width: 18px;
+    height: 18px;
+}
+
+.dataset-image-expand-button-activated {
+    background: rgb(100,100,100, 0.5);
+}
+.dataset-image-expand-button-activated:hover {
+    background: rgb(100,100,100, 0.5);
 }
