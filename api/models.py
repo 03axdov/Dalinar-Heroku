@@ -24,6 +24,7 @@ class Profile(models.Model):    # Extends default User class
     training_progress = models.FloatField(default=0) # Used to track progress when training model.
     training_accuracy = models.FloatField(default=-1) # Used to track accuracy when training
     processing_data_progress = models.FloatField(default=0) # Used to track progress of processing data when training model
+    delete_dataset_progress = models.FloatField(default=0)
     training_loss = models.FloatField(default=-1)
     training_time_remaining = models.CharField(max_length=100, blank=True, null=True)
     
@@ -295,8 +296,10 @@ def delete_model_files(sender, instance, **kwargs):
         
 @receiver(pre_delete, sender=Model)
 def delete_related_layers(sender, instance, **kwargs):
-    for layer in instance.layers.all():    # Workaround due to bug with Django Polymorphic
+    totalCount = instance.layers.count()
+    for t, layer in enumerate(instance.layers.all()):    # Workaround due to bug with Django Polymorphic
         layer.delete()
+
     
     
 # LAYERS

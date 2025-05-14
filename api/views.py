@@ -1743,6 +1743,7 @@ class GetTaskResult(APIView):
                 processing_data_progress = user.profile.processing_data_progress
                 training_loss = user.profile.training_loss
                 training_time_remaining = user.profile.training_time_remaining
+                delete_dataset_progress = user.profile.delete_dataset_progress
                 
                 evaluation_progress = user.profile.evaluation_progress
                 return Response({'status': 'in progress', 
@@ -1750,6 +1751,7 @@ class GetTaskResult(APIView):
                                  "training_accuracy": training_accuracy,
                                  "processing_data_progress": processing_data_progress,
                                  "training_loss": training_loss,
+                                 "delete_dataset_progress": delete_dataset_progress,
                                  "training_time_remaining": training_time_remaining,
                                  "evaluation_progress": evaluation_progress}, status=status.HTTP_200_OK)
             else:
