@@ -3,6 +3,7 @@ import {useNavigate} from "react-router-dom"
 import axios from "axios"
 import {LAYERS, WARNING_MESSAGES, VALID_PREV_LAYERS} from "../layers"
 import { useTask } from "../contexts/TaskContext"
+import ToggleSwitch from "./ToggleSwitch"
 
 function LayerElement({layer, hoveredLayer, deleteLayer, 
                         BACKEND_URL, updateLayers, layers, notification, 
@@ -448,24 +449,27 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                     </select>}
                     {isPublic && <div className="layer-element-input layer-element-activation-input" id={"activation" + layer.id}>{params["activation_function"] || "-"}</div>}
                 </div>}
-                {current_layer.freezable && !isPublic && <div className="layer-element-stat" title="Whether or not weights should be updated while training.">
+                {current_layer.freezable && <div className="layer-element-stat" title="Whether or not weights should be updated while training.">
                     <span className="layer-element-stat-color layer-element-stat-gray"></span>
                     <label className="layer-element-label" htmlFor={"trainable" + layer.id}>Trainable</label>
-                    <input type="checkbox" className="layer-element-input layer-element-checkbox" id={"trainable" + layer.id} checked={params["trainable"]} onChange={(e) => {
+                    <ToggleSwitch defaultValue={params["trainable"]} onUpdate={(value) => {
                         let temp = {...params}
-                        temp["trainable"] = e.target.checked
+                        temp["trainable"] = value
                         setParams(temp)
-                    }} />
+                    }} style={{marginLeft: "auto"}} isPublic={isPublic}></ToggleSwitch>
                 </div>}
-                {current_layer.freezable && !isPublic && <div className="layer-element-stat" title={"Whether or not this layer should be updated when building the model. Trainable will be updated regardless."}>
+                {current_layer.freezable && <div className="layer-element-stat" title={"Whether or not this layer should be updated when building the model. Trainable will be updated regardless."}>
                     <span className="layer-element-stat-color layer-element-stat-gray"></span>
                     <label className="layer-element-label" htmlFor={"update_build" + layer.id}>Update on build</label>
-                    <input type="checkbox" className="layer-element-input layer-element-checkbox" id={"update_build" + layer.id} checked={params["update_build"]} onChange={(e) => {
+                    <ToggleSwitch defaultValue={params["update_build"]} onUpdate={(value) => {
                         let temp = {...params}
-                        temp["update_build"] = e.target.checked
+                        temp["update_build"] = value
                         setParams(temp)
-                    }} />
+                    }} style={{marginLeft: "auto"}} isPublic={isPublic}></ToggleSwitch>
+
                 </div>}
+
+                
             </form>
         )
     }

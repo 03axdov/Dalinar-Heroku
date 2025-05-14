@@ -414,6 +414,14 @@ def delete_dataset_task(self, dataset_id, user_id):
         dataset = Dataset.objects.get(id=dataset_id)
         
         if dataset.owner == profile:
+            totalCount = dataset.elements.count()
+            for t, element in enumerate(dataset.elements.all()):
+                if t % 10 == 0:
+                    profile.delete_dataset_progress = (t + 1) / totalCount
+                    profile.save()
+                element.delete()
+            profile.delete_dataset_progress = 0
+            profile.save()
             dataset.delete()
             
             return {"status": 200}

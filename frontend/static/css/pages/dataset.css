@@ -421,12 +421,13 @@
 .dataset-sidebar-title {
     margin: 0;
     margin-top: 20px;
-    margin-bottom: 10px;
     font-size: 1.7rem;
-    width: calc(100% - 20px);
+    width: 100%;
+    padding: 0 10px;
+    box-sizing: border-box;
     text-align: center;
     padding-bottom: 3px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--sidebar-selected);
 }
 
 .dataset-sidebar-title-small {
@@ -574,10 +575,10 @@
 }
 
 .dataset-sidebar-button-container {
-    width: calc(100% - 20px);
-    margin-bottom: 10px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid var(--border);
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    border-bottom: 1px solid var(--sidebar-selected);
     position: relative;
 }
 

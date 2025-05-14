@@ -4,6 +4,7 @@ import axios from "axios"
 import { useParams, useSearchParams } from "react-router-dom";
 import TitleSetter from "../components/minor/TitleSetter";
 import { useTask } from "../contexts/TaskContext"
+import ProgressBar from "../components/ProgressBar";
 
 function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
     const { getTaskResult } = useTask();
@@ -16,6 +17,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
     const [loading, setLoading] = useState(true)
     const [processing, setProcessing] = useState(false)
     const [processingDelete, setProcessingDelete] = useState(false)
+    const [deletingProgress, setDeletingProgress] = useState(0)
 
     const imageInputRef = useRef(null)
     const [imageURL, setImageURL] = useState("")
@@ -183,7 +185,9 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                 (data) => {
                     notification("Deleting model failed: " + data["message"], "failure")
                 },
-                () => {},
+                (data) => {
+                    setDeletingProgress(data["delete_dataset_progress"] * 100)
+                },
                 () => {
                     setProcessingDelete(false)
                 }
@@ -210,6 +214,9 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
 
     return (
         <div className="create-dataset-container">
+
+            {processingDelete && <ProgressBar progress={deletingProgress} message={"Deleting..."} BACKEND_URL={BACKEND_URL}></ProgressBar>}
+
             <TitleSetter title={"Dalinar " + (originalName ? "- Edit " + originalName : "")} />
             <div className="create-dataset-form">
                 <div className="edit-dataset-title-container">
