@@ -98,6 +98,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [displayAreas, setDisplayAreas] = useState(false)
 
     const [cursor, setCursor] = useState("")
+    const [imageExpanded, setImageExpanded] = useState(false)
 
     const datasetMainDisplayRef = useRef(null)
 
@@ -876,7 +877,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             {idToLabel[element.label].name}
                         </div>}
                         <img ref={elementRef} 
-                        className="dataset-element-view-image" 
+                        className={"dataset-element-view-image " + (imageExpanded ? "dataset-element-view-image-expanded" : "")} 
                         src={element.file} 
                         alt="Element image"
                         style={{
@@ -2271,6 +2272,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         onClick={() => unsaveDataset()}>
                             <img className="dataset-download-icon" src={BACKEND_URL + "/static/images/blueCheck.png"} alt="Blue checkmark" />
                             Saved
+                        </button>}
+
+                        {elements && elements[elementsIndex] && dataset && dataset.dataset_type.toLowerCase() == "image" && <button 
+                        title="Expand image"
+                        className={"dataset-image-expand-button " + (imageExpanded ? "dataset-image-expand-button-activated" : "")}
+                        onClick={() => setImageExpanded(!imageExpanded)}>
+                            <img className="dataset-expand-icon" src={BACKEND_URL + "/static/images/expand.svg"} alt="Expand" />
                         </button>}
 
                         {elements && elements[elementsIndex] && dataset && dataset.dataset_type.toLowerCase() == "image" && <form className="resize-form" onSubmit={(e) => {
