@@ -650,52 +650,65 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     useEffect(() => {
         setDisplayAreas(false)
         if (!currentElementRef.current) return;
-        currentElementRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+        currentElementRef.current.scrollIntoView({ block: 'end' })
         
     }, [elementsIndex])
 
     // Handles user button presses
+    const ARROW_THROTTLE_MS = 20;  // Adjust interval here
+
+    const lastKeyTimeRef = useRef(0);
+
     useEffect(() => {
+        
+
         const handleKeyDown = (event) => {
+            if (loading || inputFocused) return;
 
-            if (loading || inputFocused) {return};  
+            const now = Date.now();
+            const key = getUserPressKeycode(event);
 
-            let key = getUserPressKeycode(event)
-            
-            if (key === "ArrowDown" || key === "ArrowRight") {    
-                event.preventDefault()
+            // Only throttle Arrow keys
+            if (
+                key === "ArrowDown" || key === "ArrowRight" ||
+                key === "ArrowUp" || key === "ArrowLeft"
+            ) {
+                if (now - lastKeyTimeRef.current < ARROW_THROTTLE_MS) {
+                    return;  // Ignore if within throttle window
+                }
+                lastKeyTimeRef.current = now;
+            }
+
+            if (key === "ArrowDown" || key === "ArrowRight") {
+                event.preventDefault();
                 if (loading) {
-                    notification("Cannot switch element while loading.", "failure")
+                    notification("Cannot switch element while loading.", "failure");
                     return;
                 }
-                setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
-   
+                setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0));
             } else if (key === "ArrowUp" || key === "ArrowLeft") {
-                event.preventDefault()
+                event.preventDefault();
                 if (loading) {
-                    notification("Cannot switch element while loading.", "failure")
+                    notification("Cannot switch element while loading.", "failure");
                     return;
                 }
-                setElementsIndex(Math.max(elementsIndex - 1, 0))  
-
+                setElementsIndex(Math.max(elementsIndex - 1, 0));
             } else if (labelKeybinds[key]) {
                 if (isPublic) return;
-                labelOnClick(labelKeybinds[key])
-            } else if (key === "Backspace" || key === "Delete") {  // For datatype area, deleting points
+                labelOnClick(labelKeybinds[key]);
+            } else if (key === "Backspace" || key === "Delete") {
                 if (isPublic) return;
-                if (pointSelected[0] != -1 || pointSelected[1] != -1) {
-                    updatePoints(selectedArea, [], pointSelected[1], true) // Remove point
+                if (pointSelected[0] !== -1 || pointSelected[1] !== -1) {
+                    updatePoints(selectedArea, [], pointSelected[1], true);
                 }
             }
         };
-    
-        // Attach the event listener
-        window.addEventListener("keydown", handleKeyDown);
 
+        window.addEventListener("keydown", handleKeyDown);
         return () => {
-            window.removeEventListener("keydown", handleKeyDown, false);
+            window.removeEventListener("keydown", handleKeyDown);
         };
-    }, [loading, elements, elementsIndex, inputFocused, labelSelected, pointSelected])
+    }, [loading, elements, elementsIndex, inputFocused, labelSelected, pointSelected]);
 
 
     function getDataset() {

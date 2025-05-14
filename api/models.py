@@ -25,6 +25,7 @@ class Profile(models.Model):    # Extends default User class
     training_accuracy = models.FloatField(default=-1) # Used to track accuracy when training
     processing_data_progress = models.FloatField(default=0) # Used to track progress of processing data when training model
     delete_dataset_progress = models.FloatField(default=0)
+    edit_dataset_progress = models.FloatField(default=0)
     training_loss = models.FloatField(default=-1)
     training_time_remaining = models.CharField(max_length=100, blank=True, null=True)
     

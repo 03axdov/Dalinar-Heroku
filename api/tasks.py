@@ -1723,8 +1723,16 @@ def resize_dataset_images_task(self, dataset_id, user_id, imageWidth, imageHeigh
         if dataset.owner != profile:
             return {"Unauthorized": "You can only edit your own datasets.", "status": 401}
         
-        for element in dataset.elements.all():
+        totalCount = dataset.elements.count()
+        for t, element in enumerate(dataset.elements.all()):
+            print(t)
+            if t % 5 == 0:
+                profile.edit_dataset_progress = (t + 1) / totalCount
+                profile.save()
             resize_element_image(element, int(imageHeight), int(imageWidth))
+        
+        profile.edit_dataset_progress = 0
+        profile.save()
             
         return {"status": 200}
     
