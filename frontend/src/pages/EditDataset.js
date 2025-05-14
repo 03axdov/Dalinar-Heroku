@@ -16,6 +16,9 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
     const { id } = useParams();
     const [loading, setLoading] = useState(true)
     const [processing, setProcessing] = useState(false)
+
+    const [processingResize, setProcessingResize] = useState(false)
+    const [resizingProgress, setResizingProgress] = useState(0)
     const [processingDelete, setProcessingDelete] = useState(false)
     const [deletingProgress, setDeletingProgress] = useState(0)
 
@@ -117,6 +120,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         .then((res) => {
 
             if (res.data["task_id"]) {
+                setProcessingResize(true)
                 resizingInterval = setInterval(() => getTaskResult(
                     "resizing_dataset_images",
                     resizingInterval,
@@ -133,7 +137,9 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                     (data) => {
                         notification("Deleting model failed: " + data["message"], "failure")
                     },
-                    () => {},
+                    (data) => {
+                        setResizingProgress(data["edit_dataset_progress"] * 100)
+                    },
                     () => {
                         setProcessing(false)
                     }
@@ -216,6 +222,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         <div className="create-dataset-container">
 
             {processingDelete && <ProgressBar progress={deletingProgress} message={"Deleting..."} BACKEND_URL={BACKEND_URL}></ProgressBar>}
+            {processingResize && <ProgressBar progress={resizingProgress} message={"Resizing images..."} BACKEND_URL={BACKEND_URL}></ProgressBar>}
 
             <TitleSetter title={"Dalinar " + (originalName ? "- Edit " + originalName : "")} />
             <div className="create-dataset-form">
