@@ -655,7 +655,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }, [elementsIndex])
 
     // Handles user button presses
-    const ARROW_THROTTLE_MS = 50;  // Adjust interval here
+    const ARROW_THROTTLE_MS = 75;  // Adjust interval here
 
     const lastKeyTimeRef = useRef(0);
 
