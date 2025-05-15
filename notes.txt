@@ -9,3 +9,7 @@ Layers to add:
 Start Celery Worker: 
 celery -A Dalinar.celery worker --pool=solo -l info -Q default
 celery -A Dalinar.celery worker --pool=solo -l info -Q training
+
+Get traing worker log:
+1. SSH into AWS instance (see connect)
+2. tail -f /home/ubuntu/celery.log
