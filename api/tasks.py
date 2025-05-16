@@ -54,6 +54,8 @@ def get_temp_model_name(id, timestamp, extension, user_id=None):   # Timestamp u
 
 
 def get_pretrained_model(name):
+    import tensorflow as tf
+    
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
     model_file_path = f"media/pretrained_models/{name}.keras"
     s3_client = get_s3_client()
@@ -76,6 +78,8 @@ def get_pretrained_model(name):
     
     
 def get_tf_model(model_instance, profile=None):
+    import tensorflow as tf
+    
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
     model_file_path = "media/" + model_instance.model_file.name
     s3_client = get_s3_client()
@@ -101,6 +105,7 @@ def get_tf_model(model_instance, profile=None):
         
 
 def get_tf_layer(layer):    # From a Layer instance
+    import tensorflow as tf
     from tensorflow.keras import layers
     
     layer_type = layer.layer_type
@@ -204,6 +209,7 @@ def download_dataset_from_s3(bucket_name, prefix, local_dir, profile, nbr_files)
 
 # Function to load and preprocess the images
 def load_and_preprocess_image(file_path,input_dims):
+    import tensorflow as tf
     from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
     
     image_bytes = tf.io.read_file(file_path)
@@ -228,6 +234,7 @@ def remove_non_ascii(s):
     return re.sub(r'[^\x00-\x7F]', '', s)
 
 def load_and_preprocess_text(file_path):
+    import tensorflow as tf
     with open(file_path, "r", encoding="utf-8") as f:
         text = f.read()
     
@@ -250,14 +257,18 @@ def map_labels(label):
 
 # Function to apply one-hot encoding
 def one_hot_encode(label, nbr_labels):
+    import tensorflow as tf
     # Convert to one-hot encoded format
     return tf.keras.utils.to_categorical(label, num_classes=nbr_labels)
 
 def label_to_tensor(label):
+    import tensorflow as tf
     return tf.constant(label, dtype=tf.int32)
 
 
 def create_tensorflow_dataset(dataset_instance, model_instance, profile):    # Returns tensorflow dataset, number of elements in the dataset
+    import tensorflow as tf
+    
     global label_map
     global currentLabel
     
@@ -367,6 +378,7 @@ def clean_vocab(vocab):
     return cleaned
 
 def get_vectorize_layer(model_instance, model, train_ds, vocabulary=None):
+    import tensorflow as tf
     from tensorflow.keras import layers
     
     vectorize_layer = None
@@ -604,6 +616,8 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
     
 
 def getTensorflowPrebuiltDataset(tensorflowDataset):
+    import tensorflow as tf
+    
     if tensorflowDataset == "cifar10":
         return tf.keras.datasets.cifar10.load_data()
     elif tensorflowDataset == "cifar100":
@@ -620,6 +634,8 @@ def getTensorflowPrebuiltDataset(tensorflowDataset):
         raise Exception("Invalid dataset.")
     
 def getTensorflowDatasetVocabulary(tensorflowDataset):
+    import tensorflow as tf
+    
     word_index = {}
     if tensorflowDataset == "imdb":
         word_index = tf.keras.datasets.imdb.get_word_index()
@@ -902,6 +918,7 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
     
     
 def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Convert uploaded files to tensors for TensorFlow processing
+    import tensorflow as tf
     from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
     
     image = Image.open(uploaded_file)
@@ -1105,6 +1122,8 @@ def predict_model_task(self, model_id, encoded_images, text):
     
     
 def get_metrics(loss_function):
+    import tensorflow as tf
+    
     metrics = "accuracy"
     if loss_function == "binary_crossentropy":
         metrics = tf.metrics.BinaryAccuracy(threshold=0.5)
@@ -1112,6 +1131,8 @@ def get_metrics(loss_function):
 
 
 def get_tf_optimizer(optimizer_str, learning_rate):
+    import tensorflow as tf
+    
     if optimizer_str == "adam":
         return tf.keras.optimizers.Adam(
             learning_rate=learning_rate
@@ -1655,6 +1676,8 @@ def reset_model_to_build_task(self, model_id, user_id):
     
     
 def create_model_file(model_instance, profile):
+    import tensorflow as tf
+    
     backend_temp_model_path = ""
     try:
         model_file = model_instance.model_file  # View saves uploaded file here
