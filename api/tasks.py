@@ -634,8 +634,6 @@ def getTensorflowDatasetVocabulary(tensorflowDataset):
     vocab = [word for word in index_to_word if word is not None]
     return vocab
 
-from tensorflow.keras.utils import to_categorical
-
 tf_dataset_num_classes = {
     "cifar10": 10,
     "cifar100": 100,
@@ -648,6 +646,7 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
     import tensorflow as tf
     from tensorflow.keras.preprocessing.sequence import pad_sequences
     from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+    from tensorflow.keras.utils import to_categorical
     
     class TrainingProgressCallback(tf.keras.callbacks.Callback):
         def __init__(self, profile, total_epochs):
