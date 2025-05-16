@@ -10,14 +10,17 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Dalinar.settings')
 app = Celery('Dalinar')
 app.config_from_object(settings, namespace='CELERY')
 
-app.conf.broker_pool_limit = 10
+app.conf.broker_pool_limit = 7
 app.conf.broker_transport_options = {
-    'max_connections': 10,
+    'max_connections': 7,
 }
 app.conf.result_backend_transport_options = {
-    'max_connections': 5,
+    'max_connections': 3,
 }
-app.conf.result_backend_pool_limit = 5
+app.conf.result_backend_pool_limit = 3
+
+print("Broker pool limit:", app.conf.broker_pool_limit)
+print("Result pool limit:", app.conf.result_backend_pool_limit)
 
 redis_url = "redis://127.0.0.1:6379"    # Change for production
 
