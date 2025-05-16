@@ -12,4 +12,5 @@ celery -A Dalinar.celery worker --pool=solo -l info -Q training
 
 Get traing worker log:
 1. SSH into AWS instance (see connect)
-2. tail -f /home/ubuntu/celery.log
+2a. tail -f /home/ubuntu/celery_default.log
+2b. tail -f /home/ubuntu/celery_training.log

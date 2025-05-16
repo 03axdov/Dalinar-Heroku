@@ -10,7 +10,16 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Dalinar.settings')
 app = Celery('Dalinar')
 app.config_from_object(settings, namespace='CELERY')
 
-redis_url = os.environ.get('REDIS_URL')
+app.conf.broker_pool_limit = 10
+app.conf.broker_transport_options = {
+    'max_connections': 10,
+}
+app.conf.result_backend_transport_options = {
+    'max_connections': 5,
+}
+app.conf.result_backend_pool_limit = 5
+
+redis_url = "redis://127.0.0.1:6379"    # Change for production
 
 # Only apply SSL if using rediss:// scheme
 if redis_url.startswith("rediss://"):
