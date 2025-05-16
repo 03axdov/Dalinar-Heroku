@@ -202,10 +202,9 @@ def download_dataset_from_s3(bucket_name, prefix, local_dir, profile, nbr_files)
             profile.processing_data_progress = (t + 1) / nbr_files
             profile.save()
 
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
-
 # Function to load and preprocess the images
 def load_and_preprocess_image(file_path,input_dims):
+    from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
     
     image_bytes = tf.io.read_file(file_path)
 
@@ -648,6 +647,7 @@ tf_dataset_num_classes = {
 def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epochs, validation_split, user_id):
     import tensorflow as tf
     from tensorflow.keras.preprocessing.sequence import pad_sequences
+    from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
     
     class TrainingProgressCallback(tf.keras.callbacks.Callback):
         def __init__(self, profile, total_epochs):
@@ -903,6 +903,8 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
     
     
 def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Convert uploaded files to tensors for TensorFlow processing
+    from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+    
     image = Image.open(uploaded_file)
     
     # Convert to RGB (to handle grayscale images)
