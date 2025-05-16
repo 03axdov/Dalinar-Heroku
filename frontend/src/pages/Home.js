@@ -452,27 +452,30 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
             }}>+ Create model</button>
 
             <div className="sidebar-types-container">
-                <div className={"sidebar-types-element " + (typeShown == "datasets" ? "sidebar-types-element-selected" : "")}
-                onClick={() => {
+                <a href={(is_explore ? "/explore" : "/home") + "?start=datasets"} className={"sidebar-types-element " + (typeShown == "datasets" ? "sidebar-types-element-selected" : "")}
+                onClick={(e) => {
+                    e.preventDefault()
                     setSearchParams({"start": "datasets"})
                     setTypeShown("datasets")
                 }}>
                     <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/database.svg"} alt="Database" />Datasets
-                </div>
-                <div className={"sidebar-types-element " + (typeShown == "models" ? "sidebar-types-element-selected" : "")}
-                onClick={() => {
+                </a>
+                <a href={(is_explore ? "/explore" : "/home") + "?start=models"} className={"sidebar-types-element " + (typeShown == "models" ? "sidebar-types-element-selected" : "")}
+                onClick={(e) => {
+                    e.preventDefault()
                     setSearchParams({"start": "models"})
                     setTypeShown("models")
                 }}>
                     <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/model.svg"} alt="Model" />Models
-                </div>
-                {!is_explore && <div className={"sidebar-types-element " + (typeShown == "saved" ? "sidebar-types-element-selected" : "")}
-                onClick={() => {
+                </a>
+                {!is_explore && <a href="/home?start=saved" className={"sidebar-types-element " + (typeShown == "saved" ? "sidebar-types-element-selected" : "")}
+                onClick={(e) => {
+                    e.preventDefault()
                     setSearchParams({"start": "saved"})
                     setTypeShown("saved")
                 }}>
                     <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/star.svg"} alt="Star" />Saved
-                </div>}
+                </a>}
             </div>
         </div>
         <div className="home-non-sidebar">
