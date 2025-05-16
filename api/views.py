@@ -83,7 +83,14 @@ def createSmallImage(instance, target_width=230, target_height=190):
 
     # Save to BytesIO buffer
     buffer = BytesIO()
-    img_format = img.format if img.format else "JPEG"  # Default to JPEG
+
+    # Determine format
+    img_format = img.format if img.format else "JPEG"
+
+    # Convert to RGB if saving as JPEG and image is RGBA
+    if img_format.upper() == "JPEG" and img.mode == "RGBA":
+        img = img.convert("RGB")
+
     img.save(buffer, format=img_format, quality=90)
     buffer.seek(0)
                             
@@ -298,19 +305,9 @@ class CreateDataset(APIView):
                 
                 dataset_instance = serializer.save(owner=request.user.profile)
                 
-                createSmallImage(dataset_instance, 230, 190)    # Create a smaller image for displaying dataset elements
-                
-                if "labels" in data_dict.keys():
-                    labels = data_dict["labels"]
-                    create_element = CreateElement.as_view()
-                    create_label = CreateLabel.as_view()
-                    edit_element_label = EditElementLabel.as_view()
-                    
-                    factory = APIRequestFactory()
-                                
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else:            
-                    return Response(serializer.data, status=status.HTTP_200_OK)
+                createSmallImage(dataset_instance, 225, 190)    # Create a smaller image for displaying dataset elements
+  
+                return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response({'Bad Request': 'An error occurred while creating dataset'}, status=status.HTTP_400_BAD_REQUEST)
         else:

@@ -18,6 +18,8 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
     const [isTraining, setIsTraining] = useState(false)
     const [trainingProgress, setTrainingProgress] = useState(-1)    // Negative means processing data
     const [processingDataProgress, setProcessingDataProgress] = useState(0)
+    const processingDataProgressRef = useRef(0);
+    const [processedData, setProcessedData] = useState(false)
     const [trainingData, setTrainingData] = useState([])
 
     const [loading, setLoading] = useState(true)
@@ -179,7 +181,12 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                 },
                 (data) => {
                     setTrainingProgress(data["training_progress"] * 100)
-                    setProcessingDataProgress(data["processing_data_progress"] * 100)
+                    const newProgress = data["processing_data_progress"] * 100;
+                    if (newProgress === 0 && processingDataProgressRef.current > 0) {
+                        setProcessedData(true);
+                    }
+                    processingDataProgressRef.current = newProgress;
+                    setProcessingDataProgress(newProgress);
                     if (data["training_progress"] > 0 && !isComplete) {
                         isComplete = data["training_progress"] == 1
                         setTrainingData(prev => {
@@ -394,7 +401,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
             setShowTrainModelPopup(false)
         }}>
 
-            {isTraining && <ProgressBar progress={(trainingProgress > 0 ? trainingProgress : processingDataProgress)} message={trainingProgress > 0 ? getProgressMessage() : "Processing data..."} BACKEND_URL={BACKEND_URL} training_data={trainingData}></ProgressBar>}
+            {isTraining && <ProgressBar progress={(processedData ? trainingProgress : processingDataProgress)} message={processedData ? getProgressMessage() : "Processing data..."} BACKEND_URL={BACKEND_URL} training_data={trainingData}></ProgressBar>}
 
             <div className="train-model-popup-container" onClick={(e) => {
                 e.stopPropagation()
