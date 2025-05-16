@@ -16,7 +16,6 @@ import math
 import time
 
 import os
-import tensorflow as tf
 
 from django.core.files.base import ContentFile
 from io import BytesIO
