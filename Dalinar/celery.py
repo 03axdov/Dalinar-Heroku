@@ -18,9 +18,6 @@ app.conf.result_backend_transport_options = {
 }
 app.conf.result_backend_pool_limit = 2
 
-print("Broker pool limit:", app.conf.broker_pool_limit)
-print("Result pool limit:", app.conf.result_backend_pool_limit)
-
 redis_url = "redis://127.0.0.1:6379"    # Change for production
 
 # Only apply SSL if using rediss:// scheme
