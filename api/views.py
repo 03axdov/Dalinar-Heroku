@@ -20,6 +20,7 @@ import os
 from django.core.files.base import ContentFile
 from io import BytesIO
 from PIL import Image
+import tempfile
 from django.core.files.storage import default_storage
 
 from .serializers import *
@@ -1439,10 +1440,18 @@ class PredictModel(APIView):
     def post(self, request, format=None):
         model_id = request.data["model"]
         images = request.data.getlist("images[]")
-        encoded_images = [convert_image_to_base64(image) for image in images]
         text = request.data["text"]
-        
-        task = predict_model_task.delay(model_id, encoded_images, text)
+
+        temp_paths = []
+
+        for image in images:
+            # Write each image to a temp file
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
+                for chunk in image.chunks():
+                    tmp.write(chunk)
+                temp_paths.append(tmp.name)
+
+        task = predict_model_task.delay(model_id, temp_paths, text)
 
         return Response({
             "message": "Prediction started",
