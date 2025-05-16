@@ -1024,12 +1024,18 @@ tf_dataset_to_labels = {
 }
     
 @shared_task(bind=True)
-def predict_model_task(self, model_id, encoded_images, text):
+def predict_model_task(self, model_id, image_paths, text):
     import tensorflow as tf
     
-    images = [decode_image(image_str) for image_str in encoded_images]
-    
     try:
+        images = []
+        for path in image_paths:
+            with open(path, "rb") as f:
+                img_bytes = f.read()
+                file_like = BytesIO(img_bytes)
+                images.append(file_like)
+            os.remove(path)  # Clean up the temp file
+            
         model_instance = Model.objects.get(id=model_id)
         
         if model_instance.trained_on or model_instance.trained_on_tensorflow:
