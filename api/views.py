@@ -24,11 +24,7 @@ from django.core.files.storage import default_storage
 
 from .serializers import *
 from .models import *
-from .tasks import (
-    delete_dataset_task, train_model_task, train_model_tensorflow_dataset_task, evaluate_model_task,
-    predict_model_task, build_model_task, recompile_model_task, reset_to_build_task,
-    reset_model_to_build_task, create_model_task, resize_dataset_images_task
-)
+from .tasks import *
 from .model_utils import create_layer_instance
 import base64
 
