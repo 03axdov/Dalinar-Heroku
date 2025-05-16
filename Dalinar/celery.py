@@ -10,10 +10,9 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Dalinar.settings')
 app = Celery('Dalinar')
 app.config_from_object(settings, namespace='CELERY')
 
-app.conf.broker_pool_limit = 6
-app.conf.broker_transport_options = {
-    'max_connections': 6,
-}
+app.conf.broker_transport_options = settings.CELERY_BROKER_TRANSPORT_OPTIONS
+app.conf.broker_pool_limit = settings.CELERY_BROKER_POOL_LIMIT
+
 app.conf.result_backend_transport_options = {
     'max_connections': 2,
 }

@@ -16,7 +16,6 @@ import math
 import time
 
 import os
-import tensorflow as tf
 
 from django.core.files.base import ContentFile
 from io import BytesIO
@@ -1387,7 +1386,6 @@ def trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_
 class TrainModel(APIView):
     parser_classes = [JSONParser]
 
-    @tf.autograph.experimental.do_not_convert
     def post(self, request, format=None):
         model_id = request.data["model"]
         dataset_id = request.data["dataset"]
@@ -1409,7 +1407,6 @@ class TrainModel(APIView):
 class EvaluateModel(APIView):
     parser_classes = [JSONParser]
 
-    @tf.autograph.experimental.do_not_convert
     def post(self, request, format=None):
         model_id = request.data["model"]
         dataset_id = request.data["dataset"]
@@ -1439,7 +1436,6 @@ def convert_image_to_base64(image_file):
 class PredictModel(APIView):
     parser_classes = [MultiPartParser, FormParser]
     
-    @tf.autograph.experimental.do_not_convert
     def post(self, request, format=None):
         model_id = request.data["model"]
         images = request.data.getlist("images[]")
