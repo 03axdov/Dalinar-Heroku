@@ -1,7 +1,4 @@
 from celery import shared_task
-import tensorflow as tf
-from tensorflow.keras import layers
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
 import os
 import re
@@ -104,6 +101,8 @@ def get_tf_model(model_instance, profile=None):
         
 
 def get_tf_layer(layer):    # From a Layer instance
+    from tensorflow.keras import layers
+    
     layer_type = layer.layer_type
     activation = layer.activation_function or None
     name = str(layer.id)
@@ -369,6 +368,8 @@ def clean_vocab(vocab):
     return cleaned
 
 def get_vectorize_layer(model_instance, model, train_ds, vocabulary=None):
+    from tensorflow.keras import layers
+    
     vectorize_layer = None
     first_layer = model.layers[0]
 
@@ -409,6 +410,8 @@ def get_vectorize_layer(model_instance, model, train_ds, vocabulary=None):
     
 @shared_task(bind=True)
 def delete_dataset_task(self, dataset_id, user_id):
+    import tensorflow as tf
+    
     try:
         profile = Profile.objects.get(user_id=user_id)
         dataset = Dataset.objects.get(id=dataset_id)
@@ -434,36 +437,6 @@ def delete_dataset_task(self, dataset_id, user_id):
         return {"Not found": "Could not find profile with the id " + str(user_id + "."), "status": 404}
     
 
-class TrainingProgressCallback(tf.keras.callbacks.Callback):
-    def __init__(self, profile, total_epochs):
-        super().__init__()
-        self.profile = profile
-        self.total_epochs = total_epochs
-        self.epoch_start_time = None
-        self.total_elapsed_time = 0
-
-    def on_epoch_begin(self, epoch, logs=None):
-        self.epoch_start_time = time.time()
-
-    def on_epoch_end(self, epoch, logs=None):
-        epoch_duration = time.time() - self.epoch_start_time
-        self.total_elapsed_time += epoch_duration
-        
-        if logs:
-            self.profile.training_accuracy = logs["accuracy"]  # set_training_progress saves
-            self.profile.training_loss = logs["loss"] 
-        
-        avg_time_per_epoch = self.total_elapsed_time / (epoch + 1)
-        remaining_epochs = self.total_epochs - (epoch + 1)
-        estimated_remaining_time = avg_time_per_epoch * remaining_epochs
-
-        formatted_time = time.strftime("%H:%M:%S", time.gmtime(estimated_remaining_time))
-        self.profile.training_time_remaining = formatted_time
-        
-        progress = (epoch + 1) / self.total_epochs
-        set_training_progress(self.profile, round(progress, 4)) # Saves profile
-
-
 def get_accuracy_loss(history, model_instance, validation_size):
     metric = "accuracy"
     if model_instance.loss_function == "binary_crossentropy":
@@ -479,6 +452,37 @@ def get_accuracy_loss(history, model_instance, validation_size):
 
 @shared_task(bind=True)
 def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_id):
+    import tensorflow as tf
+    
+    class TrainingProgressCallback(tf.keras.callbacks.Callback):
+        def __init__(self, profile, total_epochs):
+            super().__init__()
+            self.profile = profile
+            self.total_epochs = total_epochs
+            self.epoch_start_time = None
+            self.total_elapsed_time = 0
+
+        def on_epoch_begin(self, epoch, logs=None):
+            self.epoch_start_time = time.time()
+
+        def on_epoch_end(self, epoch, logs=None):
+            epoch_duration = time.time() - self.epoch_start_time
+            self.total_elapsed_time += epoch_duration
+            
+            if logs:
+                self.profile.training_accuracy = logs["accuracy"]  # set_training_progress saves
+                self.profile.training_loss = logs["loss"] 
+            
+            avg_time_per_epoch = self.total_elapsed_time / (epoch + 1)
+            remaining_epochs = self.total_epochs - (epoch + 1)
+            estimated_remaining_time = avg_time_per_epoch * remaining_epochs
+
+            formatted_time = time.strftime("%H:%M:%S", time.gmtime(estimated_remaining_time))
+            self.profile.training_time_remaining = formatted_time
+            
+            progress = (epoch + 1) / self.total_epochs
+            set_training_progress(self.profile, round(progress, 4)) # Saves profile
+
     
     profile = Profile.objects.get(user_id=user_id)
     
@@ -642,7 +646,38 @@ tf_dataset_num_classes = {
 
 @shared_task(bind=True)
 def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epochs, validation_split, user_id):
+    import tensorflow as tf
+    from tensorflow.keras.preprocessing.sequence import pad_sequences
     
+    class TrainingProgressCallback(tf.keras.callbacks.Callback):
+        def __init__(self, profile, total_epochs):
+            super().__init__()
+            self.profile = profile
+            self.total_epochs = total_epochs
+            self.epoch_start_time = None
+            self.total_elapsed_time = 0
+
+        def on_epoch_begin(self, epoch, logs=None):
+            self.epoch_start_time = time.time()
+
+        def on_epoch_end(self, epoch, logs=None):
+            epoch_duration = time.time() - self.epoch_start_time
+            self.total_elapsed_time += epoch_duration
+            
+            if logs:
+                self.profile.training_accuracy = logs["accuracy"]  # set_training_progress saves
+                self.profile.training_loss = logs["loss"] 
+            
+            avg_time_per_epoch = self.total_elapsed_time / (epoch + 1)
+            remaining_epochs = self.total_epochs - (epoch + 1)
+            estimated_remaining_time = avg_time_per_epoch * remaining_epochs
+
+            formatted_time = time.strftime("%H:%M:%S", time.gmtime(estimated_remaining_time))
+            self.profile.training_time_remaining = formatted_time
+            
+            progress = (epoch + 1) / self.total_epochs
+            set_training_progress(self.profile, round(progress, 4)) # Saves profile
+
     profile = Profile.objects.get(user_id=user_id)
     
     try:
@@ -795,6 +830,8 @@ def set_evaluation_progress(profile, progress):
     
 @shared_task(bind=True)
 def evaluate_model_task(self, model_id, dataset_id, user_id):
+    import tensorflow as tf
+    
     try:
         model_instance = Model.objects.get(id=model_id)
         dataset_instance = Dataset.objects.get(id=dataset_id)
@@ -970,6 +1007,8 @@ tf_dataset_to_labels = {
     
 @shared_task(bind=True)
 def predict_model_task(self, model_id, encoded_images, text):
+    import tensorflow as tf
+    
     images = [decode_image(image_str) for image_str in encoded_images]
     
     try:
@@ -1117,6 +1156,7 @@ def find_layer_by_name(layer_container, name):
     
 @shared_task(bind=True)
 def build_model_task(self, model_id, optimizer, learning_rate, loss_function, user_id, input_sequence_length):
+    import tensorflow as tf
     
     profile = Profile.objects.get(user_id=user_id)
     
@@ -1245,6 +1285,7 @@ def set_trainable_recursive(layer, names_to_freeze):
     
 @shared_task(bind=True)
 def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function, user_id, input_sequence_length):
+    import tensorflow as tf
     
     try:
         profile = Profile.objects.get(user_id=user_id)
@@ -1317,6 +1358,8 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
     
 # Sets params of layer_instance to tf_layer
 def set_to_tf_layer(layer_instance, tf_layer):
+    from tensorflow.keras import layers
+    
     config = tf_layer.get_config()
     
     input_shape = False
@@ -1391,6 +1434,8 @@ def set_to_tf_layer(layer_instance, tf_layer):
 
 @shared_task(bind=True)
 def reset_to_build_task(self, layer_id, user_id):
+    import tensorflow as tf
+    
     try:
         profile = Profile.objects.get(user_id=user_id)
         layer_instance = Layer.objects.get(id=layer_id)
@@ -1432,6 +1477,8 @@ def reset_to_build_task(self, layer_id, user_id):
 
 
 def layer_model_from_tf_layer(tf_layer, model_id, idx, user, input_shape=False):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
+    from tensorflow.keras import layers
+    
     config = tf_layer.get_config()
         
     data = {}
@@ -1524,6 +1571,8 @@ def layer_model_from_tf_layer(tf_layer, model_id, idx, user, input_shape=False):
 
 @shared_task(bind=True)
 def reset_model_to_build_task(self, model_id, user_id):
+    import tensorflow as tf
+    
     backend_temp_model_path = ""
     
     try:
@@ -1660,6 +1709,8 @@ def create_model_file(model_instance, profile):
 # Takes a while if user uploads a model, therefore task
 @shared_task(bind=True)
 def create_model_task(self, model_id, user_id):
+    import tensorflow as tf
+    
     try:
         profile = Profile.objects.get(user_id=user_id)
     except Profile.DoesNotExist:
@@ -1709,6 +1760,8 @@ def resize_element_image(instance, newWidth, newHeight):
 
 @shared_task(bind=True)
 def resize_dataset_images_task(self, dataset_id, user_id, imageWidth, imageHeight):
+    import tensorflow as tf
+    
     try:
         try:
             profile = Profile.objects.get(user_id=user_id)
