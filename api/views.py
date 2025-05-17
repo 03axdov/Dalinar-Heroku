@@ -1434,12 +1434,17 @@ def convert_image_to_base64(image_file):
     return img_str
           
           
-def save_image_to_s3(image_file):
+def save_image_to_s3(image_file, idx, total_count, user):
     import uuid
     from django.core.files.storage import default_storage
 
     filename = f"tmp/prediction/{uuid.uuid4()}.jpg"
     saved_path = default_storage.save(filename, image_file)
+    
+    if user.is_authenticated:
+        user.profile.prediction_progress = (idx + 1) / (total_count * 3)
+        user.profile.save()
+    
     return saved_path  # This is the key
 
            
@@ -1450,9 +1455,15 @@ class PredictModel(APIView):
         model_id = request.data["model"]
         images = request.data.getlist("images[]")
         text = request.data["text"]
+        
+        user = request.user
 
-        s3_keys = [save_image_to_s3(image) for image in images]
-        task = predict_model_task.delay(model_id, s3_keys, text)
+        s3_keys = [save_image_to_s3(image, t, len(images), user) for t, image in enumerate(images)]
+        
+        if user.is_authenticated:
+            task = predict_model_task.delay(model_id, s3_keys, text, user.id)
+        else:
+            task = predict_model_task.delay(model_id, s3_keys, text)
 
         return Response({
             "message": "Prediction started",
@@ -1748,6 +1759,7 @@ class GetTaskResult(APIView):
                 training_time_remaining = user.profile.training_time_remaining
                 delete_dataset_progress = user.profile.delete_dataset_progress
                 edit_dataset_progress = user.profile.edit_dataset_progress
+                prediction_progress = user.profile.prediction_progress
                 
                 evaluation_progress = user.profile.evaluation_progress
                 return Response({'status': 'in progress', 
@@ -1755,6 +1767,7 @@ class GetTaskResult(APIView):
                                  "training_accuracy": training_accuracy,
                                  "processing_data_progress": processing_data_progress,
                                  "training_loss": training_loss,
+                                 "prediction_progress": prediction_progress,
                                  "delete_dataset_progress": delete_dataset_progress,
                                  "edit_dataset_progress": edit_dataset_progress,
                                  "training_time_remaining": training_time_remaining,
