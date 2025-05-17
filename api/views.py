@@ -1433,25 +1433,26 @@ def convert_image_to_base64(image_file):
     img_str = base64.b64encode(img_data).decode('utf-8')  # Convert to base64
     return img_str
           
+          
+def save_image_to_s3(image_file):
+    import uuid
+    from django.core.files.storage import default_storage
+
+    filename = f"tmp/prediction/{uuid.uuid4()}.jpg"
+    saved_path = default_storage.save(filename, image_file)
+    return saved_path  # This is the key
+
            
 class PredictModel(APIView):
     parser_classes = [MultiPartParser, FormParser]
-    
+
     def post(self, request, format=None):
         model_id = request.data["model"]
         images = request.data.getlist("images[]")
         text = request.data["text"]
 
-        temp_paths = []
-
-        for image in images:
-            # Write each image to a temp file
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
-                for chunk in image.chunks():
-                    tmp.write(chunk)
-                temp_paths.append(tmp.name)
-
-        task = predict_model_task.delay(model_id, temp_paths, text)
+        s3_keys = [save_image_to_s3(image) for image in images]
+        task = predict_model_task.delay(model_id, s3_keys, text)
 
         return Response({
             "message": "Prediction started",
