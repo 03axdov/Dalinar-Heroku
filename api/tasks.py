@@ -1024,17 +1024,23 @@ tf_dataset_to_labels = {
 }
     
 @shared_task(bind=True)
-def predict_model_task(self, model_id, image_paths, text):
+def predict_model_task(self, model_id, s3_keys, text):
     import tensorflow as tf
     
     try:
         images = []
-        for path in image_paths:
-            with open(path, "rb") as f:
-                img_bytes = f.read()
-                file_like = BytesIO(img_bytes)
-                images.append(file_like)
-            os.remove(path)  # Clean up the temp file
+
+        try:
+            for key in s3_keys:
+                with default_storage.open(key, "rb") as f:
+                    images.append(BytesIO(f.read()))
+                default_storage.delete(key)
+        except Exception as e:
+            for key in s3_keys:
+                try:
+                    default_storage.delete(key)
+                except Exception:
+                    pass  # swallow delete errors if needed
             
         model_instance = Model.objects.get(id=model_id)
         
