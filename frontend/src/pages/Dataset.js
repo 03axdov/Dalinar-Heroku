@@ -648,10 +648,24 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }
 
     useEffect(() => {
-        setDisplayAreas(false)
-        if (!currentElementRef.current) return;
-        currentElementRef.current.scrollIntoView({ block: 'end' })
-        
+        const element = currentElementRef.current;
+        if (!element) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (!entry.isIntersecting) {
+                    element.scrollIntoView({ block: 'nearest' });
+                }
+            },
+            {
+                root: element.parentElement,
+                threshold: 1.0,
+            }
+        );
+
+        observer.observe(element);
+
+        return () => observer.disconnect();
     }, [elementsIndex])
 
     // Handles user button presses
@@ -673,6 +687,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 key === "ArrowDown" || key === "ArrowRight" ||
                 key === "ArrowUp" || key === "ArrowLeft"
             ) {
+                event.preventDefault()
                 if (now - lastKeyTimeRef.current < ARROW_THROTTLE_MS) {
                     return;  // Ignore if within throttle window
                 }
