@@ -40,6 +40,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
 
     const [numberFiles, setNumberFiles] = useState("")
     const [uploadedDatasets, setUploadedDatasets] = useState({}) // Labels as keys, with the value as an array of files with that label
+    const [uploadedFilesCount, setUploadedFilesCount] = useState(0)
 
     const hiddenFolderInputRef = useRef(null)
     const hiddenFilenamesInputRef = useRef(null)
@@ -276,20 +277,22 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
     }
 
     function filterUploadedDatasets(tempObj) {
-        if (!isEmpty(tempObj) && numberFiles) {
-            let totalNumberLabels = 0;
-            Object.entries(tempObj).forEach(([label, fileList]) => {
-                totalNumberLabels += 1
-            })
-            let toTake = Math.floor(numberFiles / totalNumberLabels)
-            Object.entries(tempObj).forEach(([label, fileList]) => {
-                tempObj[label] = fileList.slice(0, toTake)
-            })
-            console.log(toTake)
-            return tempObj
-        } else {
-            return tempObj
-        }
+
+        let totalNumberLabels = 0;
+        let totalCount = 0
+        Object.entries(tempObj).forEach(([label, fileList]) => {
+            totalNumberLabels += 1
+        })
+        let toTake = Math.floor((numberFiles || 1000) / totalNumberLabels)
+        Object.entries(tempObj).forEach(([label, fileList]) => {
+            tempObj[label] = fileList.slice(0, toTake)
+            totalCount += tempObj[label].length
+        })
+
+        setUploadedFilesCount(totalCount)
+
+        return tempObj
+
     }
 
     async function uploadFoldersAsLabels(e) {
@@ -479,6 +482,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         setUploadedFilenamesAsLabels([])
         setUploadedFoldersAsLabels([])
         setUploadedCsvs([])
+        setUploadedFilesCount(0)
     }
 
     function setDatasetTypeImageInner(e) {
@@ -780,7 +784,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                                 setUploadedCsvs([])
                                 notification("Removed all uploaded datasets.", "success")
                             }, "blue")
-                        }}>Clear uploads</button>
+                        }}>Clear uploads ({uploadedFilesCount} files)</button>
 
                         <div className="uploaded-datasets-label-element no-margin" style={{padding: 0, borderColor: "var(--border-light)"}}>
                             <div className="uploaded-datasets-label uploaded-datasets-label-element-title">Label</div>
@@ -797,6 +801,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                                                 let tempDatasets = {...uploadedDatasets}
                                                 tempDatasets[label] = tempDatasets[label].filter((el) => {return el.webkitRelativePath != element.webkitRelativePath})
                                                 setUploadedDatasets(tempDatasets)
+                                                setUploadedFilesCount((prev) => (prev - 1))
                                             }}/>
                                         </div>
                                     ))}
