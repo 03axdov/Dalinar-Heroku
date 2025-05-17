@@ -1024,17 +1024,29 @@ tf_dataset_to_labels = {
 }
     
 @shared_task(bind=True)
-def predict_model_task(self, model_id, s3_keys, text):
+def predict_model_task(self, model_id, s3_keys, text, user_id=None):
     import tensorflow as tf
     
+    profile = None
     try:
         images = []
+        
+        if user_id:
+            try:
+                profile = Profile.objects.get(user_id=user_id)
+            except Profile.DoesNotExist:
+                return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
 
         try:
-            for key in s3_keys:
+            for t, key in enumerate(s3_keys):
                 with default_storage.open(key, "rb") as f:
                     images.append(BytesIO(f.read()))
                 default_storage.delete(key)
+                
+                if profile:
+                    profile.prediction_progress = (1 / 3) + ((t + 1) / (2 * len(s3_keys))) 
+                    profile.save()
+                
         except Exception as e:
             for key in s3_keys:
                 try:
@@ -1058,8 +1070,14 @@ def predict_model_task(self, model_id, s3_keys, text):
                     
                     model, timestamp = get_tf_model(model_instance)
                     
+                    if profile:
+                        profile.prediction_progress = 1
+                        profile.save()
+                    
                     prediction_names = []
                     prediction_colors = []
+                    
+                    labels_ordered = list(model_instance.trained_on.labels.all().order_by('id'))
                     
                     for image in images:
                         image_tensor = preprocess_uploaded_image(image, target_size)
@@ -1078,7 +1096,7 @@ def predict_model_task(self, model_id, s3_keys, text):
                         
                         predicted_label = None
                         if model_instance.trained_on:
-                            predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
+                            predicted_label = labels_ordered[prediction_idx]
                             prediction_names.append(predicted_label.name)
                             prediction_colors.append(predicted_label.color)
                         else:
@@ -1107,7 +1125,7 @@ def predict_model_task(self, model_id, s3_keys, text):
                     prediction_idx = int(np.argmax(prediction_arr))
                     if model_instance.loss_function == "binary_crossentropy":
                         prediction_idx = int(prediction_arr[0][0] >= 0.5)
-                    
+                        
                     predicted_label = None
                     if model_instance.trained_on:
                         predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
@@ -1131,6 +1149,10 @@ def predict_model_task(self, model_id, s3_keys, text):
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
     except Exception as e:
         return {"Bad request": str(e), "status": 400}
+    finally:
+        if profile:
+            profile.prediction_progress = 0
+            profile.save()
     
     
 def get_metrics(loss_function):

@@ -97,7 +97,11 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
                     notification("Successfully predicted data.", "success")  
                 },
                 (data) => notification("Error: " + data["message"], "failure"),
-                () => {},
+                (data) => {
+                    if (data["prediction_progress"]) {
+                        setPredictionProgress(data["prediction_progress"] * 100)
+                    }
+                },
                 () => {
                     setPredictionProgress(100)
                     setTimeout(() => {
