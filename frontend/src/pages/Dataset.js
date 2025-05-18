@@ -2176,7 +2176,12 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             </button>
                         </div>}
                         
-                        <div className="dataset-elements-list" style={{ height: "100%", width: "100%" }}>
+                        <div className="dataset-elements-list" style={{ height: "100%", width: "100%" }}
+                        onMouseLeave={() => {
+                            clearTimeout(hoverTimeoutRef.current);
+                            setHoveredElement(null);
+                            setShowElementPreview(false);
+                        }}>
                             <AutoSizer>
                                 {({ height, width }) => (
                                 <List
