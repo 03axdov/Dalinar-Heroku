@@ -28,6 +28,7 @@ from .models import *
 from .tasks import *
 from .model_utils import create_layer_instance
 import base64
+import uuid
 
 
 # CONSTANTS
@@ -606,58 +607,30 @@ class CreateElements(APIView):
     def post(self, request, format=None):
         files = request.FILES.getlist("files")
         dataset_id = request.data.get("dataset")
-        index = request.data.get("index")
-        labels = request.data.get("labels", None)
+        index = int(request.data.get("index", 0))
+        labels = request.data.get("labels")
+
         if labels:
             labels = labels.split(",")
-        print(f"labels: {labels}")
+
         user = request.user
 
-        if not files:
-            return Response({"error": "No files provided."}, status=status.HTTP_400_BAD_REQUEST)
+        # Save files temporarily to disk or S3
+        filepaths = []
+        for f in files:
+            tmp_path = default_storage.save(f"temp_uploads/{uuid.uuid4()}_{f.name}", f)
+            filepaths.append(tmp_path)
 
-        try:
-            dataset = Dataset.objects.get(id=dataset_id)
-        except Dataset.DoesNotExist:
-            return Response({'error': f'Could not find dataset with id {dataset_id}.'}, status=status.HTTP_404_NOT_FOUND)
+        # Trigger background processing
+        process_uploaded_elements.delay(
+            filepaths=filepaths,
+            dataset_id=dataset_id,
+            user_id=user.id,
+            index=index,
+            labels=labels,
+        )
 
-        if not user.is_authenticated or user.profile != dataset.owner:
-            return Response({'error': 'Unauthorized to add elements to this dataset.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        created_elements = []
-
-        for i, file in enumerate(files):
-            data = {
-                "file": file,
-                "dataset": dataset.id,
-            }
-            if index:
-                data["index"] = int(index) + i
-
-            serializer = CreateElementSerializer(data=data)
-            if serializer.is_valid():
-                instance = serializer.save(owner=user.profile)
-
-                # Resize if applicable
-                if dataset.dataset_type.lower() == "image":
-                    ext = file.name.split(".")[-1].lower()
-                    if dataset.imageHeight and dataset.imageWidth and ext in ALLOWED_IMAGE_FILE_EXTENSIONS:
-                        resize_element_image(instance, dataset.imageWidth, dataset.imageHeight)
-
-                # Attach label if provided
-                if labels:
-                    try:
-                        label = Label.objects.get(id=labels[i])
-                        instance.label = label
-                        instance.save()
-                    except Label.DoesNotExist:
-                        return Response({'error': f'Label with id {labels[i]} not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-                created_elements.append({"id": instance.id, "file": file.name})
-            else:
-                return Response({"error": "Validation failed", "details": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        return Response({"success": True, "created": created_elements}, status=status.HTTP_201_CREATED)
+        return Response({"success": True, "queued": len(filepaths)}, status=202)
         
         
 class EditElementLabel(APIView):   # Currently only used for labelling

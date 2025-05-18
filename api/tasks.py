@@ -1849,3 +1849,47 @@ def resize_dataset_images_task(self, dataset_id, user_id, imageWidth, imageHeigh
     
     except Exception as e:
         return {"Bad request": str(e), "status": 400}    
+    
+    
+@shared_task(bind=True)
+def process_uploaded_elements(self, filepaths, dataset_id, user_id, index, labels):
+    try:
+        profile = Profile.objects.get(user_id=user_id)
+        dataset = Dataset.objects.get(id=dataset_id)
+
+        for i, path in enumerate(filepaths):
+            with default_storage.open(path, "rb") as f:
+                file_obj = File(f)
+                element = Element.objects.create(
+                    dataset=dataset,
+                    owner=profile,
+                    file=file_obj,
+                    index=index + i
+                )
+
+                # Resize image if needed
+                if dataset.dataset_type.lower() == "image":
+                    ext = path.split(".")[-1].lower()
+                    if dataset.imageHeight and dataset.imageWidth and ext in ALLOWED_IMAGE_FILE_EXTENSIONS:
+                        resize_element_image(element, dataset.imageWidth, dataset.imageHeight)
+
+                # Assign label if provided
+                if labels and i < len(labels):
+                    try:
+                        label = Label.objects.get(id=labels[i])
+                        element.label = label
+                        element.save()
+                    except Label.DoesNotExist:
+                        print("LABEL NOT FOUND")
+                        continue  # or handle error
+
+            # Cleanup
+            default_storage.delete(path)
+    
+    except Exception as e:
+        print("Error: " + str(e))
+        for i, path in enumerate(filepaths):
+            try:
+                default_storage.delete(path)
+            except Exception as e:
+                print("Inner error: "+ str(e))

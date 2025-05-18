@@ -235,24 +235,34 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         }
     
         async function uploadAllChunks() {
-            await Promise.all(chunks.map(async (chunk, i) => {
+            const CONCURRENCY = 3;
+            let current = 0;
+
+            async function next() {
+                if (current >= chunks.length) return;
+                const i = current++;
                 try {
-                    await uploadChunk(chunk, i);
+                    await uploadChunk(chunks[i], i);
                 } catch (e) {
                     console.error("Chunk upload failed:", e);
                     notification("Upload failed for one or more batches.", "failure");
                 } finally {
                     completed++;
                     setCreatingElementsProgress((completed / chunks.length) * 100);
+                    await next(); // Start next after finishing one
                 }
-            }));
-        
+            }
+
+            // Launch limited number of concurrent uploads
+            await Promise.all(Array(CONCURRENCY).fill(0).map(next));
+
             setCreatingElementsProgress(100);
             setTimeout(() => {
                 navigate("/home");
                 notification("Successfully created dataset " + name + ".", "success");
             }, 200);
         }
+
     
         uploadAllChunks();
     }
@@ -283,7 +293,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         Object.entries(tempObj).forEach(([label, fileList]) => {
             totalNumberLabels += 1
         })
-        let toTake = Math.floor((numberFiles || 1000) / totalNumberLabels)
+        let toTake = Math.floor((numberFiles || 10000) / totalNumberLabels)
         Object.entries(tempObj).forEach(([label, fileList]) => {
             tempObj[label] = fileList.slice(0, toTake)
             totalCount += tempObj[label].length
