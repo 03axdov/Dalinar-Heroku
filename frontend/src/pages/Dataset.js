@@ -1803,50 +1803,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         }
     }
 
-
-    const elementsHandleDragEnd = (result) => {
-        if (!result.destination) return; // Dropped outside
-    
-        const reorderElements = [...elements];
-        const [movedItem] = reorderElements.splice(result.source.index, 1);
-        reorderElements.splice(result.destination.index, 0, movedItem);
-        
-        let currId = elements[elementsIndex].id
-        setElements(reorderElements);
-
-        let idToIdx = {}
-
-        for (let i=0; i < reorderElements.length; i++) {
-            idToIdx[reorderElements[i].id] = i
-            if (reorderElements[i].id == currId) {
-                setElementsIndex(i)
-            }
-        }
-
-        if (isPublic) return;
-        
-        // For updating the order, so it stays the same after refresh
-        const URL = window.location.origin + '/api/reorder-dataset-elements/'
-        const config = {headers: {'Content-Type': 'application/json'}}
-
-        let data = {
-            "id": dataset.id,
-            "order": idToIdx
-        }
-
-        axios.defaults.withCredentials = true;
-        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-        axios.defaults.xsrfCookieName = 'csrftoken';    
-
-        axios.post(URL, data, config)
-        .then((data) => {
-
-        }).catch((error) => {
-            notification("Error: " + error, "failure")
-            
-        })
-    };
-
     const labelsHandleDragEnd = (result) => {
         if (!result.destination) return; // Dropped outside
     
@@ -2017,6 +1973,20 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         return data
     }
 
+    useEffect(() => {
+        const handleMouseOut = (e) => {
+            const to = e.relatedTarget || e.toElement;
+            if (!to || !document.querySelector(".dataset-elements-list")?.contains(to)) {
+            clearTimeout(hoverTimeoutRef.current);
+            setHoveredElement(null);
+            setShowElementPreview(false);
+            }
+        };
+
+        window.addEventListener("mouseout", handleMouseOut);
+        return () => window.removeEventListener("mouseout", handleMouseOut);
+    }, []);
+
     return (<>
         <Helmet>
             <meta
@@ -2186,9 +2156,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 {({ height, width }) => (
                                 <List
                                     height={height}
-                                    width={width}                // ✅ Fill width
+                                    width={width}
                                     itemCount={elements.length}
-                                    itemSize={32}               // ✅ 32px height per item
+                                    itemSize={32}
                                     onScroll={() => {
                                         isScrollingRef.current = true;
                                         clearTimeout(scrollTimeoutRef.current);
@@ -2205,7 +2175,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                         key={element.id}
                                         className="dataset-sidebar-element-outer"
                                         ref={index === elementsIndex ? currentElementRef : null}
-                                        style={{ ...style, width: "100%" }}   // ✅ force full width
+                                        style={{ ...style, width: "100%" }}
                                         >
                                         <div
                                             className={
@@ -2216,7 +2186,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                             onClick={() => setElementsIndex(index)}
                                             onMouseEnter={(e) => {
                                                 if (isScrollingRef.current) return;
-                                                clearTimeout(hoverTimeoutRef.current); // Cancel any prior timeout
+                                                clearTimeout(hoverTimeoutRef.current);
 
                                                 setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT);
                                                 setHoveredElement(index);
@@ -2227,7 +2197,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                                 setHoveredElement(null);
                                                 setShowElementPreview(false);
                                             }}
-                                            style={{ width: "100%", height: "100%" }}  // ✅ fill container
+                                            style={{ width: "100%", height: "100%" }}
                                         >
                                             {dataset && dataset.dataset_type.toLowerCase() == "image" && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"} alt="Image" />}
                                             {dataset && dataset.dataset_type.toLowerCase() == "text" && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.svg"} alt="Text" />}
