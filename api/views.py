@@ -700,6 +700,7 @@ class EditElement(APIView):
         name = request.data["name"]
         element_id = request.data["id"]
         text = request.data["text"]
+        index = request.data["index"]
         
         user = self.request.user
         
@@ -712,6 +713,7 @@ class EditElement(APIView):
                         element.name = name
                     if text:
                         element.text = text
+                    element.index = index
                         
                     element.save()
                 

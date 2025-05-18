@@ -15,6 +15,8 @@ import CreateLabel from "../popups/dataset/CreateLabel";
 import EditLabel from "../popups/dataset/EditLabel";
 import EditElement from "../popups/dataset/EditElement";
 import { Helmet } from "react-helmet";
+import { FixedSizeList as List } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
 
 
 const TOOLBAR_HEIGHT = 60
@@ -34,7 +36,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [textChanged, setTextChanged] = useState(false)
 
     const [showElementPreview, setShowElementPreview] = useState(false)
-    const [showElementPreviewTimeout, setShowElementPreviewTimeout] = useState(null);
+    const hoverTimeoutRef = useRef(null);
 
     // For loading animations
     const [loading, setLoading] = useState(true)
@@ -99,6 +101,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     const [cursor, setCursor] = useState("")
     const [imageExpanded, setImageExpanded] = useState(false)
+
+    const isScrollingRef = useRef(false);
+    const scrollTimeoutRef = useRef(null);
 
     const datasetMainDisplayRef = useRef(null)
 
@@ -669,7 +674,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }, [elementsIndex])
 
     // Handles user button presses
-    const ARROW_THROTTLE_MS = 75;  // Adjust interval here
+    const ARROW_THROTTLE_MS = 25;  // Adjust interval here
 
     const lastKeyTimeRef = useRef(0);
 
@@ -1142,7 +1147,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
 
     // isText used when updating text
-    function updateElement(e, editingElementName, isText=false) {
+    function updateElement(e, editingElementName, editingElementIndex, isText=false) {
         e.preventDefault()
         if (isPublic) return;
         axios.defaults.withCredentials = true;
@@ -1152,8 +1157,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         const URL = window.location.origin + '/api/edit-element/'
         const config = {headers: {'Content-Type': 'application/json'}}
 
+        console.log(editingElementIndex)
+
         const data = {
             "name": (isText ? elements[elementsIndex].name : editingElementName),
+            "index": editingElementIndex,
             "id": (isText ? elements[elementsIndex].id : editingElement),
             "text": currentText
         }
@@ -1165,12 +1173,18 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             setLoadingElementEdit(true)
         }
 
+        const ORIGINAL_IDX = elements[editingElementIdx].index
 
         axios.post(URL, data, config)
         .then((res) => {
             if (res.data) {
                 if (!isText) {
-                    elements[editingElementIdx] = res.data
+                    let temp = [...elements]
+                    temp[editingElementIdx] = res.data
+                    if (ORIGINAL_IDX != res.data.index) {
+                        temp.sort((a, b) => a.index - b.index);
+                    }
+                    setElements(temp)
                 }
             }
             notification("Successfully updated element.", "success")
@@ -2124,6 +2138,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             {editingElement && <EditElement 
                 setEditingElement={setEditingElement}
                 editingElementNameOriginal={elements[editingElementIdx].name}
+                editingElementIndexOriginal={elements[editingElementIdx].index}
                 updateElement={updateElement}
                 loadingElementEdit={loadingElementEdit}
                 loadingElementDelete={loadingElementDelete}
@@ -2161,82 +2176,96 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             </button>
                         </div>}
                         
-                        <DragDropContext className="dataset-elements-list" onDragEnd={elementsHandleDragEnd}>
-                            <Droppable droppableId="elements-droppable">
-                            {(provided) => (<div className="dataset-elements-list"
-                                {...provided.droppableProps}
-                                ref={provided.innerRef}>
-                                    {elements.map((element, idx) => (
-                                        <Draggable key={element.id} draggableId={"" + element.id} index={idx}>
-                                            {(provided) => (<div className="dataset-sidebar-element-outer" ref={idx == elementsIndex ? currentElementRef : null}><div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected " : "") + (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")} 
-                                            {...provided.draggableProps}
-                                            {...provided.dragHandleProps}
-                                            onClick={() => {
-                                                setElementsIndex(idx)
-                                            }}
+                        <div className="dataset-elements-list" style={{ height: "100%", width: "100%" }}>
+                            <AutoSizer>
+                                {({ height, width }) => (
+                                <List
+                                    height={height}
+                                    width={width}                // ✅ Fill width
+                                    itemCount={elements.length}
+                                    itemSize={32}               // ✅ 32px height per item
+                                    onScroll={() => {
+                                        isScrollingRef.current = true;
+                                        clearTimeout(scrollTimeoutRef.current);
+                                        scrollTimeoutRef.current = setTimeout(() => {
+                                        isScrollingRef.current = false;
+                                        }, 150);
+                                    }}
+                                >
+                                    {({ index, style }) => {
+                                    const element = elements[index];
+
+                                    return (
+                                        <div
+                                        key={element.id}
+                                        className="dataset-sidebar-element-outer"
+                                        ref={index === elementsIndex ? currentElementRef : null}
+                                        style={{ ...style, width: "100%" }}   // ✅ force full width
+                                        >
+                                        <div
+                                            className={
+                                            "dataset-sidebar-element " +
+                                            (index === elementsIndex ? "dataset-sidebar-element-selected " : "") +
+                                            (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")
+                                            }
+                                            onClick={() => setElementsIndex(index)}
                                             onMouseEnter={(e) => {
-                                                setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                                                setHoveredElement(idx)
+                                                if (isScrollingRef.current) return;
+                                                clearTimeout(hoverTimeoutRef.current); // Cancel any prior timeout
 
-                                                // Set a timeout to show the preview after 200ms
-                                                const timeoutId = setTimeout(() => {
-                                                    setShowElementPreview(true);
-                                                }, 750);
-
-                                                // Store the timeout ID so it can be cleared later
-                                                setShowElementPreviewTimeout(timeoutId);
+                                                setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT);
+                                                setHoveredElement(index);
+                                                hoverTimeoutRef.current = setTimeout(() => setShowElementPreview(true), 750);
                                             }}
                                             onMouseLeave={() => {
-                                                setHoveredElement(null)
-
-                                                clearTimeout(showElementPreviewTimeout);
-    
-                                                // Hide the preview immediately
+                                                clearTimeout(hoverTimeoutRef.current);
+                                                setHoveredElement(null);
                                                 setShowElementPreview(false);
                                             }}
-                                            style={{...provided.draggableProps.style}}
-                                            ref={provided.innerRef}>
+                                            style={{ width: "100%", height: "100%" }}  // ✅ fill container
+                                        >
+                                            {dataset && dataset.dataset_type.toLowerCase() == "image" && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"} alt="Image" />}
+                                            {dataset && dataset.dataset_type.toLowerCase() == "text" && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.svg"} alt="Text" />}
 
-                                                {dataset && dataset.dataset_type.toLowerCase() == "image" && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"} alt="Image" />}
-                                                {dataset && dataset.dataset_type.toLowerCase() == "text" && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.svg"} alt="Text" />}
+                                            <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
 
-                                                <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
+                                            {!isPublic && (hoveredElement == index) && <img title="Edit element" 
+                                                className="dataset-sidebar-options dataset-sidebar-options-margin"
+                                                src={BACKEND_URL + "/static/images/options.png"}
+                                                alt="Edit"
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    if (editingElement != element.id) {
+                                                        clearTimeout(hoverTimeoutRef.current);
+                                                        setHoveredElement(null);
+                                                        setEditingElement(element.id)
+                                                        setEditingElementIdx(index)
+                                                        closePopups("editing-element")
+                                                    } else {
+                                                        setEditingElement(null)
+                                                        setEditingElementIdx(null)
+                                                    }
+                                                    
+                                            }}/>}
 
-                                                {!isPublic && (hoveredElement == idx) && <img title="Edit element" 
-                                                    className="dataset-sidebar-options dataset-sidebar-options-margin"
-                                                    src={BACKEND_URL + "/static/images/options.png"}
-                                                    alt="Edit"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        if (editingElement != element.id) {
-                                                            setEditingElement(element.id)
-                                                            setEditingElementIdx(idx)
-                                                            closePopups("editing-element")
-                                                        } else {
-                                                            setEditingElement(null)
-                                                            setEditingElementIdx(null)
-                                                        }
-                                                        
-                                                }}/>}
+                                            {dataset && dataset.datatype == "classification" && element.label && idToLabel[element.label] && <span 
+                                                className={"dataset-sidebar-color dataset-sidebar-color-element " + ((!isPublic && hoveredElement == index) ? "dataset-sidebar-color-margin" : "")} 
+                                                style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
+                                                > 
+                                            </span>}
 
-                                                {dataset && dataset.datatype == "classification" && element.label && idToLabel[element.label] && <span 
-                                                    className={"dataset-sidebar-color dataset-sidebar-color-element " + ((!isPublic && hoveredElement == idx) ? "dataset-sidebar-color-margin" : "")} 
-                                                    style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
-                                                    > 
-                                                </span>}
+                                            {dataset && dataset.datatype == "area" && element.areas && element.areas.length > 0 && <img title="Labelled" 
+                                                className={"dataset-sidebar-labeled " + ((hoveredElement == index && !isPublic) ? "dataset-sidebar-labeled-margin" : "")}
+                                                src={BACKEND_URL + "/static/images/area.svg"} alt="Area" />}
+                                        </div>
+                                        </div>
+                                    );
+                                    }}
+                                </List>
+                                )}
+                            </AutoSizer>
+                        </div>
 
-                                                {dataset && dataset.datatype == "area" && element.areas && element.areas.length > 0 && <img title="Labelled" 
-                                                    className={"dataset-sidebar-labeled " + ((hoveredElement == idx && !isPublic) ? "dataset-sidebar-labeled-margin" : "")}
-                                                    src={BACKEND_URL + "/static/images/area.svg"} alt="Area" />}
-                                                
-                                            </div></div>)}
-                                        </Draggable>
-                                    ))}
-                                    
-                                    {provided.placeholder} 
-                            </div>)}
-                            </Droppable>
-                        </DragDropContext>
                         
                         {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
                     </div>
