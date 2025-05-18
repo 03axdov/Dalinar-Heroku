@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react"
 
-function EditElement({setEditingElement, editingElementNameOriginal, updateElement,
+function EditElement({setEditingElement, editingElementNameOriginal, editingElementIndexOriginal, updateElement,
                         loadingElementEdit, loadingElementDelete, deleteElement,
                         inputOnFocus, inputOnBlur, BACKEND_URL
 }) {
 
     const [editingElementName, setEditingElementName] = useState(editingElementNameOriginal)
+    const [editingElementIndex, setEditingElementIndex] = useState(editingElementIndexOriginal)
 
     const [animateIn, setAnimateIn] = useState(false)
     useEffect(() => {
@@ -23,7 +24,9 @@ function EditElement({setEditingElement, editingElementNameOriginal, updateEleme
                     You can identify elements by their names, and also see assigned labels in the sidebar to the left.
                 </p>
 
-                <form className="dataset-edit-element-form" style={{marginTop: "40px"}} onSubmit={(e) => updateElement(e, editingElementName)}>
+                <form className="dataset-edit-element-form" style={{marginTop: "40px"}} onSubmit={(e) => {
+                        updateElement(e, editingElementName, (editingElementIndex === "" ? editingElementIndexOriginal : editingElementIndex))
+                    }}>
                     <div className="dataset-create-label-row">
                         <label className="dataset-create-label-label" htmlFor="element-name-inp">Name</label>
                         <input id="element-name-inp" className="dataset-create-label-inp" type="text" value={editingElementName} onChange={(e) => {
@@ -33,6 +36,23 @@ function EditElement({setEditingElement, editingElementNameOriginal, updateEleme
                         }} onFocus={inputOnFocus} onBlur={() => {
                             inputOnBlur()
                         }}></input>
+                    </div>
+
+                    <div className="dataset-create-label-row">
+                        <label className="dataset-create-label-label" htmlFor="element-name-inp">Element index</label>
+                        <input id="element-name-inp" className="dataset-create-label-inp" type="number" 
+                        placeholder={editingElementIndexOriginal} 
+                        value={editingElementIndex} 
+                        onChange={(e) => {
+                            setEditingElementIndex(e.target.value)
+                        }} 
+                        onClick={(e) => {
+                            e.stopPropagation()
+                        }} 
+                        onFocus={inputOnFocus} onBlur={() => {
+                            inputOnBlur()
+                        }}
+                        style={{width: "100px"}}></input>
                     </div>
 
                     <div className="create-layer-popup-buttons">
