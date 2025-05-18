@@ -17,12 +17,14 @@ import EditElement from "../popups/dataset/EditElement";
 import { Helmet } from "react-helmet";
 import { FixedSizeList as List } from "react-window";
 import AutoSizer from "react-virtualized-auto-sizer";
+import { useTask } from "../contexts/TaskContext"
 
 
 const TOOLBAR_HEIGHT = 60
 
 // The default page. Login not required.
 function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_URL, isPublic=false}) {
+    const { getTaskResult } = useTask();
 
     const { id } = useParams();
     const [dataset, setDataset] = useState(null)
@@ -48,6 +50,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [loadingElementEdit, setLoadingElementEdit] = useState(false)
     const [loadingElementDelete, setLoadingElementDelete] = useState(false)
     const [loadingResizeImage, setLoadingResizeImage] = useState(false)
+
+    const [deletingAllElements, setDeletingAllElements] = useState(false)
+    const [deletingElementsProgress, setDeletingElementsProgress] = useState(0)
 
     const [saving, setSaving] = useState(false)
     
@@ -1106,7 +1111,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         if (isPublic) return;
         setUploadLoading(true);
     
-        const URL = window.location.origin + '/api/create-elements/';  // plural endpoint
+        const URL = window.location.origin + '/api/upload-elements/';  // plural endpoint
         const config = { headers: { 'Content-Type': 'multipart/form-data' } };
     
         const fileChunks = chunkArray([...files].filter(f => ALLOWED_FILE_EXTENSIONS.has(f.name.split(".").pop())), 10);
@@ -1130,16 +1135,39 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     notification("Upload failed for one or more batches.", "failure");
                 } finally {
                     completedUploads++;
-                    setUploadPercentage((completedUploads / fileChunks.length) * 100);
+                    setUploadPercentage((completedUploads / (fileChunks.length * 4)) * 100);
                 }
             }));
-        
-            setTimeout(() => {
-                setUploadPercentage(0);
-                setUploadLoading(false);
-                notification("Successfully uploaded files.", "success");
-                getDataset();
-            }, 200);
+
+            let resInterval = null;
+            axios.post("/api/finalize-elements-upload/", {
+                dataset: id,
+                start_index: (elements.length > 0 ? elements[-1].index : 0),
+            }).then((res) => {
+                resInterval = setInterval(() => getTaskResult(
+                    "deleting_dataset",
+                    resInterval,
+                    res.data["task_id"],
+                    () => {
+                        notification("Successfully created elements.", "success")
+                    },
+                    (data) => {
+                        notification("Creating elements failed: " + data["message"], "failure")
+                    },
+                    (data) => {
+                        setUploadPercentage(25 + (data["creating_elements_progress"] * 0.75) * 100)
+                    },
+                    () => {
+                        setUploadPercentage(100);
+                        setTimeout(() => {
+                            setUploadPercentage(0);
+                            setUploadLoading(false);
+                            notification("Successfully uploaded files.", "success");
+                            getDataset();
+                        }, 200);
+                    }
+            ), 3000) // ping every 3 seconds
+            })    
         }
     
         uploadAllChunks();
@@ -1283,6 +1311,53 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         }).finally(() => {
             setLoading(false)
             setLoadingResizeImage(false)
+        })
+    }
+
+    function deleteAllElements() {
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        let data = {
+            "dataset": id
+        }
+
+        const URL = window.location.origin + '/api/delete-all-elements/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        if (deletingAllElements) return
+        setDeletingElementsProgress(0)
+        setDeletingAllElements(true)   
+
+        let resInterval = null;
+        axios.post(URL, data, config)
+        .then((res) => {
+            resInterval = setInterval(() => getTaskResult(
+                "deleting_all_elements",
+                resInterval,
+                res.data["task_id"],
+                () => {
+                    notification("Successfully deleted elements.", "success")
+                },
+                (data) => {
+                    notification("Deleting model failed: " + data["message"], "failure")
+                },
+                (data) => {
+                    setDeletingElementsProgress(data["delete_elements_progress"] * 100)
+                },
+                () => {
+                    setDeletingElementsProgress(100)
+                    setTimeout(() => {
+                        setDeletingElementsProgress(0)
+                        setDeletingAllElements(false)
+                        getDataset()
+                    }, 200)
+                }
+            ), 3000)    // ping every 3 seconds
+
+        }).catch((error) => {
+            notification("Error: " + error + ".", "failure")
         })
     }
 
@@ -1994,6 +2069,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             content={"Explore " + (dataset ? "the " + dataset.name : "this") + " dataset on Dalinar. Ready-to-use data for machine learning projects — view, analyze, and train models without coding."}
             />
         </Helmet>
+
+        {deletingAllElements && <ProgressBar progress={deletingElementsProgress} message="Deleting elements..." BACKEND_URL={BACKEND_URL}></ProgressBar>}
+
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
             <TitleSetter title={"Dalinar " + (dataset ? "- " + dataset.name : "")} />
 
@@ -2145,8 +2223,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 <span>Upload files</span>
                             </button>
                         </div>}
+
+                        {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
                         
-                        <div className="dataset-elements-list" style={{ height: "100%", width: "100%" }}
+                        {elements.length > 0 && <div className="dataset-elements-list" style={{ height: "100%", width: "100%" }}
                         onMouseLeave={() => {
                             clearTimeout(hoverTimeoutRef.current);
                             setHoveredElement(null);
@@ -2239,10 +2319,17 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 </List>
                                 )}
                             </AutoSizer>
-                        </div>
+                        </div>}
 
-                        
-                        {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
+                        {elements.length > 0 && <div className="delete-all-elements-container">
+                            <button className="delete-all-elements-button" onClick={() => activateConfirmPopup("Are you sure you want to delete all elements in this dataset?", deleteAllElements)}>
+                                <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} 
+                                src={BACKEND_URL + "/static/images/" + (deletingAllElements ? "loading.gif" : "cross.svg")} 
+                                alt="Cross"
+                                style={{height: "10px", width: "10px"}} />
+                                Delete all
+                            </button>
+                        </div>}
                     </div>
                     
                     {/* Shows an element's label */}

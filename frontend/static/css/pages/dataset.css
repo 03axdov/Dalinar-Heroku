@@ -907,6 +907,10 @@
     min-width: 25px;
 }
 
+.dataset-sidebar-element-name {
+    font-size: 0.9rem;
+}
+
 .dataset-sidebar-element-name-edit {
     max-width: calc(100% - 55px);
     background: rgb(0,0,0,0.2);
@@ -1294,4 +1298,20 @@ canvas {
 }
 .dataset-image-expand-button-activated:hover {
     background: rgb(100,100,100, 0.5);
+}
+
+.delete-all-elements-container {
+    padding: 10px;
+    box-sizing: border-box;
+    border-top: 1px solid var(--sidebar-selected);
+    width: 100%;
+}
+
+.delete-all-elements-button {
+    font-size: 1rem;
+    background: var(--sidebar-button);
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

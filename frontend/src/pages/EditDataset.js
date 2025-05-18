@@ -126,23 +126,25 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                     resizingInterval,
                     res.data["task_id"],
                     () => {
-                        if (expandedParam) {
+                        setResizingProgress(100)
+                        setTimeout(() => {
+                           if (expandedParam) {
                             navigate("/datasets/" + id)
-                        } else {
-                            navigate("/home")
-                        }
-        
+                            } else {
+                                navigate("/home")
+                            } 
+                        }, 200)
+                        
                         notification("Successfully updated dataset " + name + ".", "success")
                     },
                     (data) => {
                         notification("Deleting model failed: " + data["message"], "failure")
+                        setProcessing(false)
                     },
                     (data) => {
                         setResizingProgress(data["edit_dataset_progress"] * 100)
                     },
-                    () => {
-                        setProcessing(false)
-                    }
+                    () => {}
                 ), 3000)    // ping every 3 seconds
             } else {
                 if (expandedParam) {
@@ -185,18 +187,21 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                 resInterval,
                 res.data["task_id"],
                 () => {
-                    navigate("/home")
-                    notification("Successfully deleted dataset " + name + ".", "success")
+                    setDeletingProgress(100)
+                    setTimeout(() => {
+                        navigate("/home")
+                        notification("Successfully deleted dataset " + name + ".", "success")
+                    }, 200)
+                    
                 },
                 (data) => {
                     notification("Deleting model failed: " + data["message"], "failure")
+                    setProcessingDelete(false)
                 },
                 (data) => {
                     setDeletingProgress(data["delete_dataset_progress"] * 100)
                 },
-                () => {
-                    setProcessingDelete(false)
-                }
+                () => {}
             ), 3000)    // ping every 3 seconds
 
         }).catch((error) => {
