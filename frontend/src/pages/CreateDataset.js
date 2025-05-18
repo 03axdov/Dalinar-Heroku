@@ -3,9 +3,10 @@ import {useNavigate} from "react-router-dom"
 import axios from "axios"
 import ProgressBar from "../components/ProgressBar"
 import TitleSetter from "../components/minor/TitleSetter"
-
+import { useTask } from "../contexts/TaskContext"
 
 function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
+    const { getTaskResult } = useTask();
 
     const navigate = useNavigate()
 
@@ -214,7 +215,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
     }
     
     function createElementsInner(dataset_id, fileLabelPairs) {
-        const URL = window.location.origin + '/api/create-elements/';
+        const URL = window.location.origin + '/api/upload-elements/';
         const config = { headers: { 'Content-Type': 'multipart/form-data' } };
     
         const chunks = chunkArray(fileLabelPairs, 10);
@@ -248,7 +249,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                     notification("Upload failed for one or more batches.", "failure");
                 } finally {
                     completed++;
-                    setCreatingElementsProgress((completed / chunks.length) * 100);
+                    setCreatingElementsProgress((completed / (chunks.length * 4)) * 100);
                     await next(); // Start next after finishing one
                 }
             }
@@ -256,11 +257,34 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
             // Launch limited number of concurrent uploads
             await Promise.all(Array(CONCURRENCY).fill(0).map(next));
 
-            setCreatingElementsProgress(100);
-            setTimeout(() => {
-                navigate("/home");
-                notification("Successfully created dataset " + name + ".", "success");
-            }, 200);
+            let resInterval = null;
+            axios.post("/api/finalize-elements-upload/", {
+                dataset: dataset_id,
+                start_index: 0,
+                labels: fileLabelPairs.map(p => p.label)
+            }).then((res) => {
+                resInterval = setInterval(() => getTaskResult(
+                    "deleting_dataset",
+                    resInterval,
+                    res.data["task_id"],
+                    () => {
+                        notification("Successfully created elements.", "success")
+                    },
+                    (data) => {
+                        notification("Creating elements failed: " + data["message"], "failure")
+                    },
+                    (data) => {
+                        setCreatingElementsProgress(25 + (data["creating_elements_progress"] * 0.75) * 100)
+                    },
+                    () => {
+                        setCreatingElementsProgress(100);
+                        setTimeout(() => {
+                            navigate("/home");
+                            notification("Successfully created dataset " + name + ".", "success");
+                        }, 200);
+                    }
+                ), 3000)    // ping every 3 seconds
+            });
         }
 
     

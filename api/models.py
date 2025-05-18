@@ -26,6 +26,8 @@ class Profile(models.Model):    # Extends default User class
     processing_data_progress = models.FloatField(default=0) # Used to track progress of processing data when training model
     prediction_progress = models.FloatField(default=0)
     delete_dataset_progress = models.FloatField(default=0)
+    deleting_elements_progress = models.FloatField(default=0)
+    creating_elements_progress = models.FloatField(default=0)
     edit_dataset_progress = models.FloatField(default=0)
     training_loss = models.FloatField(default=-1)
     training_time_remaining = models.CharField(max_length=100, blank=True, null=True)

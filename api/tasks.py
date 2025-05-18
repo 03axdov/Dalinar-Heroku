@@ -447,6 +447,34 @@ def delete_dataset_task(self, dataset_id, user_id):
     except Profile.DoesNotExist:
         return {"Not found": "Could not find profile with the id " + str(user_id + "."), "status": 404}
     
+    
+@shared_task(bind=True)
+def delete_all_elements_task(self, dataset_id, user_id):
+    import tensorflow as tf
+    
+    try:
+        profile = Profile.objects.get(user_id=user_id)
+        dataset = Dataset.objects.get(id=dataset_id)
+        
+        if dataset.owner == profile:
+            totalCount = dataset.elements.count()
+            for t, element in enumerate(dataset.elements.all()):
+                if t % 10 == 0:
+                    profile.deleting_elements_progress = (t + 1) / totalCount
+                    profile.save()
+                element.delete()
+            profile.deleting_elements_progress = 0
+            profile.save()
+            
+            return {"status": 200}
+        
+        else:
+            return {"Unauthorized": "You can only delete elements from your own datasets.", "status": 401}
+    except Dataset.DoesNotExist:
+        return {"Not found": "Could not find dataset with the id " + str(dataset_id + "."), "status": 404}
+    except Profile.DoesNotExist:
+        return {"Not found": "Could not find profile with the id " + str(user_id + "."), "status": 404}
+    
 
 def get_accuracy_loss(history, model_instance, validation_size):
     metric = "accuracy"
@@ -1851,15 +1879,28 @@ def resize_dataset_images_task(self, dataset_id, user_id, imageWidth, imageHeigh
         return {"Bad request": str(e), "status": 400}    
     
     
-@shared_task(bind=True)
-def process_uploaded_elements(self, filepaths, dataset_id, user_id, index, labels):
+@shared_task
+def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
     try:
         profile = Profile.objects.get(user_id=user_id)
+    except Profile.DoesNotExist:
+        return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
+    try:
         dataset = Dataset.objects.get(id=dataset_id)
+    except Dataset.DoesNotExist:
+        return {"Not found": "Could not find dataset with the id " + str(dataset_id) + ".", "status": 404}
 
-        for i, path in enumerate(filepaths):
-            with default_storage.open(path, "rb") as f:
-                file_obj = File(f)
+    try:
+        profile.creating_elements_progress = 0
+        profile.save()
+        
+        for i, key in enumerate(s3_keys):
+            filename_with_uuid = key.split("/")[-1]
+            original_filename = "_".join(filename_with_uuid.split("_")[1:])
+
+            with default_storage.open(key, "rb") as f:
+                file_obj = File(BytesIO(f.read()), name=original_filename)
+
                 element = Element.objects.create(
                     dataset=dataset,
                     owner=profile,
@@ -1867,29 +1908,37 @@ def process_uploaded_elements(self, filepaths, dataset_id, user_id, index, label
                     index=index + i
                 )
 
-                # Resize image if needed
-                if dataset.dataset_type.lower() == "image":
-                    ext = path.split(".")[-1].lower()
-                    if dataset.imageHeight and dataset.imageWidth and ext in ALLOWED_IMAGE_FILE_EXTENSIONS:
+                # Resize if needed
+                ext = key.split(".")[-1].lower()
+                if dataset.dataset_type.lower() == "image" and ext in ALLOWED_IMAGE_FILE_EXTENSIONS:
+                    if dataset.imageWidth or dataset.imageHeight:
                         resize_element_image(element, dataset.imageWidth, dataset.imageHeight)
 
-                # Assign label if provided
+                # Attach label
                 if labels and i < len(labels):
                     try:
                         label = Label.objects.get(id=labels[i])
                         element.label = label
                         element.save()
                     except Label.DoesNotExist:
-                        print("LABEL NOT FOUND")
-                        continue  # or handle error
+                        continue
 
-            # Cleanup
-            default_storage.delete(path)
-    
+            # Optional: delete after processing
+            default_storage.delete(key)
+            
+            profile.creating_elements_progress = (i + 1) / len(s3_keys)
+            profile.save()
+            
+        return {"status": 200}
+
     except Exception as e:
-        print("Error: " + str(e))
-        for i, path in enumerate(filepaths):
+        print("Error during background element creation:", str(e))
+        profile.creating_elements_progress = 0
+        profile.save()
+            
+        for key in s3_keys:
             try:
-                default_storage.delete(path)
-            except Exception as e:
-                print("Inner error: "+ str(e))
+                default_storage.delete(key)
+            except Exception as inner_e:
+                print("Cleanup failed for:", key, inner_e)
+        return {"Bad request": str(e), "status": 400}    

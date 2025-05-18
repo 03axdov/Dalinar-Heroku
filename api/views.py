@@ -461,35 +461,25 @@ class DeleteDataset(APIView):
             return Response({'Unauthorized': 'Must be logged in to delete datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         
-class ReorderDatasetElements(APIView):
-    serializer_class = DatasetSerializer
-    parser_classes = [JSONParser]
+class DeleteAllElements(APIView):
+    serializer_class = ElementSerializer
     
     def post(self, request, format=None):
-        idToIdx = request.data["order"]
-        dataset_id = request.data["id"]
+        dataset_id = request.data["dataset"]
         
         user = self.request.user
         
         if user.is_authenticated:
-            try:
-                dataset = Dataset.objects.get(id=dataset_id)
-                
-                if dataset.owner == user.profile:
-                    for element in dataset.elements.all():
-                        element.index = int(idToIdx[str(element.id)])
-                        element.save()
-        
-                    return Response(None, status=status.HTTP_200_OK)
-                
-                else:
-                    return Response({"Unauthorized": "You can only reorder elements in your own datasets."}, status=status.HTTP_401_UNAUTHORIZED)
-            except Dataset.DoesNotExist:
-                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+            task = delete_all_elements_task.delay(dataset_id, user.id)
+
+            return Response({
+                "message": "Deleting started",
+                "task_id": task.id
+            }, status=status.HTTP_200_OK)
         else:
-            return Response({"Unauthorized": "Must be logged in to reorder elements."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'Unauthorized': 'Must be logged in to delete elements.'}, status=status.HTTP_401_UNAUTHORIZED)
         
-        
+              
 class ReorderDatasetLabels(APIView):
     serializer_class = DatasetSerializer
     parser_classes = [JSONParser]
@@ -600,38 +590,63 @@ class CreateElement(APIView):
         else:
             return Response({"Bad Request": "An error occured while creating element"}, status=status.HTTP_400_BAD_REQUEST)
         
+        
+def save_element_to_s3(file, idx=None, total=None, user=None):
+    filename = f"tmp/elements/{uuid.uuid4()}_{file.name}"
+    saved_key = default_storage.save(filename, file)  # stored in S3 via django-storages
 
-class CreateElements(APIView):
+    # Optional: update progress on the profile
+    if user and user.is_authenticated and idx is not None and total:
+        progress = (idx + 1) / total
+        user.profile.create_elements_progress = progress * 100
+        user.profile.save(update_fields=["create_elements_progress"])
+
+    return saved_key  # this is the S3 key to pass to Celery
+        
+
+class UploadElements(APIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def post(self, request, format=None):
         files = request.FILES.getlist("files")
         dataset_id = request.data.get("dataset")
-        index = int(request.data.get("index", 0))
         labels = request.data.get("labels")
 
-        if labels:
-            labels = labels.split(",")
+        s3_keys = []
 
+        for i, f in enumerate(files):
+            filename = f"tmp/elements/{dataset_id}/{uuid.uuid4()}_{f.name}"
+            default_storage.save(filename, f)
+            s3_keys.append(filename)
+
+        return Response({"uploaded": len(s3_keys)}, status=202)
+    
+    
+class FinalizeElementsUpload(APIView):
+    def post(self, request):
+        dataset_id = request.data.get("dataset")
         user = request.user
+        index = int(request.data.get("start_index", 0))
+        labels = request.data.get("labels")
 
-        # Save files temporarily to disk or S3
-        filepaths = []
-        for f in files:
-            tmp_path = default_storage.save(f"temp_uploads/{uuid.uuid4()}_{f.name}", f)
-            filepaths.append(tmp_path)
+        # List all uploaded files under the dataset folder
+        prefix = f"tmp/elements/{dataset_id}/"
+        all_keys = default_storage.listdir(prefix)[1]  # second item is file list
+        full_paths = [prefix + fname for fname in sorted(all_keys)]  # ensure order
 
-        # Trigger background processing
-        process_uploaded_elements.delay(
-            filepaths=filepaths,
+        task = create_elements_task.delay(
+            s3_keys=full_paths,
             dataset_id=dataset_id,
             user_id=user.id,
             index=index,
             labels=labels,
         )
 
-        return Response({"success": True, "queued": len(filepaths)}, status=202)
-        
+        return Response({
+            "message": "Creating model started",
+            "task_id": task.id
+        }, status=status.HTTP_200_OK)
+    
         
 class EditElementLabel(APIView):   # Currently only used for labelling
     serializer_class = EditElementSerializer
@@ -1727,14 +1742,18 @@ class GetTaskResult(APIView):
             user = self.request.user
             
             if user.is_authenticated:
-                training_progress = user.profile.training_progress
-                training_accuracy = user.profile.training_accuracy
-                processing_data_progress = user.profile.processing_data_progress
-                training_loss = user.profile.training_loss
-                training_time_remaining = user.profile.training_time_remaining
-                delete_dataset_progress = user.profile.delete_dataset_progress
-                edit_dataset_progress = user.profile.edit_dataset_progress
-                prediction_progress = user.profile.prediction_progress
+                profile = user.profile
+                
+                training_progress = profile.training_progress
+                training_accuracy = profile.training_accuracy
+                processing_data_progress = profile.processing_data_progress
+                training_loss = profile.training_loss
+                training_time_remaining = profile.training_time_remaining
+                delete_dataset_progress = profile.delete_dataset_progress
+                deleting_elements_progress = profile.deleting_elements_progress
+                creating_elements_progress = profile.creating_elements_progress
+                edit_dataset_progress = profile.edit_dataset_progress
+                prediction_progress = profile.prediction_progress
                 
                 evaluation_progress = user.profile.evaluation_progress
                 return Response({'status': 'in progress', 
@@ -1742,6 +1761,8 @@ class GetTaskResult(APIView):
                                  "training_accuracy": training_accuracy,
                                  "processing_data_progress": processing_data_progress,
                                  "training_loss": training_loss,
+                                 "deleting_elements_progress": deleting_elements_progress,
+                                 "creating_elements_progress": creating_elements_progress,
                                  "prediction_progress": prediction_progress,
                                  "delete_dataset_progress": delete_dataset_progress,
                                  "edit_dataset_progress": edit_dataset_progress,
