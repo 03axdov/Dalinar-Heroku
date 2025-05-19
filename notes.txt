@@ -3,6 +3,7 @@ TO-DO:
 - Upload datasets directly for training (don't store for longer than used)
 - Problem with testing and files on AWS not getting deleted
 - Only use necessary values in GetTaskResult?
+- Loading animation for datasets
 
 Layers to add:
 
