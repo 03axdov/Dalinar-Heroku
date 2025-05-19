@@ -17,6 +17,7 @@ urlpatterns = [
     path("unsave-dataset/", UnsaveDataset.as_view(), name="unsave-dataset"),
     path("delete-dataset/", DeleteDataset.as_view(), name="delete-dataset"),
     path("reorder-dataset-labels/", ReorderDatasetLabels.as_view(), name="reorder-dataset-labels"),
+    path("reorder-dataset-elements/", ReorderDatasetElements.as_view(), name="reorder-dataset-elements"),
     path("delete-all-elements/", DeleteAllElements.as_view(), name="delete-all-element"),
 
     # ELEMENT HANDLING

@@ -41,7 +41,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const hoverTimeoutRef = useRef(null);
 
     // For loading animations
-    const [loading, setLoading] = useState(true)
+    const [pageLoading, setPageLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
     const [uploadLoading, setUploadLoading] = useState(false)
     const [uploadPercentage, setUploadPercentage] = useState(0) // Used for the loading bar
     const [loadingLabelCreate, setLoadingLabelCreate] = useState(false)
@@ -53,6 +54,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     const [deletingAllElements, setDeletingAllElements] = useState(false)
     const [deletingElementsProgress, setDeletingElementsProgress] = useState(0)
+    const [reorderingElements, setReorderingElements] = useState(false)
 
     const [saving, setSaving] = useState(false)
     
@@ -679,7 +681,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }, [elementsIndex])
 
     // Handles user button presses
-    const ARROW_THROTTLE_MS = 25;  // Adjust interval here
+    const ARROW_THROTTLE_MS = 40;  // Adjust interval here
 
     const lastKeyTimeRef = useRef(0);
 
@@ -737,6 +739,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
 
     function getDataset() {
+
         setLoading(true)
 
         let URL = window.location.origin + "/api/datasets/" +
@@ -764,8 +767,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
             console.log(err)
 
-        }).finally(() => {
+        }).finally(() => {   
             setLoading(false)
+            setPageLoading(false)   
         })
     }
 
@@ -1359,6 +1363,61 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
         })
+    }
+
+    function sortElementsByLabel() {
+        if (reorderingElements) return;
+        setReorderingElements(true)
+
+        let indexes = new Array(elements.length);
+        let labelBuckets = {};
+        let unlabeled = [];
+
+        for (let i = 0; i < elements.length; i++) {
+            let el = elements[i];
+            if (el.label === null) {
+                unlabeled.push(i);
+            } else {
+                if (!labelBuckets[el.label]) {
+                    labelBuckets[el.label] = [];
+                }
+                labelBuckets[el.label].push(i);
+            }
+        }
+
+        let currentIndex = 0;
+
+        for (let j = 0; j < unlabeled.length; j++) {
+            indexes[unlabeled[j]] = currentIndex++;
+        }
+
+        for (let i=0; i < labels.length; i++) {
+            let labelId = labels[i].id
+            let indices = labelBuckets[labelId];
+            for (let j = 0; j < indices.length; j++) {
+                indexes[indices[j]] = currentIndex++;
+            }
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken'; 
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        axios.post('/api/reorder-dataset-elements/', {
+            id: id,
+            indexes: indexes
+        }, config)
+        .then(res => {
+            console.log("Success:", res.data);
+            setElements(res.data.elements)
+            notification("Successfully reordered elements.", "success")
+        })
+        .catch(error => {
+            console.error("Error:", error.message);
+        }).finally(() => {
+            setReorderingElements(false)
+        });
     }
 
 
@@ -2224,7 +2283,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             </button>
                         </div>}
 
-                        {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
+                        {elements.length == 0 && !pageLoading && <p className="dataset-no-items">Elements will show here</p>}
                         
                         {elements.length > 0 && <div className="dataset-elements-list" style={{ height: "100%", width: "100%" }}
                         onMouseLeave={() => {
@@ -2322,6 +2381,14 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         </div>}
 
                         {elements.length > 0 && !isPublic && <div className="delete-all-elements-container">
+                            {dataset.datatype == "classification" && <button style={{marginBottom: "10px"}} className="delete-all-elements-button" onClick={() => activateConfirmPopup("Are you sure you want to sort elements by their label? Labels will be ordered as they currently are.", sortElementsByLabel, "blue")}>
+                                <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} 
+                                src={BACKEND_URL + "/static/images/" + (reorderingElements ? "loading.gif" : "reset.svg")} 
+                                alt="Sort"
+                                style={{height: "15px", width: "15px"}} />
+                                Sort by label
+                            </button>}
+
                             <button className="delete-all-elements-button" onClick={() => activateConfirmPopup("Are you sure you want to delete all elements in this dataset?", deleteAllElements)}>
                                 <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} 
                                 src={BACKEND_URL + "/static/images/" + (deletingAllElements ? "loading.gif" : "cross.svg")} 
@@ -2448,7 +2515,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 </div>
                 
                 <div className="dataset-main-display" ref={datasetMainDisplayRef} style={((dataset && dataset.dataset_type.toLowerCase() == "text" && !showDatasetDescription) ? {overflowY: "scroll"} : {overflowY: "auto"})}>
-                    {!isPublic && (elements.length == 0 && !loading && !uploadLoading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>
+                    {!isPublic && (elements.length == 0 && !pageLoading && !uploadLoading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>
                         <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
                         Upload folder
                     </button>}
@@ -2508,6 +2575,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         </div>
 
                     </div>}
+
+                    {pageLoading && <img className="dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
                 </div>
                 
             </div>

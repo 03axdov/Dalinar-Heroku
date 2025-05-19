@@ -1896,7 +1896,7 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
         
         for i, key in enumerate(s3_keys):
             filename_with_uuid = key.split("/")[-1]
-            original_filename = "_".join(filename_with_uuid.split("_")[1:])
+            original_filename = "_".join(filename_with_uuid.split("_")[2:])
 
             with default_storage.open(key, "rb") as f:
                 file_obj = File(BytesIO(f.read()), name=original_filename)
