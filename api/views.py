@@ -507,6 +507,34 @@ class ReorderDatasetLabels(APIView):
                 return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Unauthorized": "Must be logged in to reorder labels."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+
+class ReorderDatasetElements(APIView):
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        indexes = request.data.get('indexes', [])
+        dataset_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+                
+                if dataset.owner == user.profile:
+                    for t, element in enumerate(dataset.elements.all()):
+                        element.index = indexes[t]
+                        element.save()
+        
+                    return Response(DatasetSerializer(dataset).data, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only reorder elements in your own datasets."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Dataset.DoesNotExist:
+                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "Must be logged in to reorder elements."}, status=status.HTTP_401_UNAUTHORIZED)
             
     
 # ELEMENT HANDLING
@@ -611,11 +639,13 @@ class UploadElements(APIView):
         files = request.FILES.getlist("files")
         dataset_id = request.data.get("dataset")
         labels = request.data.get("labels")
+        index_offset = int(request.data.get("index", 0))
 
         s3_keys = []
 
         for i, f in enumerate(files):
-            filename = f"tmp/elements/{dataset_id}/{uuid.uuid4()}_{f.name}"
+            global_index = index_offset + i
+            filename = f"tmp/elements/{dataset_id}/{global_index:06d}_{uuid.uuid4()}_{f.name}"
             default_storage.save(filename, f)
             s3_keys.append(filename)
 
