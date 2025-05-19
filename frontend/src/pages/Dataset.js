@@ -2321,7 +2321,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             </AutoSizer>
                         </div>}
 
-                        {elements.length > 0 && <div className="delete-all-elements-container">
+                        {elements.length > 0 && !isPublic && <div className="delete-all-elements-container">
                             <button className="delete-all-elements-button" onClick={() => activateConfirmPopup("Are you sure you want to delete all elements in this dataset?", deleteAllElements)}>
                                 <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} 
                                 src={BACKEND_URL + "/static/images/" + (deletingAllElements ? "loading.gif" : "cross.svg")} 
