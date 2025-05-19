@@ -1881,54 +1881,83 @@ def resize_dataset_images_task(self, dataset_id, user_id, imageWidth, imageHeigh
     
 @shared_task
 def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
+    from django.db import transaction
+    
     try:
         profile = Profile.objects.get(user_id=user_id)
-    except Profile.DoesNotExist:
-        return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
-    try:
         dataset = Dataset.objects.get(id=dataset_id)
-    except Dataset.DoesNotExist:
-        return {"Not found": "Could not find dataset with the id " + str(dataset_id) + ".", "status": 404}
+    except (Profile.DoesNotExist, Dataset.DoesNotExist) as e:
+        return {"Not found": str(e), "status": 404}
+
+    profile.creating_elements_progress = 0
+    profile.save()
+
+    elements_to_create = []
+    files_data = []
 
     try:
-        profile.creating_elements_progress = 0
-        profile.save()
-        
+        # Read all files first (or in chunks)
         for i, key in enumerate(s3_keys):
             filename_with_uuid = key.split("/")[-1]
             original_filename = "_".join(filename_with_uuid.split("_")[2:])
-
             with default_storage.open(key, "rb") as f:
-                file_obj = File(BytesIO(f.read()), name=original_filename)
+                file_content = f.read()
+                files_data.append((file_content, original_filename))
+                
+            profile.creating_elements_progress = (i + 1) / (len(s3_keys) * 5)
+            profile.save()
 
-                element = Element.objects.create(
-                    dataset=dataset,
-                    owner=profile,
-                    file=file_obj,
-                    index=index + i
-                )
+        # Prepare Element instances (not saved yet)
+        for i, (file_content, original_filename) in enumerate(files_data):
+            file_obj = File(BytesIO(file_content), name=original_filename)
+            element = Element(
+                dataset=dataset,
+                owner=profile,
+                file=file_obj,
+                index=index + i
+            )
+            elements_to_create.append(element)
+            
+            profile.creating_elements_progress = (1/5) + (i + 1) / (len(files_data) * 5)
+            profile.save()
 
-                # Resize if needed
-                ext = key.split(".")[-1].lower()
-                if dataset.dataset_type.lower() == "image" and ext in ALLOWED_IMAGE_FILE_EXTENSIONS:
-                    if dataset.imageWidth or dataset.imageHeight:
-                        resize_element_image(element, dataset.imageWidth, dataset.imageHeight)
+        with transaction.atomic():
+            created_elements = Element.objects.bulk_create(elements_to_create)
 
-                # Attach label
+            # Assign labels in bulk if possible
+            for i, element in enumerate(created_elements):
                 if labels and i < len(labels):
                     try:
                         label = Label.objects.get(id=labels[i])
                         element.label = label
-                        element.save()
                     except Label.DoesNotExist:
-                        continue
+                        pass
+                
+                profile.creating_elements_progress = (2/5) + (i + 1) / (len(created_elements) * 5)
+                profile.save()
+                
+            Element.objects.bulk_update(created_elements, ['label'])
 
-            # Optional: delete after processing
+        # Resize images after creation (could be async)
+        if dataset.dataset_type.lower() == "image" and (dataset.imageWidth or dataset.imageHeight):
+            for t, element in enumerate(created_elements):
+                ext = element.file.name.split(".")[-1].lower()
+                if ext in ALLOWED_IMAGE_FILE_EXTENSIONS:
+                    resize_element_image(element, dataset.imageWidth, dataset.imageHeight)
+                    
+                profile.creating_elements_progress = (3/5) + (t + 1) / (len(created_elements) * 5)
+                profile.save()
+                
+        profile.creating_elements_progress = (4/5)
+        profile.save()
+
+        # Delete files after processing (outside loop)
+        for key in s3_keys:
             default_storage.delete(key)
-            
-            profile.creating_elements_progress = (i + 1) / len(s3_keys)
-            profile.save()
-            
+
+        profile.creating_elements_progress = 1
+        profile.save()
+
         return {"status": 200}
 
     except Exception as e:
