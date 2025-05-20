@@ -515,7 +515,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
                         ))
                     )}
                     {loading && is_explore && datasets.length === 0 && (
-                        [...Array(4)].map((e, i) => (
+                        [...Array(6)].map((e, i) => (
                             <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                         ))
                     )}

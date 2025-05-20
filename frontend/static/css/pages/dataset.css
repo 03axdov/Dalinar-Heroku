@@ -404,6 +404,9 @@
     justify-content: center;
     white-space: nowrap;
 }
+.dataset-save-button:hover {
+    background: var(--sidebar-button);
+}
 
 .dataset-download-button {
     margin-right: 30px;
