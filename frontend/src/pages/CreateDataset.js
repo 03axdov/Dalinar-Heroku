@@ -63,13 +63,19 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         e.preventDefault()
 
         let totalSize = 0;
+        let labelsCount = 0;
         Object.entries(uploadedDatasets).forEach(([label, fileList]) => {
             fileList.forEach((file) => {
                 totalSize += file.size
             })
+            labelsCount += 1
         })
         if (totalSize > 1 * 10**9) {
             notification("A maximum of 1 Gb can be uploaded at a time.", "failure")
+            return;
+        }
+        if (labelsCount > 1000) {
+            notification("A dataset can not have more than 1000 labels.", "failure")
             return;
         }
 
@@ -182,36 +188,42 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
     
     function createElements(dataset_id) {
         setCreatingElements(true);
-    
-        const labelPromises = [];
-        const fileLabelPairs = [];
-    
-        Object.entries(uploadedDatasets).forEach(([label, fileList]) => {
-            const formData = new FormData();
-            formData.append('name', label);
-            formData.append('color', randomColor());
-            formData.append('dataset', dataset_id);
-    
-            const URL = window.location.origin + '/api/create-label/';
-            const config = { headers: { 'Content-Type': 'application/json' } };
-    
-            const labelPromise = axios.post(URL, formData, config)
-                .then((res) => {
-                    const labelId = res.data.id;
-                    fileList.forEach(file => {
-                        fileLabelPairs.push({ file, label: labelId });
+
+        // Prepare labels array with name and color
+        const labelsArray = Object.entries(uploadedDatasets).map(([label]) => ({
+            name: label,
+            color: randomColor(),
+            dataset: dataset_id
+        }));
+
+        // Payload for backend
+        const payload = {
+            dataset: dataset_id,
+            labels: labelsArray,
+        };
+
+        const URL = window.location.origin + '/api/create-labels/';
+        const config = { headers: { 'Content-Type': 'application/json' } };
+
+        axios.post(URL, JSON.stringify(payload), config)
+            .then((res) => {
+                const createdLabels = res.data.created || [];
+                const fileLabelPairs = [];
+
+                // For each created label, find matching files and assign label id
+                createdLabels.forEach(({ id, name }) => {
+                    const files = uploadedDatasets[name] || [];
+                    files.forEach(file => {
+                        fileLabelPairs.push({ file, label: id });
                     });
-                })
-                .catch((error) => {
-                    notification("Failed to create label " + label, "failure");
                 });
-    
-            labelPromises.push(labelPromise);
-        });
-    
-        Promise.all(labelPromises).then(() => {
-            createElementsInner(dataset_id, fileLabelPairs);
-        });
+
+                // Call the inner element creation function with all files + label IDs
+                createElementsInner(dataset_id, fileLabelPairs);
+            })
+            .catch((error) => {
+                notification("Failed to create labels", "failure");
+            });
     }
     
     function createElementsInner(dataset_id, fileLabelPairs) {
@@ -375,7 +387,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                 setUploadingDatasetFolders(false)
                 setUploadingPercentage(0)
                 if (notUploaded.length > 0) {
-                    notification("Did not upload " + notUploaded.join(", ") + " as these files' types are not supported for " + datasetType + " datasets.", "failure")
+                    notification("Did not upload " + notUploaded.join(", ") + " as these files' types are not supported for " + datasetType + " datasets.", "warning")
                 } else {
                     notification("Successfully uploaded dataset.", "success")
                 }

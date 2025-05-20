@@ -22,6 +22,7 @@ function Notification({show, message, type, BACKEND_URL, notificationHover}) {
         }}
         onMouseLeave={() => notificationHover.current = false}>
             {type == "success" && <img className="notification-icon" src={BACKEND_URL + "/static/images/blueCheck.png"} alt="Blue checkmark" />}
+            {type == "warning" && <img className="notification-icon" src={BACKEND_URL + "/static/images/warning.png"} alt="Warning" />}
             {type == "failure" && <img className="notification-icon" src={BACKEND_URL + "/static/images/failure.png"} alt="Failure" />}
             {message}
         </div>

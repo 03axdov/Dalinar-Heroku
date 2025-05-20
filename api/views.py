@@ -869,6 +869,9 @@ class CreateLabel(APIView):
             try:
                 dataset = Dataset.objects.get(id=dataset_id)
                 
+                if dataset.labels.count() >= 1000:
+                    return Response({"Bad Request": "A dataset can have at most 1000 labels."}, status=status.HTTP_400_BAD_REQUEST)
+                
                 user = self.request.user
                 
                 if user.is_authenticated:
@@ -885,6 +888,61 @@ class CreateLabel(APIView):
                 return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Bad Request": "An error occured while creating label. Invalid input."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+class CreateLabels(APIView):
+    serializer_class = CreateLabelSerializer
+    parser_classes = [JSONParser]
+
+    def post(self, request, format=None):
+        data = self.request.data
+
+        # Expecting data like:
+        # {
+        #   "dataset": 123,
+        #   "labels": [
+        #     {"name": "label1", "color": "#ff0000"},
+        #     {"name": "label2", "color": "#00ff00"},
+        #     ...
+        #   ]
+        # }
+
+        dataset_id = data.get("dataset")
+        labels_data = data.get("labels", [])
+
+        if not dataset_id or not isinstance(labels_data, list):
+            return Response({"Bad Request": "dataset and labels list are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            dataset = Dataset.objects.get(id=dataset_id)
+        except Dataset.DoesNotExist:
+            return Response({"Not found": f"Could not find dataset with the id {dataset_id}."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if dataset.labels.count() + len(labels_data) >= 1000:
+            return Response({"Bad Request": "A dataset can have at most 1000 labels."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        if not user.is_authenticated:
+            return Response({'Unauthorized': 'Users must be logged in to create labels.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if user.profile != dataset.owner:
+            return Response({'Unauthorized': 'Users can only add labels to their own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        created_labels = []
+        errors = []
+
+        for label_data in labels_data:
+            serializer = self.serializer_class(data=label_data)
+            if serializer.is_valid():
+                instance = serializer.save(owner=user.profile)
+                created_labels.append({"id": instance.id, "name": instance.name, "color": instance.color})
+            else:
+                errors.append({"label": label_data.get("name"), "errors": serializer.errors})
+
+        if errors:
+            return Response({"created": created_labels, "errors": errors}, status=status.HTTP_207_MULTI_STATUS)
+        else:
+            return Response({"created": created_labels}, status=status.HTTP_201_CREATED)
         
         
 class GetDatasetLabels(generics.ListAPIView):

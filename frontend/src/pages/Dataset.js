@@ -1462,6 +1462,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     
     function createLabelSubmit(createLabelName, createLabelColor, createLabelKeybind) {
         if (isPublic) return;
+        if (labels.length >= 1000) {
+            notification("A dataset can not have more than 1000 labels.", "failure")
+            return;
+        }
 
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -2120,6 +2124,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         window.addEventListener("mouseout", handleMouseOut);
         return () => window.removeEventListener("mouseout", handleMouseOut);
     }, []);
+
 
     return (<>
         <Helmet>
