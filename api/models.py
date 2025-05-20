@@ -138,7 +138,7 @@ def element_file_path(instance, filename):
 class Element(models.Model):
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="elements", null=True)
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="elements", null=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=500)
     file = models.FileField(upload_to=element_file_path, null=True, validators=[FileExtensionValidator(allowed_extensions=ALLOWED_IMAGE_FILE_EXTENSIONS + ALLOWED_TEXT_FILE_EXTENSIONS)])
     text = models.CharField(max_length=100000, null=True, blank=True)    # Only used for text datasets
     
