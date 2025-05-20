@@ -133,12 +133,13 @@ export default function App() {
                 <Routes>
                     <Route path="/" element={<Landing BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/explore" element={<Home currentProfile={null} 
-            notification={notification} 
-            BACKEND_URL={BACKEND_URL} 
-            checkLoggedIn={checkLoggedIn} 
-            is_explore={true}/>}/>
+                        key="explore"
+                        notification={notification} 
+                        BACKEND_URL={BACKEND_URL} 
+                        checkLoggedIn={checkLoggedIn} 
+                        is_explore={true}/>}/>
                     <Route path="/guide" element={<Guide BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/home" element={<Home currentProfile={currentProfile} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/home" element={<Home key="homes" currentProfile={currentProfile} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/create-dataset" element={<CreateDataset notification={notification} BACKEND_URL={BACKEND_URL} activateConfirmPopup={activateConfirmPopup}/>}/>
                     <Route path="/create-model" element={<CreateModel notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
