@@ -1616,7 +1616,6 @@ def layer_model_from_tf_layer(tf_layer, model_id, idx, user, input_shape=False):
             data["input_y"] = input_shape[2]
             data["input_z"] = input_shape[3]
     elif isinstance(tf_layer, layers.Resizing):
-        print(config)
         data["type"] = "resizing"
         data["output_x"] = config["width"]
         data["output_y"] = config["height"]
@@ -1695,7 +1694,6 @@ def reset_model_to_build_task(self, model_id, user_id):
             os.remove(backend_temp_model_path)
             
             for t, layer in enumerate(model.layers):
-                print(t)
                 if t == 0:
                     layer_model_from_tf_layer(layer, model_id, t, profile.user, input_shape)
                 else:
@@ -1868,7 +1866,6 @@ def resize_dataset_images_task(self, dataset_id, user_id, imageWidth, imageHeigh
         
         totalCount = dataset.elements.count()
         for t, element in enumerate(dataset.elements.all()):
-            print(t)
             if t % 5 == 0:
                 profile.edit_dataset_progress = (t + 1) / totalCount
                 profile.save()
@@ -1903,9 +1900,7 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
         # Read all files first (or in chunks)
         for i, key in enumerate(s3_keys):
             filename_with_uuid = key.split("/")[-1]
-            print(f"filename_with_uuid: {filename_with_uuid}")
             original_filename = "_".join(filename_with_uuid.split("_")[2:])
-            print(f"filename_with_uuid: {filename_with_uuid}")
             with default_storage.open(key, "rb") as f:
                 file_content = f.read()
                 files_data.append((file_content, original_filename))
