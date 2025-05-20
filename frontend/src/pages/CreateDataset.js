@@ -268,7 +268,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                     resInterval,
                     res.data["task_id"],
                     () => {
-                        notification("Successfully created elements.", "success")
                     },
                     (data) => {
                         notification("Creating elements failed: " + data["message"], "failure")
@@ -281,6 +280,9 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                         setTimeout(() => {
                             navigate("/home");
                             notification("Successfully created dataset " + name + ".", "success");
+                            if (document.visibilityState !== "visible") {
+                                alert("Dataset creation finished.")
+                            }
                         }, 200);
                     }
                 ), 3000)    // ping every 3 seconds
