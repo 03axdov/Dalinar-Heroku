@@ -1980,7 +1980,7 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
                 if t % 10 == 0:
                     profile.creating_elements_progress = (3/5) + (t + 1) / (len(created_elements) * 5)
                     profile.save()
-        else:
+        elif dataset.dataset_type.lower() == "image":
             for t, element in enumerate(created_elements):
                 if element.imageWidth > 1024 or element.imageHeight > 1024:
                     ext = element.file.name.split(".")[-1].lower()
