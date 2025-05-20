@@ -63,13 +63,19 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         e.preventDefault()
 
         let totalSize = 0;
+        let labelsCount = 0;
         Object.entries(uploadedDatasets).forEach(([label, fileList]) => {
             fileList.forEach((file) => {
                 totalSize += file.size
             })
+            labelsCount += 1
         })
         if (totalSize > 1 * 10**9) {
             notification("A maximum of 1 Gb can be uploaded at a time.", "failure")
+            return;
+        }
+        if (labelsCount > 1000) {
+            notification("A dataset can not have more than 1000 labels.", "failure")
             return;
         }
 

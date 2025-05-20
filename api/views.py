@@ -869,6 +869,9 @@ class CreateLabel(APIView):
             try:
                 dataset = Dataset.objects.get(id=dataset_id)
                 
+                if dataset.labels.count() >= 1000:
+                    return Response({"Bad Request": "A dataset can have at most 1000 labels."}, status=status.HTTP_400_BAD_REQUEST)
+                
                 user = self.request.user
                 
                 if user.is_authenticated:
@@ -914,6 +917,9 @@ class CreateLabels(APIView):
             dataset = Dataset.objects.get(id=dataset_id)
         except Dataset.DoesNotExist:
             return Response({"Not found": f"Could not find dataset with the id {dataset_id}."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if dataset.labels.count() + len(labels_data) >= 1000:
+            return Response({"Bad Request": "A dataset can have at most 1000 labels."}, status=status.HTTP_400_BAD_REQUEST)
 
         user = request.user
         if not user.is_authenticated:
