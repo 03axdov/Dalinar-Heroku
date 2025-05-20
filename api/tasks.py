@@ -1816,14 +1816,17 @@ def create_model_task(self, model_id, user_id):
 
 def resize_element_image(instance, newWidth, newHeight):
     new_name = instance.file.name.split("/")[-1]     # Otherwise includes files
-    new_name, extension = new_name.split(".")     
-    new_name = new_name.split("-")[0]   # Remove previous resize information      
-    
-    new_name += ("-" + str(newWidth) + "x" + str(newHeight) + "." + extension) 
+
+    newWidth = min(1024, newWidth)
+    newHeight = min(1024, newHeight)
     
     try:
         
         img = Image.open(instance.file)
+        oldWidth, oldHeight = img.size
+        if oldWidth == newWidth and oldHeight == newHeight:
+            return
+
         img = img.resize([newWidth, newHeight], Image.LANCZOS)
         
         if default_storage.exists(instance.file.name):
@@ -1899,27 +1902,52 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
         # Read all files first (or in chunks)
         for i, key in enumerate(s3_keys):
             filename_with_uuid = key.split("/")[-1]
+            print(f"filename_with_uuid: {filename_with_uuid}")
             original_filename = "_".join(filename_with_uuid.split("_")[2:])
+            print(f"filename_with_uuid: {filename_with_uuid}")
             with default_storage.open(key, "rb") as f:
                 file_content = f.read()
                 files_data.append((file_content, original_filename))
-                
-            profile.creating_elements_progress = (i + 1) / (len(s3_keys) * 5)
-            profile.save()
+            
+            if i % 10 == 0:
+                profile.creating_elements_progress = (i + 1) / (len(s3_keys) * 5)
+                profile.save()
+            
+        profile.creating_elements_progress = (1/5)
+        profile.save()
 
         # Prepare Element instances (not saved yet)
         for i, (file_content, original_filename) in enumerate(files_data):
             file_obj = File(BytesIO(file_content), name=original_filename)
-            element = Element(
-                dataset=dataset,
-                owner=profile,
-                file=file_obj,
-                index=index + i
-            )
+            
+            if dataset.dataset_type.lower() == "image" and not (dataset.imageWidth or dataset.imageHeight):
+                with Image.open(BytesIO(file_content)) as img:
+                    width, height = img.size
+                element = Element(
+                    dataset=dataset,
+                    owner=profile,
+                    file=file_obj,
+                    index=index + i,
+                    name=original_filename,
+                    imageWidth=width,
+                    imageHeight=height
+                )
+            else:
+                element = Element(
+                    dataset=dataset,
+                    owner=profile,
+                    file=file_obj,
+                    index=index + i,
+                    name=original_filename
+                )
             elements_to_create.append(element)
             
-            profile.creating_elements_progress = (1/5) + (i + 1) / (len(files_data) * 5)
-            profile.save()
+            if i % 10 == 0:
+                profile.creating_elements_progress = (1/5) + (i + 1) / (len(files_data) * 5)
+                profile.save()
+            
+        profile.creating_elements_progress = (2/5)
+        profile.save()
 
         with transaction.atomic():
             created_elements = Element.objects.bulk_create(elements_to_create)
@@ -1933,10 +1961,14 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
                     except Label.DoesNotExist:
                         pass
                 
-                profile.creating_elements_progress = (2/5) + (i + 1) / (len(created_elements) * 5)
-                profile.save()
+                if i % 10:
+                    profile.creating_elements_progress = (2/5) + (i + 1) / (len(created_elements) * 5)
+                    profile.save()
                 
             Element.objects.bulk_update(created_elements, ['label'])
+            
+        profile.creating_elements_progress = (3/5)
+        profile.save()
 
         # Resize images after creation (could be async)
         if dataset.dataset_type.lower() == "image" and (dataset.imageWidth or dataset.imageHeight):
@@ -1945,17 +1977,32 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
                 if ext in ALLOWED_IMAGE_FILE_EXTENSIONS:
                     resize_element_image(element, dataset.imageWidth, dataset.imageHeight)
                     
-                profile.creating_elements_progress = (3/5) + (t + 1) / (len(created_elements) * 5)
-                profile.save()
+                if t % 10 == 0:
+                    profile.creating_elements_progress = (3/5) + (t + 1) / (len(created_elements) * 5)
+                    profile.save()
+        else:
+            for t, element in enumerate(created_elements):
+                if element.imageWidth > 1024 or element.imageHeight > 1024:
+                    ext = element.file.name.split(".")[-1].lower()
+                    if ext in ALLOWED_IMAGE_FILE_EXTENSIONS:
+                        resize_element_image(element, min(1024, element.imageWidth), min(1024, element.imageHeight))
+                    
+                if t % 10 == 0:
+                    profile.creating_elements_progress = (3/5) + (t + 1) / (len(created_elements) * 5)
+                    profile.save()
                 
         profile.creating_elements_progress = (4/5)
         profile.save()
 
         # Delete files after processing (outside loop)
-        for key in s3_keys:
+        for t, key in enumerate(s3_keys):
             default_storage.delete(key)
+            
+            if t % 10 == 0:
+                profile.creating_elements_progress = (4/5) + ((t + 1) / (len(s3_keys) * 5))
+                profile.save()
 
-        profile.creating_elements_progress = 1
+        profile.creating_elements_progress = 0
         profile.save()
 
         return {"status": 200}
