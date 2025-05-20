@@ -204,8 +204,9 @@ def download_dataset_from_s3(bucket_name, prefix, local_dir, profile, nbr_files)
             except Exception as e:
                 print(f"Error downloading {key}: {e}")
             
-            profile.processing_data_progress = (t + 1) / nbr_files
-            profile.save()
+            if t % 10 == 0:
+                profile.processing_data_progress = (t + 1) / nbr_files
+                profile.save()
 
 # Function to load and preprocess the images
 def load_and_preprocess_image(file_path,input_dims):
