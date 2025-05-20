@@ -31,7 +31,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
 
             <a href="/explore" className={"toolbar-text toolbar-mobile-hide " + (window.location.pathname.replaceAll("/", "") == "explore" ? "toolbar-text-activated" : "")} onClick={(e) => {
                 e.preventDefault()
-                navigate("/explore") 
+                navigate("/explore/") 
             }}>Explore</a>
 
             <a href="/guide" className={"toolbar-text toolbar-mobile-hide " + (window.location.pathname.replaceAll("/", "") == "guide" ? "toolbar-text-activated" : "")} onClick={(e) => {
