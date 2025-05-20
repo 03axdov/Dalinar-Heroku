@@ -2005,7 +2005,7 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
 
     except Exception as e:
         print("Error during background element creation:", str(e))
-        profile.creating_elements_progress = 0
+        profile.creating_elements_progress = 1
         profile.save()
             
         for key in s3_keys:
@@ -2013,4 +2013,7 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
                 default_storage.delete(key)
             except Exception as inner_e:
                 print("Cleanup failed for:", key, inner_e)
+                
+        profile.creating_elements_progress = 0
+        profile.save()
         return {"Bad request": str(e), "status": 400}    

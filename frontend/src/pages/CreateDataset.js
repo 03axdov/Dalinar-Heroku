@@ -270,6 +270,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
             await Promise.all(Array(CONCURRENCY).fill(0).map(next));
 
             let resInterval = null;
+            let errorOccured = false;
             axios.post("/api/finalize-elements-upload/", {
                 dataset: dataset_id,
                 start_index: 0,
@@ -283,6 +284,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                     },
                     (data) => {
                         notification("Creating elements failed: " + data["message"], "failure")
+                        errorOccured = true;
                     },
                     (data) => {
                         setCreatingElementsProgress(25 + (data["creating_elements_progress"] * 0.75) * 100)
@@ -291,7 +293,10 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
                         setCreatingElementsProgress(100);
                         setTimeout(() => {
                             navigate("/home");
-                            notification("Successfully created dataset " + name + ".", "success");
+                            if (!errorOccured) {
+                                notification("Successfully created dataset " + name + ".", "success");
+                            }
+                            
                             if (document.visibilityState !== "visible") {
                                 alert("Dataset creation finished.")
                             }
