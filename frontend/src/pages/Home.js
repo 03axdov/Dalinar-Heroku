@@ -55,9 +55,11 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
         getDatasets()
     }, [datasetShow, sortDatasets, imageDimensions])
 
+    const loadedSaved = useRef(false)
     useEffect(() => {
         if (is_explore) return;
-        if (currentProfile && startParam == "saved" && savedDatasets.length == 0 && savedModels.length == 0) {
+        if (currentProfile && startParam == "saved" && savedDatasets.length == 0 && savedModels.length == 0 && !loadedSaved.current) {
+            loadedSaved.current = true
             setLoadingSaved(true)
 
             let URL = window.location.origin + "/api/saved-datasets/"
@@ -74,7 +76,9 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
                 notification("An error occured while loading your saved datasets.", "failure")
                 console.log(err)
             }).finally(() => {
+                console.log("A")
                 setLoadingSaved(false)
+                
             })     
         }
         
@@ -303,7 +307,6 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
 
     useEffect(() => {
         if (!loadingSaved) {
-            console.log("A")
             setSavedDatasets(sort_saved_datasets(savedDatasets))
         }
     }, [sortSavedDatasets])
@@ -400,6 +403,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
             } else {
                 setSavedModels(sort_saved_models(currentProfile.saved_models))
             }
+
             setLoadingSaved(false)
         }, 350);
     
