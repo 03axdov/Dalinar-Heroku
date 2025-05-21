@@ -45,9 +45,22 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         getDatasets()
     }, [sortDatasets, imageDimensions])
 
+    const loadedSaved = useRef(false)
     useEffect(() => {
-        if (currentProfile && currentProfile.saved_datasets) {
-            setSavedDatasets(sort_saved_datasets(currentProfile.saved_datasets))
+        if (currentProfile && savedDatasets.length == 0 && !loadedSaved.current) {
+            loadedSaved.current = true
+
+            let URL = window.location.origin + "/api/saved-datasets/"
+            axios({
+                method: 'GET',
+                url: URL
+            })
+            .then((res) => {
+                setSavedDatasets(sort_saved_datasets(res.data.results))
+            }).catch((err) => {
+                notification("An error occured while loading your saved datasets.", "failure")
+                console.log(err)
+            }) 
         }
     }, [currentProfile])
 
@@ -541,7 +554,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                     {!loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && <p className="gray-text train-no-datasets">No such datasets found.</p>}
 
                     {!loading && currentProfile.datasetsCount === 0 && (
-                        <p className="gray-text train-no-datasets">You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
+                        <p className="gray-text train-no-datasets">You don't have any datasets. Click <span className="link" style={{margin: "0 5px"}} onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
                     )}
 
                     {loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && (
