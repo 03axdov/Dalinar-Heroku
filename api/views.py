@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from rest_framework.response import Response
-from django.db.models import Q, Count
+from django.db.models import Q, Count, OuterRef, Subquery, IntegerField
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.urls import resolve
 import json
@@ -153,8 +153,26 @@ class GetCurrentProfile(APIView):
 
 # DATASET HANDLING
 
+# Element count per dataset
+element_count_subquery = (
+    Element.objects.filter(dataset=OuterRef("pk"))
+    .order_by()
+    .values("dataset")
+    .annotate(c=Count("id"))
+    .values("c")[:1]
+)
+
+# Label count per dataset
+label_count_subquery = (
+    Label.objects.filter(dataset=OuterRef("pk"))
+    .order_by()
+    .values("dataset")
+    .annotate(c=Count("id"))
+    .values("c")[:1]
+)
+
 class DatasetListPublic(generics.ListAPIView):
-    serializer_class = DatasetSerializer
+    serializer_class = DatasetElementSerializer
     permission_classes = [AllowAny]
     
     def get_queryset(self):
@@ -164,14 +182,12 @@ class DatasetListPublic(generics.ListAPIView):
         imageWidth = self.request.GET.get("imageWidth")
         imageHeight = self.request.GET.get("imageHeight")
         
-        datasets = Dataset.objects.filter(Q(visibility="public") & (
-            # Search handling
-            Q(name__icontains=search) | (
-                Q(
-                    keywords__icontains=search
-                )
+        datasets = Dataset.objects.filter(visibility="public")
+        if search:
+            datasets = datasets.filter(
+                Q(name__icontains=search) | Q(keywords__icontains=search)
             )
-        ))
+            
         if dataset_type != "all":
             datasets = datasets.filter(dataset_type=dataset_type)
         if imageWidth:
@@ -181,12 +197,17 @@ class DatasetListPublic(generics.ListAPIView):
 
         if order_by:
             datasets = dataset_order_by(datasets, order_by)
+            
+        datasets = datasets.annotate(
+            element_count=Subquery(element_count_subquery, output_field=IntegerField()),
+            label_count=Subquery(label_count_subquery, output_field=IntegerField())
+        )
 
         return datasets
 
 
 class DatasetListProfile(generics.ListCreateAPIView):
-    serializer_class = DatasetSerializer
+    serializer_class = DatasetElementSerializer
     permission_classes  = [IsAuthenticated]
 
     def get_queryset(self):
@@ -215,6 +236,11 @@ class DatasetListProfile(generics.ListCreateAPIView):
 
         if order_by:
             datasets = dataset_order_by(datasets, order_by)
+            
+        datasets = datasets.annotate(
+            element_count=Subquery(element_count_subquery, output_field=IntegerField()),
+            label_count=Subquery(label_count_subquery, output_field=IntegerField())
+        )
 
         return datasets
 

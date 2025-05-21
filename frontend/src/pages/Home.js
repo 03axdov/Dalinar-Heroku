@@ -88,6 +88,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
             url: URL
         })
         .then((res) => {
+            console.log(res.data)
             if (res.data) {
                 setDatasets(res.data.results)
                 setNextPageDatasets(res.data.next)

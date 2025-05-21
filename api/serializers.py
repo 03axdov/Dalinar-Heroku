@@ -79,6 +79,17 @@ class EditLabelSerializer(serializers.ModelSerializer):
         
 # DATASET HANDLING
 
+class DatasetElementSerializer(serializers.ModelSerializer):
+    element_count = serializers.IntegerField()
+    label_count = serializers.IntegerField()
+    
+    class Meta:
+        model = Dataset
+        fields = ("id", "name", "description", "imageSmall", "dataset_type", "downloaders", 
+                  "keywords", "imageHeight", "imageWidth", "element_count", "label_count", "visibility", "datatype")
+        extra_kwargs = {"owner": {"read_only": True}}
+        
+
 class DatasetSerializer(serializers.ModelSerializer):
     elements = ElementSerializer(many=True, read_only=True)
     labels = LabelSerializer(many=True, read_only=True)
