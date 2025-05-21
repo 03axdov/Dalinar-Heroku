@@ -8,6 +8,7 @@ urlpatterns = [
     # DATASET HANDLING
     path("datasets/", DatasetListPublic.as_view(), name="datasets"),
     path("my-datasets/", DatasetListProfile.as_view(), name="my-datasets"),
+    path("saved-datasets/", DatasetListSaved.as_view(), name="saved-datasets"),
     path("datasets/<int:id>", GetDataset.as_view(), name="get-dataset"),
     path("datasets/public/<int:id>", GetDatasetPublic.as_view(), name="get-dataset-public"),
     path("create-dataset/", CreateDataset.as_view(), name="create-dataset"),

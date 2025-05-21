@@ -57,18 +57,29 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
 
     useEffect(() => {
         if (is_explore) return;
-        if (currentProfile && (currentProfile.saved_datasets || currentProfile.saved_models)) {
+        if (currentProfile && startParam == "saved" && savedDatasets.length == 0 && savedModels.length == 0) {
             setLoadingSaved(true)
-            if (currentProfile.saved_datasets) {
-                setSavedDatasets(sort_saved_datasets(currentProfile.saved_datasets))
-            }
-            if (currentProfile.saved_models) {
-                setSavedModels(sort_saved_models(currentProfile.saved_models))
-            }
-            setLoadingSaved(false)
+
+            let URL = window.location.origin + "/api/saved-datasets/"
+            axios({
+                method: 'GET',
+                url: URL
+            })
+            .then((res) => {
+                setSavedDatasets(sort_saved_datasets(res.data.results))
+                if (currentProfile.saved_models) {
+                    setSavedModels(sort_saved_models(currentProfile.saved_models))
+                }
+            }).catch((err) => {
+                notification("An error occured while loading your saved datasets.", "failure")
+                console.log(err)
+            }).finally(() => {
+                setLoadingSaved(false)
+            })     
         }
         
-    }, [currentProfile])
+    }, [currentProfile, startParam])
+
 
     const getDatasets = () => {
         setLoading(true)
@@ -88,7 +99,6 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
             url: URL
         })
         .then((res) => {
-            console.log(res.data)
             if (res.data) {
                 setDatasets(res.data.results)
                 setNextPageDatasets(res.data.next)
@@ -247,14 +257,14 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
             } else if (sortSavedDatasets == "date") {
                 return new Date(d2.created_at) - new Date(d1.created_at)
             } else if (sortSavedDatasets == "elements") {
-                if (d1.elements.length != d2.elements.length) {
-                    return d2.elements.length - d1.elements.length
+                if (d1.element_count != d2.element_count) {
+                    return d2.element_count - d1.element_count
                 } else {
                     return d1.name.localeCompare(d2.name)
                 }
             } else if (sortSavedDatasets == "labels") {
-                if (d1.labels.length != d2.labels.length) {
-                    return d2.labels.length - d1.labels.length
+                if (d1.label_count != d2.label_count) {
+                    return d2.label_count - d1.label_count
                 } else {
                     return d1.name.localeCompare(d2.name)
                 }
@@ -293,6 +303,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
 
     useEffect(() => {
         if (!loadingSaved) {
+            console.log("A")
             setSavedDatasets(sort_saved_datasets(savedDatasets))
         }
     }, [sortSavedDatasets])
@@ -350,6 +361,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
         }
         // Set a timeout to update debounced value after 500ms
         setLoadingSaved(true)
+        console.log("B")
         const handler = setTimeout(() => {
             if (searchSaved.length > 0) {
                 let temp = [...savedDatasets]

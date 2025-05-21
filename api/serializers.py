@@ -352,7 +352,6 @@ class CreateModelSerializer(serializers.ModelSerializer):
 # PROFILE HANDLING
 
 class ProfileSerializer(serializers.ModelSerializer):
-    saved_datasets = DatasetSerializer(many=True, read_only=True)
     saved_models = ModelSerializer(many=True, read_only=True)
     
     class Meta:
