@@ -69,8 +69,8 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false, isTraining=false,
                 
                 {!isPublic && <p className="dataset-element-private">{dataset.visibility}</p>}
                 {dataset.downloaders && <p className="dataset-element-date">{dataset.downloaders.length + " download" + (dataset.downloaders.length != 1 ? "s" : "")}</p>}
-                {dataset.elements && <p className="dataset-element-count">{dataset.elements.length + " element" + (dataset.elements.length != 1 ? "s" : "")}</p>}
-                {dataset.labels && <p className="dataset-element-labels">{dataset.labels.length + " label" + (dataset.labels.length != 1 ? "s" : "")}</p>}
+                <p className="dataset-element-count">{dataset.element_count + " element" + (dataset.element_count != 1 ? "s" : "")}</p>
+                <p className="dataset-element-labels">{dataset.label_count + " label" + (dataset.label_count != 1 ? "s" : "")}</p>
                 {dataset && dataset.imageWidth && dataset.imageHeight && <p className="dataset-element-shape">
                     {dataset.imageWidth}x{dataset.imageHeight}
                 </p>}
