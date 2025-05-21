@@ -243,6 +243,24 @@ class DatasetListProfile(generics.ListCreateAPIView):
         )
 
         return datasets
+    
+    
+class DatasetListSaved(generics.ListCreateAPIView):
+    serializer_class = DatasetElementSerializer
+    permission_classes  = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        profile = user.profile
+        
+        datasets = profile.saved_datasets.all()
+        
+        datasets = datasets.annotate(
+            element_count=Subquery(element_count_subquery, output_field=IntegerField()),
+            label_count=Subquery(label_count_subquery, output_field=IntegerField())
+        )
+
+        return datasets
 
 
 class GetDataset(APIView):
