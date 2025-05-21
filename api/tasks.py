@@ -1824,7 +1824,9 @@ def resize_element_image(instance, newWidth, newHeight):
         img = Image.open(instance.file)
         oldWidth, oldHeight = img.size
         if oldWidth == newWidth and oldHeight == newHeight:
-            return
+            instance.imageWidth = newWidth
+            instance.imageHeight = newHeight
+            instance.save()
 
         img = img.resize([newWidth, newHeight], Image.LANCZOS)
         
