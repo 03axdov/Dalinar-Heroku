@@ -2198,7 +2198,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             isDownloaded={isDownloaded}
             setIsDownloaded={setIsDownloaded}>
                 <h1 className="download-successful-title">Download Successful <img className="download-successful-icon" src={BACKEND_URL + "/static/images/blueCheck.png"} alt="Blue checkmark" /></h1>
-                {downloadType == "folders" || downloadType =="files" && <p className="download-successful-instructions">See below for an example of how the dataset can be loaded in Python. Note that the downloaded .zip file must be unpacked
+                {(downloadType == "folders" || downloadType == "files") && <p className="download-successful-instructions">
+                    See below for an example of how the dataset can be loaded in Python. Note that the downloaded .zip file must be unpacked
                     and that relative paths must be updated. Also note that the instructions provided are for image datasets.
                 </p>}
                 {downloadType == "csv" && <p className="download-successful-instructions">
