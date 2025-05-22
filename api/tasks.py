@@ -1917,8 +1917,9 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
         # Prepare Element instances (not saved yet)
         for i, (file_content, original_filename) in enumerate(files_data):
             file_obj = File(BytesIO(file_content), name=original_filename)
+            dataset_type = dataset.dataset_type.lower()
             
-            if dataset.dataset_type.lower() == "image" and not (dataset.imageWidth or dataset.imageHeight):
+            if dataset_type == "image" and not (dataset.imageWidth or dataset.imageHeight):
                 with Image.open(BytesIO(file_content)) as img:
                     width, height = img.size
                 element = Element(
@@ -1930,13 +1931,22 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
                     imageWidth=width,
                     imageHeight=height
                 )
-            else:
+            elif dataset_type == "image":
                 element = Element(
                     dataset=dataset,
                     owner=profile,
                     file=file_obj,
                     index=index + i,
                     name=original_filename
+                )
+            elif dataset_type == "text":
+                element = Element(
+                    dataset=dataset,
+                    owner=profile,
+                    file=file_obj,
+                    index=index + i,
+                    name=original_filename,
+                    text=file_content[:10000].decode('utf-8', errors='ignore')
                 )
             elements_to_create.append(element)
             

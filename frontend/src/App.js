@@ -55,6 +55,20 @@ export default function App() {
         getCurrentProfile()
     }, [updateProfile])
 
+    function changeDatasetCount(change) {
+        if (!currentProfile.datasetsCount) return
+        let temp = {...currentProfile}
+        temp.datasetsCount += change
+        setCurrentProfile(temp)
+    }
+    function changeModelCount(change) {
+        console.log("A")
+        if (!currentProfile.modelsCount) return
+        let temp = {...currentProfile}
+        temp.modelsCount += change
+        setCurrentProfile(temp)
+    }
+
 
     function getCurrentProfile() {
         axios({
@@ -140,14 +154,14 @@ export default function App() {
                         is_explore={true}/>}/>
                     <Route path="/guide" element={<Guide BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/home" element={<Home key="homes" currentProfile={currentProfile} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/create-dataset" element={<CreateDataset notification={notification} BACKEND_URL={BACKEND_URL} activateConfirmPopup={activateConfirmPopup}/>}/>
-                    <Route path="/create-model" element={<CreateModel notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/create-dataset" element={<CreateDataset notification={notification} BACKEND_URL={BACKEND_URL} activateConfirmPopup={activateConfirmPopup} changeDatasetCount={changeDatasetCount}/>}/>
+                    <Route path="/create-model" element={<CreateModel notification={notification} BACKEND_URL={BACKEND_URL} changeModelCount={changeModelCount}/>}/>
+                    <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} changeDatasetCount={changeDatasetCount}/>}/>
                     <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/datasets/public/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} isPublic={true}/>}/>
                     <Route path="/models/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} checkLoggedIn={checkLoggedIn}/>}/>
                     <Route path="/models/public/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} checkLoggedIn={checkLoggedIn} isPublic={true}/>}/>
-                    <Route path="/edit-model/:id" element={<EditModel activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/edit-model/:id" element={<EditModel activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} changeModelCount={changeModelCount}/>}/>
                 </Routes>
             </div>
             

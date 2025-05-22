@@ -6,7 +6,7 @@ import TitleSetter from "../components/minor/TitleSetter";
 import { useTask } from "../contexts/TaskContext"
 import ProgressBar from "../components/ProgressBar";
 
-function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
+function EditDataset({activateConfirmPopup, notification, BACKEND_URL, changeDatasetCount}) {
     const { getTaskResult } = useTask();
 
     const navigate = useNavigate()
@@ -55,10 +55,11 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         setLoading(true)
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/datasets/' + id,
+            url: window.location.origin + '/api/datasets/' + id + "?editing=true",
         })
         .then((res) => {
             let dataset = res.data
+            console.log(dataset)
             
             setName(dataset.name)
             setOriginalName(dataset.name)
@@ -187,6 +188,7 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
                 resInterval,
                 res.data["task_id"],
                 () => {
+                    changeDatasetCount(-1)
                     setDeletingProgress(100)
                     setTimeout(() => {
                         navigate("/home")

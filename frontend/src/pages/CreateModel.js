@@ -6,7 +6,7 @@ import TitleSetter from "../components/minor/TitleSetter";
 import { useTask } from "../contexts/TaskContext";
 
 
-function CreateModel({notification, BACKEND_URL}) {
+function CreateModel({notification, BACKEND_URL, changeModelCount}) {
     const { getTaskResult } = useTask();
 
     const navigate = useNavigate()
@@ -152,6 +152,7 @@ function CreateModel({notification, BACKEND_URL}) {
                     creatingInterval,
                     res.data["task_id"],
                     () => {
+                        changeModelCount(1)
                         navigate("/home?start=models")
                         notification("Successfully created model " + name + ".", "success")
                     },
@@ -162,6 +163,7 @@ function CreateModel({notification, BACKEND_URL}) {
                     }
                 ), 2000)
             } else {
+                changeModelCount(1)
                 navigate("/home?start=models")
                 notification("Successfully created model " + name + ".", "success")
             }

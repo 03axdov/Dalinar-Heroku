@@ -4,7 +4,7 @@ import axios from "axios"
 import { useParams, useSearchParams } from "react-router-dom";
 import TitleSetter from "../components/minor/TitleSetter";
 
-function EditModel({activateConfirmPopup, notification, BACKEND_URL}) {
+function EditModel({activateConfirmPopup, notification, BACKEND_URL, changeModelCount}) {
 
     const navigate = useNavigate()
     const [searchParams] = useSearchParams();
@@ -129,6 +129,7 @@ function EditModel({activateConfirmPopup, notification, BACKEND_URL}) {
         setProcessingDelete(true)
         axios.post(URL, data, config)
         .then((data) => {
+            changeModelCount(-1)
             navigate("/home?start=models")
             notification("Successfully deleted model " + name + ".", "success")
 

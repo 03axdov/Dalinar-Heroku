@@ -5,7 +5,7 @@ import ProgressBar from "../components/ProgressBar"
 import TitleSetter from "../components/minor/TitleSetter"
 import { useTask } from "../contexts/TaskContext"
 
-function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
+function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeDatasetCount}) {
     const { getTaskResult } = useTask();
 
     const navigate = useNavigate()
@@ -125,7 +125,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup}) {
         .then((res) => {
             console.log("Success:", res.data);
             
-            
+            changeDatasetCount(1)
             if (!isEmpty(uploadedDatasets)) {
                 createElements(res.data.id)
             } else {
