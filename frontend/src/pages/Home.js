@@ -58,11 +58,11 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
     const loadedSaved = useRef(false)
     useEffect(() => {
         if (is_explore) return;
-        if (currentProfile && startParam == "saved" && savedDatasets.length == 0 && savedModels.length == 0 && !loadedSaved.current) {
+        if (currentProfile && currentProfile.user && startParam == "saved" && savedDatasets.length == 0 && savedModels.length == 0 && !loadedSaved.current) {
             loadedSaved.current = true
             setLoadingSaved(true)
 
-            let URL = window.location.origin + "/api/saved-datasets/"
+            let URL = window.location.origin + "/api/saved-datasets/?order_by=downloads"
             axios({
                 method: 'GET',
                 url: URL
@@ -76,14 +76,14 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
                 notification("An error occured while loading your saved datasets.", "failure")
                 console.log(err)
             }).finally(() => {
-                console.log("A")
                 setLoadingSaved(false)
                 
-            })     
+            })      
+
+            
         }
         
     }, [currentProfile, startParam])
-
 
     const getDatasets = () => {
         setLoading(true)
@@ -117,6 +117,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
         }).finally(() => {
             setLoading(false)
         })
+        
     }
 
     const loadMoreDatasets = useCallback(debounce(() => {
@@ -364,7 +365,6 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
         }
         // Set a timeout to update debounced value after 500ms
         setLoadingSaved(true)
-        console.log("B")
         const handler = setTimeout(() => {
             if (searchSaved.length > 0) {
                 let temp = [...savedDatasets]
@@ -649,8 +649,8 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
                         <p className="gray-text">No such saved datasets found.</p>
                     )}
 
-                    {loadingSaved && savedDatasets.length === 0 && currentProfile.saved_datasets && currentProfile.saved_datasets.length > 0 && (
-                        currentProfile.saved_datasets.map((e, i) => (
+                    {loadingSaved && savedDatasets.length === 0 && currentProfile && currentProfile.savedDatasetsCount && currentProfile.savedDatasetsCount > 0 && (
+                        [...Array(currentProfile.savedDatasetsCount)].map((e, i) => (
                             <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
                         ))
                     )}

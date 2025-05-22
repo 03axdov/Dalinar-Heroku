@@ -166,7 +166,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication'
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,  # or however many items you want per page
+    'PAGE_SIZE': 50,  # or however many items you want per page
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.UserRateThrottle',     # Authenticated users
         'rest_framework.throttling.AnonRateThrottle',     # Unauthenticated users (if relevant)

@@ -131,7 +131,7 @@ def dataset_order_by(datasets, order_by):
     if order_by == "alphabetical": 
         return datasets.order_by("name")
     if order_by == "date": 
-        return datasets.order_by("created_at")
+        return datasets.order_by("-created_at")
 
     return datasets
 
@@ -148,6 +148,8 @@ class GetCurrentProfile(APIView):
         data = profileSerialized.data
         data["datasetsCount"] = profile.datasets.count()
         data["modelsCount"] = profile.models.count()
+        data["savedDatasetsCount"] = profile.saved_datasets.count()
+        data["savedModelsCount"] = profile.saved_models.count()
         
         return Response(data, status=status.HTTP_200_OK)
 
@@ -1195,11 +1197,11 @@ def model_order_by(models, order_by):
     if order_by == "alphabetical": 
         return models.order_by("name")
     if order_by == "date": 
-        return models.order_by("created_at")
+        return models.order_by("-created_at")
     return models
 
 class ModelListPublic(generics.ListAPIView):
-    serializer_class = ModelSerializer
+    serializer_class = ModelElementSerializer
     permission_classes = [AllowAny]
     
     def get_queryset(self):
@@ -1226,7 +1228,7 @@ class ModelListPublic(generics.ListAPIView):
 
 
 class ModelListProfile(generics.ListCreateAPIView):
-    serializer_class = ModelSerializer
+    serializer_class = ModelElementSerializer
     permission_classes  = [IsAuthenticated]
 
     def get_queryset(self):
