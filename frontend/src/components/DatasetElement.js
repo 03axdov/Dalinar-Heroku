@@ -22,7 +22,6 @@ function DatasetElement({dataset, BACKEND_URL, isPublic=false, isTraining=false,
             setKeywords(dataset.keywords)
         }
     }, [dataset])
-
     
 
     return (
