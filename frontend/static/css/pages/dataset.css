@@ -752,6 +752,7 @@
 
 .dataset-element-view-image-expanded {
     object-fit: contain;
+    box-shadow: none;
 }
 
 .dataset-element-view-point {
@@ -769,7 +770,7 @@
 }
 
 .dataset-element-view-point-label {
-    max-width: 125px;
+    max-width: 200px;
     box-sizing: border-box;
     padding: 0 7px;
     text-align: center;

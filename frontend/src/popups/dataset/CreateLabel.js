@@ -46,10 +46,12 @@ function CreateLabel({setShowCreateLabel, createLabelSubmit, labelKeybinds,
 
                 <form className="dataset-create-label-form" onSubmit={(e) => {
                     e.preventDefault()
-                    setCreateLabelName("")
-                    setCreateLabelColor("#07E5E9")
-                    setCreateLabelKeybind("")
-                    createLabelSubmit(createLabelName, createLabelColor, createLabelKeybind)
+                    createLabelSubmit(createLabelName, createLabelColor, createLabelKeybind, () => {
+                        setCreateLabelName("")
+                        setCreateLabelColor("#07E5E9")
+                        setCreateLabelKeybind("")
+                    })
+                    
                 }}>
 
                     <div className="dataset-create-label-row" style={{marginTop: "40px"}}>

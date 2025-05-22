@@ -752,6 +752,16 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         .then((res) => {
             setDataset(res.data)
 
+            if (pageLoading) {
+                if (res.data.imageHeight && res.data.imageWidth) {
+                    if (res.data.imageWidth < 200) {
+                        setImageExpanded(true)
+                    } else if (res.data.imageHeight < 200) {
+                        setImageExpanded(true)
+                    }
+                }
+            }
+
             setALLOWED_FILE_EXTENSIONS(res.data.dataset_type.toLowerCase() == "image" ? new Set(["png", "jpg", "jpeg", "webp", "avif"]) : new Set(["txt", "doc", "docx"]))
 
             setElements(res.data.elements)
@@ -955,7 +965,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         <span className="text-label-color" style={{background: idToLabel[labelSelected].color}}></span>
                         {idToLabel[labelSelected].name}
                     </div>}
-                    <div className="dataset-element-view-image-wrapper" 
+                    <div className="dataset-element-view-image-wrapper"
                     onMouseMove={(e) => pointOnDrag(e)}
                     style={{
                         transform: `scale(${zoom}) translate(${(50 - position.x) * (zoom - 1)}%, ${(50 - position.y) * (zoom - 1)}%)`,
@@ -969,7 +979,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         }} 
                         ref={elementRef} 
                         alt="Element image"
-                        className="dataset-element-view-image-area" 
+                        className="dataset-element-view-image-area"
                         src={element.file} 
                         onClick={(e) => {
                             e.stopPropagation()
@@ -1460,7 +1470,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         })
     }
     
-    function createLabelSubmit(createLabelName, createLabelColor, createLabelKeybind) {
+    function createLabelSubmit(createLabelName, createLabelColor, createLabelKeybind, callback) {
         if (isPublic) return;
         if (labels.length >= 1000) {
             notification("A dataset can not have more than 1000 labels.", "failure")
@@ -1499,6 +1509,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             notification("Error: " + error + ".", "failure")
         }).finally(() => {
             setLoadingLabelCreate(false)
+            if (callback) {
+                callback()
+            }
         })
 
     }
@@ -2465,9 +2478,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             Saved
                         </button>}
 
-                        {elements && elements[elementsIndex] && dataset && dataset.dataset_type.toLowerCase() == "image" && <button 
+                        {elements && elements[elementsIndex] && dataset && dataset.dataset_type.toLowerCase() == "image" && dataset.datatype.toLowerCase() != "area" && <button 
                         title="Expand image"
-                        className={"dataset-image-expand-button " + (imageExpanded ? "dataset-image-expand-button-activated" : "")}
+                        className={"dataset-image-expand-button " + (imageExpanded ? "dataset-image-expand-button-activated " : "")}
                         onClick={() => setImageExpanded(!imageExpanded)}>
                             <img className="dataset-expand-icon" src={BACKEND_URL + "/static/images/expand.svg"} alt="Expand" />
                         </button>}
@@ -2478,6 +2491,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             if (!dataset.imageHeight && !dataset.imageWidth) {
                                 activateConfirmPopup("Are you sure you want to resize this image?", resizeElementImage, "blue")
                             }
+                        }}
+                        style={{
+                            marginLeft: (dataset.datatype.toLowerCase() == "area" ? "auto" : "0")
                         }}>
                             
                             {(!dataset.imageWidth && !dataset.imageHeight) && <label htmlFor="resize-width" className="resize-label">Width</label>}

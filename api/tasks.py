@@ -1993,7 +1993,19 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
                 if element.imageWidth > 1024 or element.imageHeight > 1024:
                     ext = element.file.name.split(".")[-1].lower()
                     if ext in ALLOWED_IMAGE_FILE_EXTENSIONS:
-                        resize_element_image(element, min(1024, element.imageWidth), min(1024, element.imageHeight))
+                        max_size = 1024
+                        width = element.imageWidth
+                        height = element.imageHeight
+
+                        if width > height:
+                            scale = max_size / width
+                        else:
+                            scale = max_size / height
+
+                        new_width = int(width * scale)
+                        new_height = int(height * scale)
+
+                        resize_element_image(element, new_width, new_height)
                     
                 if t % 10 == 0:
                     profile.creating_elements_progress = (3/5) + (t + 1) / (len(created_elements) * 5)

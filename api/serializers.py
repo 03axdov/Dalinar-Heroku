@@ -85,7 +85,7 @@ class DatasetElementSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Dataset
-        fields = ("id", "name", "description", "imageSmall", "dataset_type", "downloaders", 
+        fields = ("id", "name", "description", "imageSmall", "dataset_type", "downloaders", "created_at",
                   "keywords", "imageHeight", "imageWidth", "element_count", "label_count", "visibility", "datatype")
         extra_kwargs = {"owner": {"read_only": True}}
         
@@ -341,6 +341,13 @@ class CreateMobileNetV2_32x32LayerSerializer(serializers.ModelSerializer):
 # MODEL HANDLING
 
 
+class ModelElementSerializer(serializers.ModelSerializer):
+    layers = LayerSerializer(many=True, read_only=True)
+    class Meta:
+        model = Model
+        fields = ("id", "name", "model_type", "description", "visibility", "imageSmall", "layers", "downloaders", "model_file", "created_at")
+
+
 class ModelSerializer(serializers.ModelSerializer):
     layers = LayerSerializer(many=True, read_only=True)
     trained_on = DatasetSerializer(read_only=True)
@@ -360,7 +367,7 @@ class CreateModelSerializer(serializers.ModelSerializer):
 # PROFILE HANDLING
 
 class ProfileSerializer(serializers.ModelSerializer):
-    saved_models = ModelSerializer(many=True, read_only=True)
+    saved_models = ModelElementSerializer(many=True, read_only=True)
     
     class Meta:
         model = Profile

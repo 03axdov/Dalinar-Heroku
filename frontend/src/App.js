@@ -62,7 +62,6 @@ export default function App() {
         setCurrentProfile(temp)
     }
     function changeModelCount(change) {
-        console.log("A")
         if (!currentProfile.modelsCount) return
         let temp = {...currentProfile}
         temp.modelsCount += change
