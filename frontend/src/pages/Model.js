@@ -1083,7 +1083,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                         {showModelMetrics ? "Hide training metrics" : "Show training metrics"}
                     </button>}
 
-                    {layers.length > 0 && numParams && <div className="model-params-container">
+                    {layers.length > 0 && numParams !== "" && numParams > 0 && <div className="model-params-container">
                         {numParams} parameters
                     </div>}
 
@@ -1192,6 +1192,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                         </div>)}
                         </Droppable>
                     </DragDropContext>}
+                    
                     {isPublic && !showModelDescription && !showModelMetrics && <div className="model-layers-container"
                     ref={scrollRef}
                     onMouseDown={handleMouseDown}

@@ -89,6 +89,14 @@ class DatasetElementSerializer(serializers.ModelSerializer):
                   "keywords", "imageHeight", "imageWidth", "element_count", "label_count", "visibility", "datatype")
         extra_kwargs = {"owner": {"read_only": True}}
         
+        
+class EditDatasetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dataset
+        fields = ("id", "name", "description", "imageSmall", "dataset_type", 
+                  "keywords", "imageHeight", "imageWidth", "visibility", "datatype")
+        extra_kwargs = {"owner": {"read_only": True}}
+        
 
 class DatasetSerializer(serializers.ModelSerializer):
     elements = ElementSerializer(many=True, read_only=True)

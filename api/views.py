@@ -268,6 +268,12 @@ class GetDataset(APIView):
     lookup_url_kwarg = 'id'
     
     def get(self, request, *args, **kwargs):
+        
+        editing = request.GET.get('editing', 'false').lower() == 'true'
+        serializer = self.serializer_class
+        if editing:
+            serializer = EditDatasetSerializer
+        
         user = self.request.user
         if user.is_authenticated:
             dataset_id = kwargs[self.lookup_url_kwarg]
@@ -276,7 +282,7 @@ class GetDataset(APIView):
                 try:
                     dataset = Dataset.objects.get(Q(id=dataset_id) & Q(Q(visibility = "public") | Q(owner=user.profile)))
                     
-                    datasetSerialized = self.serializer_class(dataset)
+                    datasetSerialized = serializer(dataset)
                     data = datasetSerialized.data
                     data["ownername"] = dataset.owner.name
                     
