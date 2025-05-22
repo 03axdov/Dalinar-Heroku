@@ -24,7 +24,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
     const [name, setName] = useState("")
     const [description, setDescription] = useState("")
     const [image, setImage] = useState(null)
-    const [visibility, setVisibility] = useState("private")
+    const [visibility, setVisibility] = useState("public")
     const [keywordCurrent, setKeywordCurrent] = useState("")
     const [keywords, setKeywords] = useState([])
     const [imageWidth, setImageWidth] = useState("")
@@ -666,14 +666,15 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Dataset visibility</p>
-                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={visibility == "private"} onChange={(e) => {
-                        setVisibility(e.target.value)
-                    }} />
-                    <label htmlFor="create-dataset-visibility-private" className="create-dataset-type-label">Private</label>
                     <input type="radio" id="create-dataset-visibility-public" name="visibility" value="public" checked={visibility == "public"}  onChange={(e) => {
                         setVisibility(e.target.value)
                     }} />
                     <label htmlFor="create-dataset-visibility-public" className="create-dataset-type-label">Public</label>
+                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={visibility == "private"} onChange={(e) => {
+                        setVisibility(e.target.value)
+                    }} />
+                    <label htmlFor="create-dataset-visibility-private" className="create-dataset-type-label">Private</label>
+                    
                 </div>
 
                 <div className="create-dataset-label-inp">
