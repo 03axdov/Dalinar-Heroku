@@ -21,7 +21,7 @@ function CreateModel({notification, BACKEND_URL, changeModelCount}) {
     const [description, setDescription] = useState("")
     const [outputType, setOutputType] = useState("classification")
     const [image, setImage] = useState(null)
-    const [visibility, setVisibility] = useState("private")
+    const [visibility, setVisibility] = useState("public")
     const [modelFile, setModelFile] = useState(null)
 
     const [loadingModelFile, setLoadingModelFile] = useState(false)
@@ -274,14 +274,16 @@ function CreateModel({notification, BACKEND_URL, changeModelCount}) {
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Model visibility</p>
-                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={visibility == "private"} onChange={(e) => {
-                        setVisibility(e.target.value)
-                    }} />
-                    <label htmlFor="create-dataset-visibility-private" className="create-dataset-type-label">Private</label>
                     <input type="radio" id="create-dataset-visibility-public" name="visibility" value="public" checked={visibility == "public"}  onChange={(e) => {
                         setVisibility(e.target.value)
                     }} />
                     <label htmlFor="create-dataset-visibility-public" className="create-dataset-type-label">Public</label>
+                    
+                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={visibility == "private"} onChange={(e) => {
+                        setVisibility(e.target.value)
+                    }} />
+                    <label htmlFor="create-dataset-visibility-private" className="create-dataset-type-label">Private</label>
+                    
                 </div>
 
                 <h1 className="create-dataset-title create-dataset-subtitle upload-model-title">

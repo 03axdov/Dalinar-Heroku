@@ -204,7 +204,7 @@
     opacity: 0.6;
 }
 
-#create-dataset-type-text, #create-dataset-type-area, #create-dataset-visibility-public {
+#create-dataset-type-text, #create-dataset-type-area, #create-dataset-visibility-private {
     margin-left: 20px;
 }
 

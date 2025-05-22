@@ -8,6 +8,7 @@ from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from rest_framework.response import Response
 from django.db.models import Q, Count, OuterRef, Subquery, IntegerField
+from django.db.models.functions import Coalesce
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.urls import resolve
 import json
@@ -199,8 +200,8 @@ class DatasetListPublic(generics.ListAPIView):
             datasets = dataset_order_by(datasets, order_by)
             
         datasets = datasets.annotate(
-            element_count=Subquery(element_count_subquery, output_field=IntegerField()),
-            label_count=Subquery(label_count_subquery, output_field=IntegerField())
+            element_count=Coalesce(Subquery(element_count_subquery, output_field=IntegerField()), 0),
+            label_count=Coalesce(Subquery(label_count_subquery, output_field=IntegerField()), 0)
         )
 
         return datasets
@@ -238,8 +239,8 @@ class DatasetListProfile(generics.ListCreateAPIView):
             datasets = dataset_order_by(datasets, order_by)
             
         datasets = datasets.annotate(
-            element_count=Subquery(element_count_subquery, output_field=IntegerField()),
-            label_count=Subquery(label_count_subquery, output_field=IntegerField())
+            element_count=Coalesce(Subquery(element_count_subquery, output_field=IntegerField()), 0),
+            label_count=Coalesce(Subquery(label_count_subquery, output_field=IntegerField()), 0)
         )
 
         return datasets
@@ -256,8 +257,8 @@ class DatasetListSaved(generics.ListCreateAPIView):
         datasets = profile.saved_datasets.all()
         
         datasets = datasets.annotate(
-            element_count=Subquery(element_count_subquery, output_field=IntegerField()),
-            label_count=Subquery(label_count_subquery, output_field=IntegerField())
+            element_count=Coalesce(Subquery(element_count_subquery, output_field=IntegerField()), 0),
+            label_count=Coalesce(Subquery(label_count_subquery, output_field=IntegerField()), 0)
         )
 
         return datasets
