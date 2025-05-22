@@ -649,9 +649,9 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
                         <p className="gray-text">No such saved datasets found.</p>
                     )}
 
-                    {loadingSaved && savedDatasets.length === 0 && currentProfile && currentProfile.savedDatasetsCount && currentProfile.savedDatasetsCount > 0 && (
+                    {loadingSaved && savedDatasets.length === 0 && currentProfile?.savedDatasetsCount > 0 && (
                         [...Array(currentProfile.savedDatasetsCount)].map((e, i) => (
-                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                         ))
                     )}
 
@@ -674,7 +674,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
 
                     {loadingSaved && savedModels.length === 0 && currentProfile.modelsCount > 0 && currentProfile.saved_models && currentProfile.saved_models.length > 0 && (
                         currentProfile.saved_models.map((e, i) => (
-                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                         ))
                     )}
 
