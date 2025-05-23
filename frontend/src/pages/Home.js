@@ -448,7 +448,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
             />
         </Helmet>
         <div className="home-container">
-        <TitleSetter title="Dalinar | Home" />
+        <TitleSetter title={"Dalinar | " + (is_explore ? "Explore" : "Home")} />
 
         <div className="home-sidebar">
             <button className="sidebar-button" onClick={() => {
