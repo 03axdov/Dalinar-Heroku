@@ -448,7 +448,8 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
             />
         </Helmet>
         <div className="home-container">
-        <TitleSetter title={"Dalinar | " + (is_explore ? "Explore" : "Home")} />
+        {!is_explore && <TitleSetter title={"Dalinar | Home"} />}
+        {is_explore && <TitleSetter title={"Dalinar | Explore"} />}
 
         <div className="home-sidebar">
             <button className="sidebar-button" onClick={() => {
@@ -532,7 +533,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
                         ))
                     )}
                     {loading && is_explore && datasets.length === 0 && (
-                        [...Array(6)].map((e, i) => (
+                        [...Array(8)].map((e, i) => (
                             <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                         ))
                     )}
