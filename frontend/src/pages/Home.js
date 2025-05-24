@@ -452,7 +452,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
         {is_explore && <TitleSetter title={"Dalinar | Explore"} />}
 
         <div className="home-sidebar">
-            <button className="sidebar-button" onClick={() => {
+            <button title="Create dataset" className="sidebar-button" onClick={() => {
                 if (!is_explore) {
                     navigate("/create-dataset")
                 } else {
@@ -460,7 +460,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
                 }
                 
             }}>+ Create dataset</button>
-            <button title="Work in progress" className="sidebar-button create-model" onClick={() => {
+            <button title="Create model" className="sidebar-button create-model" onClick={() => {
                 if (!is_explore) {
                     navigate("/create-model")
                 } else {
