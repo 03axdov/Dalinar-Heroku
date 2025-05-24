@@ -1,6 +1,6 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
-from .models import Dataset, Model  # adjust path as needed
+from api.models import Dataset, Model
 
 class DatasetSitemap(Sitemap):
     changefreq = "weekly"
