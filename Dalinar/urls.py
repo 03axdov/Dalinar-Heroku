@@ -8,8 +8,9 @@ from django.http import HttpResponse
 
 sitemaps = {
     'static': StaticViewSitemap,
+    'datasets': DatasetSitemap,
+    'models': ModelSitemap,
 }
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/", include("api.urls")),
