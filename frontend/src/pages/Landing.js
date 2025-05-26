@@ -51,7 +51,10 @@ function Landing({BACKEND_URL}) {
                     </p>
                     <div className="landing-header-buttons">
                         <button onClick={() => window.location.href = window.location.origin + "/accounts/login/"} type="button" className="landing-header-button landing-header-start">Get started</button>
-                        <button onClick={() => navigate("/explore")} type="button" className="landing-header-button landing-header-explore">Explore</button>
+                        <a href="https://www.youtube.com/watch?v=tQ2lUxumQV4" target="_blank" className="landing-header-button landing-header-video">
+                            <span style={{marginRight: "10px", fontSize: "1.2rem"}}>&#9654;</span>
+                            Watch video
+                        </a>
                     </div>
                 </div>
                 <div className="landing-header-right">

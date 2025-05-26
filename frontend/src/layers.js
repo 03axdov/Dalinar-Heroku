@@ -313,7 +313,8 @@ export const LAYERS = {
         ],
         "not_editable": true,
         "no_dimensions": true,  // Avoids warnings if first layer,
-        "info": "The MobileNetV2 model trained on ImageNet. Output shape: (None, 1280)"
+        "info": "The MobileNetV2 model trained on ImageNet. Output shape: (None, 1280)",
+        "link": "https://www.tensorflow.org/api_docs/python/tf/keras/applications/MobileNetV2"
     },
     mobilenetv2_96x96: {
         "name": "MobileNetV2 (96x96)",
@@ -329,7 +330,8 @@ export const LAYERS = {
         ],
         "not_editable": true,
         "no_dimensions": true,  // Avoids warnings if first layer,
-        "info": "The MobileNetV2 model trained on ImageNet. Output shape: (None, 1280)"
+        "info": "The MobileNetV2 model trained on ImageNet. Output shape: (None, 1280)",
+        "link": "https://www.tensorflow.org/api_docs/python/tf/keras/applications/MobileNetV2"
     },
     /* mobilenetv2_32x32: {
         "name": "MobileNetV2 (32x32)",
