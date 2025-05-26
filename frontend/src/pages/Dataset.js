@@ -2145,6 +2145,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             name="description"
             content={"Explore " + (dataset ? "the " + dataset.name : "this") + " dataset on Dalinar. Ready-to-use data for machine learning projects — view, analyze, and train models without coding."}
             />
+
+            {isPublic && <link rel="canonical" href={`https://dalinar.net/datasets/public/${id}`} />}
+
         </Helmet>
 
         {deletingAllElements && <ProgressBar progress={deletingElementsProgress} message="Deleting elements..." BACKEND_URL={BACKEND_URL}></ProgressBar>}
