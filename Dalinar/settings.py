@@ -84,6 +84,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'Dalinar.middleware.RemoveWWWRedirectMiddleware'
 ]
 
 ROOT_URLCONF = 'Dalinar.urls'
