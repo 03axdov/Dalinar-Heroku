@@ -20,7 +20,7 @@ function Guide({BACKEND_URL}) {
         }
     }, [currentInstructions])
 
-    const SUPPORTED_LAYERS = Object.values(LAYERS).map(layer => [layer.name, layer.color]);
+    const SUPPORTED_LAYERS = Object.values(LAYERS).map(layer => [layer.name, layer.color, layer.link]);
 
     function externalLink(link) {
         const URL = link
@@ -96,6 +96,22 @@ function Guide({BACKEND_URL}) {
                             Dalinar is a tool for making machine learning intuitive. It allows users to create datasets as well as machine learning models, all without having to code.
                             Crucially, the visual and intuitive interface makes it easy to experiment with different models, while the datasets provided makes it easier to eventually train these to your needs.
                         </p>
+                        <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, marginTop: "20px" }}>
+                            <iframe
+                                src="https://www.youtube.com/embed/tQ2lUxumQV4"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                title="Embedded YouTube"
+                                style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                width: "100%",
+                                height: "100%"
+                                }}
+                            ></iframe>
+                        </div>
                     </div>
 
                     <div className="instructions-container">
@@ -261,7 +277,7 @@ function Guide({BACKEND_URL}) {
                     <div className="instructions-container">
                         <div className="supported-layers-container">
                             {SUPPORTED_LAYERS.map((layer, idx) => (
-                                <div className="supported-layer" key={idx} onClick={() => externalLink("https://www.tensorflow.org/api_docs/python/tf/keras/layers/" + layer[0])}>
+                                <div className="supported-layer" key={idx} onClick={() => externalLink((layer[2] ? layer[2] : "https://www.tensorflow.org/api_docs/python/tf/keras/layers/" + layer[0]))}>
                                     <span className={"supported-layer-color layer-element-stat-" + layer[1]}></span>
                                     {layer[0]}
                                 </div>

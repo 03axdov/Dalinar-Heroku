@@ -121,13 +121,34 @@
     margin-right: 20px;
 }
 
-.landing-header-explore {
+.landing-header-video {
     background: rgb(0,0,0,0);
-    border: 1px solid var(--border-light);
+    color: white;
+    border: 1px solid rgb(50,50,50);
+    width: auto;
+    text-decoration: none;
+    border-radius: 22px;
+    width: 170px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
 }
-.landing-header-explore:hover {
+.landing-header-video:hover {
     background: rgb(0,0,0,0);
-    border-color: rgb(150,150,150);
+    border-color: rgb(170,170,170);
+}
+
+.triangle-right {
+  width: 0;
+  height: 0;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-left: 15px solid white;
+}
+
+.landing-header-start {
+    border-radius: 22px;
 }
 
 @media all and (max-width: 1100px) {
