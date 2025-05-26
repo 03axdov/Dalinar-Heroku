@@ -773,6 +773,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
             name="description"
             content={"Explore " + (model ? "the " + model.name : "this") + " model on Dalinar. Ready-to-use data for machine learning projects — view, analyze, and train models without coding."}
             />
+
+            {isPublic && <link rel="canonical" href={`https://dalinar.net/models/public/${id}`} />}
         </Helmet>
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
             <TitleSetter title={"Dalinar " + (model ? "- " + model.name : "")} />
