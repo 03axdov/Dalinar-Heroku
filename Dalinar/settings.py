@@ -202,7 +202,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/home'
 LOGOUT_REDIRECT_URL = '/accounts/login'
-ACCOUNT_SIGNUP_REDIRECT_URL = '/welcome/'
+
+if not DEBUG:
+    ACCOUNT_SIGNUP_REDIRECT_URL = '/welcome/'
 
 AWS_ACCESS_KEY_ID = 'AKIA5JXOPCQYY5WKJEPD'
 

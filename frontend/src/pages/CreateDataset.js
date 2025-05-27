@@ -46,6 +46,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
     const hiddenFolderInputRef = useRef(null)
     const hiddenFilenamesInputRef = useRef(null)
     const hiddenCsvInputRef = useRef(null)
+    const hiddenFilesInputRef = useRef(null) // Used for Area datasets
 
     const INVALID_LABELS = new Set(["name", "datatype", "description", "image", "visibility", "labels"]) // Would impact formData below, temporary fix
 
@@ -642,12 +643,28 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Type of data</p>
                     <input type="radio" id="create-dataset-type-classification" name="classification" value="classification" checked={type == "classification"} onChange={(e) => {
-                        setType(e.target.value)
+                        if (!isEmpty(uploadedDatasets)) {
+                            activateConfirmPopup("This will remove all uploaded files. Are you sure you want to proceed?", () => {
+                                setType(e.target.value)
+                                clearUploadedDatasets()
+                            })
+                        } else {
+                            setType(e.target.value)
+                        }
+                        
                     }} />
                     <label htmlFor="create-dataset-type-classification" className="create-dataset-type-label">Classification</label>
                     <input type="radio" id="create-dataset-type-area" className={(datasetType == "text" ? "dataset-type-disabled": "")} name="area" value="area" checked={type == "area"}  onChange={(e) => {
                         if (datasetType == "image") {
-                            setType(e.target.value)
+                            if (!isEmpty(uploadedDatasets)) {
+                                activateConfirmPopup("This will remove all uploaded files. Are you sure you want to proceed?", () => {
+                                    setType(e.target.value)
+                                    clearUploadedDatasets()
+                                })
+                            } else {
+                                setType(e.target.value)
+                            }
+                            
                         }
                         
                     }} />
@@ -726,14 +743,14 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                     
                 </div>*/}
 
-                { type == "classification" && <h1 className="create-dataset-title create-dataset-subtitle upload-dataset-title" onClick={() => {
+                <h1 className="create-dataset-title create-dataset-subtitle upload-dataset-title" onClick={() => {
                         setUploadDropdownVisible(!uploadDropdownVisible)
                     }}>Upload dataset 
                     <span className="create-dataset-title-optional">(optional)</span>
                     <img style={{rotate: (uploadDropdownVisible ? "180deg" : "0deg")}} className="upload-dataset-dropdown" src={BACKEND_URL + "/static/images/down.svg"} alt="Dropdown" />
-                </h1>}
+                </h1>
                 
-                {uploadDropdownVisible && type == "classification" && <div className="upload-dataset-form">
+                {uploadDropdownVisible && <div className="upload-dataset-form">
                     <p className="create-dataset-description" >
                         By uploading a dataset, this dataset will be created with the elements and labels provided. 
                         You can upload several datasets, of two different types seen below.
@@ -752,7 +769,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                         The maximum number of files to take on uploads. Will take evenly from different labels, so the number taken may not be exactly the one specified. If omitted, all files will be uploaded.
                     </p>
                 
-                    <div className="upload-dataset-types-container">
+                    {type == "classification" && <div className="upload-dataset-types-container">
                         {/* Uploading datasets goes through these */}
                         <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFolderInputRef} onChange={(e) => {uploadFoldersAsLabels(e)}}/>
                         <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFilenamesInputRef} onChange={(e) => uploadFilenamesAsLabels(e)}/>
@@ -804,7 +821,27 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                             </div>
                         </div>
 
-                    </div>
+                    </div>}
+
+                    {type == "area" && <div className="upload-dataset-types-container">
+                        <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFilesInputRef} onChange={(e) => {}}/>
+                    
+                        <div className="upload-dataset-type-col">
+                            <p className="upload-dataset-type-title">Image Elements</p>
+                            <p className="upload-dataset-type-description">
+                                The images that the dataset consists of can be uploaded here, or later. Will create an element for each uploaded image.
+                            </p>
+                            
+                            <button type="button" className="upload-dataset-button" style={{marginTop: "20px"}} onClick={() => {}}>
+                                <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
+                                Upload images
+                            </button>
+                        </div>
+
+                        <div className="upload-dataset-type-col">
+
+                        </div>
+                    </div>}
 
                     {datasetType == "text" && <div className="upload-dataset-type-col">
                             <p className="upload-dataset-type-title">.csv file</p>
@@ -832,10 +869,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                     {!isEmpty(uploadedDatasets) && <div className="uploaded-datasets-labels-container">
                         <button type="button" className="create-dataset-clear" onClick={() => {
                             activateConfirmPopup("Are you sure you want to remove all uploaded datasets?", () => {
-                                setUploadedDatasets({})
-                                setUploadedFoldersAsLabels([])
-                                setUploadedFilenamesAsLabels([])
-                                setUploadedCsvs([])
+                                clearUploadedDatasets()
                                 notification("Removed all uploaded datasets.", "success")
                             }, "blue")
                         }}>Clear uploads ({uploadedFilesCount} files)</button>
