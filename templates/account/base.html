@@ -3,6 +3,17 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17119632058">
+    </script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'AW-17119632058');
+    </script>
+    
     <title>Dalinar | {% block head_title %}{% endblock %}</title>
     {% block extra_head %}
     {% endblock %}
@@ -56,25 +67,7 @@
       }
     </script>
 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LKEWF87Q7Q"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'G-LKEWF87Q7Q');
-    </script>
-
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17119632058">
-    </script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-
-      gtag('config', 'AW-17119632058');
-    </script>
+    
   </head>
   <body class="form-body">
     {% block body %}
