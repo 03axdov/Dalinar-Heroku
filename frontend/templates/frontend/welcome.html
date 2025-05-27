@@ -1,0 +1,32 @@
+{% load static %}
+
+<!-- templates/welcome.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <link href="{% static 'css/index.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/root.css' %}" rel="stylesheet" type="text/css">
+
+    <title>Redirecting...</title>
+    <script>
+      // Google Ads conversion event
+        <!-- Event snippet for Sign-up conversion page -->
+        gtag('event', 'conversion', {
+            'send_to': 'AW-17119632058/MmqfCLDllc4aELq1o-M_',
+            'value': 1.0,
+            'currency': 'SEK'
+        });
+
+      // Auto-redirect after a short delay (to ensure gtag fires)
+      setTimeout(function() {
+          window.location.href = "/home/";
+      }, 800); // 800 ms is usually enough
+    </script>
+</head>
+<body>
+    <div class="redirection-container">
+        <img class="redirection-image" src="{% static "images/loading.gif" %}" />
+        <p class="redirection-text">Redirecting...</p>
+    </div>
+</body>
+</html>

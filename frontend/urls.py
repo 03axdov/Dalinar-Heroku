@@ -1,11 +1,11 @@
 from django.urls import path
-from .views import index
-from .views import index_no_login
+from .views import index, index_no_login, welcome_view
 
 urlpatterns = [
     path('', index_no_login),
+    path("welcome/", welcome_view, name="welcome"),
     path('home/', index),
-    path('explore/', index_no_login),
+    path('explore/', welcome_view),
     path("guide/", index_no_login),
     path("create-dataset/", index),
     path("create-model/", index),

@@ -9,3 +9,6 @@ def index(request, *args, **kwargs):
 
 def index_no_login(request, *args, **kwargs):
     return render(request, 'frontend/index.html')
+
+def welcome_view(request):
+    return render(request, 'frontend/welcome.html')
