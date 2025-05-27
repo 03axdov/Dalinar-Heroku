@@ -588,6 +588,27 @@ input {
   left: calc(100% - 20px); /* 50 - 22 (width) - 2*padding = 26 */
 }
 
+.redirection-container {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+.redirection-image {
+    height: 20px;
+    width: 20px;
+    margin-right: 10px;
+}
+
+.redirection-text {
+    font-size: 1.2rem;
+    font-weight: 500;
+    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
+}
+
 @media all and (max-width: 975px) {
     button {
         font-size: 1rem;
