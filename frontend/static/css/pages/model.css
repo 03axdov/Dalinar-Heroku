@@ -437,6 +437,9 @@
     border: none;
     outline: 0;
     border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 div.layer-element-input {

@@ -331,12 +331,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         return (<div className="layer-element-stat">
             <span className={"layer-element-stat-color layer-element-stat-" + (current_layer.name == "Flatten" ? "pink" : "gray2")}></span>
             <label className="layer-element-label" htmlFor={"dimensionX" + layer.id}>Input width</label>
-            {!isPublic && <input type="number" className="layer-element-input" id={"dimensionX" + layer.id} value={params.input_x} onChange={(e) => {
+            {!isPublic && <input title={params.input_x} type="number" className="layer-element-input" id={"dimensionX" + layer.id} value={params.input_x} onChange={(e) => {
                 let temp = {...params}
                 temp["input_x"] = e.target.value
                 setParams(temp)
             }}></input>}
-            {isPublic && <div className="layer-element-input" id={"dimensionX" + layer.id}>{params.input_x || "-"}</div>}
+            {isPublic && <div className="layer-element-input" title={params.input_x || "-"} id={"dimensionX" + layer.id}>{params.input_x || "-"}</div>}
         </div>)
     }
 
@@ -344,12 +344,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         return (<div className="layer-element-stat">
             <span className={"layer-element-stat-color layer-element-stat-" + (current_layer.name == "Flatten" ? "pink" : "gray2")}></span>
             <label className="layer-element-label" htmlFor={"dimensionY" + layer.id}>Input height</label>
-            {!isPublic && <input type="number" className="layer-element-input" id={"dimensionY" + layer.id} value={params.input_y} onChange={(e) => {
+            {!isPublic && <input type="number" className="layer-element-input" title={params.input_y} id={"dimensionY" + layer.id} value={params.input_y} onChange={(e) => {
                 let temp = {...params}
                 temp["input_y"] = e.target.value
                 setParams(temp)
             }}></input>}
-            {isPublic && <div className="layer-element-input" id={"dimensionY" + layer.id}>{params.input_y || "-"}</div>}
+            {isPublic && <div className="layer-element-input" title={params.input_y || "-"} id={"dimensionY" + layer.id}>{params.input_y || "-"}</div>}
         </div>)
     }
 
@@ -357,12 +357,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         return (<div className="layer-element-stat">
             <span className={"layer-element-stat-color layer-element-stat-" + (current_layer.name == "Flatten" ? "pink" : "gray2")}></span>
             <label className="layer-element-label" htmlFor={"dimensionX" + layer.id}>Input depth</label>
-            {!isPublic && <input type="number" className="layer-element-input" id={"dimensionZ" + layer.id} value={params.input_z} onChange={(e) => {
+            {!isPublic && <input type="number" title={params.input_z} className="layer-element-input" id={"dimensionZ" + layer.id} value={params.input_z} onChange={(e) => {
                 let temp = {...params}
                 temp["input_z"] = e.target.value
                 setParams(temp)
             }}></input>}
-            {isPublic && <div className="layer-element-input" id={"dimensionZ" + layer.id}>{params.input_z || "-"}</div>}
+            {isPublic && <div className="layer-element-input" title={params.input_z || "-"} id={"dimensionZ" + layer.id}>{params.input_z || "-"}</div>}
         </div>)
     }
 
@@ -393,7 +393,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                     <div className="layer-element-stat" key={idx}>
                         <span className={"layer-element-stat-color layer-element-stat-" + current_layer.color}></span>
                         <label className="layer-element-label" htmlFor={param.name + layer.id}>{param.name_readable}</label>
-                        {!isPublic && param.choices && <select className="layer-element-input layer-element-dropdown-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
+                        {!isPublic && param.choices && <select title={params[param.name]} className="layer-element-input layer-element-dropdown-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value
                             setParams(temp)
@@ -402,24 +402,24 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                                 <option key={idx2} value={choice.value}>{(choice.name || choice.value)}</option>
                             ))}
                         </select>}
-                        {!isPublic && !param.choices && <input type={param.type} step={param.step || 1} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
+                        {!isPublic && !param.choices && <input type={param.type} step={param.step || 1} className="layer-element-input" title={params[param.name]} id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value
                             setParams(temp)
                         }}></input>}
-                        {isPublic && <div className="layer-element-input" id={param.name + layer.id}>{params[param.name]}</div>}
+                        {isPublic && <div className="layer-element-input" id={param.name + layer.id} title={params[param.name]}>{params[param.name]}</div>}
                     </div>
                 ))}
                 {dimensionParams.map((param, idx) => (
                     <div className="layer-element-stat" key={idx}>
                         <span className={"layer-element-stat-color layer-element-stat-" + current_layer.color}></span>
                         <label className="layer-element-label" htmlFor={param.name + layer.id}>{param.name_readable}</label>
-                        {!isPublic && <input type={param.type} step={param.step || 1} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
+                        {!isPublic && <input type={param.type} step={param.step || 1} className="layer-element-input" title={params[param.name]} id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value
                             setParams(temp)
                         }}></input>}
-                        {isPublic && <div className="layer-element-input" id={param.name + layer.id}>{params[param.name]}</div>}
+                        {isPublic && <div className="layer-element-input" id={param.name + layer.id} title={params[param.name]}>{params[param.name]}</div>}
                     </div>
                 ))}
 
@@ -447,7 +447,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             <option value="softmax">Softmax</option>
                             <option value="sigmoid">Sigmoid</option>
                     </select>}
-                    {isPublic && <div className="layer-element-input layer-element-activation-input" id={"activation" + layer.id}>{params["activation_function"] || "-"}</div>}
+                    {isPublic && <div className="layer-element-input layer-element-activation-input" id={"activation" + layer.id} title={params["activation_function"] || "-"}>{params["activation_function"] || "-"}</div>}
                 </div>}
                 {current_layer.freezable && <div className="layer-element-stat" title="Whether or not weights should be updated while training.">
                     <span className="layer-element-stat-color layer-element-stat-gray"></span>
