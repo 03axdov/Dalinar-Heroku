@@ -5,7 +5,7 @@ urlpatterns = [
     path('', index_no_login),
     path("welcome/", welcome_view, name="welcome"),
     path('home/', index),
-    path('explore/', welcome_view),
+    path('explore/', index_no_login),
     path("guide/", index_no_login),
     path("create-dataset/", index),
     path("create-model/", index),
