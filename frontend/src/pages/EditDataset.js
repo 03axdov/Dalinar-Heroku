@@ -313,14 +313,16 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL, changeDat
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Dataset visibility</p>
-                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={!loading && visibility == "private"} onChange={(e) => {
-                        setVisibility(e.target.value)
-                    }} />
-                    <label htmlFor="create-dataset-visibility-private" className="create-dataset-type-label">Private</label>
+                    
                     <input type="radio" id="create-dataset-visibility-public" name="visibility" value="public" checked={!loading && visibility == "public"}  onChange={(e) => {
                         setVisibility(e.target.value)
                     }} />
                     <label htmlFor="create-dataset-visibility-public" className="create-dataset-type-label">Public</label>
+
+                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={!loading && visibility == "private"} onChange={(e) => {
+                        setVisibility(e.target.value)
+                    }} />
+                    <label htmlFor="create-dataset-visibility-private" className="create-dataset-type-label">Private</label>
                 </div>
 
                 <div className="create-dataset-label-inp">

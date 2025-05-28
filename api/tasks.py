@@ -1883,7 +1883,7 @@ def resize_dataset_images_task(self, dataset_id, user_id, imageWidth, imageHeigh
     
     
 @shared_task
-def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
+def create_elements_task(s3_keys, dataset_id, user_id, index, labels, area_points):
     from django.db import transaction
     
     try:
@@ -1897,12 +1897,18 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
 
     elements_to_create = []
     files_data = []
+    
+    original_filenames = []
 
     try:
         # Read all files first (or in chunks)
         for i, key in enumerate(s3_keys):
             filename_with_uuid = key.split("/")[-1]
             original_filename = "_".join(filename_with_uuid.split("_")[2:])
+            
+            if area_points: # Only used in this case
+                original_filenames.append(original_filename)
+                
             with default_storage.open(key, "rb") as f:
                 file_content = f.read()
                 files_data.append((file_content, original_filename))
@@ -1957,23 +1963,52 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
         profile.creating_elements_progress = (2/5)
         profile.save()
 
-        with transaction.atomic():
-            created_elements = Element.objects.bulk_create(elements_to_create)
+        if labels:
+            with transaction.atomic():
+                created_elements = Element.objects.bulk_create(elements_to_create)
 
-            # Assign labels in bulk if possible
-            for i, element in enumerate(created_elements):
-                if labels and i < len(labels):
-                    try:
-                        label = Label.objects.get(id=labels[i])
-                        element.label = label
-                    except Label.DoesNotExist:
-                        pass
+                # Assign labels in bulk if possible
+                for i, element in enumerate(created_elements):
+                    if labels and i < len(labels):
+                        try:
+                            label = Label.objects.get(id=labels[i])
+                            element.label = label
+                        except Label.DoesNotExist:
+                            pass
+                    
+                    if i % 10:
+                        profile.creating_elements_progress = (2/5) + (i + 1) / (len(created_elements) * 5)
+                        profile.save()
+                    
+                Element.objects.bulk_update(created_elements, ['label'])
                 
-                if i % 10:
-                    profile.creating_elements_progress = (2/5) + (i + 1) / (len(created_elements) * 5)
-                    profile.save()
-                
-            Element.objects.bulk_update(created_elements, ['label'])
+        if area_points:
+            
+            label_name_to_idx = {}
+            labels_to_create = []
+            for filename in area_points.keys():
+                for label in area_points[filename].keys():
+                    if label not in labels_to_create:
+                        labels_to_create.add(label)
+                        label_name_to_idx[label] = len(labels_to_create) - 1
+            
+            with transaction.atomic():
+                created_elements = Element.objects.bulk_create(elements_to_create)
+
+                # Assign labels in bulk if possible
+                for i, element in enumerate(created_elements):
+                    if labels and i < len(labels):
+                        try:
+                            label = Label.objects.get(id=labels[i])
+                            element.label = label
+                        except Label.DoesNotExist:
+                            pass
+                    
+                    if i % 10:
+                        profile.creating_elements_progress = (2/5) + (i + 1) / (len(created_elements) * 5)
+                        profile.save()
+                    
+                Element.objects.bulk_update(created_elements, ['label'])
             
         profile.creating_elements_progress = (3/5)
         profile.save()

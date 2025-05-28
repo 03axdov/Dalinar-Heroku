@@ -67,8 +67,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
     const [uploadedAreaFile, setUploadedAreaFile] = useState(null)  // Will be used to generate areas
     const [uploadedAreaFiles, setUploadedAreaFiles] = useState([])  // The elements themselves
 
-    console.log(areaFileFormat)
-
     useEffect(() => {
         if (image === null) return
         if (image === '') return
@@ -435,7 +433,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
             axios.post("/api/finalize-elements-upload/", {
                 dataset: dataset_id,
                 start_index: 0,
-                area_points: []
+                area_points: area_points
             }).then((res) => {
                 resInterval = setInterval(() => getTaskResult(
                     "deleting_dataset",

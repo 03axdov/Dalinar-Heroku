@@ -723,6 +723,7 @@ class FinalizeElementsUpload(APIView):
             user_id=user.id,
             index=index,
             labels=labels,
+            area_points=area_points
         )
 
         return Response({
