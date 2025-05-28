@@ -4,6 +4,8 @@ import axios from "axios"
 import ProgressBar from "../components/ProgressBar"
 import TitleSetter from "../components/minor/TitleSetter"
 import { useTask } from "../contexts/TaskContext"
+import Select from 'react-select';
+import { customStylesNoMargin } from "../helpers/styles";
 
 function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeDatasetCount}) {
     const { getTaskResult } = useTask();
@@ -47,8 +49,18 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
     const hiddenFilenamesInputRef = useRef(null)
     const hiddenCsvInputRef = useRef(null)
     const hiddenFilesInputRef = useRef(null) // Used for Area datasets
+    const hiddenAreaInputRef = useRef(null) // Used for Area datasets
 
     const INVALID_LABELS = new Set(["name", "datatype", "description", "image", "visibility", "labels"]) // Would impact formData below, temporary fix
+
+    const areaFileOptions = [
+        {
+            "value": "csv",
+            "label": ".csv (filename, x_start, x_end, y_start, y_end)"
+        }
+    ]
+    const [areaFileFormat, setAreaFileFormat] = useState(areaFileOptions[0]);
+    const [uploadedAreaFile, setUploadedAreaFile] = useState(null)
 
     useEffect(() => {
         if (image === null) return
@@ -327,6 +339,18 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
     function csvInputClick() {
         if (hiddenCsvInputRef.current) {
             hiddenCsvInputRef.current.click();
+        }
+    }
+
+    function filesOnClick() {
+        if (hiddenFilesInputRef.current) {
+            hiddenFilesInputRef.current.click();
+        }
+    }
+
+    function areaFileOnClick() {
+        if (hiddenAreaInputRef.current) {
+            hiddenAreaInputRef.current.click();
         }
     }
 
@@ -823,24 +847,63 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
 
                     </div>}
 
-                    {type == "area" && <div className="upload-dataset-types-container">
+                    {type == "area" && <div className="upload-dataset-types-container-area">
                         <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFilesInputRef} onChange={(e) => {}}/>
-                    
-                        <div className="upload-dataset-type-col">
+                        <input id="csv-upload-inp" type="file" className="hidden" ref={hiddenAreaInputRef} onChange={(e) => {
+                            if (e.target.files) {
+                                setUploadedAreaFile(e.target.files[0])
+                            }
+                            
+                        }}/>
+
+                        <div className="upload-dataset-type-row">
+                            <p className="upload-dataset-type-title">Area File</p>
+                            <p className="upload-dataset-type-description" style={{marginBottom: "20px"}}>
+                                The file that will be used to generate areas for the images. 
+                                Note that specifying image dimensions may alter where the areas appear. 
+                                The format can be selected below, with the required columns in parentheses (with e.g. x_start given in pixels from the image's top left corner). The first row will be ignored.
+                            </p>
+
+                            <Select
+                                inputId="area-file-format"
+                                options={areaFileOptions}
+                                value={areaFileFormat}
+                                onChange={(selected) => {
+                                    console.log(selected)
+                                    setAreaFileFormat(selected);
+                                }}
+                                styles={customStylesNoMargin}
+                                className="w-full"
+                            />
+                            
+                            <button type="button" className="upload-dataset-button" style={{marginTop: "20px"}} onClick={areaFileOnClick}>
+                                <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
+                                Upload file
+                            </button>
+
+                            {uploadedAreaFile && <div className="uploaded-dataset-element-container">
+                                <p title={uploadedAreaFile.name} className="uploaded-dataset-element" style={{display: "flex", alignItems: "center"}}>
+                                    {uploadedAreaFile.name}
+                                    <img className="uploaded-datasets-element-cross" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" onClick={() => {
+                                        setUploadedAreaFile(null)
+                                    }}/>
+                                </p>
+                            </div>}
+                        </div>
+
+                        <div className="upload-dataset-type-row" style={{marginTop: "40px"}}>
                             <p className="upload-dataset-type-title">Image Elements</p>
                             <p className="upload-dataset-type-description">
                                 The images that the dataset consists of can be uploaded here, or later. Will create an element for each uploaded image.
                             </p>
                             
-                            <button type="button" className="upload-dataset-button" style={{marginTop: "20px"}} onClick={() => {}}>
+                            <button type="button" className="upload-dataset-button" style={{marginTop: "20px"}} onClick={filesOnClick}>
                                 <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
                                 Upload images
                             </button>
                         </div>
 
-                        <div className="upload-dataset-type-col">
-
-                        </div>
+                        
                     </div>}
 
                     {datasetType == "text" && <div className="upload-dataset-type-col">
