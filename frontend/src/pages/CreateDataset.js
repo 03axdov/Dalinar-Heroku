@@ -60,7 +60,8 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
         }
     ]
     const [areaFileFormat, setAreaFileFormat] = useState(areaFileOptions[0]);
-    const [uploadedAreaFile, setUploadedAreaFile] = useState(null)
+    const [uploadedAreaFile, setUploadedAreaFile] = useState(null)  // Will be used to generate areas
+    const [uploadedAreaFiles, setUploadedAreaFiles] = useState([])  // The elements themselves
 
     useEffect(() => {
         if (image === null) return
@@ -561,6 +562,8 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
         setUploadedFoldersAsLabels([])
         setUploadedCsvs([])
         setUploadedFilesCount(0)
+        setUploadedAreaFile(null)
+        setUploadedAreaFiles([])
     }
 
     function setDatasetTypeImageInner(e) {
@@ -848,7 +851,12 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                     </div>}
 
                     {type == "area" && <div className="upload-dataset-types-container-area">
-                        <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFilesInputRef} onChange={(e) => {}}/>
+                        <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFilesInputRef} onChange={(e) => {
+                            if (e.target.files) {
+                                console.log(e)
+                                setUploadedAreaFiles([...e.target.files])
+                            }
+                        }}/>
                         <input id="csv-upload-inp" type="file" className="hidden" ref={hiddenAreaInputRef} onChange={(e) => {
                             if (e.target.files) {
                                 setUploadedAreaFile(e.target.files[0])
@@ -857,7 +865,15 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                         }}/>
 
                         <div className="upload-dataset-type-row">
-                            <p className="upload-dataset-type-title">Area File</p>
+                            <p className="upload-dataset-type-title">Area Files Upload</p>
+
+                            <button type="button" className="create-dataset-clear" style={{width: "100%"}} onClick={() => {
+                                activateConfirmPopup("Are you sure you want to remove all uploaded datasets?", () => {
+                                    clearUploadedDatasets()
+                                    notification("Removed all uploaded datasets.", "success")
+                                }, "blue")
+                            }}>Clear uploads ({uploadedAreaFiles.length} images)</button>
+
                             <p className="upload-dataset-type-description" style={{marginBottom: "20px"}}>
                                 The file that will be used to generate areas for the images. 
                                 Note that specifying image dimensions may alter where the areas appear. 
@@ -892,7 +908,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                         </div>
 
                         <div className="upload-dataset-type-row" style={{marginTop: "40px"}}>
-                            <p className="upload-dataset-type-title">Image Elements</p>
                             <p className="upload-dataset-type-description">
                                 The images that the dataset consists of can be uploaded here, or later. Will create an element for each uploaded image.
                             </p>
@@ -901,6 +916,12 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                                 <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
                                 Upload images
                             </button>
+
+                            <div className="uploaded-dataset-element-container">
+                                {uploadedAreaFiles.map((file, i) => (
+                                    <p title={file.name} key={i} className="uploaded-dataset-element">{file.name}</p>
+                                ))}
+                            </div>
                         </div>
 
                         
