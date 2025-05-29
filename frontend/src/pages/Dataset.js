@@ -1176,7 +1176,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         setTimeout(() => {
                             setUploadPercentage(0);
                             setUploadLoading(false);
-                            notification("Successfully uploaded files.", "success");
                             getDataset();
                         }, 200);
                     }

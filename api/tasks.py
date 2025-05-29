@@ -12,6 +12,7 @@ from io import BytesIO
 from rest_framework.test import APIRequestFactory
 from django.core.files.storage import default_storage
 import shutil
+import json
 
 from .serializers import *
 from .models import *
@@ -1882,6 +1883,13 @@ def resize_dataset_images_task(self, dataset_id, user_id, imageWidth, imageHeigh
         return {"Bad request": str(e), "status": 400}    
     
     
+def random_light_color():   # Slightly biased towards lighter shades
+    r = random.randint(150, 255)  # Higher values mean lighter colors
+    g = random.randint(150, 255)
+    b = random.randint(150, 255)
+    return "#{:02x}{:02x}{:02x}".format(r, g, b)    
+
+    
 @shared_task
 def create_elements_task(s3_keys, dataset_id, user_id, index, labels, area_points):
     from django.db import transaction
@@ -1897,17 +1905,12 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels, area_point
 
     elements_to_create = []
     files_data = []
-    
-    original_filenames = []
 
     try:
         # Read all files first (or in chunks)
         for i, key in enumerate(s3_keys):
             filename_with_uuid = key.split("/")[-1]
             original_filename = "_".join(filename_with_uuid.split("_")[2:])
-            
-            if area_points: # Only used in this case
-                original_filenames.append(original_filename)
                 
             with default_storage.open(key, "rb") as f:
                 file_content = f.read()
@@ -1962,11 +1965,12 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels, area_point
             
         profile.creating_elements_progress = (2/5)
         profile.save()
+        
+        with transaction.atomic():
+            created_elements = Element.objects.bulk_create(elements_to_create)
 
-        if labels:
+        if dataset.datatype.lower() == "classification":
             with transaction.atomic():
-                created_elements = Element.objects.bulk_create(elements_to_create)
-
                 # Assign labels in bulk if possible
                 for i, element in enumerate(created_elements):
                     if labels and i < len(labels):
@@ -1982,33 +1986,40 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels, area_point
                     
                 Element.objects.bulk_update(created_elements, ['label'])
                 
-        if area_points:
-            
-            label_name_to_idx = {}
-            labels_to_create = []
-            for filename in area_points.keys():
-                for label in area_points[filename].keys():
-                    if label not in labels_to_create:
-                        labels_to_create.add(label)
-                        label_name_to_idx[label] = len(labels_to_create) - 1
+        elif area_points and dataset.datatype.lower() == "area":            
             
             with transaction.atomic():
-                created_elements = Element.objects.bulk_create(elements_to_create)
-
+                areas_to_create = []
                 # Assign labels in bulk if possible
                 for i, element in enumerate(created_elements):
-                    if labels and i < len(labels):
-                        try:
-                            label = Label.objects.get(id=labels[i])
-                            element.label = label
-                        except Label.DoesNotExist:
-                            pass
-                    
+                    original_filename = element.name
+                    if original_filename not in area_points.keys(): continue
+                    areas = area_points[original_filename]
+                    for i, label_key in enumerate(areas.keys()):
+                        label = Label.objects.get(id=labels[i])
+                        for points in areas[label_key]:
+                
+                            width = element.imageWidth
+                            height = element.imageHeight
+                            print(f"width: {width}, height: {height}")
+                            new_points = []
+                            for point in points:
+                                x, y = point
+                                print(f"x: {x}, y: {y}")
+                                new_points.append([(x / width) * 100, (y / height) * 100])
+                        
+                            area_to_create = Area(
+                                label=label,
+                                element=element,
+                                area_points=json.dumps(new_points)
+                            )
+                            areas_to_create.append(area_to_create)
+                            
                     if i % 10:
                         profile.creating_elements_progress = (2/5) + (i + 1) / (len(created_elements) * 5)
                         profile.save()
                     
-                Element.objects.bulk_update(created_elements, ['label'])
+                created_areas = Area.objects.bulk_create(areas_to_create)
             
         profile.creating_elements_progress = (3/5)
         profile.save()

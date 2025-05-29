@@ -144,9 +144,9 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
             console.log("Success:", res.data);
             
             changeDatasetCount(1)
-            if (datasetType == "classification" && !isEmpty(uploadedDatasets)) {
+            if (type == "classification" && !isEmpty(uploadedDatasets)) {
                 createElements(res.data.id)
-            } else if (datasetType == "area" && uploadedAreaFiles.length > 0) {
+            } else if (type == "area" && uploadedAreaFiles.length > 0) {
                 createAreaElements(res.data.id)
             } else {
                 navigate("/home")
@@ -386,18 +386,64 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
         });
     }
 
-    function createAreaElements(dataset_id) {
+    async function createAreaElements(dataset_id) {
         setCreatingElements(true);
+
+        const area_points = await processCsvFile(uploadedAreaFile);
+
+        // Prepare labels array with name and color
+        const SEEN_ELEMENTS = new Set([])
+        let labelsArray = []
+
+        for (const key in area_points) {
+            for (const label in area_points[key]) {
+                if (!SEEN_ELEMENTS.has(label)) {
+                    labelsArray.push({
+                        name: label,
+                        color: randomColor(),
+                        dataset: dataset_id
+                    })
+                    SEEN_ELEMENTS.add(label)
+                }
+                
+            }
+        }
+
+        // Payload for backend
+        const payload = {
+            dataset: dataset_id,
+            labels: labelsArray,
+        };
+
+        const URL = window.location.origin + '/api/create-labels/';
+        const config = { headers: { 'Content-Type': 'application/json' } };
+
+        axios.post(URL, JSON.stringify(payload), config)
+            .then((res) => {
+                const createdLabels = res.data.created || [];
+
+                // Call the inner element creation function with all files + label IDs
+                createAreaElementsInner(dataset_id, createdLabels.map((label) => label.id), area_points);
+            })
+            .catch((error) => {
+                notification("Failed to create labels", "failure");
+        });
+    }
+
+    function createAreaElementsInner(dataset_id, labels, area_points) {
+        setCreatingElements(true);
+
+        console.log(area_points)
 
         const URL = window.location.origin + '/api/upload-elements/';
         const config = { headers: { 'Content-Type': 'multipart/form-data' } };
     
-        const chunks = chunkArray(fileLabelPairs, 10);
+        const chunks = chunkArray(uploadedAreaFiles, 10);
         let completed = 0;
     
         async function uploadChunk(chunk, i) {
             const formData = new FormData();
-            chunk.forEach(pair => formData.append('files', pair.file));
+            chunk.forEach(files => formData.append('files', files));
     
             formData.append('dataset', dataset_id);
             formData.append('index', i*10)  
@@ -426,13 +472,13 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
 
             // Launch limited number of concurrent uploads
             await Promise.all(Array(CONCURRENCY).fill(0).map(next));
-            const area_points = await processCsvFile(uploadedAreaFile);
 
             let resInterval = null;
             let errorOccured = false;
             axios.post("/api/finalize-elements-upload/", {
                 dataset: dataset_id,
                 start_index: 0,
+                labels: labels,
                 area_points: area_points
             }).then((res) => {
                 resInterval = setInterval(() => getTaskResult(
@@ -706,7 +752,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
         setUploadedFoldersAsLabels([])
         setUploadedCsvs([])
         setUploadedFilesCount(0)
-        setUploadedAreaFile(null)
         setUploadedAreaFiles([])
     }
 
@@ -998,7 +1043,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                         <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFilesInputRef} onChange={(e) => {
                             if (e.target.files) {
                                 console.log(e)
-                                setUploadedAreaFiles([...e.target.files])
+                                setUploadedAreaFiles([...e.target.files].slice(0, numberFiles || 10000))
                             }
                         }}/>
                         <input id="csv-upload-inp" type="file" accept=".csv" className="hidden" ref={hiddenAreaInputRef} onChange={(e) => {
@@ -1016,7 +1061,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                                     clearUploadedDatasets()
                                     notification("Removed all uploaded datasets.", "success")
                                 }, "blue")
-                            }}>Clear uploads ({uploadedAreaFiles.length} images)</button>
+                            }}>Clear images ({uploadedAreaFiles.length} images)</button>
 
                             <p className="upload-dataset-type-description" style={{marginBottom: "20px"}}>
                                 The file that will be used to generate areas for the images. 
