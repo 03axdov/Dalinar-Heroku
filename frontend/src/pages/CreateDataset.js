@@ -344,12 +344,12 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                 const parts = line.split(',');
 
                 if (areaFileFormat.value === "csv") {
-                    [filename, xStart, xEnd, yStart, yEnd] = parts;
+                    [filename, xStart, yStart, xEnd, yEnd] = parts;
                     if (parts.length >= 6) {
                     label = parts[5].trim();
                     }
                 } else if (areaFileFormat.value === "csv-2") {
-                    [filename, xStart, yStart, xEnd, yEnd] = parts;
+                    [filename, xStart, xEnd, yStart, yEnd] = parts;
                     if (parts.length >= 6) {
                     label = parts[5].trim();
                     }
@@ -432,8 +432,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
 
     function createAreaElementsInner(dataset_id, labels, area_points) {
         setCreatingElements(true);
-
-        console.log(area_points)
 
         const URL = window.location.origin + '/api/upload-elements/';
         const config = { headers: { 'Content-Type': 'multipart/form-data' } };
@@ -706,7 +704,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
             let label = rows[i][0]
             let text = rows[i][1].replaceAll('""', '"')
             let file = new File([text], `text_${i}.txt`, { type: "text/plain" });
-            console.log(`${label}:`, text); // Iterate over rows
 
             if (INVALID_LABELS.has(label)) {
                 notification("Invalid label: " + label + ". Labels cannot be one of " + INVALID_LABELS, "failure")
@@ -1042,7 +1039,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                     {type == "area" && <div className="upload-dataset-types-container-area">
                         <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFilesInputRef} onChange={(e) => {
                             if (e.target.files) {
-                                console.log(e)
                                 setUploadedAreaFiles([...e.target.files].slice(0, numberFiles || 10000))
                             }
                         }}/>
@@ -1074,7 +1070,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                                 options={areaFileOptions}
                                 value={areaFileFormat}
                                 onChange={(selected) => {
-                                    console.log(selected)
                                     setAreaFileFormat(selected);
                                 }}
                                 styles={customStylesNoMargin}

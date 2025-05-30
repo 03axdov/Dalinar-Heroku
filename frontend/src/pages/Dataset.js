@@ -172,6 +172,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             canvas.width = width;
             canvas.height = height;
             ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, width, height); // clear using actual size
         
             // Get the points for the current area
             const area = areas[idx];
@@ -180,8 +181,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         
             // Convert percentage-based coordinates to pixel values
             const percentageToPixels = (point) => ({
-                x: (point[0] / 100) * canvas.offsetWidth + DOT_SIZE / 2,
-                y: (point[1] / 100) * canvas.offsetHeight + DOT_SIZE / 2,
+                x: (point[0] / 100) * width,
+                y: (point[1] / 100) * height,
             });
         
             // Draw lines between points
@@ -282,19 +283,15 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         const imageElement = elementRef.current;
         const boundingRect = imageElement.getBoundingClientRect();
-    
-        // Adjust for zoom (assuming zoom is a numeric value like 1 to 5)
+
+        // Adjust for zoom
         const zoomAdjustedLeft = (e.clientX - boundingRect.left) / zoom;
         const zoomAdjustedTop = (e.clientY - boundingRect.top) / zoom;
-    
-        const clickX = Math.max(0, zoomAdjustedLeft - (DOT_SIZE / 2));
-        const clickY = Math.max(0, zoomAdjustedTop - (DOT_SIZE / 2));
-    
-        const newX = Math.round((clickX / (boundingRect.width / zoom)) * 1000) / 10;  // Round to 1 decimal
-        const newY = Math.round((clickY / (boundingRect.height / zoom)) * 1000) / 10;
-    
-        setPointSelectedCoords([newX, newY]);
 
+        const newX = Math.round((zoomAdjustedLeft / (boundingRect.width / zoom)) * 1000) / 10;
+        const newY = Math.round((zoomAdjustedTop / (boundingRect.height / zoom)) * 1000) / 10;
+
+        setPointSelectedCoords([newX, newY]);
     }
 
     function getPoints(area, areaIdx) {
@@ -377,8 +374,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
             const boundingRect = imageElement.getBoundingClientRect();
 
-            const startX = Math.max(0, event.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
-            const startY = Math.max(0, event.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
+            const startX = Math.max(0, event.clientX - boundingRect.left); // X coordinate relative to image, the offset depends on size of dot
+            const startY = Math.max(0, event.clientY - boundingRect.top);  // Y coordinate relative to image
 
             const startXPercent = Math.round((startX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
             const startYPercent = Math.round((startY / boundingRect.height) * 100 * 10) / 10
@@ -388,8 +385,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             setImageMouseDown(true)
         
             const handleMouseMove = (e) => {
-                const newX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
-                const newY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
+                const newX = Math.max(0, e.clientX - boundingRect.left); // X coordinate relative to image, the offset depends on size of dot
+                const newY = Math.max(0, e.clientY - boundingRect.top);  // Y coordinate relative to image
 
                 const newXPercent = Math.round((newX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
                 const newYPercent = Math.round((newY / boundingRect.height) * 100 * 10) / 10
@@ -401,8 +398,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         
             const handleMouseUp = (e) => {
 
-                const endX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
-                const endY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
+                const endX = Math.max(0, e.clientX - boundingRect.left); // X coordinate relative to image, the offset depends on size of dot
+                const endY = Math.max(0, e.clientY - boundingRect.top);  // Y coordinate relative to image
 
                 const endXPercent = Math.round((endX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
                 const endYPercent = Math.round((endY / boundingRect.height) * 100 * 10) / 10
@@ -999,10 +996,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         {!isPublic && imageMouseDown && labelSelected && rectanglePreviewDimensions[0] > 0 && rectanglePreviewDimensions[1] > 0 && <div 
                         className="dataset-rectangle-preview"
                         style={{
-                            width: "calc(" + rectanglePreviewDimensions[0] + "% + " + Math.round(5 / (1 + (zoom - 1)* 3)) + "px)",
-                            height: "calc(" + rectanglePreviewDimensions[1] + "% + " + Math.round(5 / (1 + (zoom - 1)* 3)) + "px)",
-                            left: "calc(" + rectanglePreviewOffset[0] + "% + " + Math.round(5 / (1 + (zoom - 1)* 3)) + "px)",
-                            top: "calc(" + rectanglePreviewOffset[1] + "% + " + Math.round(5 / (1 +(zoom - 1)* 3)) + "px)",
+                            width: rectanglePreviewDimensions[0] + "%",
+                            height: rectanglePreviewDimensions[1] + "%",
+                            left: rectanglePreviewOffset[0] + "%",
+                            top: rectanglePreviewOffset[1] + "%",
                             background: idToLabel[labelSelected].color + "50"
                         }}>
                             
@@ -1197,8 +1194,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         const URL = window.location.origin + '/api/edit-element/'
         const config = {headers: {'Content-Type': 'application/json'}}
-
-        console.log(editingElementIndex)
 
         const data = {
             "name": (isText ? elements[elementsIndex].name : editingElementName),
@@ -2716,6 +2711,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                         className="dataset-sidebar-options dataset-delete-area" 
                                         style={{marginLeft: "5px"}}
                                         src={BACKEND_URL + "/static/images/cross.svg"} onClick={(e) => {
+                                            e.stopPropagation()
                                             deleteArea(area, elementsIndex, areaIdx)
                                         }}/>}
                                 </div>

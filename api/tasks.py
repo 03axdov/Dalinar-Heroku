@@ -2001,12 +2001,10 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels, area_point
                 
                             width = element.imageWidth
                             height = element.imageHeight
-                            print(f"width: {width}, height: {height}")
                             new_points = []
                             for point in points:
                                 x, y = point
-                                print(f"x: {x}, y: {y}")
-                                new_points.append([(x / width) * 100, (y / height) * 100])
+                                new_points.append([min(100, round(x / width, 3) * 100), min(100, round(y / height, 3) * 100)])
                         
                             area_to_create = Area(
                                 label=label,
