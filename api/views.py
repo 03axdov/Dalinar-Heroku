@@ -692,6 +692,8 @@ class UploadElements(APIView):
         files = request.FILES.getlist("files")
         dataset_id = request.data.get("dataset")
         index_offset = int(request.data.get("index", 0))
+        
+        print(f"files: {len(files)}")
 
         s3_keys = []
 

@@ -438,6 +438,8 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
     
         const chunks = chunkArray(uploadedAreaFiles, 10);
         let completed = 0;
+
+        console.log(chunks)
     
         async function uploadChunk(chunk, i) {
             const formData = new FormData();
