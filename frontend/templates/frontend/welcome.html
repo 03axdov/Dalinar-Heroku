@@ -14,18 +14,27 @@
         gtag('config', 'AW-17119632058');
     </script>
     <script>
-      // Google Ads conversion event
-        <!-- Event snippet for Sign-up conversion page -->
-        gtag('event', 'conversion', {
+        function gtag_report_conversion(url) {
+            const callback = function () {
+            if (typeof url !== 'undefined') {
+                window.location.href = url;
+            }
+            };
+
+            gtag('event', 'conversion', {
             'send_to': 'AW-17119632058/MmqfCLDllc4aELq1o-M_',
             'value': 1.0,
-            'currency': 'SEK'
-        });
+            'currency': 'SEK',
+            'event_callback': callback
+            });
 
-      // Auto-redirect after a short delay (to ensure gtag fires)
-      setTimeout(function() {
-          window.location.href = "/home/";
-      }, 800); // 800 ms is usually enough
+            // Fallback in case callback doesn't fire (e.g., adblocker)
+            setTimeout(callback, 2000);
+        }
+
+        window.onload = function () {
+            gtag_report_conversion('/home/');
+        };
     </script>
 
     <link href="{% static 'css/index.css' %}" rel="stylesheet" type="text/css">
