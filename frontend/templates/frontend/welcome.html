@@ -17,18 +17,21 @@
         function gtag_report_conversion(url) {
             const callback = function () {
             if (typeof url !== 'undefined') {
+                // Only redirect if not in test mode
+                if (!window.location.search.includes("test=true")) {
                 window.location.href = url;
+                }
             }
-            };
+        };
 
-            gtag('event', 'conversion', {
+        gtag('event', 'conversion', {
             'send_to': 'AW-17119632058/MmqfCLDllc4aELq1o-M_',
             'value': 1.0,
             'currency': 'SEK',
             'event_callback': callback
             });
 
-            // Fallback in case callback doesn't fire (e.g., adblocker)
+            // Fallback for production
             setTimeout(callback, 2000);
         }
 
