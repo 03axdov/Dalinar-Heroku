@@ -716,7 +716,6 @@ class FinalizeElementsUpload(APIView):
         prefix = f"tmp/elements/{dataset_id}/"
         all_keys = default_storage.listdir(prefix)[1]  # second item is file list
         full_paths = [prefix + fname for fname in sorted(all_keys)]  # ensure order
-        print(full_paths)
 
         task = create_elements_task.delay(
             s3_keys=full_paths,
