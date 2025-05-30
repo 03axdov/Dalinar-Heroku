@@ -4,6 +4,8 @@ import axios from "axios"
 import ProgressBar from "../components/ProgressBar"
 import TitleSetter from "../components/minor/TitleSetter"
 import { useTask } from "../contexts/TaskContext"
+import Select from 'react-select';
+import { customStylesNoMargin } from "../helpers/styles";
 
 function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeDatasetCount}) {
     const { getTaskResult } = useTask();
@@ -47,8 +49,23 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
     const hiddenFilenamesInputRef = useRef(null)
     const hiddenCsvInputRef = useRef(null)
     const hiddenFilesInputRef = useRef(null) // Used for Area datasets
+    const hiddenAreaInputRef = useRef(null) // Used for Area datasets
 
     const INVALID_LABELS = new Set(["name", "datatype", "description", "image", "visibility", "labels"]) // Would impact formData below, temporary fix
+
+    const areaFileOptions = [
+        {
+            "value": "csv",
+            "label": ".csv - filename, x_start, y_start, x_end, y_end, label (optional)"
+        },
+        {
+            "value": "csv-2",
+            "label": ".csv - filename, x_start, x_end, y_start, y_end, label (optional)"
+        }
+    ]
+    const [areaFileFormat, setAreaFileFormat] = useState(areaFileOptions[0]);
+    const [uploadedAreaFile, setUploadedAreaFile] = useState(null)  // Will be used to generate areas
+    const [uploadedAreaFiles, setUploadedAreaFiles] = useState([])  // The elements themselves
 
     useEffect(() => {
         if (image === null) return
@@ -127,8 +144,10 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
             console.log("Success:", res.data);
             
             changeDatasetCount(1)
-            if (!isEmpty(uploadedDatasets)) {
+            if (type == "classification" && !isEmpty(uploadedDatasets)) {
                 createElements(res.data.id)
+            } else if (type == "area" && uploadedAreaFiles.length > 0) {
+                createAreaElements(res.data.id)
             } else {
                 navigate("/home")
                 notification("Successfully created dataset " + name + ".", "success")
@@ -240,10 +259,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
     
             formData.append('dataset', dataset_id);
             formData.append('index', i*10)
-            // If all files in this chunk share the same label, send it
-            const labels = chunk.map(p => p.label)
-            formData.append('labels', labels);
-            
     
             await uploadWithRetry(URL, formData, config);
         }
@@ -275,7 +290,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
             axios.post("/api/finalize-elements-upload/", {
                 dataset: dataset_id,
                 start_index: 0,
-                labels: fileLabelPairs.map(p => p.label)
+                labels: fileLabelPairs.map(p => p.label),
             }).then((res) => {
                 resInterval = setInterval(() => getTaskResult(
                     "deleting_dataset",
@@ -310,7 +325,193 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
     
         uploadAllChunks();
     }
+
+    function processCsvFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+            try {
+                const text = e.target.result;
+                const lines = text.trim().split('\n');
+                const [headerLine, ...dataLines] = lines;
+
+                const rectanglesByFilename = {};
+
+                dataLines.forEach((line) => {
+                let filename, xStart, xEnd, yStart, yEnd, label = "default";
+
+                const parts = line.split(',');
+
+                if (areaFileFormat.value === "csv") {
+                    [filename, xStart, yStart, xEnd, yEnd] = parts;
+                    if (parts.length >= 6) {
+                    label = parts[5].trim();
+                    }
+                } else if (areaFileFormat.value === "csv-2") {
+                    [filename, xStart, xEnd, yStart, yEnd] = parts;
+                    if (parts.length >= 6) {
+                    label = parts[5].trim();
+                    }
+                } else {
+                    throw new Error(`Unsupported format: ${areaFileFormat}`);
+                }
+
+                const rectangle = [
+                    [parseFloat(xStart), parseFloat(yStart)],
+                    [parseFloat(xEnd), parseFloat(yStart)],
+                    [parseFloat(xEnd), parseFloat(yEnd)],
+                    [parseFloat(xStart), parseFloat(yEnd)],
+                ];
+
+                if (!rectanglesByFilename[filename]) {
+                    rectanglesByFilename[filename] = {};
+                }
+
+                if (!rectanglesByFilename[filename][label]) {
+                    rectanglesByFilename[filename][label] = [];
+                }
+
+                rectanglesByFilename[filename][label].push(rectangle);
+                });
+
+                resolve(rectanglesByFilename);
+            } catch (error) {
+                reject(error);
+            }
+            };
+
+            reader.onerror = reject;
+            reader.readAsText(file);
+        });
+    }
+
+    async function createAreaElements(dataset_id) {
+        setCreatingElements(true);
+
+        const area_points = await processCsvFile(uploadedAreaFile);
+
+        // Prepare labels array with name and color
+        const SEEN_ELEMENTS = new Set([])
+        let labelsArray = []
+
+        for (const key in area_points) {
+            for (const label in area_points[key]) {
+                if (!SEEN_ELEMENTS.has(label)) {
+                    labelsArray.push({
+                        name: label,
+                        color: randomColor(),
+                        dataset: dataset_id
+                    })
+                    SEEN_ELEMENTS.add(label)
+                }
+                
+            }
+        }
+
+        // Payload for backend
+        const payload = {
+            dataset: dataset_id,
+            labels: labelsArray,
+        };
+
+        const URL = window.location.origin + '/api/create-labels/';
+        const config = { headers: { 'Content-Type': 'application/json' } };
+
+        axios.post(URL, JSON.stringify(payload), config)
+            .then((res) => {
+                const createdLabels = res.data.created || [];
+
+                // Call the inner element creation function with all files + label IDs
+                createAreaElementsInner(dataset_id, createdLabels.map((label) => label.id), area_points);
+            })
+            .catch((error) => {
+                notification("Failed to create labels", "failure");
+        });
+    }
+
+    function createAreaElementsInner(dataset_id, labels, area_points) {
+        setCreatingElements(true);
+
+        const URL = window.location.origin + '/api/upload-elements/';
+        const config = { headers: { 'Content-Type': 'multipart/form-data' } };
     
+        const chunks = chunkArray(uploadedAreaFiles, 10);
+        let completed = 0;
+    
+        async function uploadChunk(chunk, i) {
+            const formData = new FormData();
+            chunk.forEach(files => formData.append('files', files));
+    
+            formData.append('dataset', dataset_id);
+            formData.append('index', i*10)  
+    
+            await uploadWithRetry(URL, formData, config);
+        }
+    
+        async function uploadAllChunks() {
+            const CONCURRENCY = 3;
+            let current = 0;
+
+            async function next() {
+                if (current >= chunks.length) return;
+                const i = current++;
+                try {
+                    await uploadChunk(chunks[i], i);
+                } catch (e) {
+                    console.error("Chunk upload failed:", e);
+                    notification("Upload failed for one or more batches.", "failure");
+                } finally {
+                    completed++;
+                    setCreatingElementsProgress((completed / (chunks.length * 4)) * 100);
+                    await next(); // Start next after finishing one
+                }
+            }
+
+            // Launch limited number of concurrent uploads
+            await Promise.all(Array(CONCURRENCY).fill(0).map(next));
+
+            let resInterval = null;
+            let errorOccured = false;
+            axios.post("/api/finalize-elements-upload/", {
+                dataset: dataset_id,
+                start_index: 0,
+                labels: labels,
+                area_points: area_points
+            }).then((res) => {
+                resInterval = setInterval(() => getTaskResult(
+                    "deleting_dataset",
+                    resInterval,
+                    res.data["task_id"],
+                    () => {
+                    },
+                    (data) => {
+                        notification("Creating elements failed: " + data["message"], "failure")
+                        errorOccured = true;
+                    },
+                    (data) => {
+                        setCreatingElementsProgress(25 + (data["creating_elements_progress"] * 0.75) * 100)
+                    },
+                    () => {
+                        setCreatingElementsProgress(100);
+                        setTimeout(() => {
+                            navigate("/home");
+                            if (!errorOccured) {
+                                notification("Successfully created dataset " + name + ".", "success");
+                            }
+                            
+                            if (document.visibilityState !== "visible") {
+                                alert("Dataset creation finished.")
+                            }
+                        }, 200);
+                    }
+                ), 3000)    // ping every 3 seconds
+            });
+        }
+
+    
+        uploadAllChunks();
+    }
 
     function folderInputClick() {
         if (hiddenFolderInputRef.current) {
@@ -327,6 +528,18 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
     function csvInputClick() {
         if (hiddenCsvInputRef.current) {
             hiddenCsvInputRef.current.click();
+        }
+    }
+
+    function filesOnClick() {
+        if (hiddenFilesInputRef.current) {
+            hiddenFilesInputRef.current.click();
+        }
+    }
+
+    function areaFileOnClick() {
+        if (hiddenAreaInputRef.current) {
+            hiddenAreaInputRef.current.click();
         }
     }
 
@@ -491,7 +704,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
             let label = rows[i][0]
             let text = rows[i][1].replaceAll('""', '"')
             let file = new File([text], `text_${i}.txt`, { type: "text/plain" });
-            console.log(`${label}:`, text); // Iterate over rows
 
             if (INVALID_LABELS.has(label)) {
                 notification("Invalid label: " + label + ". Labels cannot be one of " + INVALID_LABELS, "failure")
@@ -537,6 +749,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
         setUploadedFoldersAsLabels([])
         setUploadedCsvs([])
         setUploadedFilesCount(0)
+        setUploadedAreaFiles([])
     }
 
     function setDatasetTypeImageInner(e) {
@@ -823,24 +1036,79 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
 
                     </div>}
 
-                    {type == "area" && <div className="upload-dataset-types-container">
-                        <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFilesInputRef} onChange={(e) => {}}/>
-                    
-                        <div className="upload-dataset-type-col">
-                            <p className="upload-dataset-type-title">Image Elements</p>
+                    {type == "area" && <div className="upload-dataset-types-container-area">
+                        <input id="folders-as-labels-upload-inp" type="file" className="hidden" directory="" webkitdirectory="" ref={hiddenFilesInputRef} onChange={(e) => {
+                            if (e.target.files) {
+                                setUploadedAreaFiles([...e.target.files].slice(0, numberFiles || 10000))
+                            }
+                        }}/>
+                        <input id="csv-upload-inp" type="file" accept=".csv" className="hidden" ref={hiddenAreaInputRef} onChange={(e) => {
+                            if (e.target.files) {
+                                setUploadedAreaFile(e.target.files[0])
+                            }
+                            
+                        }}/>
+
+                        <div className="upload-dataset-type-row">
+                            <p className="upload-dataset-type-title">Area Files Upload</p>
+
+                            <button type="button" className="create-dataset-clear" style={{width: "100%"}} onClick={() => {
+                                activateConfirmPopup("Are you sure you want to remove all uploaded datasets?", () => {
+                                    clearUploadedDatasets()
+                                    notification("Removed all uploaded datasets.", "success")
+                                }, "blue")
+                            }}>Clear images ({uploadedAreaFiles.length} images)</button>
+
+                            <p className="upload-dataset-type-description" style={{marginBottom: "20px"}}>
+                                The file that will be used to generate areas for the images. 
+                                Note that specifying image dimensions may alter where the areas appear. 
+                                The format can be selected below, with the required columns in parentheses (with e.g. x_start given in pixels from the image's top left corner). The first row will be ignored.
+                            </p>
+
+                            <Select
+                                inputId="area-file-format"
+                                options={areaFileOptions}
+                                value={areaFileFormat}
+                                onChange={(selected) => {
+                                    setAreaFileFormat(selected);
+                                }}
+                                styles={customStylesNoMargin}
+                                className="w-full"
+                            />
+                            
+                            <button type="button" className="upload-dataset-button" style={{marginTop: "20px"}} onClick={areaFileOnClick}>
+                                <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
+                                Upload file
+                            </button>
+
+                            {uploadedAreaFile && <div className="uploaded-dataset-element-container">
+                                <p title={uploadedAreaFile.name} className="uploaded-dataset-element" style={{display: "flex", alignItems: "center"}}>
+                                    {uploadedAreaFile.name}
+                                    <img className="uploaded-datasets-element-cross" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" onClick={() => {
+                                        setUploadedAreaFile(null)
+                                    }}/>
+                                </p>
+                            </div>}
+                        </div>
+
+                        <div className="upload-dataset-type-row" style={{marginTop: "40px"}}>
                             <p className="upload-dataset-type-description">
                                 The images that the dataset consists of can be uploaded here, or later. Will create an element for each uploaded image.
                             </p>
                             
-                            <button type="button" className="upload-dataset-button" style={{marginTop: "20px"}} onClick={() => {}}>
+                            <button type="button" className="upload-dataset-button" style={{marginTop: "20px"}} onClick={filesOnClick}>
                                 <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
                                 Upload images
                             </button>
+
+                            <div className="uploaded-dataset-element-container">
+                                {uploadedAreaFiles.map((file, i) => (
+                                    <p title={file.name} key={i} className="uploaded-dataset-element">{file.name}</p>
+                                ))}
+                            </div>
                         </div>
 
-                        <div className="upload-dataset-type-col">
-
-                        </div>
+                        
                     </div>}
 
                     {datasetType == "text" && <div className="upload-dataset-type-col">

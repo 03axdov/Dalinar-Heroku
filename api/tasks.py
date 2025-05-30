@@ -12,6 +12,7 @@ from io import BytesIO
 from rest_framework.test import APIRequestFactory
 from django.core.files.storage import default_storage
 import shutil
+import json
 
 from .serializers import *
 from .models import *
@@ -1882,8 +1883,15 @@ def resize_dataset_images_task(self, dataset_id, user_id, imageWidth, imageHeigh
         return {"Bad request": str(e), "status": 400}    
     
     
+def random_light_color():   # Slightly biased towards lighter shades
+    r = random.randint(150, 255)  # Higher values mean lighter colors
+    g = random.randint(150, 255)
+    b = random.randint(150, 255)
+    return "#{:02x}{:02x}{:02x}".format(r, g, b)    
+
+    
 @shared_task
-def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
+def create_elements_task(s3_keys, dataset_id, user_id, index, labels, area_points):
     from django.db import transaction
     
     try:
@@ -1903,6 +1911,7 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
         for i, key in enumerate(s3_keys):
             filename_with_uuid = key.split("/")[-1]
             original_filename = "_".join(filename_with_uuid.split("_")[2:])
+                
             with default_storage.open(key, "rb") as f:
                 file_content = f.read()
                 files_data.append((file_content, original_filename))
@@ -1956,24 +1965,59 @@ def create_elements_task(s3_keys, dataset_id, user_id, index, labels):
             
         profile.creating_elements_progress = (2/5)
         profile.save()
-
+        
         with transaction.atomic():
             created_elements = Element.objects.bulk_create(elements_to_create)
 
-            # Assign labels in bulk if possible
-            for i, element in enumerate(created_elements):
-                if labels and i < len(labels):
-                    try:
+        if dataset.datatype.lower() == "classification":
+            with transaction.atomic():
+                # Assign labels in bulk if possible
+                for i, element in enumerate(created_elements):
+                    if labels and i < len(labels):
+                        try:
+                            label = Label.objects.get(id=labels[i])
+                            element.label = label
+                        except Label.DoesNotExist:
+                            pass
+                    
+                    if i % 10:
+                        profile.creating_elements_progress = (2/5) + (i + 1) / (len(created_elements) * 5)
+                        profile.save()
+                    
+                Element.objects.bulk_update(created_elements, ['label'])
+                
+        elif area_points and dataset.datatype.lower() == "area":            
+            
+            with transaction.atomic():
+                areas_to_create = []
+                # Assign labels in bulk if possible
+                for i, element in enumerate(created_elements):
+                    original_filename = element.name
+                    if original_filename not in area_points.keys(): continue
+                    areas = area_points[original_filename]
+                    for i, label_key in enumerate(areas.keys()):
                         label = Label.objects.get(id=labels[i])
-                        element.label = label
-                    except Label.DoesNotExist:
-                        pass
+                        for points in areas[label_key]:
                 
-                if i % 10:
-                    profile.creating_elements_progress = (2/5) + (i + 1) / (len(created_elements) * 5)
-                    profile.save()
-                
-            Element.objects.bulk_update(created_elements, ['label'])
+                            width = element.imageWidth
+                            height = element.imageHeight
+                            new_points = []
+                            for point in points:
+                                x, y = point
+                                new_points.append([min(100, round(x / width, 3) * 100), min(100, round(y / height, 3) * 100)])
+                        
+                            area_to_create = Area(
+                                label=label,
+                                element=element,
+                                area_points=json.dumps(new_points)
+                            )
+                            areas_to_create.append(area_to_create)
+                            
+                    if i % 10:
+                        profile.creating_elements_progress = (2/5) + (i + 1) / (len(created_elements) * 5)
+                        profile.save()
+                    
+                created_areas = Area.objects.bulk_create(areas_to_create)
             
         profile.creating_elements_progress = (3/5)
         profile.save()

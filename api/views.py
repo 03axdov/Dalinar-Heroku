@@ -691,7 +691,6 @@ class UploadElements(APIView):
     def post(self, request, format=None):
         files = request.FILES.getlist("files")
         dataset_id = request.data.get("dataset")
-        labels = request.data.get("labels")
         index_offset = int(request.data.get("index", 0))
 
         s3_keys = []
@@ -710,12 +709,14 @@ class FinalizeElementsUpload(APIView):
         dataset_id = request.data.get("dataset")
         user = request.user
         index = int(request.data.get("start_index", 0))
-        labels = request.data.get("labels")
+        labels = request.data.get("labels", None)
+        area_points = request.data.get("area_points", None)
 
         # List all uploaded files under the dataset folder
         prefix = f"tmp/elements/{dataset_id}/"
         all_keys = default_storage.listdir(prefix)[1]  # second item is file list
         full_paths = [prefix + fname for fname in sorted(all_keys)]  # ensure order
+        print(full_paths)
 
         task = create_elements_task.delay(
             s3_keys=full_paths,
@@ -723,6 +724,7 @@ class FinalizeElementsUpload(APIView):
             user_id=user.id,
             index=index,
             labels=labels,
+            area_points=area_points
         )
 
         return Response({
