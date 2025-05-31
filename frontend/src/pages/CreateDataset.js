@@ -63,6 +63,10 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
             "label": ".csv - filename, x_start, x_end, y_start, y_end, label (optional)"
         },
         {
+            "value": "csv-3",
+            "label": ".csv - filename, (any), (any), x_start, x_end, y_start, y_end, label (optional)"
+        },
+        {
             "value": "text",
             "label": "Multiple .txt files"
         },
@@ -352,12 +356,18 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                 if (areaFileFormat.value === "csv") {
                     [filename, xStart, yStart, xEnd, yEnd] = parts;
                     if (parts.length >= 6) {
-                    label = parts[5].trim();
+                        label = parts[5].trim();
                     }
                 } else if (areaFileFormat.value === "csv-2") {
                     [filename, xStart, xEnd, yStart, yEnd] = parts;
                     if (parts.length >= 6) {
-                    label = parts[5].trim();
+                        label = parts[5].trim();
+                    }
+                } else if (areaFileFormat.value === "csv-3") {
+                    let any1, any2;
+                    [filename, any1, any2, xStart, xEnd, yStart, yEnd] = parts;
+                    if (parts.length >= 6) {
+                        label = parts[5].trim();
                     }
                 } else {
                     throw new Error(`Unsupported format: ${areaFileFormat}`);
@@ -392,11 +402,67 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
         });
     }
 
+    function processUploadedAreaFiles() {
+        const rectanglesByFilename = {};
+
+        const filePromises = uploadedAreaFiles.map(file => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+
+                reader.onload = (e) => {
+                    try {
+                        const text = e.target.result.trim();
+                        const lines = text.split('\n');
+
+                        const filename = file.name.replace(/\.[^/.]+$/, ""); // remove extension
+
+                        if (!rectanglesByFilename[filename]) {
+                            rectanglesByFilename[filename] = {};
+                        }
+
+                        lines.forEach(line => {
+                            const parts = line.split(uploadedAreaDelimeter).map(s => s.trim());
+                            if (parts.length < 4) return; // skip invalid
+
+                            const [xStart, yStart, xEnd, yEnd] = parts;
+                            const label = parts[4] || "default";
+
+                            const rectangle = [
+                                [parseFloat(xStart), parseFloat(yStart)],
+                                [parseFloat(xEnd), parseFloat(yStart)],
+                                [parseFloat(xEnd), parseFloat(yEnd)],
+                                [parseFloat(xStart), parseFloat(yEnd)],
+                            ];
+
+                            if (!rectanglesByFilename[filename][label]) {
+                                rectanglesByFilename[filename][label] = [];
+                            }
+
+                            rectanglesByFilename[filename][label].push(rectangle);
+                        });
+
+                        resolve();
+                    } catch (err) {
+                        reject(err);
+                    }
+                };
+
+                reader.onerror = reject;
+                reader.readAsText(file);
+            });
+        });
+
+        return Promise.all(filePromises).then(() => rectanglesByFilename);
+    }
+
     function getAreaPoints() {
         if (areaFileFormat.value == "csv" || areaFileFormat.value == "csv-2") {
             return processCsvFile(uploadedAreaFile)
+        } else if (areaFileFormat.value == "text") {
+            return processUploadedAreaFiles()
         } else {
-            console.log("Unknown format")
+            notification("Unsupported area file format.", "failure")
+            console.log("Unsupported area file format.")
         }
     }
 
@@ -454,6 +520,8 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
         let completed = 0;
 
         console.log(area_points)
+
+        return
     
         async function uploadChunk(chunk, i) {
             const formData = new FormData();
@@ -486,8 +554,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
 
             // Launch limited number of concurrent uploads
             await Promise.all(Array(CONCURRENCY).fill(0).map(next));
-
-            return
 
             let resInterval = null;
             let errorOccured = false;
@@ -1060,11 +1126,16 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                                 setUploadedAreaFiles([...e.target.files].slice(0, numberFiles || 10000))
                             }
                         }}/>
-                        <input id="csv-upload-inp" type="file" multiple={(areaFileFormat.value == "text" ? true : false)} accept=".csv" className="hidden" ref={hiddenAreaInputRef} onChange={(e) => {
+                        {areaFileFormat != "text" && <input id="csv-upload-inp" type="file" accept=".csv" className="hidden" ref={hiddenAreaInputRef} onChange={(e) => {
                             if (e.target.files) {
                                 setUploadedAreaFile(e.target.files[0])
                             }
-                        }}/>
+                        }}/>}
+                        {areaFileFormat.value == "text" && <input id="csv-upload-inp" type="file" multiple={true} accept=".txt" directory="" webkitdirectory="" className="hidden" ref={hiddenAreaInputRef} onChange={(e) => {
+                            if (e.target.files) {
+                                setUploadedAreaFile(Array.from(e.target.files).filter(file => file.name.toLowerCase().endsWith('.txt')).slice(0, numberFiles))
+                            }
+                        }}/>}
 
                         <div className="upload-dataset-type-row">
                             <p className="upload-dataset-type-title">Area Files Upload</p>
@@ -1106,16 +1177,27 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                             
                             <button type="button" className="upload-dataset-button" style={{marginTop: "20px"}} onClick={areaFileOnClick}>
                                 <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
-                                Upload file
+                                Upload file{areaFileFormat.value == "text" ? "s" : ""}
                             </button>
 
                             {uploadedAreaFile && <div className="uploaded-dataset-element-container">
-                                <p title={uploadedAreaFile.name} className="uploaded-dataset-element" style={{display: "flex", alignItems: "center"}}>
+                                {areaFileFormat.value !== "text" && <p title={uploadedAreaFile.name} className="uploaded-dataset-element" style={{display: "flex", alignItems: "center"}}>
                                     {uploadedAreaFile.name}
                                     <img className="uploaded-datasets-element-cross" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" onClick={() => {
                                         setUploadedAreaFile(null)
                                     }}/>
-                                </p>
+                                </p>}
+
+                                {areaFileFormat.value === "text" && uploadedAreaFile.map((file, idx) => (
+                                    <p key={idx} title={file.name} className="uploaded-dataset-element" style={{display: "flex", alignItems: "center"}}>
+                                        {file.name}
+                                        <img className="uploaded-datasets-element-cross" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" onClick={() => {
+                                            setUploadedAreaFiles((prev) => {
+                                                prev.splice(idx, 1)
+                                            })
+                                        }}/>
+                                    </p>
+                                ))}
                             </div>}
                         </div>
 
