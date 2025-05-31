@@ -61,11 +61,17 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
         {
             "value": "csv-2",
             "label": ".csv - filename, x_start, x_end, y_start, y_end, label (optional)"
-        }
+        },
+        {
+            "value": "text",
+            "label": "Multiple .txt files"
+        },
+        
     ]
     const [areaFileFormat, setAreaFileFormat] = useState(areaFileOptions[0]);
     const [uploadedAreaFile, setUploadedAreaFile] = useState(null)  // Will be used to generate areas
     const [uploadedAreaFiles, setUploadedAreaFiles] = useState([])  // The elements themselves
+    const [uploadedAreaDelimeter, setUploadedAreaDelimeter] = useState(",")
 
     useEffect(() => {
         if (image === null) return
@@ -386,10 +392,18 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
         });
     }
 
+    function getAreaPoints() {
+        if (areaFileFormat.value == "csv" || areaFileFormat.value == "csv-2") {
+            return processCsvFile(uploadedAreaFile)
+        } else {
+            console.log("Unknown format")
+        }
+    }
+
     async function createAreaElements(dataset_id) {
         setCreatingElements(true);
 
-        const area_points = await processCsvFile(uploadedAreaFile);
+        const area_points = await getAreaPoints();
 
         // Prepare labels array with name and color
         const SEEN_ELEMENTS = new Set([])
@@ -439,7 +453,7 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
         const chunks = chunkArray(uploadedAreaFiles, 10);
         let completed = 0;
 
-        console.log(chunks)
+        console.log(area_points)
     
         async function uploadChunk(chunk, i) {
             const formData = new FormData();
@@ -472,6 +486,8 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
 
             // Launch limited number of concurrent uploads
             await Promise.all(Array(CONCURRENCY).fill(0).map(next));
+
+            return
 
             let resInterval = null;
             let errorOccured = false;
@@ -1044,11 +1060,10 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                                 setUploadedAreaFiles([...e.target.files].slice(0, numberFiles || 10000))
                             }
                         }}/>
-                        <input id="csv-upload-inp" type="file" accept=".csv" className="hidden" ref={hiddenAreaInputRef} onChange={(e) => {
+                        <input id="csv-upload-inp" type="file" multiple={(areaFileFormat.value == "text" ? true : false)} accept=".csv" className="hidden" ref={hiddenAreaInputRef} onChange={(e) => {
                             if (e.target.files) {
                                 setUploadedAreaFile(e.target.files[0])
                             }
-                            
                         }}/>
 
                         <div className="upload-dataset-type-row">
@@ -1064,7 +1079,6 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                             <p className="upload-dataset-type-description" style={{marginBottom: "20px"}}>
                                 The file that will be used to generate areas for the images. 
                                 Note that specifying image dimensions may alter where the areas appear. 
-                                The format can be selected below, with the required columns in parentheses (with e.g. x_start given in pixels from the image's top left corner). The first row will be ignored.
                             </p>
 
                             <Select
@@ -1077,6 +1091,18 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                                 styles={customStylesNoMargin}
                                 className="w-full"
                             />
+
+                            <p style={{marginTop: "10px"}} className="upload-dataset-type-description">
+                                {(areaFileFormat.value == "csv" || areaFileFormat.value == "csv-2" ? "If no label is specified, all areas will be created for label 'default'. The first row of the .csv file will be ignored." : "")}
+                                {(areaFileFormat.value == "text" ? "Upload a text file for each image uploaded, with the same name (excluding extension) as the image file it corresponds to. Will create an area for each row in the text file, where each row is split by the delimeter below. Expects x_start, y_start, x_end, y_end, label (optional)." : "")}
+                            </p>
+
+                            {areaFileFormat.value == "text" && <div className="create-dataset-label-inp" style={{width: "100%", marginTop: "10px"}}>
+                                <label className="create-dataset-label" htmlFor="area-text-split">Delimeter</label>
+                                <input style={{width: "100px"}} className="create-dataset-inp" id="area-text-split" type="text" required value={uploadedAreaDelimeter} onChange={(e) => {
+                                    setUploadedAreaDelimeter(e.target.value)
+                                }} />
+                            </div>}
                             
                             <button type="button" className="upload-dataset-button" style={{marginTop: "20px"}} onClick={areaFileOnClick}>
                                 <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
