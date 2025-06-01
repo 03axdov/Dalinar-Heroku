@@ -4,7 +4,7 @@ import {useNavigate} from "react-router-dom"
 function ElementFilters({show, setShow, isModel, sort, setSort,
                         imageDimensions, setImageDimensions, search, setSearch, setLoading, 
                         BACKEND_URL, savedTypeShown, setSavedTypeShown, setSearchParams, startParam,
-                        showModelType, setShowModelType}) {
+                        showModelType, setShowModelType, isTraining=false}) {
 
     const [imageWidth, setImageWidth] = useState("")
     const [imageHeight, setImageHeight] = useState("")
@@ -29,7 +29,7 @@ function ElementFilters({show, setShow, isModel, sort, setSort,
     }, [imageWidth, imageHeight])
 
     return (
-        <div className="title-forms">
+        <div className={"title-forms " + (isTraining ? "title-forms-training" : "")}>
             {savedTypeShown && <select title="Type shown " className="explore-datasets-sort" value={savedTypeShown} onChange={(e) => {
                 let temp = {
                         start: startParam,

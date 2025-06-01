@@ -432,6 +432,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         setSearch={setSearch}
                         setLoading={setLoading}
                         BACKEND_URL={BACKEND_URL}
+                        isTraining={true}
                     ></ElementFilters>}
                     {datasetTypeShown == "saved" && <ElementFilters 
                         show={model_type}
@@ -443,6 +444,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         setSearch={setSearchSaved}
                         setLoading={setLoading}
                         BACKEND_URL={BACKEND_URL}
+                        isTraining={true}
                     ></ElementFilters>}
                     
                     <button className="close-model-popup" title="Return to main display" onClick={() => setShowTrainModelPopup(false)}>Return to main display →</button>

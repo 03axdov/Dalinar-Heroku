@@ -152,8 +152,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const canvasRefs = useRef([])
     const elementRef = useRef(null)
 
-    const DOT_SIZE = 18
-
     // For drawing lines for area datasets
     useEffect(() => {
         if (elements.length < 1) {return}
@@ -295,7 +293,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }
 
     function getPoints(area, areaIdx) {
-        if (!area) {return}
+        if (!area || !displayAreas) {return}
         let points = JSON.parse(area.area_points)
         return <div key={area.id} className={(hoveredAreaId && hoveredAreaId != area.id ? "display-none" : "")}>
             <canvas ref={(el) => (canvasRefs.current[areaIdx] = el)} 
@@ -971,8 +969,13 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     }}
                     onClick={(e) => e.stopPropagation()}>
                         <img onLoad={() => {
-                            setDisplayAreas(true)
-                            setUpdateArea(!updateArea)
+                            canvasRefs.current = []; // Clear old refs!
+                            setDisplayAreas(false);  // Hide everything initially
+                            setPointSelected([-1, -1]); // Deselect everything
+                            setTimeout(() => {
+                                setDisplayAreas(true);    // Show points/canvas after state settles
+                                setUpdateArea(prev => !prev); // Trigger re-render
+                            }, 0);
                         }} 
                         ref={elementRef} 
                         alt="Element image"

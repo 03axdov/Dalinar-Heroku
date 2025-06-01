@@ -310,6 +310,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                         setSearch={setSearch}
                         setLoading={setLoading}
                         BACKEND_URL={BACKEND_URL}
+                        isTraining={true}
                     ></ElementFilters>}
                     {datasetTypeShown == "saved" && <ElementFilters 
                         show={model_type}
@@ -321,6 +322,7 @@ function EvaluateModelPopup({setShowEvaluateModelPopup, model_id, model_type, cu
                         setSearch={setSearchSaved}
                         setLoading={setLoading}
                         BACKEND_URL={BACKEND_URL}
+                        isTraining={true}
                     ></ElementFilters>}
 
                     <button className="close-model-popup" title="Return to main display" onClick={() => setShowEvaluateModelPopup(false)}>Return to main display →</button>
