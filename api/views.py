@@ -50,7 +50,8 @@ def createSmallImage(instance, target_width=230, target_height=190):
     img = Image.open(instance.image)
     
     new_name = instance.image.name.split("/")[-1]     # Otherwise includes files
-    new_name, extension = new_name.split(".")     
+    extension = new_name.split(".")[-1]
+    new_name = new_name[0:len(new_name) - 1 - len(extension) - 1]
     new_name = new_name.split("-")[0]   # Remove previous resize information      
     new_name += ("-" + str(target_width) + "x" + str(target_height) + "." + extension) 
     

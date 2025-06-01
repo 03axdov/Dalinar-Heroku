@@ -5,7 +5,7 @@ import ProgressBar from "../components/ProgressBar"
 import TitleSetter from "../components/minor/TitleSetter"
 import { useTask } from "../contexts/TaskContext"
 import Select from 'react-select';
-import { customStylesNoMargin } from "../helpers/styles";
+import { customStyles, customStylesNoMargin } from "../helpers/styles";
 
 function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeDatasetCount}) {
     const { getTaskResult } = useTask();
@@ -70,12 +70,24 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
             "value": "text",
             "label": "Multiple .txt files"
         },
-        
     ]
+
+    const textFormatOptions = [
+        {
+            "value": 1,
+            "label": "label, x_start, y_start, x_end, y_end"
+        },
+        {
+            "value": 2,
+            "label": "x_start, y_start, x_end, y_end, label (optional)"
+        },
+    ]
+
     const [areaFileFormat, setAreaFileFormat] = useState(areaFileOptions[0]);
     const [uploadedAreaFile, setUploadedAreaFile] = useState(null)  // Will be used to generate areas
     const [uploadedAreaFiles, setUploadedAreaFiles] = useState([])  // The elements themselves
     const [uploadedAreaDelimeter, setUploadedAreaDelimeter] = useState(",")
+    const [uploadedTextFilesFormat, setUploadedTextFilesFormat] = useState(textFormatOptions[0])
 
     useEffect(() => {
         if (image === null) return
@@ -424,8 +436,18 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                             const parts = line.split(uploadedAreaDelimeter).map(s => s.trim());
                             if (parts.length < 4) return; // skip invalid
 
-                            const [xStart, yStart, xEnd, yEnd] = parts;
-                            const label = parts[4] || "default";
+                            let xStart, yStart, xEnd, yEnd;
+                            let label = "default";
+                            if (uploadedTextFilesFormat.value == 1) {
+                                [label, xStart, yStart, xEnd, yEnd] = parts;
+                            } else if (uploadedTextFilesFormat.value == 2) {
+                                [xStart, yStart, xEnd, yEnd] = parts;
+                                label = parts[4] || "default";
+                            } else {
+                                console.log("Unknown format.")
+                                return
+                            }
+                            
 
                             const rectangle = [
                                 [parseFloat(xStart), parseFloat(yStart)],
@@ -1174,6 +1196,19 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                                     setUploadedAreaDelimeter(e.target.value)
                                 }} />
                             </div>}
+                            {areaFileFormat.value == "text" && <div className="create-dataset-label-inp" style={{width: "100%", marginTop: "10px"}}>
+                                <label className="create-dataset-label" htmlFor="text-file-format">Format</label>
+                                <Select
+                                    inputId="text-file-format"
+                                    options={textFormatOptions}
+                                    value={uploadedTextFilesFormat}
+                                    onChange={(selected) => {
+                                        setUploadedTextFilesFormat(selected);
+                                    }}
+                                    styles={customStyles}
+                                    className="w-full"
+                                />
+                            </div>}
                             
                             <button type="button" className="upload-dataset-button" style={{marginTop: "20px"}} onClick={areaFileOnClick}>
                                 <img className="upload-dataset-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
@@ -1182,15 +1217,15 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
 
                             {uploadedAreaFile && <div className="uploaded-dataset-element-container">
                                 {areaFileFormat.value !== "text" && <p title={uploadedAreaFile.name} className="uploaded-dataset-element" style={{display: "flex", alignItems: "center"}}>
-                                    {uploadedAreaFile.name}
+                                    <span className="text-ellipsis">{uploadedAreaFile.name}</span>
                                     <img className="uploaded-datasets-element-cross" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" onClick={() => {
                                         setUploadedAreaFile(null)
                                     }}/>
                                 </p>}
 
-                                {areaFileFormat.value === "text" && uploadedAreaFile.map((file, idx) => (
+                                {areaFileFormat.value === "text" && uploadedAreaFile.slice(0, 20).map((file, idx) => (
                                     <p key={idx} title={file.name} className="uploaded-dataset-element" style={{display: "flex", alignItems: "center"}}>
-                                        {file.name}
+                                        <span className="text-ellipsis">{file.name}</span>
                                         <img className="uploaded-datasets-element-cross" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" onClick={() => {
                                             setUploadedAreaFiles((prev) => {
                                                 prev.splice(idx, 1)
@@ -1198,6 +1233,9 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                                         }}/>
                                     </p>
                                 ))}
+                                {areaFileFormat.value === "text" && uploadedAreaFile.length > 20 && <p className="upload-dataset-type-description" style={{textAlign: "center", width: "100%"}}>
+                                    And {uploadedAreaFile.length - 20} other areas.
+                                </p>}
                             </div>}
                         </div>
 
@@ -1212,9 +1250,12 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                             </button>
 
                             <div className="uploaded-dataset-element-container">
-                                {uploadedAreaFiles.map((file, i) => (
+                                {uploadedAreaFiles.slice(0, 20).map((file, i) => (
                                     <p title={file.name} key={i} className="uploaded-dataset-element">{file.name}</p>
                                 ))}
+                                {uploadedAreaFiles.length > 20 && <p className="upload-dataset-type-description" style={{textAlign: "center", width: "100%"}}>
+                                    And {uploadedAreaFiles.length - 20} other images.
+                                </p>}
                             </div>
                         </div>
 
