@@ -14,7 +14,7 @@ function AccountElement({account, BACKEND_URL, idx}) {
             </div>
             <div className="account-element-end account-element-part">
                 <p className="account-element-datasets">{account.dataset_count} dataset{account.dataset_count == 1 ? "" : "s"}</p>
-                <p className="account-element-datasets" style={{marginLeft: "40px"}}>{account.model_count} model{account.model_count == 1 ? "" : "s"}</p>
+                <p className="account-element-models">{account.model_count} model{account.model_count == 1 ? "" : "s"}</p>
             </div>
         </div>
     )
