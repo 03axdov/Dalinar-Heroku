@@ -19,6 +19,7 @@ import { TaskProvider } from "./contexts/TaskContext"
 import ProfileBar from "./components/ProfileBar"
 
 import { Helmet } from "react-helmet";
+import Accounts from "./pages/Accounts"
 
 
 // Local: "http://127.0.0.1:8000"
@@ -161,6 +162,7 @@ export default function App() {
                     <Route path="/models/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} checkLoggedIn={checkLoggedIn}/>}/>
                     <Route path="/models/public/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} checkLoggedIn={checkLoggedIn} isPublic={true}/>}/>
                     <Route path="/edit-model/:id" element={<EditModel activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} changeModelCount={changeModelCount}/>}/>
+                    <Route path="/accounts" element={<Accounts BACKEND_URL={BACKEND_URL} notification={notification} />}/>
                 </Routes>
             </div>
             

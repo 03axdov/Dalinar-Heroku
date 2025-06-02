@@ -89,6 +89,13 @@ html, body {
     z-index: 11;
 }
 
+.text-ellipsis {
+    max-width: 100%;
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+}
+
 .profile-bar {
     height: 100%;
     width: 300px;

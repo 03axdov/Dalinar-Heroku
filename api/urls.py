@@ -4,6 +4,7 @@ from .views import *
 urlpatterns = [
     # PROFILE HANDLING
     path("current-profile/", GetCurrentProfile.as_view(), name="current-profile"),
+    path("accounts/", ProfileStatsListView.as_view(), name="accounts"),
     
     # DATASET HANDLING
     path("datasets/", DatasetListPublic.as_view(), name="datasets"),

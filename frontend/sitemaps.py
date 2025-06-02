@@ -33,5 +33,6 @@ class StaticViewSitemap(Sitemap):
             'landing': '/',
             'explore': '/explore/',
             'guide': '/guide/',
+            "accounts": "/accounts/"
         }
         return url_mapping.get(item)

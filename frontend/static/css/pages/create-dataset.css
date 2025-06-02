@@ -453,6 +453,7 @@
 .uploaded-dataset-element {
     padding: 3px 10px;
     border-radius: 3px;
+    box-sizing: border-box;
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
