@@ -127,6 +127,12 @@ html, body {
     width: 16px;
     margin-right: 10px;
 }
+.profile-bar-icon-large {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
 
 .profile-bar-cross {
     margin-right: 5px;
@@ -151,11 +157,12 @@ html, body {
     padding: 5px 15px;
     border-radius: 7px;
 }
+
 .profile-bar-profile {
-    cursor: default;
+    margin-bottom: 10px;
 }
 
-.profile-bar-row:hover {
+.profile-bar-row:hover, .profile-bar-profile:hover {
     background: var(--background-lighter);
     cursor: pointer;
 }

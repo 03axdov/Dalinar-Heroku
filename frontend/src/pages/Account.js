@@ -86,7 +86,7 @@ function Account({BACKEND_URL, notification, currentProfile}) {
     }
 
     return (<div className="account-container">
-        <div className="account-inner">
+        {account && !loading && <div className="account-inner">
             {account && <div className="account-left">
                 
 
@@ -133,7 +133,9 @@ function Account({BACKEND_URL, notification, currentProfile}) {
                     {show == "models" && account.models.length == 0 && <p>This user does not have any models.</p>}
                 </div>
             </div>}
-        </div>
+        </div>}
+
+        {!account && loading && <img style={{height: "30px", width: "30px"}} src={BACKEND_URL + "/static/images/loading.gif"} />}
     </div>)
 }
 

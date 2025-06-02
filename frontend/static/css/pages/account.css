@@ -3,40 +3,44 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: start;
+    align-items: center;
+    justify-content: center;
 }
 
 .account-inner {
-    width: calc(100% - 200px);
+    width: 100%;
     height: 100%;
-    margin-left: 200px;
     display: flex;
     flex-direction: row;
 }
 
 .account-left {
     height: 100%;
-    width: 350px;
+    width: 400px;
     display: flex;
     flex-direction: column;
-    align-items: start;
+    align-items: center;
+    padding: 0 50px;
     padding-top: 40px;
+    box-sizing: border-box;
+    border-right: 1px solid var(--border);
 }
 
 .account-right {
     height: 100%;
-    width: calc(100% - 350px);
+    width: calc(100% - 400px);
     display: flex;
     flex-direction: column;
     padding-top: 40px;
     box-sizing: border-box;
     padding-right: 20px;
+    padding-left: 40px;
     overflow-y: auto;
 }
 
 
 .account-name {
-    width: 230px;
+    width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -51,7 +55,7 @@
 .account-stat {
     margin: 0;
     margin-top: 20px;
-    width: 230px;
+    width: 100%;
     text-align: left;
     font-size: 1.1rem;
     display: flex;
@@ -86,8 +90,15 @@
     padding: 5px 10px;
     font-size: 1.3rem;
     box-sizing: border-box;
-    border-radius: 5px;
+
     cursor: pointer;
+    background: var(--background-darker);
+}
+.account-right-datasets {
+    border-radius: 5px 0 0 5px;
+}
+.account-right-models {
+    border-radius: 0 5px 5px 0;
 }
 
 .account-right-selected {
@@ -110,8 +121,8 @@
     border-radius: 50%;
     overflow: hidden;
     border: 1px solid var(--border);
-    height: 230px;
-    width: 230px;
+    height: 299px;
+    width: 100%;
 }
 
 .account-image {
