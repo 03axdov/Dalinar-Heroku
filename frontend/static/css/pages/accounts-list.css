@@ -74,7 +74,7 @@
 }
 .account-element:hover {
     background: var(--background-lighter);
-    cursor: pointer;
+    cursor: default;
 }
 
 .account-element-name {
@@ -83,6 +83,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    margin-right: 3px;
 }
 
 .account-element-image {
@@ -101,25 +102,24 @@
 
 .account-element-left {
     width: 250px;
-    max-width: 33%;
     border-right: 1px solid var(--border-light);
-    padding-right: 3px;
     box-sizing: border-box;
 }
 
 .account-element-center {
-    width: 250px;
-    max-width: 33%;
+    width: 225px;
+    min-width: 225px;
     justify-content: center;
-    padding-right: 3px;
     border-right: 1px solid var(--border-light);
+    box-sizing: border-box;
 }
 
 .account-element-end {
     width: 300px;
-    max-width: 33%;
+    max-width: calc(100% - 400px);
     padding-left: 40px;
     padding-right: 3px;
+    box-sizing: border-box;
     border-right: 1px solid var(--border-light);
 }
 
@@ -128,15 +128,71 @@
     overflow-x: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 100%;
+}
+
+.account-element-downloads {
+    margin: 0 5px;
 }
 
 .account-element-datasets, .account-element-models {
     width: 150px;
-    max-width: calc(50% - 20px);
+    max-width: 100%;
+}
+
+.account-element-models {
+    margin-left: 20px;
 }
 
 @media all and (max-width: 1500px) {
     .accounts-right {
         padding: 20px 40px;
     }
+}
+
+@media all and (max-width: 1200px) {
+    .account-element-left {
+        min-width: 200px;
+    }
+
+    .account-element-end {
+        width: auto;
+        padding-left: 40px;
+        padding-right: 0;
+        border-right: none;
+    }
+
+    .account-element-center {
+        width: 200px;
+        min-width: 200px;
+    }
+    
+    .account-element-downloads, .account-element-datasets, .account-element-models {
+        font-size: 1rem;
+    }
+}
+
+@media all and (max-width: 1100px) {
+    .account-element-center {
+        width: 150px;
+        min-width: 150px;
+    }
+}
+
+@media all and (max-width: 1000px) {
+    .account-element-end {
+        display: none;
+    }
+
+    .account-element-center {
+        width: 50%;
+        min-width: 50%;
+        border: none;
+    }
+
+    .account-element-left {
+        width: 50%;
+        min-width: 50%;
+    }
+
 }
