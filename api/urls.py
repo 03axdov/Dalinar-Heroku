@@ -5,6 +5,8 @@ urlpatterns = [
     # PROFILE HANDLING
     path("current-profile/", GetCurrentProfile.as_view(), name="current-profile"),
     path("accounts/", ProfileStatsListView.as_view(), name="accounts"),
+    path("accounts/<str:name>", GetProfile.as_view(), name="get-account"),
+    path("update-profile-image/", UpdateProfileImage.as_view(), name="update-profile-image"),
     
     # DATASET HANDLING
     path("datasets/", DatasetListPublic.as_view(), name="datasets"),

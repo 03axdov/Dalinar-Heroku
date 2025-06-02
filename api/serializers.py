@@ -382,3 +382,18 @@ class ProfileStatsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = ['name', "image", "user", 'model_count', 'dataset_count', 'total_downloads']
+        
+        
+class ProfileExpandedSerializer(serializers.ModelSerializer):
+    datasets = DatasetElementSerializer(many=True, read_only=True)
+    models = ModelElementSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Profile
+        fields = "__all__"
+        
+        
+class ProfileImageUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['image']
