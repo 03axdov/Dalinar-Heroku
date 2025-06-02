@@ -165,6 +165,23 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
         .then((res) => {
             console.log("Success:", res.data);
             
+            const callback = () => {
+                if (isEmpty(uploadedDatasets) && uploadedAreaFiles.length == 0) {
+                    navigate("/home");
+                    notification("Successfully created dataset " + name + ".", "success");
+                }
+            };
+
+            gtag('event', 'conversion', {
+                send_to: 'AW-17119632058/1ErUCO-D_dEaELq1o-M_',
+                value: 50.0,
+                currency: 'SEK',
+                event_callback: callback
+            });
+
+            // Fallback: ensure navigation even if callback doesn't fire
+            setTimeout(callback, 800);
+            
             changeDatasetCount(1)
             if (type == "classification" && !isEmpty(uploadedDatasets)) {
                 createElements(res.data.id)

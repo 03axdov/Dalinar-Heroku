@@ -147,6 +147,11 @@ function CreateModel({notification, BACKEND_URL, changeModelCount}) {
         axios.post(URL, formData, config)
         .then((res) => {
             if (res.data["task_id"]) {
+                gtag('event', 'conversion', {
+                    'send_to': 'AW-17119632058/AMoCCNnE_dEaELq1o-M_',
+                    'value': 50.0,
+                    'currency': 'SEK'
+                });
                 creatingInterval = setInterval(() => getTaskResult(
                     "creating_model",
                     creatingInterval,
@@ -163,9 +168,17 @@ function CreateModel({notification, BACKEND_URL, changeModelCount}) {
                     }
                 ), 2000)
             } else {
-                changeModelCount(1)
-                navigate("/home?start=models")
-                notification("Successfully created model " + name + ".", "success")
+                gtag('event', 'conversion', {
+                    'send_to': 'AW-17119632058/AMoCCNnE_dEaELq1o-M_',
+                    'value': 50.0,
+                    'currency': 'SEK',
+                    'event_callback': () => {
+                        changeModelCount(1)
+                        navigate("/home?start=models")
+                        notification("Successfully created model " + name + ".", "success")
+                    }
+                });
+                
             }
             
         }).catch((error) => {
