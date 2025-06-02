@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef, useCallback } from "react"
 import axios from "axios"
 import AccountElement from "../components/AccountElement"
 import { debounce } from 'lodash';
+import { useParams, useNavigate } from "react-router-dom";
 
 function Accounts({BACKEND_URL, notification}) {
+    const navigate = useNavigate()
 
     const [loading, setLoading] = useState(true)
 

@@ -20,6 +20,7 @@ import ProfileBar from "./components/ProfileBar"
 
 import { Helmet } from "react-helmet";
 import Accounts from "./pages/Accounts"
+import Account from "./pages/Account"
 
 
 // Local: "http://127.0.0.1:8000"
@@ -163,6 +164,7 @@ export default function App() {
                     <Route path="/models/public/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} checkLoggedIn={checkLoggedIn} isPublic={true}/>}/>
                     <Route path="/edit-model/:id" element={<EditModel activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} changeModelCount={changeModelCount}/>}/>
                     <Route path="/accounts" element={<Accounts BACKEND_URL={BACKEND_URL} notification={notification} />}/>
+                    <Route path="/accounts/:name" element={<Account BACKEND_URL={BACKEND_URL} notification={notification} currentProfile={currentProfile} />}/>
                 </Routes>
             </div>
             

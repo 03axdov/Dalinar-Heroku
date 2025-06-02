@@ -22,6 +22,17 @@ class ModelSitemap(Sitemap):
     def location(self, obj):
         return f"/models/public/{obj.id}/"
     
+    
+class AccountSitemap(Sitemap):
+    changefreq = "weekly"
+    priority = 0.7
+
+    def items(self):
+        return Profile.objects.all()
+
+    def location(self, obj):
+        return f"/accounts/{obj.name}/"
+    
 
 class StaticViewSitemap(Sitemap):
     def items(self):

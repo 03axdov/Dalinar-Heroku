@@ -61,20 +61,20 @@
 .account-element {
     width: 100%;
     max-width: 100%;
-    background: var(--background-light);
     border-radius: 5px;
     height: 75px;
     min-height: 75px;
-    margin-bottom: 20px;
     display: flex;
     flex-direction: row;
     align-items: center;
     padding: 0 20px;
     box-sizing: border-box;
+    color: white;
+    text-decoration: none;
 }
 .account-element:hover {
-    background: var(--background-lighter);
-    cursor: default;
+    background: var(--background-light);
+    cursor: pointer;
 }
 
 .account-element-name {
@@ -120,7 +120,6 @@
     padding-left: 40px;
     padding-right: 3px;
     box-sizing: border-box;
-    border-right: 1px solid var(--border-light);
 }
 
 .account-element-downloads, .account-element-datasets, .account-element-models {

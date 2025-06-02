@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from rest_framework.response import Response
-from django.db.models import Q, Count, OuterRef, Subquery, IntegerField, Sum, Value, F, Q
+from django.db.models import Q, Count, OuterRef, Subquery, IntegerField, Sum, Value, F, Q, Prefetch
 from django.db.models.functions import Coalesce
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.urls import resolve
@@ -183,10 +183,8 @@ class ProfileStatsListView(generics.ListAPIView):
         )
 
         return queryset.order_by(order_by)
-
-
-# DATASET HANDLING
-
+    
+    
 # Element count per dataset
 element_count_subquery = (
     Element.objects.filter(dataset=OuterRef("pk"))
@@ -204,6 +202,65 @@ label_count_subquery = (
     .annotate(c=Count("id"))
     .values("c")[:1]
 )
+    
+    
+class GetProfile(APIView):
+    serializer_class = ProfileExpandedSerializer
+    lookup_url_kwarg = 'name'
+
+    def get(self, request, format=None, *args, **kwargs):
+        profile_name = kwargs[self.lookup_url_kwarg]
+
+        try:
+            element_count_subquery = (
+                Element.objects.filter(dataset=OuterRef("pk"))
+                .order_by()
+                .values("dataset")
+                .annotate(c=Count("id"))
+                .values("c")[:1]
+            )
+
+            label_count_subquery = (
+                Label.objects.filter(dataset=OuterRef("pk"))
+                .order_by()
+                .values("dataset")
+                .annotate(c=Count("id"))
+                .values("c")[:1]
+            )
+
+            annotated_datasets = Dataset.objects.annotate(
+                element_count=Subquery(element_count_subquery, output_field=IntegerField()),
+                label_count=Subquery(label_count_subquery, output_field=IntegerField())
+            )
+            
+            profile = profile = Profile.objects.prefetch_related(
+                Prefetch(
+                    'datasets',
+                    queryset=annotated_datasets
+                ),
+                'models__layers'
+            ).get(name=profile_name)
+        
+            return Response(self.serializer_class(profile).data, status=status.HTTP_200_OK)
+        except Profile.DoesNotExist:
+            return Response({'Not found': 'Could not find profile with the name ' + str(profile_name) + '.'}, status=status.HTTP_404_NOT_FOUND)         
+        
+        
+class UpdateProfileImage(APIView):
+    def post(self, request, format=None):
+        try:
+            profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return Response({'Not found': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ProfileImageUpdateSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+        
+
+# DATASET HANDLING
 
 class DatasetListPublic(generics.ListAPIView):
     serializer_class = DatasetElementSerializer
@@ -723,8 +780,6 @@ class UploadElements(APIView):
         files = request.FILES.getlist("files")
         dataset_id = request.data.get("dataset")
         index_offset = int(request.data.get("index", 0))
-        
-        print(f"files: {len(files)}")
 
         s3_keys = []
 
