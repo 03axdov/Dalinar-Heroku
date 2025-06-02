@@ -16,10 +16,17 @@ from polymorphic.models import PolymorphicModel
 ALLOWED_IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "avif"]
 ALLOWED_TEXT_FILE_EXTENSIONS = ["txt", "doc", "docx"]
 
+def profile_image_file_path(instance, filename):
+    """Generate a dynamic path for file uploads based on dataset ID and name."""
+
+    dataset_dir = f"images/{instance.name}"
+
+    return os.path.join(dataset_dir, filename)
 
 class Profile(models.Model):    # Extends default User class
     user = models.OneToOneField(User, primary_key=True, verbose_name='user', related_name='profile', on_delete=models.CASCADE)
     name = models.CharField(max_length=30, blank=True, null=True, unique=True)
+    image = models.ImageField(upload_to=profile_image_file_path, null=True)
     
     training_progress = models.FloatField(default=0) # Used to track progress when training model.
     training_accuracy = models.FloatField(default=-1) # Used to track accuracy when training
@@ -31,7 +38,7 @@ class Profile(models.Model):    # Extends default User class
     edit_dataset_progress = models.FloatField(default=0)
     training_loss = models.FloatField(default=-1)
     training_time_remaining = models.CharField(max_length=100, blank=True, null=True)
-    
+        
     evaluation_progress = models.FloatField(default=0)
     
     def __str__(self):

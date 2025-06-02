@@ -7,7 +7,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from rest_framework.response import Response
-from django.db.models import Q, Count, OuterRef, Subquery, IntegerField
+from django.db.models import Q, Count, OuterRef, Subquery, IntegerField, Sum, Value, F, Q
 from django.db.models.functions import Coalesce
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.urls import resolve
@@ -153,6 +153,36 @@ class GetCurrentProfile(APIView):
         data["savedModelsCount"] = profile.saved_models.count()
         
         return Response(data, status=status.HTTP_200_OK)
+    
+    
+class ProfileStatsListView(generics.ListAPIView):
+    serializer_class = ProfileStatsSerializer
+
+    def get_queryset(self):
+        request = self.request
+
+        order_by = request.query_params.get("order_by", "name")
+        search_query = request.query_params.get("search", "").strip()
+
+        allowed_order_fields = ["name", "-total_downloads", "-model_count", "-dataset_count"]
+        if order_by not in allowed_order_fields:
+            order_by = "name"
+
+        queryset = Profile.objects.all()
+        if search_query:
+            queryset = queryset.filter(name__istartswith=search_query)
+
+        # Count all M2M entries pointing to this profile's models and datasets
+        queryset = queryset.annotate(
+            model_count=Count("models", distinct=True),
+            dataset_count=Count("datasets", distinct=True),
+            model_downloads=Count("models__downloaders", distinct=True),
+            dataset_downloads=Count("datasets__downloaders", distinct=True),
+        ).annotate(
+            total_downloads=F("model_downloads") + F("dataset_downloads")
+        )
+
+        return queryset.order_by(order_by)
 
 
 # DATASET HANDLING

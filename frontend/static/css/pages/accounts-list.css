@@ -1,0 +1,142 @@
+.accounts-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: start;
+}
+
+.accounts-title {
+    font-size: 1.8rem;
+    margin: 0;
+    font-weight: 500;
+    padding-right: 50px;
+    padding-bottom: 5px;
+
+    border-bottom: 1px solid white;
+    display: inline-block;
+    width: 100%;
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+.accounts-left {
+    width: 275px;
+    background: var(--background-light);
+    height: 100%;
+    padding: 20px 20px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.accounts-right {
+    width: 100%;
+    height: 100%;
+    padding: 20px 100px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+}
+
+.accounts-search-container {
+    background: var(--background-dark);
+    margin-top: 20px;
+    width: 100%;
+}
+
+.accounts-search-container .explore-datasets-search {
+    border: none!important;
+}
+
+.accounts-sort {
+    width: 100%;
+    margin-top: 20px;
+    background: var(--background-dark);
+}
+
+.account-element {
+    width: 100%;
+    max-width: 100%;
+    background: var(--background-light);
+    border-radius: 5px;
+    height: 75px;
+    min-height: 75px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+.account-element:hover {
+    background: var(--background-lighter);
+    cursor: pointer;
+}
+
+.account-element-name {
+    font-size: 1.2rem;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.account-element-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 20px;
+}
+
+.account-element-part {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    height: 45px;
+}
+
+.account-element-left {
+    width: 250px;
+    max-width: 33%;
+    border-right: 1px solid var(--border-light);
+    padding-right: 3px;
+    box-sizing: border-box;
+}
+
+.account-element-center {
+    width: 250px;
+    max-width: 33%;
+    justify-content: center;
+    padding-right: 3px;
+    border-right: 1px solid var(--border-light);
+}
+
+.account-element-end {
+    width: 300px;
+    max-width: 33%;
+    padding-left: 40px;
+    padding-right: 3px;
+    border-right: 1px solid var(--border-light);
+}
+
+.account-element-downloads, .account-element-datasets, .account-element-models {
+    font-size: 1.1rem;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.account-element-datasets, .account-element-models {
+    width: 150px;
+    max-width: calc(50% - 20px);
+}
+
+@media all and (max-width: 1500px) {
+    .accounts-right {
+        padding: 20px 40px;
+    }
+}

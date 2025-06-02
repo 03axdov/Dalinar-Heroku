@@ -372,3 +372,13 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = "__all__"
+        
+        
+class ProfileStatsSerializer(serializers.ModelSerializer):
+    model_count = serializers.IntegerField()
+    dataset_count = serializers.IntegerField()
+    total_downloads = serializers.IntegerField()
+
+    class Meta:
+        model = Profile
+        fields = ['name', "image", "user", 'model_count', 'dataset_count', 'total_downloads']

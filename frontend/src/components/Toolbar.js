@@ -34,6 +34,11 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
                 navigate("/explore/") 
             }}>Explore</a>
 
+            <a href="/explore" className={"toolbar-text toolbar-mobile-hide " + (window.location.pathname.replaceAll("/", "") == "accounts" ? "toolbar-text-activated" : "")} onClick={(e) => {
+                e.preventDefault()
+                navigate("/accounts/") 
+            }}>Accounts</a>
+
             <a href="/guide" className={"toolbar-text toolbar-mobile-hide " + (window.location.pathname.replaceAll("/", "") == "guide" ? "toolbar-text-activated" : "")} onClick={(e) => {
                 e.preventDefault()
                 externalLink("/guide")
