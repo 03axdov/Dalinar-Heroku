@@ -120,7 +120,7 @@ function Guide({BACKEND_URL}) {
                             Users are able to create both area and classification datasets. Dalinar currently supports both images and text.
                             Elements are listed to the left with labels and areas, if applicable, to the right.
                         </p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.webp"} alt="Example page" style={{height: "505px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.jpg"} alt="Example page" style={{height: "505px"}} />
                         
                         <p className="guide-subheader" id="models">Models</p>
                         <p className="instructions-text">
@@ -128,7 +128,7 @@ function Guide({BACKEND_URL}) {
                             These all have different parameters that can be tailored to your needs.
                             Once you've construct a model it must be built (i.e. compiled) and can then be trained or exported. 
                         </p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.webp"} alt="Example model page" style={{height: "505px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.jpg"} alt="Example model page" style={{height: "505px"}} />
                         <p className="instructions-text">
                             Please see the more detailed pages for further explanations.
                         </p>
@@ -193,7 +193,7 @@ function Guide({BACKEND_URL}) {
                     </div>
 
                     <div className="instructions-container">
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.webp"} style={{height: "505px"}} alt="Example classification" />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.jpg"} style={{height: "505px"}} alt="Example classification" />
 
                         <p className="guide-subheader" id="labelling">Labelling</p>
                         <p className="instructions-text">
@@ -225,7 +225,7 @@ function Guide({BACKEND_URL}) {
                     </div>
 
                     <div className="instructions-container">
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.webp"} style={{height: "505px"}} alt="Example page" />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.jpg"} style={{height: "505px"}} alt="Example page" />
 
                         <p className="guide-subheader" id="area-creation">Area Creation</p>
                         <p className="instructions-text">
@@ -250,7 +250,7 @@ function Guide({BACKEND_URL}) {
                             They can either be image models or text models, which will determine which types of datasets are shown when e.g. training or evaluating.
                             Added layers are displayed in the toolbar to the left as well as the main display. Once a model is created or changed, it must be built before it can be trained, downloaded, etc. (see the section on Building).
                         </p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.webp"} style={{height: "505px"}} alt="Example page model" />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.jpg"} style={{height: "505px"}} alt="Example page model" />
                     </div>
 
                     <div className="instructions-container">
