@@ -138,9 +138,10 @@ function Accounts({BACKEND_URL, notification}) {
         </div>
         
         <div className="accounts-right">
-            {accounts.map((account, idx) => (
+            {!loading && accounts.map((account, idx) => (
                 <AccountElement account={account} BACKEND_URL={BACKEND_URL} key={idx} />
             ))}
+            {loading && <AccountElement account={null} BACKEND_URL={BACKEND_URL} loading={true} />}
 
             {nextPageAccounts && <div ref={loaderRef}>Loading...</div>}
         </div>

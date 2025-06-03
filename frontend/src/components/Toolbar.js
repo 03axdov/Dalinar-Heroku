@@ -8,7 +8,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
     const [showMobileToolbar, setShowMobileToolbar] = useState(false)
 
     const isBaseUrl = window.location.pathname === '/'; // Check if we're at the base URL
-    const isGuideUrl = window.location.pathname.replaceAll("/", "") === "guide"
+    const isGuideUrl = (window.location.pathname.replaceAll("/", "") === "guide") || (window.location.pathname.replaceAll("/", "") === "accounts")
 
     function externalLink(link) {
         const URL = window.location.origin + link
@@ -43,6 +43,8 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
                 e.preventDefault()
                 externalLink("/guide")
             }}>Guide <img className="toolbar-icon" src={BACKEND_URL + "/static/images/external.png"} alt="External" /></a>
+
+            <a target="_blank" href="https://github.com/03axdov/Dalinar" className="toolbar-text toolbar-mobile-hide">GitHub <img className="toolbar-icon" src={BACKEND_URL + "/static/images/github.svg"} alt="GitHub" /></a>
 
             {!loadingCurrentProfile && currentProfile.user === "" &&
                 <div className="toolbar-auth toolbar-mobile-hide">
@@ -87,6 +89,12 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
                 setShowMobileToolbar(false)
                 navigate("/explore") 
             }}>Explore</a>
+
+            <a href="/accounts" className={"toolbar-mobile-text " + (window.location.pathname.replaceAll("/", "") == "accounts" ? "toolbar-text-activated" : "")} onClick={(e) => {
+                e.preventDefault()
+                setShowMobileToolbar(false)
+                navigate("/accounts") 
+            }}>Accounts</a>
 
             <a href="/guide" className={"toolbar-mobile-text " + (window.location.pathname.replaceAll("/", "") == "guide" ? "toolbar-text-activated" : "")} onClick={(e) => {
                 e.preventDefault()
