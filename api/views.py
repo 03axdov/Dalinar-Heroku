@@ -176,8 +176,8 @@ class ProfileStatsListView(generics.ListAPIView):
         queryset = queryset.annotate(
             model_count=Count("models", distinct=True),
             dataset_count=Count("datasets", distinct=True),
-            model_downloads=Count("models__downloaders", distinct=True),
-            dataset_downloads=Count("datasets__downloaders", distinct=True),
+            model_downloads=Count("models__downloaders"),
+            dataset_downloads=Count("datasets__downloaders"),
         ).annotate(
             total_downloads=F("model_downloads") + F("dataset_downloads")
         )
