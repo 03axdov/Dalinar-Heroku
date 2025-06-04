@@ -11,6 +11,9 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 import pillow_avif # Adds .avif support
 from polymorphic.models import PolymorphicModel
+import random
+from django.core.files.storage import default_storage
+from django.core.files import File
 
 
 ALLOWED_IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "avif"]
@@ -19,14 +22,14 @@ ALLOWED_TEXT_FILE_EXTENSIONS = ["txt", "doc", "docx"]
 def profile_image_file_path(instance, filename):
     """Generate a dynamic path for file uploads based on dataset ID and name."""
 
-    dataset_dir = f"images/{instance.name}"
+    dataset_dir = f"images/{instance.name} (P)"
 
     return os.path.join(dataset_dir, filename)
 
 class Profile(models.Model):    # Extends default User class
     user = models.OneToOneField(User, primary_key=True, verbose_name='user', related_name='profile', on_delete=models.CASCADE)
     name = models.CharField(max_length=30, blank=True, null=True, unique=True)
-    image = models.ImageField(upload_to=profile_image_file_path, null=True)
+    image = models.ImageField(upload_to=profile_image_file_path, null=True, blank=True)
     
     training_progress = models.FloatField(default=0) # Used to track progress when training model.
     training_accuracy = models.FloatField(default=-1) # Used to track accuracy when training
@@ -43,6 +46,22 @@ class Profile(models.Model):    # Extends default User class
     
     def __str__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.image:
+            # Only assign default if this is a new object (no primary key yet)
+            default_image_number = random.randint(1, 4)
+            default_image_path = f"defaults/default-profile-{default_image_number}.svg"
+
+            if default_storage.exists(default_image_path):
+                with default_storage.open(default_image_path, 'rb') as f:
+                    self.image.save(
+                        f"default-profile-{default_image_number}.svg",
+                        File(f),
+                        save=False  # Don't call save() recursively
+                    )
+
+        super().save(*args, **kwargs)
     
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):
