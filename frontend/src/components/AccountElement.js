@@ -12,20 +12,23 @@ function AccountElement({account, BACKEND_URL, loading}) {
                     <p className="account-element-name">{account.name}</p>
                 </div>
 
-                <p className="account-element-downloads">
-                    <span className="account-stat-color account-color-1"></span>
-                    {account.total_downloads} total download{account.total_downloads == 1 ? "" : "s"}
-                </p>
+                <div className="account-element-right">
+                    <p className="account-element-downloads" title={account.total_downloads + " total download" + (account.total_downloads == 1 ? "" : "s")}>
+                        <span className="account-stat-color account-color-1"></span>
+                        <span className="account-element-stat-text">{account.total_downloads} total download{account.total_downloads == 1 ? "" : "s"}</span>
+                    </p>
 
-                <p className="account-element-datasets">
-                    <span className="account-stat-color account-color-2"></span>
-                    {account.dataset_count} dataset{account.dataset_count == 1 ? "" : "s"}
-                </p>
-                    
-                <p className="account-element-models">
-                    <span className="account-stat-color account-color-3"></span>
-                    {account.model_count} model{account.model_count == 1 ? "" : "s"}
-                </p>
+                    <p className="account-element-datasets" title={account.dataset_count + " datasets" + (account.dataset_count == 1 ? "" : "s")}>
+                        <span className="account-stat-color account-color-2"></span>
+                        <span className="account-element-stat-text">{account.dataset_count} dataset{account.dataset_count == 1 ? "" : "s"}</span>
+                    </p>
+                        
+                    <p className="account-element-models" title={account.model_count + " models" + (account.model_count == 1 ? "" : "s")}>
+                        <span className="account-stat-color account-color-3"></span>
+                         <span className="account-element-stat-text">{account.model_count} model{account.model_count == 1 ? "" : "s"}</span>
+                    </p>
+                </div>
+                
 
             </a>
         )

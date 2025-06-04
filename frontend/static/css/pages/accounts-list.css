@@ -62,8 +62,8 @@
     width: 100%;
     max-width: 100%;
     border-radius: 5px;
-    height: 75px;
-    min-height: 75px;
+    height: 60px;
+    min-height: 60px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -72,10 +72,12 @@
     box-sizing: border-box;
     color: white;
     text-decoration: none;
-    background: var(--background-light);
+    background: var(--background);
     margin-bottom: 10px;
+    transition: 0.1s;
 }
 .account-element:hover {
+    transition: 0s;
     background: var(--background-lighter);
     cursor: pointer;
 }
@@ -94,6 +96,7 @@
     height: 40px;
     border-radius: 50%;
     margin-right: 20px;
+    box-shadow: 0 0 0 1px var(--border);
     background: var(--background-dark);
 }
 
@@ -109,45 +112,31 @@
     box-sizing: border-box;
 }
 
-.account-element-center {
-    width: 225px;
-    min-width: 225px;
-    justify-content: center;
-    box-sizing: border-box;
-}
-
-.account-element-end {
-    width: 300px;
-    max-width: calc(100% - 400px);
-    padding-left: 40px;
-    padding-right: 3px;
-    box-sizing: border-box;
+.account-element-right {
+    width: 600px;
+    max-width: calc(100% - 250px);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .account-element-downloads, .account-element-datasets, .account-element-models {
     font-size: 1.1rem;
-    overflow-x: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 100%;
+    width: 33%;
+    max-width: 33%;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    text-align: center;
+
 }
 
-.account-element-downloads {
-    margin: 0 5px;
-}
-
-.account-element-datasets, .account-element-models {
-    width: 150px;
+.account-element-stat-text {
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     max-width: 100%;
-}
-
-.account-element-models {
-    margin-left: 20px;
 }
 
 @media all and (max-width: 1500px) {

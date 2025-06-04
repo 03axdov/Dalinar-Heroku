@@ -128,10 +128,11 @@ html, body {
     margin-right: 10px;
 }
 .profile-bar-icon-large {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     margin-right: 10px;
+    box-shadow: 0 0 0 1px var(--border);
 }
 
 .profile-bar-cross {
@@ -160,6 +161,7 @@ html, body {
 
 .profile-bar-profile {
     margin-bottom: 10px;
+    padding: 7px 15px;
 }
 
 .profile-bar-row:hover, .profile-bar-profile:hover {
