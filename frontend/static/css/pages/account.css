@@ -5,6 +5,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    background: var(--background-dark);
 }
 
 .account-inner {
@@ -65,6 +66,7 @@
 
 .account-stat-color {
     width: 12px;
+    min-width: 12px;
     height: 12px;
     border-radius: 50%;
     margin-right: 10px;

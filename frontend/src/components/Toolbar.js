@@ -8,7 +8,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
     const [showMobileToolbar, setShowMobileToolbar] = useState(false)
 
     const isBaseUrl = window.location.pathname === '/'; // Check if we're at the base URL
-    const isGuideUrl = (window.location.pathname.replaceAll("/", "") === "guide") || (window.location.pathname.replaceAll("/", "") === "accounts")
+    const isGuideUrl = (window.location.pathname.replaceAll("/", "") === "guide") || (window.location.pathname.replaceAll("/", "").startsWith("allaccounts"))
 
     function externalLink(link) {
         const URL = window.location.origin + link
@@ -34,7 +34,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
                 navigate("/explore/") 
             }}>Explore</a>
 
-            <a href="/all/accounts" className={"toolbar-text toolbar-mobile-hide " + (window.location.pathname.replaceAll("/", "") == "accounts" ? "toolbar-text-activated" : "")} onClick={(e) => {
+            <a href="/all/accounts" className={"toolbar-text toolbar-mobile-hide " + (window.location.pathname.replaceAll("/", "") == "allaccounts" ? "toolbar-text-activated" : "")} onClick={(e) => {
                 e.preventDefault()
                 navigate("all/accounts/") 
             }}>Accounts</a>
@@ -90,7 +90,7 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
                 navigate("/explore") 
             }}>Explore</a>
 
-            <a href="all/accounts" className={"toolbar-mobile-text " + (window.location.pathname.replaceAll("/", "") == "accounts" ? "toolbar-text-activated" : "")} onClick={(e) => {
+            <a href="all/accounts" className={"toolbar-mobile-text " + (window.location.pathname.replaceAll("/", "") == "allaccounts" ? "toolbar-text-activated" : "")} onClick={(e) => {
                 e.preventDefault()
                 setShowMobileToolbar(false)
                 navigate("all/accounts") 
