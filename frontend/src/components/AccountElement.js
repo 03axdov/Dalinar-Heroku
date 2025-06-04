@@ -5,7 +5,7 @@ function AccountElement({account, BACKEND_URL, loading}) {
 
     if (!loading) {
         return (
-            <a target="_blank" href={"/accounts/" + account.name} className="account-element">
+            <a target="_blank" href={"/all/accounts/" + account.name} className="account-element">
 
                 <div className="account-element-left account-element-part">
                     <img className="account-element-image" src={account.image || (BACKEND_URL + "/static/images/default-profile.svg")} />

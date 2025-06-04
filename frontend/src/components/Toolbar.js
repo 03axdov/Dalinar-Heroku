@@ -34,9 +34,9 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
                 navigate("/explore/") 
             }}>Explore</a>
 
-            <a href="/explore" className={"toolbar-text toolbar-mobile-hide " + (window.location.pathname.replaceAll("/", "") == "accounts" ? "toolbar-text-activated" : "")} onClick={(e) => {
+            <a href="/all/accounts" className={"toolbar-text toolbar-mobile-hide " + (window.location.pathname.replaceAll("/", "") == "accounts" ? "toolbar-text-activated" : "")} onClick={(e) => {
                 e.preventDefault()
-                navigate("/accounts/") 
+                navigate("all/accounts/") 
             }}>Accounts</a>
 
             <a href="/guide" className={"toolbar-text toolbar-mobile-hide " + (window.location.pathname.replaceAll("/", "") == "guide" ? "toolbar-text-activated" : "")} onClick={(e) => {
@@ -90,10 +90,10 @@ function Toolbar({currentProfile, loadingCurrentProfile, checkLoggedIn, BACKEND_
                 navigate("/explore") 
             }}>Explore</a>
 
-            <a href="/accounts" className={"toolbar-mobile-text " + (window.location.pathname.replaceAll("/", "") == "accounts" ? "toolbar-text-activated" : "")} onClick={(e) => {
+            <a href="all/accounts" className={"toolbar-mobile-text " + (window.location.pathname.replaceAll("/", "") == "accounts" ? "toolbar-text-activated" : "")} onClick={(e) => {
                 e.preventDefault()
                 setShowMobileToolbar(false)
-                navigate("/accounts") 
+                navigate("all/accounts") 
             }}>Accounts</a>
 
             <a href="/guide" className={"toolbar-mobile-text " + (window.location.pathname.replaceAll("/", "") == "guide" ? "toolbar-text-activated" : "")} onClick={(e) => {
