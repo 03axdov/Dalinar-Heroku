@@ -21,7 +21,7 @@ function ProfileBar({currentProfile, setShowProfileBar, BACKEND_URL}) {
 
             <div className="profile-bar-profile" title={"Signed in as " + currentProfile.name} onClick={() => {
                 setShowProfileBar(false)
-                navigate("/accounts/" + currentProfile.name)
+                navigate("/all/accounts/" + currentProfile.name)
             }}>
                 {!currentProfile.image && <img className="profile-bar-icon" src={BACKEND_URL + "/static/images/profile.svg"} alt="Profile" />}
                 {currentProfile.image && <img className="profile-bar-icon-large" src={currentProfile.image} alt="Profile" />}

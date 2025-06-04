@@ -50,7 +50,7 @@ class Profile(models.Model):    # Extends default User class
     def save(self, *args, **kwargs):
         if not self.image:
             # Only assign default if this is a new object (no primary key yet)
-            default_image_number = random.randint(1, 4)
+            default_image_number = random.randint(1, 8)
             default_image_path = f"defaults/default-profile-{default_image_number}.svg"
 
             if default_storage.exists(default_image_path):
