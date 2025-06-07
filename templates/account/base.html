@@ -3,11 +3,23 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17119632058">
+    </script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'AW-17119632058');
+      gtag('config', 'G-LKEWF87Q7Q');
+    </script>
+    
     <title>Dalinar | {% block head_title %}{% endblock %}</title>
     {% block extra_head %}
     {% endblock %}
 
-    <link rel="icon" type="image/svg" href="{% static "images/logoWhite.svg" %}" />
+    <link rel="icon" type="image/svg" href="{% static "images/logo.svg" %}" />
 
     <link href="{% static 'css/index.css' %}" rel="stylesheet" type="text/css">
     <link href="{% static 'css/root.css' %}" rel="stylesheet" type="text/css">
@@ -40,7 +52,11 @@
     <meta name="keywords" content="machine learning, datasets, models, ai, no code, data">
     <meta property="og:description" content="End-to-end machine learning without having to code." />
     <meta property="og:url" content="https://www.dalinar.net/" />
-    <meta property="og:image" content="https://dalinar.s3.eu-north-1.amazonaws.com/static/images/logoWhite.svg" />
+    <meta property="og:image" content="https://dalinar.s3.eu-north-1.amazonaws.com/static/images/logo.jpg" />
+
+    <meta name="description" content="Manage your Dalinar account — sign up, log in, reset your password, and access your machine learning projects securely." />
+
+
 
     <script type="application/ld+json">
       {
@@ -48,9 +64,11 @@
         "@type": "Organization",
         "name": "Dalinar Technologies",
         "url": "https://dalinar.net",
-        "logo": "https://dalinar.s3.eu-north-1.amazonaws.com/static/images/logoWhite.svg"
+        "logo": "https://dalinar.s3.eu-north-1.amazonaws.com/static/images/logo.jpg"
       }
     </script>
+
+    
   </head>
   <body class="form-body">
     {% block body %}
@@ -59,14 +77,16 @@
       <a class="accounts-logo" href="/"><img id="toolbar-logo" src={% static 'images/logoWhite.svg' %} /></a>
       <a href="/" class="toolbar-text toolbar-title">Dalinar</a>
 
-      <a href="/home" class="toolbar-text">Home</a>
+      <a href="/home" class="toolbar-text toolbar-mobile-hide">Home</a>
 
       <a href="/explore" class="toolbar-text">Explore</a>
 
-      <a href="/guide" target="_blank" class="toolbar-text">Guide <img class="toolbar-icon" src={% static 'images/external.png' %} /></a>
+      <a href="/all/accounts" class="toolbar-text">Accounts</a>
+
+      <a href="/guide" target="_blank" class="toolbar-text toolbar-mobile-hide">Guide <img class="toolbar-icon" src={% static 'images/external.png' %} /></a>
 
       {% if not user.is_authenticated %}
-      <div class="toolbar-auth">
+      <div class="toolbar-auth toolbar-mobile-hide">
           <a class="toolbar-text" href="/accounts/signup">Register</a>
           <a href="/accounts/login" class="toolbar-button toolbar-register">Sign in</a>
       </div>

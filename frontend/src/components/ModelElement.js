@@ -8,14 +8,19 @@ function DatasetElement({model, BACKEND_URL, isPublic=false}) {
     const formattedDate = new Date(model.created_at).toLocaleDateString("en-US")
     const navigate = useNavigate()
 
-    function onClick() {
+    function onClick(e) {
+        e.preventDefault()
         const URL = window.location.origin + "/models/" + (isPublic ? "public/" : "") +  model.id
         var win = window.open(URL, '_blank');
         win.focus();
     }
 
     return (
-        <div className="dataset-element" onClick={onClick} onMouseEnter={() => setShowDescription(true)} onMouseLeave={() => {setShowDescription(false)}} >
+        <a className="dataset-element" 
+        href={"/models/" + (isPublic ? "public/" : "") + model.id}
+        onClick={onClick} 
+        onMouseEnter={() => setShowDescription(true)} 
+        onMouseLeave={() => {setShowDescription(false)}} >
             <div className="dataset-element-header">
                     
                 <img title="Model" className="dataset-element-icon dataset-element-icon-type" src={BACKEND_URL + "/static/images/model.svg"} alt="Model" />
@@ -27,6 +32,7 @@ function DatasetElement({model, BACKEND_URL, isPublic=false}) {
 
                 {!isPublic && <img title="Edit model" className="dataset-element-icon dataset-element-options" src={BACKEND_URL + "/static/images/options.png"} alt="Edit" onClick={(e) => {
                     e.stopPropagation()
+                    e.preventDefault()
 
                     navigate("/edit-model/" + model.id)
                 }}/>}
@@ -46,7 +52,7 @@ function DatasetElement({model, BACKEND_URL, isPublic=false}) {
             {model.model_file && <p className="dataset-element-datatype">Built</p>}
             <p className="dataset-element-shape">{model.model_type.charAt(0).toUpperCase() + model.model_type.slice(1)}</p>
 
-        </div>
+        </a>
     )
 }
 

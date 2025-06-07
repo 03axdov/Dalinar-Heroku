@@ -1,4 +1,4 @@
-1. Create layer model
+1. Create layer model (also add to supported layer_types)
 2. Create serializer and create serializer for the new model.
 3. Add these to LayerSerializer and CreateLayerSerializer respectively.
 4. Update CreateLayer view

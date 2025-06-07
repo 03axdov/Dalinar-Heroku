@@ -18,6 +18,10 @@ import EditModel from "./pages/EditModel"
 import { TaskProvider } from "./contexts/TaskContext"
 import ProfileBar from "./components/ProfileBar"
 
+import { Helmet } from "react-helmet";
+import Accounts from "./pages/Accounts"
+import Account from "./pages/Account"
+
 
 // Local: "http://127.0.0.1:8000"
 // Production: "https://dalinar.s3.eu-north-1.amazonaws.com"
@@ -52,6 +56,19 @@ export default function App() {
     useEffect(() => {
         getCurrentProfile()
     }, [updateProfile])
+
+    function changeDatasetCount(change) {
+        if (!currentProfile.datasetsCount) return
+        let temp = {...currentProfile}
+        temp.datasetsCount += change
+        setCurrentProfile(temp)
+    }
+    function changeModelCount(change) {
+        if (!currentProfile.modelsCount) return
+        let temp = {...currentProfile}
+        temp.modelsCount += change
+        setCurrentProfile(temp)
+    }
 
 
     function getCurrentProfile() {
@@ -104,7 +121,20 @@ export default function App() {
         }, delay)
     }
 
-    return (
+    return (<>
+        <Helmet>
+            <script type="application/ld+json">
+            {`
+                {
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "Dalinar Technologies",
+                "url": "https://dalinar.net",
+                "logo": "https://dalinar.s3.eu-north-1.amazonaws.com/static/images/logo.jpg"
+                }
+            `}
+            </script>
+        </Helmet>
         <div id="main">
             <TaskProvider>
             <Notification show={showNotification} message={notificationMessage} type={notificationType} notificationHover={notificationHover} BACKEND_URL={BACKEND_URL}/>
@@ -118,24 +148,27 @@ export default function App() {
                 <Routes>
                     <Route path="/" element={<Landing BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/explore" element={<Home currentProfile={null} 
-            notification={notification} 
-            BACKEND_URL={BACKEND_URL} 
-            checkLoggedIn={checkLoggedIn} 
-            is_explore={true}/>}/>
+                        key="explore"
+                        notification={notification} 
+                        BACKEND_URL={BACKEND_URL} 
+                        checkLoggedIn={checkLoggedIn} 
+                        is_explore={true}/>}/>
                     <Route path="/guide" element={<Guide BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/home" element={<Home currentProfile={currentProfile} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/create-dataset" element={<CreateDataset notification={notification} BACKEND_URL={BACKEND_URL} activateConfirmPopup={activateConfirmPopup}/>}/>
-                    <Route path="/create-model" element={<CreateModel notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
-                    <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/home" element={<Home key="homes" currentProfile={currentProfile} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/create-dataset" element={<CreateDataset notification={notification} BACKEND_URL={BACKEND_URL} activateConfirmPopup={activateConfirmPopup} changeDatasetCount={changeDatasetCount}/>}/>
+                    <Route path="/create-model" element={<CreateModel notification={notification} BACKEND_URL={BACKEND_URL} changeModelCount={changeModelCount}/>}/>
+                    <Route path="/edit-dataset/:id" element={<EditDataset activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} changeDatasetCount={changeDatasetCount}/>}/>
                     <Route path="/datasets/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
                     <Route path="/datasets/public/:id" element={<Dataset currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} isPublic={true}/>}/>
                     <Route path="/models/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} checkLoggedIn={checkLoggedIn}/>}/>
                     <Route path="/models/public/:id" element={<Model currentProfile={currentProfile} activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} checkLoggedIn={checkLoggedIn} isPublic={true}/>}/>
-                    <Route path="/edit-model/:id" element={<EditModel activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL}/>}/>
+                    <Route path="/edit-model/:id" element={<EditModel activateConfirmPopup={activateConfirmPopup} notification={notification} BACKEND_URL={BACKEND_URL} changeModelCount={changeModelCount}/>}/>
+                    <Route path="/all/accounts" element={<Accounts BACKEND_URL={BACKEND_URL} notification={notification} />}/>
+                    <Route path="/all/accounts/:name" element={<Account BACKEND_URL={BACKEND_URL} notification={notification} currentProfile={currentProfile} />}/>
                 </Routes>
             </div>
             
             </TaskProvider>
         </div>
-    )
+    </>)
 }

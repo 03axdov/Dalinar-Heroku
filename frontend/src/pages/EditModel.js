@@ -4,7 +4,7 @@ import axios from "axios"
 import { useParams, useSearchParams } from "react-router-dom";
 import TitleSetter from "../components/minor/TitleSetter";
 
-function EditModel({activateConfirmPopup, notification, BACKEND_URL}) {
+function EditModel({activateConfirmPopup, notification, BACKEND_URL, changeModelCount}) {
 
     const navigate = useNavigate()
     const [searchParams] = useSearchParams();
@@ -129,6 +129,7 @@ function EditModel({activateConfirmPopup, notification, BACKEND_URL}) {
         setProcessingDelete(true)
         axios.post(URL, data, config)
         .then((data) => {
+            changeModelCount(-1)
             navigate("/home?start=models")
             notification("Successfully deleted model " + name + ".", "success")
 
@@ -211,14 +212,16 @@ function EditModel({activateConfirmPopup, notification, BACKEND_URL}) {
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Model visibility</p>
-                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={!loading && visibility == "private"} onChange={(e) => {
-                        setVisibility(e.target.value)
-                    }} />
-                    <label htmlFor="create-dataset-visibility-private" className="create-dataset-type-label">Private</label>
+                    
                     <input type="radio" id="create-dataset-visibility-public" name="visibility" value="public" checked={!loading && visibility == "public"}  onChange={(e) => {
                         setVisibility(e.target.value)
                     }} />
                     <label htmlFor="create-dataset-visibility-public" className="create-dataset-type-label">Public</label>
+
+                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={!loading && visibility == "private"} onChange={(e) => {
+                        setVisibility(e.target.value)
+                    }} />
+                    <label htmlFor="create-dataset-visibility-private" className="create-dataset-type-label">Private</label>
                 </div>
 
                 <div className="create-dataset-buttons">

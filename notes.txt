@@ -2,10 +2,16 @@ TO-DO:
 - Presave tensorflow datasets?
 - Upload datasets directly for training (don't store for longer than used)
 - Problem with testing and files on AWS not getting deleted
-- Look into deleting temp model file in get_tf_model
+- Only use necessary values in GetTaskResult?
+- Area dataset models (and look into downloading)
 
 Layers to add:
 
-
 Start Celery Worker: 
 celery -A Dalinar.celery worker --pool=solo -l info -Q default
+celery -A Dalinar.celery worker --pool=solo -l info -Q training
+
+Get traing worker log:
+1. SSH into AWS instance (see connect)
+2a. tail -f /home/ubuntu/celery_default.log
+2b. tail -f /home/ubuntu/celery_training.log

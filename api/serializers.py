@@ -79,6 +79,25 @@ class EditLabelSerializer(serializers.ModelSerializer):
         
 # DATASET HANDLING
 
+class DatasetElementSerializer(serializers.ModelSerializer):
+    element_count = serializers.IntegerField()
+    label_count = serializers.IntegerField()
+    
+    class Meta:
+        model = Dataset
+        fields = ("id", "name", "description", "imageSmall", "dataset_type", "downloaders", "created_at",
+                  "keywords", "imageHeight", "imageWidth", "element_count", "label_count", "visibility", "datatype")
+        extra_kwargs = {"owner": {"read_only": True}}
+        
+        
+class EditDatasetSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dataset
+        fields = ("id", "name", "description", "imageSmall", "dataset_type", 
+                  "keywords", "imageHeight", "imageWidth", "visibility", "datatype")
+        extra_kwargs = {"owner": {"read_only": True}}
+        
+
 class DatasetSerializer(serializers.ModelSerializer):
     elements = ElementSerializer(many=True, read_only=True)
     labels = LabelSerializer(many=True, read_only=True)
@@ -127,8 +146,10 @@ class LayerSerializer(serializers.BaseSerializer):
             return GlobalAveragePooling1DLayerSerializer(instance).data
         elif isinstance(instance, MobileNetV2Layer):
             return MobileNetV2LayerSerializer(instance).data
-        elif isinstance(instance, MobileNetV2SmallLayer):
-            return MobileNetV2SmallLayerSerializer(instance).data
+        elif isinstance(instance, MobileNetV2_96x96Layer):
+            return MobileNetV2_96x96LayerSerializer(instance).data
+        elif isinstance(instance, MobileNetV2_32x32Layer):
+            return MobileNetV2_32x32LayerSerializer(instance).data
         return None  # Handles unexpected cases
     
     
@@ -160,8 +181,10 @@ class CreateLayerSerializer(serializers.BaseSerializer):
             return CreateGlobalAveragePooling1DLayerSerializer(instance).data
         elif isinstance(instance, MobileNetV2Layer):
             return CreateMobileNetV2LayerSerializer(instance).data
-        elif isinstance(instance, MobileNetV2SmallLayer):
-            return CreateMobileNetV2SmallLayerSerializer(instance).data
+        elif isinstance(instance, MobileNetV2_96x96Layer):
+            return CreateMobileNetV2_96x96LayerSerializer(instance).data
+        elif isinstance(instance, MobileNetV2_32x32Layer):
+            return CreateMobileNetV2_32x32LayerSerializer(instance).data
         return None  # Handles unexpected cases
     
 
@@ -295,17 +318,34 @@ class CreateMobileNetV2LayerSerializer(serializers.ModelSerializer):
         fields = []
 
 
-class MobileNetV2SmallLayerSerializer(serializers.ModelSerializer):
+class MobileNetV2_96x96LayerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MobileNetV2SmallLayer
+        model = MobileNetV2_96x96Layer
         fields = "__all__"
-class CreateMobileNetV2SmallLayerSerializer(serializers.ModelSerializer):
+class CreateMobileNetV2_96x96LayerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = MobileNetV2SmallLayer
+        model = MobileNetV2_96x96Layer
+        fields = []
+        
+
+class MobileNetV2_32x32LayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MobileNetV2_32x32Layer
+        fields = "__all__"
+class CreateMobileNetV2_32x32LayerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MobileNetV2_32x32Layer
         fields = []
 
         
 # MODEL HANDLING
+
+
+class ModelElementSerializer(serializers.ModelSerializer):
+    layers = LayerSerializer(many=True, read_only=True)
+    class Meta:
+        model = Model
+        fields = ("id", "name", "model_type", "description", "visibility", "imageSmall", "layers", "downloaders", "model_file", "created_at")
 
 
 class ModelSerializer(serializers.ModelSerializer):
@@ -327,9 +367,33 @@ class CreateModelSerializer(serializers.ModelSerializer):
 # PROFILE HANDLING
 
 class ProfileSerializer(serializers.ModelSerializer):
-    saved_datasets = DatasetSerializer(many=True, read_only=True)
-    saved_models = ModelSerializer(many=True, read_only=True)
+    saved_models = ModelElementSerializer(many=True, read_only=True)
     
     class Meta:
         model = Profile
         fields = "__all__"
+        
+        
+class ProfileStatsSerializer(serializers.ModelSerializer):
+    model_count = serializers.IntegerField()
+    dataset_count = serializers.IntegerField()
+    total_downloads = serializers.IntegerField()
+
+    class Meta:
+        model = Profile
+        fields = ['name', "image", "user", 'model_count', 'dataset_count', 'total_downloads']
+        
+        
+class ProfileExpandedSerializer(serializers.ModelSerializer):
+    datasets = DatasetElementSerializer(many=True, read_only=True)
+    models = ModelElementSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Profile
+        fields = "__all__"
+        
+        
+class ProfileImageUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['image']

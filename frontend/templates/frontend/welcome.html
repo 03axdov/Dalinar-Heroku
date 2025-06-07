@@ -1,0 +1,55 @@
+{% load static %}
+
+<!-- templates/welcome.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17119632058"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'AW-17119632058');
+    </script>
+    <script>
+        function gtag_report_conversion(url) {
+            const callback = function () {
+            if (typeof url !== 'undefined') {
+                // Only redirect if not in test mode
+                if (!window.location.search.includes("test=true")) {
+                window.location.href = url;
+                }
+            }
+        };
+
+        gtag('event', 'conversion', {
+            'send_to': 'AW-17119632058/MmqfCLDllc4aELq1o-M_',
+            'value': 1.0,
+            'currency': 'SEK',
+            'event_callback': callback
+            });
+
+            // Fallback for production
+            setTimeout(callback, 2000);
+        }
+
+        window.onload = function () {
+            gtag_report_conversion('/home/');
+        };
+    </script>
+
+    <link href="{% static 'css/index.css' %}" rel="stylesheet" type="text/css">
+    <link href="{% static 'css/root.css' %}" rel="stylesheet" type="text/css">
+
+    <title>Redirecting...</title>
+    
+</head>
+<body>
+    <div class="redirection-container">
+        <img class="redirection-image" src="{% static "images/loading.gif" %}" />
+        <p class="redirection-text">Redirecting...</p>
+    </div>
+</body>
+</html>

@@ -62,11 +62,13 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
             notification("Model must be trained to support prediction.", "failure")
             return
         }
+        if (images.length > 10) {
+            notification("Can only predict on a maximum of 10 images at once.", "failure")
+            return
+        }
 
         const URL = window.location.origin + '/api/predict-model/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
-
-        console.log(images)
 
         let data = {
             "model": model.id,
@@ -95,7 +97,11 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
                     notification("Successfully predicted data.", "success")  
                 },
                 (data) => notification("Error: " + data["message"], "failure"),
-                () => {},
+                (data) => {
+                    if (data["prediction_progress"]) {
+                        setPredictionProgress(data["prediction_progress"] * 100)
+                    }
+                },
                 () => {
                     setPredictionProgress(100)
                     setTimeout(() => {
@@ -141,8 +147,6 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
         }
     }
 
-    console.log(predictions)
-
     return (
         <div className="popup train-model-popup" onClick={() => setShowPredictionPopup(false)}>
 
@@ -154,12 +158,13 @@ function PredictionPopup({setShowPredictionPopup, model, BACKEND_URL, notificati
                 <h1 className="create-layer-popup-title">Predict</h1>
                 <p className="create-layer-popup-description">
                     By entering data of the model's type, you can get it to make a prediction. The model will use the labels of the dataset it most recently trained successfully on.
+                    {model.model_type.toLowerCase() == "image" && <span> Accepts .png, .jpg and .webp files. A maximum of 10 files can be predicted at a time.</span>}
                 </p>
 
                 {model.model_type.toLowerCase() == "image" && <div className="model-prediction-container">
                     <input type="file" accept="image/png, image/jpeg, image/webp" multiple required className="hidden" ref={imageInputRef} onChange={(e) => {
                         if (e.target.files && e.target.files[0]) {
-                            setImages([...e.target.files])
+                            setImages([...e.target.files].slice(0, 10))
                         }
                     }} />
 

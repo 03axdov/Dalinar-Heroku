@@ -10,6 +10,31 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Dalinar.settings')
 app = Celery('Dalinar')
 app.config_from_object(settings, namespace='CELERY')
 
+app.conf.broker_transport_options = settings.CELERY_BROKER_TRANSPORT_OPTIONS
+app.conf.broker_pool_limit = settings.CELERY_BROKER_POOL_LIMIT
+
+app.conf.result_expires = 60  # 1 minute
+
+app.conf.result_backend_transport_options = {
+    'max_connections': 2,
+}
+app.conf.result_backend_pool_limit = 2
+
+# Ensure tasks are acknowledged *after* completion (important for spot preemption)
+app.conf.task_acks_late = True
+
+# Ensure tasks are re-queued if the worker is terminated
+app.conf.task_reject_on_worker_lost = True
+
+# Prevent workers from grabbing too many tasks at once
+app.conf.worker_prefetch_multiplier = 1
+
+# Track when tasks start (optional but useful for monitoring)
+app.conf.task_track_started = True
+
+# Disable rate limits (improves performance slightly)
+app.conf.worker_disable_rate_limits = True
+
 redis_url = "redis://127.0.0.1:6379"    # Change for production
 
 # Only apply SSL if using rediss:// scheme

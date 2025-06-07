@@ -3,9 +3,11 @@ import {useNavigate} from "react-router-dom"
 import axios from "axios"
 import { useParams, useSearchParams } from "react-router-dom";
 import TitleSetter from "../components/minor/TitleSetter";
+import { useTask } from "../contexts/TaskContext";
 
 
-function CreateModel({notification, BACKEND_URL}) {
+function CreateModel({notification, BACKEND_URL, changeModelCount}) {
+    const { getTaskResult } = useTask();
 
     const navigate = useNavigate()
 
@@ -19,7 +21,7 @@ function CreateModel({notification, BACKEND_URL}) {
     const [description, setDescription] = useState("")
     const [outputType, setOutputType] = useState("classification")
     const [image, setImage] = useState(null)
-    const [visibility, setVisibility] = useState("private")
+    const [visibility, setVisibility] = useState("public")
     const [modelFile, setModelFile] = useState(null)
 
     const [loadingModelFile, setLoadingModelFile] = useState(false)
@@ -60,8 +62,6 @@ function CreateModel({notification, BACKEND_URL}) {
             console.log(err)
         })
     }
-
-    console.log(modelFile)
 
     async function createFileFromUrl(url) {
         try {
@@ -127,6 +127,10 @@ function CreateModel({notification, BACKEND_URL}) {
         formData.append('model_type', modelType)
 
         if (modelFile) {
+            if (modelFile.size > 20 * 10**6) {
+                notification("Cannot upload models larger than 20 Mb.", "failure")
+                return
+            }
             formData.append("model", modelFile)
         }
 
@@ -137,17 +141,49 @@ function CreateModel({notification, BACKEND_URL}) {
             return;
         }
 
+        let creatingInterval = null;
+
         setLoading(true)
         axios.post(URL, formData, config)
-        .then((data) => {
-            console.log("Success:", data);
-            navigate("/home?start=models")
-            notification("Successfully created model " + name + ".", "success")
+        .then((res) => {
+            if (res.data["task_id"]) {
+                gtag('event', 'conversion', {
+                    'send_to': 'AW-17119632058/AMoCCNnE_dEaELq1o-M_',
+                    'value': 50.0,
+                    'currency': 'SEK'
+                });
+                creatingInterval = setInterval(() => getTaskResult(
+                    "creating_model",
+                    creatingInterval,
+                    res.data["task_id"],
+                    () => {
+                        changeModelCount(1)
+                        navigate("/home?start=models")
+                        notification("Successfully created model " + name + ".", "success")
+                    },
+                    (data) => notification(data["message"], "failure"),
+                    () => {},
+                    () => {
+                        setLoading(false)
+                    }
+                ), 2000)
+            } else {
+                gtag('event', 'conversion', {
+                    'send_to': 'AW-17119632058/AMoCCNnE_dEaELq1o-M_',
+                    'value': 50.0,
+                    'currency': 'SEK',
+                    'event_callback': () => {
+                        changeModelCount(1)
+                        navigate("/home?start=models")
+                        notification("Successfully created model " + name + ".", "success")
+                    }
+                });
+                
+            }
+            
         }).catch((error) => {
             notification("An error occured.", "failure")
             console.log("Error: ", error)
-        }).finally(() => {
-            setLoading(false)
         })
     }
 
@@ -251,14 +287,16 @@ function CreateModel({notification, BACKEND_URL}) {
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Model visibility</p>
-                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={visibility == "private"} onChange={(e) => {
-                        setVisibility(e.target.value)
-                    }} />
-                    <label htmlFor="create-dataset-visibility-private" className="create-dataset-type-label">Private</label>
                     <input type="radio" id="create-dataset-visibility-public" name="visibility" value="public" checked={visibility == "public"}  onChange={(e) => {
                         setVisibility(e.target.value)
                     }} />
                     <label htmlFor="create-dataset-visibility-public" className="create-dataset-type-label">Public</label>
+                    
+                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={visibility == "private"} onChange={(e) => {
+                        setVisibility(e.target.value)
+                    }} />
+                    <label htmlFor="create-dataset-visibility-private" className="create-dataset-type-label">Private</label>
+                    
                 </div>
 
                 <h1 className="create-dataset-title create-dataset-subtitle upload-model-title">

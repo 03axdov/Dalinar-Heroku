@@ -11,25 +11,57 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 import pillow_avif # Adds .avif support
 from polymorphic.models import PolymorphicModel
+import random
+from django.core.files.storage import default_storage
+from django.core.files import File
 
 
 ALLOWED_IMAGE_FILE_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "avif"]
 ALLOWED_TEXT_FILE_EXTENSIONS = ["txt", "doc", "docx"]
 
+def profile_image_file_path(instance, filename):
+    """Generate a dynamic path for file uploads based on dataset ID and name."""
+
+    dataset_dir = f"images/{instance.name} (P)"
+
+    return os.path.join(dataset_dir, filename)
 
 class Profile(models.Model):    # Extends default User class
     user = models.OneToOneField(User, primary_key=True, verbose_name='user', related_name='profile', on_delete=models.CASCADE)
     name = models.CharField(max_length=30, blank=True, null=True, unique=True)
+    image = models.ImageField(upload_to=profile_image_file_path, null=True, blank=True)
     
     training_progress = models.FloatField(default=0) # Used to track progress when training model.
     training_accuracy = models.FloatField(default=-1) # Used to track accuracy when training
+    processing_data_progress = models.FloatField(default=0) # Used to track progress of processing data when training model
+    prediction_progress = models.FloatField(default=0)
+    delete_dataset_progress = models.FloatField(default=0)
+    deleting_elements_progress = models.FloatField(default=0)
+    creating_elements_progress = models.FloatField(default=0)
+    edit_dataset_progress = models.FloatField(default=0)
     training_loss = models.FloatField(default=-1)
     training_time_remaining = models.CharField(max_length=100, blank=True, null=True)
-    
+        
     evaluation_progress = models.FloatField(default=0)
     
     def __str__(self):
         return self.name
+    
+    def save(self, *args, **kwargs):
+        if not self.image:
+            # Only assign default if this is a new object (no primary key yet)
+            default_image_number = random.randint(1, 8)
+            default_image_path = f"defaults/default-profile-{default_image_number}.svg"
+
+            if default_storage.exists(default_image_path):
+                with default_storage.open(default_image_path, 'rb') as f:
+                    self.image.save(
+                        f"default-profile-{default_image_number}.svg",
+                        File(f),
+                        save=False  # Don't call save() recursively
+                    )
+
+        super().save(*args, **kwargs)
     
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):
@@ -46,7 +78,7 @@ def save_profile(sender, instance, **kwargs):
 def image_file_path(instance, filename):
     """Generate a dynamic path for file uploads based on dataset ID and name."""
 
-    dataset_dir = f"images/{instance.id}-{instance.name}"
+    dataset_dir = f"images/{instance.id}-{instance.name} (D)"
 
     return os.path.join(dataset_dir, filename)
 
@@ -122,7 +154,7 @@ class Label(models.Model):
 def element_file_path(instance, filename):
     """Generate a dynamic path for file uploads based on dataset ID and name."""
     if instance.dataset:
-        dataset_dir = f"files/{instance.dataset.id}-{instance.dataset.name}"
+        dataset_dir = f"files/{instance.dataset.id}"
     else:
         dataset_dir = "files/unknown_dataset"  # Fallback if dataset is missing
 
@@ -132,7 +164,7 @@ def element_file_path(instance, filename):
 class Element(models.Model):
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name="elements", null=True)
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="elements", null=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=500)
     file = models.FileField(upload_to=element_file_path, null=True, validators=[FileExtensionValidator(allowed_extensions=ALLOWED_IMAGE_FILE_EXTENSIONS + ALLOWED_TEXT_FILE_EXTENSIONS)])
     text = models.CharField(max_length=100000, null=True, blank=True)    # Only used for text datasets
     
@@ -208,6 +240,13 @@ class Area(models.Model):   # Only used for datasets of datatype "area"
     def __str__(self):
         return "Element: " + self.element.name + ", Label: " + self.label.name + ". Points: " + str(self.area_points)
     
+
+def model_image_path(instance, filename):
+    """Generate a dynamic path for file uploads based on dataset ID and name."""
+
+    dataset_dir = f"images/{instance.id}-{instance.name} (M)"
+
+    return os.path.join(dataset_dir, filename)
     
 # MODELS
 class Model(models.Model):
@@ -215,8 +254,8 @@ class Model(models.Model):
     owner = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="models")
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    image = models.ImageField(upload_to='images/', null=True)
-    imageSmall = models.ImageField(upload_to="images/", null=True)
+    image = models.ImageField(upload_to=model_image_path, null=True)
+    imageSmall = models.ImageField(upload_to=model_image_path, null=True)
     downloaders = models.ManyToManyField(Profile, related_name="downloaded_models", blank=True)
     verified = models.BooleanField(default=False)
     saved_by = models.ManyToManyField(Profile, related_name="saved_models", blank=True)
@@ -287,8 +326,10 @@ def delete_model_files(sender, instance, **kwargs):
         
 @receiver(pre_delete, sender=Model)
 def delete_related_layers(sender, instance, **kwargs):
-    for layer in instance.layers.all():    # Workaround due to bug with Django Polymorphic
+    totalCount = instance.layers.count()
+    for t, layer in enumerate(instance.layers.all()):    # Workaround due to bug with Django Polymorphic
         layer.delete()
+
     
     
 # LAYERS
@@ -312,7 +353,8 @@ class AbstractLayer(models.Model):
         ("embedding", "Embedding"),
         ("globalaveragepooling1d", "GlobalAveragePooling1D"),
         ("mobilenetv2", "MobileNetV2"),
-        ("mobilenetv2small", "MobileNetV2Small"),
+        ("mobilenetv2_96x96", "MobileNetV2_96x96"),
+        ("mobilenetv2_32x32", "MobileNetV2_32x32"),
     ]
     layer_type = models.CharField(max_length=100, choices=LAYER_CHOICES)
     
@@ -495,6 +537,13 @@ class GlobalAveragePooling1DLayer(Layer):
     
 
 class MobileNetV2Layer(Layer):
+    def save(self, *args, **kwargs):
+        self.trainable = False
+        self.input_x = 224
+        self.input_y = 224
+        self.input_z = 3
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         res = "MobileNetV2 (224x224x3)"
         if self.model:
@@ -503,7 +552,30 @@ class MobileNetV2Layer(Layer):
         return res
 
 
-class MobileNetV2SmallLayer(Layer):
+class MobileNetV2_96x96Layer(Layer):
+    def save(self, *args, **kwargs):
+        self.trainable = False
+        self.input_x = 96
+        self.input_y = 96
+        self.input_z = 3
+        super().save(*args, **kwargs)
+        
+    def __str__(self):
+        res = "MobileNetV2 (96x96x3)"
+        if self.model:
+            res += " - " + self.model.name
+            
+        return res
+    
+    
+class MobileNetV2_32x32Layer(Layer):
+    def save(self, *args, **kwargs):
+        self.trainable = False
+        self.input_x = 32
+        self.input_y = 32
+        self.input_z = 3
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         res = "MobileNetV2 (32x32x3)"
         if self.model:

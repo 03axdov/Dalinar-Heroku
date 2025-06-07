@@ -6,6 +6,8 @@ import ProgressBar from "../components/ProgressBar"
 import ElementFilters from "../components/minor/ElementFilters"
 import { useTask } from "../contexts/TaskContext"
 import { debounce } from 'lodash';
+import Select from "react-select"
+import { customStylesNoMargin } from "../helpers/styles"
 
 function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentProfile, BACKEND_URL, notification, activateConfirmPopup, getModel}) {
     const { getTaskResult } = useTask();
@@ -14,10 +16,13 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
     const [savedDatasets, setSavedDatasets] = useState([])
 
     const [isTraining, setIsTraining] = useState(false)
-    const [trainingProgress, setTrainingProgress] = useState(-1)    // Negative means processing
+    const [trainingProgress, setTrainingProgress] = useState(-1)    // Negative means processing data
+    const [processingDataProgress, setProcessingDataProgress] = useState(0)
+    const processingDataProgressRef = useRef(0);
+    const [processedData, setProcessedData] = useState(false)
     const [trainingData, setTrainingData] = useState([])
 
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     const [sortDatasets, setSortDatasets] = useState("downloads")
     const [search, setSearch] = useState("")
@@ -40,9 +45,22 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
         getDatasets()
     }, [sortDatasets, imageDimensions])
 
+    const loadedSaved = useRef(false)
     useEffect(() => {
-        if (currentProfile && currentProfile.saved_datasets) {
-            setSavedDatasets(sort_saved_datasets(currentProfile.saved_datasets))
+        if (currentProfile && savedDatasets.length == 0 && !loadedSaved.current) {
+            loadedSaved.current = true
+
+            let URL = window.location.origin + "/api/saved-datasets/"
+            axios({
+                method: 'GET',
+                url: URL
+            })
+            .then((res) => {
+                setSavedDatasets(sort_saved_datasets(res.data.results))
+            }).catch((err) => {
+                notification("An error occured while loading your saved datasets.", "failure")
+                console.log(err)
+            }) 
         }
     }, [currentProfile])
 
@@ -176,6 +194,12 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                 },
                 (data) => {
                     setTrainingProgress(data["training_progress"] * 100)
+                    const newProgress = data["processing_data_progress"] * 100;
+                    if (newProgress === 0 && processingDataProgressRef.current > 0) {
+                        setProcessedData(true);
+                    }
+                    processingDataProgressRef.current = newProgress;
+                    setProcessingDataProgress(newProgress);
                     if (data["training_progress"] > 0 && !isComplete) {
                         isComplete = data["training_progress"] == 1
                         setTrainingData(prev => {
@@ -346,12 +370,51 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
 
     const visibleSavedDatasets = savedDatasets.filter((dataset) => datasetShouldShow(dataset));
 
+    const getLabeledOption = ({value, label, title, color}) => ({
+        value,
+        label: (
+            <div title={title} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{
+                display: 'inline-block',
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+            }} className={"layer-element-stat-" + color} />
+            {label}
+            </div>
+        ),
+    });
+
+    const imageOptions = [
+        getLabeledOption({value: "cifar10", label: "cifar10", title: "50,000 images, 10 labels, 32x32x3 rgb images", color: "cyan"}),
+        getLabeledOption({value: "cifar100", label: "cifar100", title: "50,000 images, 100 labels, 32x32x3 rgb images", color: "blue"}),
+        getLabeledOption({value: "mnist", label: "mnist", title: "60,000 images, 10 labels, 28x28 grayscale images", color: "purple"}),
+        getLabeledOption({value: "fashion_mnist", label: "fashion_mnist", title: "60,000 images, 10 labels, 28x28 grayscale images", color: "pink"})
+    ];
+    
+    const textOptions = [
+        getLabeledOption({value: "imdb", label: "imdb", title: "25,000 elements, 2 labels", color: "cyan"}),
+        getLabeledOption({value: "reuters", label: "reuters", title: "11,228 elements, 46 labels", color: "green"}),
+    ];
+
+    const getLayerTypeOptions = (modelType) => {
+        if (modelType.toLowerCase() === 'image') {
+            return imageOptions
+        } else if (modelType.toLowerCase() === 'text') {
+            return textOptions
+        };
+    }
+
+    const tensorFlowOptions = getLayerTypeOptions(model_type)
+
+    console.log(tensorFlowOptions)
+
     return (
         <div className="popup train-model-popup" onClick={() => {
             setShowTrainModelPopup(false)
         }}>
 
-            {isTraining && <ProgressBar progress={trainingProgress} message={getProgressMessage()} BACKEND_URL={BACKEND_URL} training_data={trainingData}></ProgressBar>}
+            {isTraining && <ProgressBar progress={(processedData ? trainingProgress : processingDataProgress)} message={processedData ? getProgressMessage() : "Processing data..."} BACKEND_URL={BACKEND_URL} training_data={trainingData}></ProgressBar>}
 
             <div className="train-model-popup-container" onClick={(e) => {
                 e.stopPropagation()
@@ -369,6 +432,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         setSearch={setSearch}
                         setLoading={setLoading}
                         BACKEND_URL={BACKEND_URL}
+                        isTraining={true}
                     ></ElementFilters>}
                     {datasetTypeShown == "saved" && <ElementFilters 
                         show={model_type}
@@ -380,6 +444,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         setSearch={setSearchSaved}
                         setLoading={setLoading}
                         BACKEND_URL={BACKEND_URL}
+                        isTraining={true}
                     ></ElementFilters>}
                     
                     <button className="close-model-popup" title="Return to main display" onClick={() => setShowTrainModelPopup(false)}>Return to main display →</button>
@@ -445,18 +510,19 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                         </div>
 
                         <div className="tensorflow-dataset-container">
-                            <select className="tensorflow-dataset-select" value={tensorflowDataset} onChange={(e) => {
-                                setTensorflowDataset(e.target.value)
-                            }}>
-                                
-                                {model_type.toLowerCase() == "image" && <option value="cifar10" title="50,000 images, 10 labels, 32x32x3 rgb images">cifar10</option>}
-                                {model_type.toLowerCase() == "image" && <option value="cifar100" title="50,000 images, 100 labels, 32x32x3 rgb images">cifar100</option>}
-                                {model_type.toLowerCase() == "image" && <option value="mnist" title="60,000 images, 10 labels, 28x28 grayscale images">mnist</option>}
-                                {model_type.toLowerCase() == "image" && <option value="fashion_mnist" title="60,000 images, 10 labels, 28x28 grayscale images">fashion_mnist</option>}
 
-                                {model_type.toLowerCase() == "text" && <option value="imdb" title="25,000 elements, 2 labels">imdb</option>}
-                                {model_type.toLowerCase() == "text" && <option value="imdb" title="11,228 elements, 46 labels">reuters</option>}
-                            </select>
+                            <Select
+                            options={tensorFlowOptions}
+                            value={tensorFlowOptions
+                                .find((opt) => opt.value === tensorflowDataset)}
+                            onChange={(selected) => {
+                                setTensorflowDataset(selected.value)
+                            }}
+                            styles={customStylesNoMargin}
+                            className="w-full"
+                            />
+
+                            <p style={{fontSize: "0.9rem", textAlign: "center", width: "100%"}}>Hover datasets for details.</p>
 
                             <button className="tensorflow-dataset-train-button" onClick={() => {
                                 tensorflowDatasetOnClick()
@@ -490,7 +556,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                     {!loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && <p className="gray-text train-no-datasets">No such datasets found.</p>}
 
                     {!loading && currentProfile.datasetsCount === 0 && (
-                        <p style={{width: "250px"}}>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
+                        <p className="gray-text train-no-datasets">You don't have any datasets. Click <span className="link" style={{margin: "0 5px"}} onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
                     )}
 
                     {loading && datasets.length === 0 && currentProfile.datasetsCount > 0 && (
@@ -521,7 +587,7 @@ function TrainModelPopup({setShowTrainModelPopup, model_id, model_type, currentP
                     {!loading && visibleSavedDatasets.length === 0 && savedDatasets.length > 0 && <p className="gray-text train-no-datasets">No such datasets found.</p>}
 
                     {!loading && savedDatasets.length === 0 && searchSaved.length === 0 && (
-                        <p style={{width: "250px"}}>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
+                        <p className="gray-text train-no-datasets">You don't have any saved datasets.</p>
                     )}
 
                     {!loading && savedDatasets.length === 0 && searchSaved.length > 0 && (

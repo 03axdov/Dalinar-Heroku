@@ -1,7 +1,4 @@
 from celery import shared_task
-import tensorflow as tf
-from tensorflow.keras import layers
-from tensorflow.keras.preprocessing.sequence import pad_sequences
 import numpy as np
 import os
 import re
@@ -12,9 +9,14 @@ from django.conf import settings
 import tempfile
 from django.core.files import File
 from io import BytesIO
+from rest_framework.test import APIRequestFactory
+from django.core.files.storage import default_storage
+import shutil
+import json
 
 from .serializers import *
 from .models import *
+from .model_utils import create_layer_instance 
 
 import logging
 logger = logging.getLogger(__name__)
@@ -52,69 +54,61 @@ def get_temp_model_name(id, timestamp, extension, user_id=None):   # Timestamp u
     return os.path.join(base_path, filename)
 
 
-def get_pretrained_model(name, profile=None):
-    # Define the S3 bucket and file path
+def get_pretrained_model(name):
+    import tensorflow as tf
+    
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    model_file_path = "media/pretrained_models/" + name + ".keras"
-    
+    model_file_path = f"media/pretrained_models/{name}.keras"
     s3_client = get_s3_client()
-    
-    extension = model_file_path.split(".")[-1]
-    
-    timestamp = time.time()
 
-    # Download the model file from S3 to a local temporary file
-    temp_file_path = ""
-    if profile:
-        temp_file_path = get_temp_model_name(name, timestamp, extension, profile.user.id)
-    else:
-        temp_file_path = get_temp_model_name(name, timestamp, extension)
+    with tempfile.NamedTemporaryFile(suffix=".keras", delete=False) as tmp:
+        s3_client.download_fileobj(bucket_name, model_file_path, tmp)
+        temp_file_path = tmp.name
+        tmp.flush()  # <-- Important
 
-    with open(temp_file_path, 'wb') as f:
-        s3_client.download_fileobj(bucket_name, model_file_path, f)
-        
-    # Load the TensorFlow model from the temporary file
-    model = tf.keras.models.load_model(temp_file_path)
-    model.name = name
+    try:
+        model = tf.keras.models.load_model(temp_file_path)
+        model.trainable = False
+
+    finally:
+        # Only delete after loading is fully complete
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
 
     return model
     
     
-def get_tf_model(model_instance, profile=None):     # Gets a Tensorflow model from a built Model instance, negative timestamp means ongoing operation
-    # Define the S3 bucket and file path
+def get_tf_model(model_instance, profile=None):
+    import tensorflow as tf
+    
     bucket_name = settings.AWS_STORAGE_BUCKET_NAME
     model_file_path = "media/" + model_instance.model_file.name
-    
     s3_client = get_s3_client()
-    
+
     extension = model_file_path.split(".")[-1]
-    
     timestamp = time.time()
 
-    # Download the model file from S3 to a local temporary file
-    temp_file_path = ""
-    if profile:
-        temp_file_path = get_temp_model_name(model_instance.id, timestamp, extension, profile.user.id)
-    else:
-        temp_file_path = get_temp_model_name(model_instance.id, timestamp, extension)
+    # Download model to a temp file
+    with tempfile.NamedTemporaryFile(suffix=f".{extension}", delete=False) as tmp:
+        s3_client.download_fileobj(bucket_name, model_file_path, tmp)
+        temp_file_path = tmp.name
+        tmp.flush()  # <-- Important
 
-    with open(temp_file_path, 'wb') as f:
-        s3_client.download_fileobj(bucket_name, model_file_path, f)
-        
-    # Load the TensorFlow model from the temporary file
-    model = tf.keras.models.load_model(temp_file_path)
+    try:
+        model = tf.keras.models.load_model(temp_file_path)
+    finally:
+        # Always clean up
+        if os.path.exists(temp_file_path):
+            os.remove(temp_file_path)
 
+    # Return model and timestamp (still useful for logging or ongoing tasks)
     return model, timestamp
-    
-    
-def remove_temp_tf_model(model_instance, timestamp, user_id=None):
-    extension = str(model_instance.model_file).split(".")[-1]
-    file_path = get_temp_model_name(model_instance.id, timestamp, extension, user_id)
-    if os.path.exists(file_path):
-        os.remove(file_path) 
-
+        
 
 def get_tf_layer(layer):    # From a Layer instance
+    import tensorflow as tf
+    from tensorflow.keras import layers
+    
     layer_type = layer.layer_type
     activation = layer.activation_function or None
     name = str(layer.id)
@@ -167,9 +161,10 @@ def get_tf_layer(layer):    # From a Layer instance
     elif layer_type == "mobilenetv2":
         model = get_pretrained_model("mobilenetv2")
         return model
-    elif layer_type == "mobilenetv2small":
-        model = get_pretrained_model("mobilenetv2small")
+    elif layer_type == "mobilenetv2_96x96":
+        model = get_pretrained_model("mobilenetv2_96x96")
         return model
+
     else:
         print("UNKNOWN LAYER OF TYPE: ", layer_type)
         raise Exception("Invalid layer: " + layer_type)
@@ -181,16 +176,57 @@ def download_s3_file(bucket_name, file_key):
     return response['Body'].read()  # Returns the raw bytes
 
 
+def download_dataset_from_s3(bucket_name, prefix, local_dir, profile, nbr_files):
+    s3 = get_s3_client()
+    paginator = s3.get_paginator('list_objects_v2')
+
+    # Make sure the root download folder exists
+    os.makedirs(local_dir, exist_ok=True)
+
+    for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
+        contents = page.get('Contents', [])
+
+        for t, obj in enumerate(contents):
+            key = obj['Key']
+            if key.endswith('/'):
+                continue
+
+            found_any = True
+            # Construct relative and full local path
+            relative_path = os.path.relpath(key, prefix)
+            local_path = os.path.join(local_dir, relative_path)
+
+            # Ensure subdirectory exists
+            os.makedirs(os.path.dirname(local_path), exist_ok=True)
+
+            # Download the file
+            try:
+                s3.download_file(bucket_name, key, local_path)
+            except Exception as e:
+                print(f"Error downloading {key}: {e}")
+            
+            if t % 10 == 0:
+                profile.processing_data_progress = (t + 1) / nbr_files
+                profile.save()
+
 # Function to load and preprocess the images
-def load_and_preprocess_image(file_path,input_dims,file_key):
+def load_and_preprocess_image(file_path,input_dims):
+    import tensorflow as tf
+    from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
     
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    image_bytes = download_s3_file(bucket_name, file_key)
+    image_bytes = tf.io.read_file(file_path)
 
     # Decode the image
     image = tf.image.decode_jpeg(image_bytes, channels=input_dims[-1])  # Assuming JPEG images
     
-    image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
+    image = tf.cast(image, tf.float32)
+    
+    image_shape = image.shape
+
+    if image_shape[0] != input_dims[0] or image_shape[1] != input_dims[1]:
+        image = tf.image.resize(image, [input_dims[0], input_dims[1]])  # Input dimensions of model
+    
+    image = preprocess_input(image)
     
     return image
 
@@ -199,13 +235,11 @@ def load_and_preprocess_image(file_path,input_dims,file_key):
 def remove_non_ascii(s):
     return re.sub(r'[^\x00-\x7F]', '', s)
 
-def load_and_preprocess_text(file_path, file_key):
+def load_and_preprocess_text(file_path):
+    import tensorflow as tf
+    with open(file_path, "r", encoding="utf-8") as f:
+        text = f.read()
     
-    bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-    text_bytes = download_s3_file(bucket_name, file_key)
-    
-    # Decode the text bytes into a string
-    text = text_bytes.decode("utf-8")  # Assuming UTF-8 encoded text
     text = remove_non_ascii(text)
     
     return tf.convert_to_tensor(text, dtype=tf.string)
@@ -225,14 +259,18 @@ def map_labels(label):
 
 # Function to apply one-hot encoding
 def one_hot_encode(label, nbr_labels):
+    import tensorflow as tf
     # Convert to one-hot encoded format
     return tf.keras.utils.to_categorical(label, num_classes=nbr_labels)
 
 def label_to_tensor(label):
+    import tensorflow as tf
     return tf.constant(label, dtype=tf.int32)
 
 
-def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns tensorflow dataset, number of elements in the dataset
+def create_tensorflow_dataset(dataset_instance, model_instance, profile):    # Returns tensorflow dataset, number of elements in the dataset
+    import tensorflow as tf
+    
     global label_map
     global currentLabel
     
@@ -251,58 +289,85 @@ def create_tensorflow_dataset(dataset_instance, model_instance):    # Returns te
     currentLabel = 0
 
     elements = dataset_instance.elements.all()
+    
+    AWS_DIR = f"media/files/{dataset_instance.id}/" # Update when changed
+    local_dir = os.path.abspath(f"tmp/temp_datasets/{dataset_instance.name}-{profile.user.id}")
+    
+    try:
+        download_dataset_from_s3(
+            bucket_name=settings.AWS_STORAGE_BUCKET_NAME,
+            prefix=AWS_DIR,
+            local_dir=local_dir,
+            profile=profile,
+            nbr_files = elements.count()
+        )
+        
+        profile.processing_data_progress = 0
+        profile.save()
+        
+        def get_all_file_paths(directory):
+            return [
+                os.path.join(directory, f)
+                for f in os.listdir(directory)
+                if os.path.isfile(os.path.join(directory, f))
+            ]
+            
+        file_paths = []
+        labels = []
 
-    file_paths = ["media/" + str(element.file) for element in elements]
-    labels = []
+        for t, element in enumerate(elements):
+            if element.label:
+                filename = os.path.basename(element.file.name)
+                file_paths.append(os.path.join(local_dir, filename))
+                labels.append(element.label.name)
 
-    for t, element in enumerate(elements):
-        if element.label:
-            labels.append(element.label.name)
+
+        def imageMapFunc(file_path):
+            element = load_and_preprocess_image(file_path,input_dims)
+            return element
+            
+        def textMapFunc(file_path):
+            element = load_and_preprocess_text(file_path,file_paths[elementIdx])
+            return element
+
+
+        elements = []
+        if dataset_instance.dataset_type == "image":
+            input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z) 
+            if first_layer.layer_type == "mobilenetv2":
+                input_dims = (224,224,3)
+            if first_layer.layer_type == "mobilenetv2_96x96":
+                input_dims = (96,96,3)
+            elements = list(map(imageMapFunc, file_paths))
+            
+        elif dataset_instance.dataset_type == "text":
+            elements = list(map(textMapFunc, file_paths))
+
         else:
-            file_paths.pop(t)   # Don't include elements without labels
-
-
-    elementIdx = 0
-    def imageMapFunc(file_path):
-        nonlocal elementIdx
+            print("Invalid dataset type.")
+            return None
         
-        element = load_and_preprocess_image(file_path,input_dims,file_path)
-        elementIdx += 1
-        return element
+        if os.path.exists(local_dir):
+            shutil.rmtree(local_dir)
         
-    def textMapFunc(file_path):
-        nonlocal elementIdx
+        loss_function = model_instance.loss_function
+        if loss_function == "binary_crossentropy":
+            labels = list(map(lambda label: label_to_tensor(map_labels(label)), labels))
+        elif loss_function == "categorical_crossentropy":
+            labels = list(map(lambda label: one_hot_encode(map_labels(label), num_labels), labels))
+        elif loss_function == "sparse_categorical_crossentropy":
+            labels = list(map(lambda label: map_labels(label), labels))
+
+        dataset = tf.data.Dataset.from_tensor_slices((elements, labels))
         
-        element = load_and_preprocess_text(file_path,file_paths[elementIdx])
-        elementIdx += 1
-        return element
-
-
-    elements = []
-    if dataset_instance.dataset_type == "image":
-        input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z) 
-        if first_layer.layer_type == "mobilenetv2":
-            input_dims = (224,224,3)
-        elements = list(map(imageMapFunc, file_paths))
-        
-    elif dataset_instance.dataset_type == "text":
-        elements = list(map(textMapFunc, file_paths))
-
-    else:
-        print("Invalid dataset type.")
-        return None
+        return dataset, len(elements)
     
-    loss_function = model_instance.loss_function
-    if loss_function == "binary_crossentropy":
-        labels = list(map(lambda label: label_to_tensor(map_labels(label)), labels))
-    elif loss_function == "categorical_crossentropy":
-        labels = list(map(lambda label: one_hot_encode(map_labels(label), num_labels), labels))
-    elif loss_function == "sparse_categorical_crossentropy":
-        labels = list(map(lambda label: map_labels(label), labels))
+    except Exception as e:
+        if os.path.exists(local_dir):
+            shutil.rmtree(local_dir)
 
-    dataset = tf.data.Dataset.from_tensor_slices((elements, labels))
+        raise Exception(e)
     
-    return dataset, len(elements)
 
 def clean_vocab(vocab):
     seen = set()
@@ -315,6 +380,9 @@ def clean_vocab(vocab):
     return cleaned
 
 def get_vectorize_layer(model_instance, model, train_ds, vocabulary=None):
+    import tensorflow as tf
+    from tensorflow.keras import layers
+    
     vectorize_layer = None
     first_layer = model.layers[0]
 
@@ -352,36 +420,63 @@ def get_vectorize_layer(model_instance, model, train_ds, vocabulary=None):
     else:
         return model
     
-
-class TrainingProgressCallback(tf.keras.callbacks.Callback):
-    def __init__(self, profile, total_epochs):
-        super().__init__()
-        self.profile = profile
-        self.total_epochs = total_epochs
-        self.epoch_start_time = None
-        self.total_elapsed_time = 0
-
-    def on_epoch_begin(self, epoch, logs=None):
-        self.epoch_start_time = time.time()
-
-    def on_epoch_end(self, epoch, logs=None):
-        epoch_duration = time.time() - self.epoch_start_time
-        self.total_elapsed_time += epoch_duration
+    
+@shared_task(bind=True)
+def delete_dataset_task(self, dataset_id, user_id):
+    import tensorflow as tf
+    
+    try:
+        profile = Profile.objects.get(user_id=user_id)
+        dataset = Dataset.objects.get(id=dataset_id)
         
-        if logs:
-            self.profile.training_accuracy = logs["accuracy"]  # set_training_progress saves
-            self.profile.training_loss = logs["loss"] 
+        if dataset.owner == profile:
+            totalCount = dataset.elements.count()
+            for t, element in enumerate(dataset.elements.all()):
+                if t % 10 == 0:
+                    profile.delete_dataset_progress = (t + 1) / totalCount
+                    profile.save()
+                element.delete()
+            profile.delete_dataset_progress = 0
+            profile.save()
+            dataset.delete()
+            
+            return {"status": 200}
         
-        avg_time_per_epoch = self.total_elapsed_time / (epoch + 1)
-        remaining_epochs = self.total_epochs - (epoch + 1)
-        estimated_remaining_time = avg_time_per_epoch * remaining_epochs
-
-        formatted_time = time.strftime("%H:%M:%S", time.gmtime(estimated_remaining_time))
-        self.profile.training_time_remaining = formatted_time
+        else:
+            return {"Unauthorized": "You can only delete your own datasets.", "status": 401}
+    except Dataset.DoesNotExist:
+        return {"Not found": "Could not find dataset with the id " + str(dataset_id + "."), "status": 404}
+    except Profile.DoesNotExist:
+        return {"Not found": "Could not find profile with the id " + str(user_id + "."), "status": 404}
+    
+    
+@shared_task(bind=True)
+def delete_all_elements_task(self, dataset_id, user_id):
+    import tensorflow as tf
+    
+    try:
+        profile = Profile.objects.get(user_id=user_id)
+        dataset = Dataset.objects.get(id=dataset_id)
         
-        progress = (epoch + 1) / self.total_epochs
-        set_training_progress(self.profile, round(progress, 4)) # Saves profile
-
+        if dataset.owner == profile:
+            totalCount = dataset.elements.count()
+            for t, element in enumerate(dataset.elements.all()):
+                if t % 10 == 0:
+                    profile.deleting_elements_progress = (t + 1) / totalCount
+                    profile.save()
+                element.delete()
+            profile.deleting_elements_progress = 0
+            profile.save()
+            
+            return {"status": 200}
+        
+        else:
+            return {"Unauthorized": "You can only delete elements from your own datasets.", "status": 401}
+    except Dataset.DoesNotExist:
+        return {"Not found": "Could not find dataset with the id " + str(dataset_id + "."), "status": 404}
+    except Profile.DoesNotExist:
+        return {"Not found": "Could not find profile with the id " + str(user_id + "."), "status": 404}
+    
 
 def get_accuracy_loss(history, model_instance, validation_size):
     metric = "accuracy"
@@ -398,6 +493,37 @@ def get_accuracy_loss(history, model_instance, validation_size):
 
 @shared_task(bind=True)
 def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_id):
+    import tensorflow as tf
+    
+    class TrainingProgressCallback(tf.keras.callbacks.Callback):
+        def __init__(self, profile, total_epochs):
+            super().__init__()
+            self.profile = profile
+            self.total_epochs = total_epochs
+            self.epoch_start_time = None
+            self.total_elapsed_time = 0
+
+        def on_epoch_begin(self, epoch, logs=None):
+            self.epoch_start_time = time.time()
+
+        def on_epoch_end(self, epoch, logs=None):
+            epoch_duration = time.time() - self.epoch_start_time
+            self.total_elapsed_time += epoch_duration
+            
+            if logs:
+                self.profile.training_accuracy = logs["accuracy"]  # set_training_progress saves
+                self.profile.training_loss = logs["loss"] 
+            
+            avg_time_per_epoch = self.total_elapsed_time / (epoch + 1)
+            remaining_epochs = self.total_epochs - (epoch + 1)
+            estimated_remaining_time = avg_time_per_epoch * remaining_epochs
+
+            formatted_time = time.strftime("%H:%M:%S", time.gmtime(estimated_remaining_time))
+            self.profile.training_time_remaining = formatted_time
+            
+            progress = (epoch + 1) / self.total_epochs
+            set_training_progress(self.profile, round(progress, 4)) # Saves profile
+
     
     profile = Profile.objects.get(user_id=user_id)
     
@@ -423,12 +549,10 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     if model.output_shape[-1] != dataset_instance.labels.count():
                         return {"Bad request": "The model's output shape and the dataset's number of labels do not match.", "status": 400}
 
-                    dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance)
+                    dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance, profile)
 
                     validation_size = int(dataset_length * validation_split)
                     train_size = dataset_length - validation_size
-
-                    print(train_size)
                     
                     model.summary() # For debugging
                     
@@ -476,9 +600,6 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     # Open the file and save it to Django's FileField
                     with open(temp_path, 'rb') as model_file:
                         model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
-
-                    # Delete the temporary file after saving
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                     
                     accuracy, val_accuracy, loss, val_loss = get_accuracy_loss(history, model_instance, validation_size)
                     
@@ -501,8 +622,6 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                 
                 except ValueError as e: # In case of invalid layer combination
                     set_training_progress(profile, -1)
-                    
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
 
                     message = str(e)
                     if len(message) > 50:
@@ -511,8 +630,6 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
                     return {"Bad request": str(message), "status": 400}
                 except Exception as e:
                     set_training_progress(profile, -1)
-                    
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
 
                     return {"Bad request": str(e), "status": 400}
             else:
@@ -529,6 +646,8 @@ def train_model_task(self, model_id, dataset_id, epochs, validation_split, user_
     
 
 def getTensorflowPrebuiltDataset(tensorflowDataset):
+    import tensorflow as tf
+    
     if tensorflowDataset == "cifar10":
         return tf.keras.datasets.cifar10.load_data()
     elif tensorflowDataset == "cifar100":
@@ -545,6 +664,8 @@ def getTensorflowPrebuiltDataset(tensorflowDataset):
         raise Exception("Invalid dataset.")
     
 def getTensorflowDatasetVocabulary(tensorflowDataset):
+    import tensorflow as tf
+    
     word_index = {}
     if tensorflowDataset == "imdb":
         word_index = tf.keras.datasets.imdb.get_word_index()
@@ -559,8 +680,6 @@ def getTensorflowDatasetVocabulary(tensorflowDataset):
     vocab = [word for word in index_to_word if word is not None]
     return vocab
 
-from tensorflow.keras.utils import to_categorical
-
 tf_dataset_num_classes = {
     "cifar10": 10,
     "cifar100": 100,
@@ -570,7 +689,40 @@ tf_dataset_num_classes = {
 
 @shared_task(bind=True)
 def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epochs, validation_split, user_id):
+    import tensorflow as tf
+    from tensorflow.keras.preprocessing.sequence import pad_sequences
+    from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+    from tensorflow.keras.utils import to_categorical
     
+    class TrainingProgressCallback(tf.keras.callbacks.Callback):
+        def __init__(self, profile, total_epochs):
+            super().__init__()
+            self.profile = profile
+            self.total_epochs = total_epochs
+            self.epoch_start_time = None
+            self.total_elapsed_time = 0
+
+        def on_epoch_begin(self, epoch, logs=None):
+            self.epoch_start_time = time.time()
+
+        def on_epoch_end(self, epoch, logs=None):
+            epoch_duration = time.time() - self.epoch_start_time
+            self.total_elapsed_time += epoch_duration
+            
+            if logs:
+                self.profile.training_accuracy = logs["accuracy"]  # set_training_progress saves
+                self.profile.training_loss = logs["loss"] 
+            
+            avg_time_per_epoch = self.total_elapsed_time / (epoch + 1)
+            remaining_epochs = self.total_epochs - (epoch + 1)
+            estimated_remaining_time = avg_time_per_epoch * remaining_epochs
+
+            formatted_time = time.strftime("%H:%M:%S", time.gmtime(estimated_remaining_time))
+            self.profile.training_time_remaining = formatted_time
+            
+            progress = (epoch + 1) / self.total_epochs
+            set_training_progress(self.profile, round(progress, 4)) # Saves profile
+
     profile = Profile.objects.get(user_id=user_id)
     
     try:
@@ -583,8 +735,24 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
             x_train = pad_sequences(x_train, maxlen=model_instance.input_sequence_length)
         if last_layer.layer_type == "dense" and last_layer.nodes_count > 1 and model_instance.loss_function != "sparse_categorical_crossentropy":
             y_train = to_categorical(y_train, num_classes=tf_dataset_num_classes[tensorflowDataset])
-
+            
         dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+        
+        if model_instance.model_type.lower() == "image":
+            first_layer = model_instance.layers.first()
+            input_dims = (first_layer.input_x, first_layer.input_y, first_layer.input_z) 
+            if first_layer.layer_type == "mobilenetv2":
+                input_dims = (224,224,3)
+            if first_layer.layer_type == "mobilenetv2_96x96":
+                input_dims = (96,96,3)
+                
+            def imageMapFunc(image, label):
+                image = tf.cast(image, tf.float32)
+                image = tf.image.resize(image, [input_dims[0], input_dims[1]])
+                image = preprocess_input(image)
+                return image, label
+
+            dataset = dataset.map(imageMapFunc, num_parallel_calls=tf.data.AUTOTUNE)
         
         if model_instance.owner == profile:
             
@@ -658,9 +826,6 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                     # Open the file and save it to Django's FileField
                     with open(temp_path, 'rb') as model_file:
                         model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
-
-                    # Delete the temporary file after saving
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                     
                     accuracy, val_accuracy, loss, val_loss = get_accuracy_loss(history, model_instance, validation_size)
                         
@@ -683,7 +848,6 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                 except ValueError as e: # In case of invalid layer combination
                     set_training_progress(profile, -1)
                     
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                     message = str(e)
 
                     if len(message) > 50:
@@ -693,7 +857,6 @@ def train_model_tensorflow_dataset_task(self, tensorflowDataset, model_id, epoch
                 except Exception as e:
                     set_training_progress(profile, -1)
                     
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                     return {"Bad request": str(e), "status": 400}
             else:
                 return {"Bad request": "Model has not been built.", "status": 400}
@@ -712,6 +875,8 @@ def set_evaluation_progress(profile, progress):
     
 @shared_task(bind=True)
 def evaluate_model_task(self, model_id, dataset_id, user_id):
+    import tensorflow as tf
+    
     try:
         model_instance = Model.objects.get(id=model_id)
         dataset_instance = Dataset.objects.get(id=dataset_id)
@@ -726,7 +891,7 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
                 
                 set_evaluation_progress(profile, 0.25)
 
-                dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance) 
+                dataset, dataset_length = create_tensorflow_dataset(dataset_instance, model_instance, profile) 
                 
                 set_evaluation_progress(profile, 0.5)
                 
@@ -737,13 +902,9 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
                 try:
                     set_evaluation_progress(profile, 0)
                 
-                    remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                     res = model.evaluate(dataset, return_dict=True)
                 except Exception as e:
                     return {"Bad request": "Could not evaluate on given dataset.", "status": 400} 
-                
-                # Delete the temporary file after saving
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 
                 set_evaluation_progress(profile, 0.8)
                 
@@ -765,7 +926,6 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
                 set_evaluation_progress(profile, 0)
                 
                 message = str(e)
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 if len(message) > 50:
                     message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
                 
@@ -774,8 +934,6 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
                 return {"Bad request": str(message), "status": 400}
             except Exception as e:
                 set_evaluation_progress(profile, 0)
-                
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Bad request": "Model has not been built.", "status": 400}
@@ -790,6 +948,9 @@ def evaluate_model_task(self, model_id, dataset_id, user_id):
     
     
 def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Convert uploaded files to tensors for TensorFlow processing
+    import tensorflow as tf
+    from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+    
     image = Image.open(uploaded_file)
     
     # Convert to RGB (to handle grayscale images)
@@ -805,6 +966,7 @@ def preprocess_uploaded_image(uploaded_file, target_size=(256,256,3)):   # Conve
     
     # Convert image to NumPy array
     image_array = np.array(image)
+    image_array = preprocess_input(image_array)
     
     # Expand dimensions to match TensorFlow model input
     image_array = np.expand_dims(image_array, axis=0)  # Shape: (1, height, width, channels)
@@ -892,10 +1054,36 @@ tf_dataset_to_labels = {
 }
     
 @shared_task(bind=True)
-def predict_model_task(self, model_id, encoded_images, text):
-    images = [decode_image(image_str) for image_str in encoded_images]
+def predict_model_task(self, model_id, s3_keys, text, user_id=None):
+    import tensorflow as tf
     
+    profile = None
     try:
+        images = []
+        
+        if user_id:
+            try:
+                profile = Profile.objects.get(user_id=user_id)
+            except Profile.DoesNotExist:
+                return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
+
+        try:
+            for t, key in enumerate(s3_keys):
+                with default_storage.open(key, "rb") as f:
+                    images.append(BytesIO(f.read()))
+                default_storage.delete(key)
+                
+                if profile:
+                    profile.prediction_progress = (1 / 3) + ((t + 1) / (2 * len(s3_keys))) 
+                    profile.save()
+                
+        except Exception as e:
+            for key in s3_keys:
+                try:
+                    default_storage.delete(key)
+                except Exception:
+                    pass  # swallow delete errors if needed
+            
         model_instance = Model.objects.get(id=model_id)
         
         if model_instance.trained_on or model_instance.trained_on_tensorflow:
@@ -907,11 +1095,19 @@ def predict_model_task(self, model_id, encoded_images, text):
                     target_size = (first_layer.input_x, first_layer.input_y, first_layer.input_z)
                     if first_layer.layer_type == "mobilenetv2": # Doesn't have input_x, ...
                         target_size = (224,224,3)
+                    if first_layer.layer_type == "mobilenetv2_96x96": # Doesn't have input_x, ...
+                        target_size = (96,96,3)
                     
                     model, timestamp = get_tf_model(model_instance)
                     
+                    if profile:
+                        profile.prediction_progress = 1
+                        profile.save()
+                    
                     prediction_names = []
                     prediction_colors = []
+                    
+                    labels_ordered = list(model_instance.trained_on.labels.all().order_by('id'))
                     
                     for image in images:
                         image_tensor = preprocess_uploaded_image(image, target_size)
@@ -930,15 +1126,13 @@ def predict_model_task(self, model_id, encoded_images, text):
                         
                         predicted_label = None
                         if model_instance.trained_on:
-                            predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
+                            predicted_label = labels_ordered[prediction_idx]
                             prediction_names.append(predicted_label.name)
                             prediction_colors.append(predicted_label.color)
                         else:
                             predicted_label = tf_dataset_to_labels[model_instance.trained_on_tensorflow][prediction_idx]
                             prediction_names.append(predicted_label["name"])
                             prediction_colors.append(predicted_label["color"])
-                    
-                    remove_temp_tf_model(model_instance, timestamp)
                     
                     return {"predictions": prediction_names, "colors": prediction_colors, "status": 200}
                     
@@ -961,9 +1155,7 @@ def predict_model_task(self, model_id, encoded_images, text):
                     prediction_idx = int(np.argmax(prediction_arr))
                     if model_instance.loss_function == "binary_crossentropy":
                         prediction_idx = int(prediction_arr[0][0] >= 0.5)
-                    
-                    remove_temp_tf_model(model_instance, timestamp)
-                    
+                        
                     predicted_label = None
                     if model_instance.trained_on:
                         predicted_label = model_instance.trained_on.labels.all()[prediction_idx]
@@ -974,14 +1166,12 @@ def predict_model_task(self, model_id, encoded_images, text):
             
                 return {"status": 200}
             except ValueError as e: # In case of invalid layer combination
-                remove_temp_tf_model(model_instance, timestamp)
                 message = str(e)
                 if len(message) > 50:
                     message = message.split("ValueError: ")[-1]    # Skips long traceback for long errors
 
                 return {"Bad request": str(message), "status": 400}
             except Exception as e:
-                remove_temp_tf_model(model_instance, timestamp)
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Bad request": "Model has not been trained.", "status": 400}
@@ -989,9 +1179,15 @@ def predict_model_task(self, model_id, encoded_images, text):
         return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
     except Exception as e:
         return {"Bad request": str(e), "status": 400}
+    finally:
+        if profile:
+            profile.prediction_progress = 0
+            profile.save()
     
     
 def get_metrics(loss_function):
+    import tensorflow as tf
+    
     metrics = "accuracy"
     if loss_function == "binary_crossentropy":
         metrics = tf.metrics.BinaryAccuracy(threshold=0.5)
@@ -999,6 +1195,8 @@ def get_metrics(loss_function):
 
 
 def get_tf_optimizer(optimizer_str, learning_rate):
+    import tensorflow as tf
+    
     if optimizer_str == "adam":
         return tf.keras.optimizers.Adam(
             learning_rate=learning_rate
@@ -1044,6 +1242,7 @@ def find_layer_by_name(layer_container, name):
     
 @shared_task(bind=True)
 def build_model_task(self, model_id, optimizer, learning_rate, loss_function, user_id, input_sequence_length):
+    import tensorflow as tf
     
     profile = Profile.objects.get(user_id=user_id)
     
@@ -1079,8 +1278,6 @@ def build_model_task(self, model_id, optimizer, learning_rate, loss_function, us
                     model.build(input_sequence_length)
 
                 metrics = get_metrics(loss_function)
-
-                model.summary()
                 
                 if model.count_params() > 5 * 10**6:
                     return {"Bad request": "A model cannot have more than 5 million parameters. Current parameter count: " + str(model.count_params()), "status": 400}
@@ -1111,8 +1308,6 @@ def build_model_task(self, model_id, optimizer, learning_rate, loss_function, us
                 # Open the file and save it to Django's FileField
                 with open(temp_path, 'rb') as model_file:
                     instance.model_file.save(instance.name + ".keras", File(model_file))
-                    
-                remove_temp_tf_model(instance, timestamp, user_id)
 
                 # Delete the temporary file after saving
                 os.remove(temp_path)
@@ -1143,12 +1338,10 @@ def build_model_task(self, model_id, optimizer, learning_rate, loss_function, us
         
             except ValueError as e: # In case of invalid layer combination
                 print("Error: ", e)
-                remove_temp_tf_model(instance, timestamp, user_id=user_id)
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
                 return {"Bad request": str(e), "status": 400}
             except Exception as e:
-                remove_temp_tf_model(instance, timestamp, user_id=user_id)
                 if os.path.exists(temp_path):
                     os.remove(temp_path)
                 return {"Bad request": str(e), "status": 400}
@@ -1165,6 +1358,8 @@ def set_trainable_recursive(layer, names_to_freeze):
     Recursively set trainable attribute on a layer and its sublayers.
     """
     if hasattr(layer, 'layers'):  # it's a model or a container
+        PRETRAINED_SET = set(["mobilenetv2", "mobilenetv2_96x96", "mobilenetv2_32x32"])
+        if layer.name in PRETRAINED_SET: return
         for sublayer in layer.layers:
             set_trainable_recursive(sublayer, names_to_freeze)
     else:
@@ -1176,6 +1371,7 @@ def set_trainable_recursive(layer, names_to_freeze):
     
 @shared_task(bind=True)
 def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function, user_id, input_sequence_length):
+    import tensorflow as tf
     
     try:
         profile = Profile.objects.get(user_id=user_id)
@@ -1221,9 +1417,6 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
                 # Open the file and save it to Django's FileField
                 with open(temp_path, 'rb') as model_file:
                     model_instance.model_file.save(model_instance.name + "." + extension, File(model_file))
-
-                # Delete the temporary file after saving
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 
                 model_instance.optimizer = optimizer
                 model_instance.loss_function = loss_function
@@ -1236,10 +1429,8 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
                 return {"status": 200}
         
             except ValueError as e: # In case of invalid layer combination
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 return {"Bad request": str(e), "status": 400}
             except Exception as e:
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Unauthorized": "You can only recompile your own models.", "status": 401}
@@ -1253,11 +1444,15 @@ def recompile_model_task(self, model_id, optimizer, learning_rate, loss_function
     
 # Sets params of layer_instance to tf_layer
 def set_to_tf_layer(layer_instance, tf_layer):
+    from tensorflow.keras import layers
+    
     config = tf_layer.get_config()
     
     input_shape = False
     if "batch_input_shape" in config.keys():
         input_shape = config["batch_input_shape"]
+    else:
+        input_shape = [None, None, None, None]
     
     if isinstance(tf_layer, layers.Dense):
         layer_instance.nodes_count = config["units"]
@@ -1311,7 +1506,7 @@ def set_to_tf_layer(layer_instance, tf_layer):
     elif isinstance(tf_layer, layers.Embedding):
         layer_instance.max_tokens = config["input_dim"]
         layer_instance.output_dim = config["output_dim"]
-    else:   # GlobalPooling1D and MobileNetV2 can't be reset
+    else:   # GlobalPooling1D and pretrained models can't be reset
         print("DID NOT UPDATE LAYER OF TYPE: ", layer_instance.layer_type)
         return # Continue instantiating model
     
@@ -1321,10 +1516,12 @@ def set_to_tf_layer(layer_instance, tf_layer):
     layer_instance.updated = False
     layer_instance.save()
     return layer_instance
-    
+
 
 @shared_task(bind=True)
 def reset_to_build_task(self, layer_id, user_id):
+    import tensorflow as tf
+    
     try:
         profile = Profile.objects.get(user_id=user_id)
         layer_instance = Layer.objects.get(id=layer_id)
@@ -1345,18 +1542,14 @@ def reset_to_build_task(self, layer_id, user_id):
                     if layer.name == str(layer_id):
                         found = True
                         layer_instance = set_to_tf_layer(layer_instance, layer)
-                        
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 
                 if not found: return {"data": None, "status": 200}
                 
                 return {"data": LayerSerializer(layer_instance).data,"status": 200}
         
             except ValueError as e: # In case of invalid layer combination
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 return {"Bad request": str(e), "status": 400}
             except Exception as e:
-                remove_temp_tf_model(model_instance, timestamp, user_id=user_id)
                 return {"Bad request": str(e), "status": 400}
         else:
             return {"Unauthorized": "You can only recompile your own models.", "status": 401}
@@ -1367,5 +1560,528 @@ def reset_to_build_task(self, layer_id, user_id):
         return {"Not found": "Could not find layer with the id " + str(layer_id) + ".", "status": 404}
     except Exception as e:
         return {"Bad request": str(e), "status": 400}
+
+
+def layer_model_from_tf_layer(tf_layer, model_id, idx, user, input_shape=False):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
+    from tensorflow.keras import layers
+    
+    config = tf_layer.get_config()
+        
+    data = {}
+    
+    if isinstance(tf_layer, layers.Dense):
+        data["type"] = "dense"
+        data["nodes_count"] = config["units"]
+        if input_shape:
+            data["input_x"] = input_shape[-1]
+    elif isinstance(tf_layer, layers.Conv2D):
+        data["type"] = "conv2d"
+        data["filters"] = config["filters"]
+        data["kernel_size"] = config["kernel_size"][0]
+        data["padding"] = config["padding"]
+        if input_shape:
+            data["input_x"] = input_shape[1]    # First one is None
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.MaxPool2D):
+        data["type"] = "maxpool2d"
+        data["pool_size"] = config["pool_size"][0]
+    elif isinstance(tf_layer, layers.Flatten):
+        data["type"] = "flatten"
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+    elif isinstance(tf_layer, layers.Dropout):
+        data["type"] = "dropout"
+        data["rate"] = config["rate"]
+    elif isinstance(tf_layer, layers.Rescaling):
+        data["type"] = "rescaling"
+        data["scale"] = config["scale"]
+        data["offset"] = config["offset"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.RandomFlip):
+        data["type"] = "randomflip"
+        data["mode"] = config["mode"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.RandomRotation):
+        data["type"] = "randomrotation"
+        data["factor"] = config["factor"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.Resizing):
+        data["type"] = "resizing"
+        data["output_x"] = config["width"]
+        data["output_y"] = config["height"]
+        if input_shape:
+            data["input_x"] = input_shape[1]
+            data["input_y"] = input_shape[2]
+            data["input_z"] = input_shape[3]
+    elif isinstance(tf_layer, layers.TextVectorization):
+        data["type"] = "textvectorization"
+        data["max_tokens"] = config["max_tokens"]
+        data["standardize"] = config["standardize"]
+    elif isinstance(tf_layer, layers.Embedding):
+        data["type"] = "embedding"
+        data["max_tokens"] = config["input_dim"]
+        data["output_dim"] = config["output_dim"]
+    elif isinstance(tf_layer, layers.GlobalAveragePooling1D):
+        data["type"] = "globalaveragepooling1d"
+    elif tf_layer.name == "mobilenetv2":
+        data["type"] = "mobilenetv2"
+    elif tf_layer.name == "mobilenetv2_96x96":
+        data["type"] = "mobilenetv2_96x96"
+    elif tf_layer.name == "mobilenetv2_32x32":
+        data["type"] = "mobilenetv2_32x32"
+    else:
+        print("UNKNOWN LAYER TYPE: ", tf_layer)
+        return # Continue instantiating model
+    
+    data["model"] = model_id
+    data["index"] = idx
+    data["activation_function"] = config.get("activation", "")
+
+
+    instance = create_layer_instance(data, user)
+    
+    return instance  # Or return {'id': instance.id} or whatever you need
+
+
+@shared_task(bind=True)
+def reset_model_to_build_task(self, model_id, user_id):
+    import tensorflow as tf
+    
+    backend_temp_model_path = ""
+    
+    try:
+        profile = Profile.objects.get(user_id=user_id)
+        model_instance = Model.objects.get(id=model_id)
+        
+        input_shape = []
+        
+        if model_instance.owner == profile:  
+            for t, layer in enumerate(model_instance.layers.all()):    # Workaround due to bug with Django Polymorphic
+                if t == 0:
+                    input_shape = [None, layer.input_x, layer.input_y, layer.input_z]
+                layer.delete()
+            
+            model_file = model_instance.model_file
+            extension = model_file.name.split(".")[-1]
+            temp_path = "tmp/temp_models/" + model_file.name
+            file_path = default_storage.save(temp_path, model_file.file)
+            
+            bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+            temp_model_file_path = "media/" + file_path
+                    
+            s3_client = get_s3_client()
+            
+            # Download the model file from S3 to a local temporary file
+            timestamp = time.time()
+            backend_temp_model_path = get_temp_model_name(model_instance.id, timestamp, extension)
+            with open(backend_temp_model_path, 'wb') as f:
+                s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
+
+            model = tf.keras.models.load_model(backend_temp_model_path)
+            
+            default_storage.delete(file_path)
+            
+            os.remove(backend_temp_model_path)
+            
+            for t, layer in enumerate(model.layers):
+                if t == 0:
+                    layer_model_from_tf_layer(layer, model_id, t, profile.user, input_shape)
+                else:
+                    layer_model_from_tf_layer(layer, model_id, t, profile.user)
+                
+                
+            model_instance.model_file = model_file
+            model_instance.optimizer = model.optimizer.__class__.__name__.lower()
+
+            def get_loss_name(loss):
+                if isinstance(loss, str):
+                    return loss
+                elif hasattr(loss, '__name__'):
+                    return loss.__name__
+                elif hasattr(loss, 'name'):
+                    return loss.name
+                elif hasattr(loss, '__class__'):
+                    return loss.__class__.__name__
+                return str(loss)
+
+            model_instance.loss_function = get_loss_name(model.loss)
+            
+            model_instance.save()
+            
+            for layer in model_instance.layers.all():
+                layer.updated = False
+                layer.save()
+            
+            return {"status": 200}
+    
+        else:
+            return {"Unauthorized": "You can only reset your own models.", "status": 401}
+    except Model.DoesNotExist: 
+        return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    except Profile.DoesNotExist: 
+        return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+    except Exception as e:
+        if backend_temp_model_path and os.path.exists(backend_temp_model_path):
+            os.remove(backend_temp_model_path)
+        return {"Bad request": str(e), "status": 400}
     
     
+def create_model_file(model_instance, profile):
+    import tensorflow as tf
+    
+    backend_temp_model_path = ""
+    try:
+        model_file = model_instance.model_file  # View saves uploaded file here
+        extension = model_file.name.split(".")[-1]
+        temp_path = "tmp/temp_models/" + model_file.name
+        file_path = default_storage.save(temp_path, model_file.file)
+        
+        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
+        temp_model_file_path = "media/" + file_path
+                
+        s3_client = get_s3_client()
+        
+        # Download the model file from S3 to a local temporary file
+        timestamp = time.time()
+        backend_temp_model_path = get_temp_model_name(model_instance.id, timestamp, extension)
+        with open(backend_temp_model_path, 'wb') as f:
+            s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
+
+        model = tf.keras.models.load_model(backend_temp_model_path)
+        
+        default_storage.delete(file_path)
+        
+        os.remove(backend_temp_model_path)
+        
+        for t, layer in enumerate(model.layers):
+            layer_model_from_tf_layer(layer, model_instance.id, t, profile.user)
+            
+        model_instance.model_file = model_file
+        model_instance.optimizer = model.optimizer.__class__.__name__.lower()
+
+        def get_loss_name(loss):
+            if isinstance(loss, str):
+                return loss
+            elif hasattr(loss, '__name__'):
+                return loss.__name__
+            elif hasattr(loss, 'name'):
+                return loss.name
+            elif hasattr(loss, '__class__'):
+                return loss.__class__.__name__
+            return str(loss)
+
+        model_instance.loss_function = get_loss_name(model.loss)
+        
+        model_instance.save()
+        
+        return {"status": 200}
+    except Exception as e:
+        if os.path.exists(backend_temp_model_path):
+            os.remove(backend_temp_model_path)
+        return {"Bad request": str(e), "status": 400}    
+
+
+# Takes a while if user uploads a model, therefore task
+@shared_task(bind=True)
+def create_model_task(self, model_id, user_id):
+    import tensorflow as tf
+    
+    try:
+        profile = Profile.objects.get(user_id=user_id)
+    except Profile.DoesNotExist:
+        return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
+
+    try:
+        model_instance = Model.objects.get(id=model_id)
+    except Model.DoesNotExist:
+        return {"Not found": "Could not find model with the id " + str(model_id) + ".", "status": 404}
+        
+    res = create_model_file(model_instance, profile)
+    if res["status"] != 200:
+        return {'Bad Request': res["Bad request"], "status": 400}
+                
+    return {"status": 200}
+
+
+def resize_element_image(instance, newWidth, newHeight):
+    new_name = instance.file.name.split("/")[-1]     # Otherwise includes files
+
+    newWidth = min(1024, newWidth)
+    newHeight = min(1024, newHeight)
+    
+    try:
+        
+        img = Image.open(instance.file)
+        oldWidth, oldHeight = img.size
+        if oldWidth == newWidth and oldHeight == newHeight:
+            instance.imageWidth = newWidth
+            instance.imageHeight = newHeight
+            instance.save()
+
+        img = img.resize([newWidth, newHeight], Image.LANCZOS)
+        
+        if default_storage.exists(instance.file.name):
+            default_storage.delete(instance.file.name)
+        
+        # Save to BytesIO buffer
+        buffer = BytesIO()
+        img_format = img.format if img.format else "JPEG"  # Default to JPEG
+        img.save(buffer, format=img_format, quality=90)
+        buffer.seek(0)
+                            
+        instance.file.save(new_name, ContentFile(buffer.read()), save=False)
+        instance.imageWidth = newWidth
+        instance.imageHeight = newHeight
+        instance.save()
+        
+    except IOError:
+        print("Element ignored: not an image.")
+
+
+@shared_task(bind=True)
+def resize_dataset_images_task(self, dataset_id, user_id, imageWidth, imageHeight):
+    import tensorflow as tf
+    
+    try:
+        try:
+            profile = Profile.objects.get(user_id=user_id)
+        except Profile.DoesNotExist:
+            return {"Not found": "Could not find profile with the id " + str(user_id) + ".", "status": 404}
+        
+        try:
+            dataset = Dataset.objects.get(id=dataset_id)
+        except Dataset.DoesNotExist:
+            return {"Not found": "Could not find dataset with the id " + str(dataset_id) + ".", "status": 404}
+        
+        if dataset.owner != profile:
+            return {"Unauthorized": "You can only edit your own datasets.", "status": 401}
+        
+        totalCount = dataset.elements.count()
+        for t, element in enumerate(dataset.elements.all()):
+            if t % 5 == 0:
+                profile.edit_dataset_progress = (t + 1) / totalCount
+                profile.save()
+            resize_element_image(element, int(imageHeight), int(imageWidth))
+        
+        profile.edit_dataset_progress = 0
+        profile.save()
+            
+        return {"status": 200}
+    
+    except Exception as e:
+        return {"Bad request": str(e), "status": 400}    
+    
+    
+def random_light_color():   # Slightly biased towards lighter shades
+    r = random.randint(150, 255)  # Higher values mean lighter colors
+    g = random.randint(150, 255)
+    b = random.randint(150, 255)
+    return "#{:02x}{:02x}{:02x}".format(r, g, b)    
+
+    
+@shared_task
+def create_elements_task(s3_keys, dataset_id, user_id, index, labels, area_points):
+    from django.db import transaction
+    
+    try:
+        profile = Profile.objects.get(user_id=user_id)
+        dataset = Dataset.objects.get(id=dataset_id)
+    except (Profile.DoesNotExist, Dataset.DoesNotExist) as e:
+        return {"Not found": str(e), "status": 404}
+
+    profile.creating_elements_progress = 0
+    profile.save()
+
+    elements_to_create = []
+    files_data = []
+
+    try:
+        # Read all files first (or in chunks)
+        for i, key in enumerate(s3_keys):
+            filename_with_uuid = key.split("/")[-1]
+            original_filename = "_".join(filename_with_uuid.split("_")[2:])
+                
+            with default_storage.open(key, "rb") as f:
+                file_content = f.read()
+                files_data.append((file_content, original_filename))
+            
+            if i % 10 == 0:
+                profile.creating_elements_progress = (i + 1) / (len(s3_keys) * 5)
+                profile.save()
+            
+        profile.creating_elements_progress = (1/5)
+        profile.save()
+
+        # Prepare Element instances (not saved yet)
+        for i, (file_content, original_filename) in enumerate(files_data):
+            file_obj = File(BytesIO(file_content), name=original_filename)
+            dataset_type = dataset.dataset_type.lower()
+            
+            if dataset_type == "image" and not (dataset.imageWidth or dataset.imageHeight):
+                with Image.open(BytesIO(file_content)) as img:
+                    width, height = img.size
+                element = Element(
+                    dataset=dataset,
+                    owner=profile,
+                    file=file_obj,
+                    index=index + i,
+                    name=original_filename,
+                    imageWidth=width,
+                    imageHeight=height
+                )
+            elif dataset_type == "image":
+                element = Element(
+                    dataset=dataset,
+                    owner=profile,
+                    file=file_obj,
+                    index=index + i,
+                    name=original_filename
+                )
+            elif dataset_type == "text":
+                element = Element(
+                    dataset=dataset,
+                    owner=profile,
+                    file=file_obj,
+                    index=index + i,
+                    name=original_filename,
+                    text=file_content[:10000].decode('utf-8', errors='ignore')
+                )
+            elements_to_create.append(element)
+            
+            if i % 10 == 0:
+                profile.creating_elements_progress = (1/5) + (i + 1) / (len(files_data) * 5)
+                profile.save()
+            
+        profile.creating_elements_progress = (2/5)
+        profile.save()
+        
+        with transaction.atomic():
+            created_elements = Element.objects.bulk_create(elements_to_create)
+
+        if dataset.datatype.lower() == "classification":
+            with transaction.atomic():
+                # Assign labels in bulk if possible
+                for i, element in enumerate(created_elements):
+                    if labels and i < len(labels):
+                        try:
+                            label = Label.objects.get(id=labels[i])
+                            element.label = label
+                        except Label.DoesNotExist:
+                            pass
+                    
+                    if i % 10:
+                        profile.creating_elements_progress = (2/5) + (i + 1) / (len(created_elements) * 5)
+                        profile.save()
+                    
+                Element.objects.bulk_update(created_elements, ['label'])
+                
+        elif area_points and dataset.datatype.lower() == "area":            
+            
+            with transaction.atomic():
+                areas_to_create = []
+                # Assign labels in bulk if possible
+                for i, element in enumerate(created_elements):
+                    original_filename = element.name
+                    if original_filename not in area_points.keys(): continue
+                    areas = area_points[original_filename]
+                    for i, label_key in enumerate(areas.keys()):
+                        label = Label.objects.get(id=labels[i])
+                        for points in areas[label_key]:
+                
+                            width = element.imageWidth
+                            height = element.imageHeight
+                            new_points = []
+                            for point in points:
+                                x, y = point
+                                new_points.append([min(100, round(x / width, 3) * 100), min(100, round(y / height, 3) * 100)])
+                        
+                            area_to_create = Area(
+                                label=label,
+                                element=element,
+                                area_points=json.dumps(new_points)
+                            )
+                            areas_to_create.append(area_to_create)
+                            
+                    if i % 10:
+                        profile.creating_elements_progress = (2/5) + (i + 1) / (len(created_elements) * 5)
+                        profile.save()
+                    
+                created_areas = Area.objects.bulk_create(areas_to_create)
+            
+        profile.creating_elements_progress = (3/5)
+        profile.save()
+
+        # Resize images after creation (could be async)
+        if dataset.dataset_type.lower() == "image" and (dataset.imageWidth or dataset.imageHeight):
+            for t, element in enumerate(created_elements):
+                ext = element.file.name.split(".")[-1].lower()
+                if ext in ALLOWED_IMAGE_FILE_EXTENSIONS:
+                    resize_element_image(element, dataset.imageWidth, dataset.imageHeight)
+                    
+                if t % 10 == 0:
+                    profile.creating_elements_progress = (3/5) + (t + 1) / (len(created_elements) * 5)
+                    profile.save()
+        elif dataset.dataset_type.lower() == "image":
+            for t, element in enumerate(created_elements):
+                if element.imageWidth > 1024 or element.imageHeight > 1024:
+                    ext = element.file.name.split(".")[-1].lower()
+                    if ext in ALLOWED_IMAGE_FILE_EXTENSIONS:
+                        max_size = 1024
+                        width = element.imageWidth
+                        height = element.imageHeight
+
+                        if width > height:
+                            scale = max_size / width
+                        else:
+                            scale = max_size / height
+
+                        new_width = int(width * scale)
+                        new_height = int(height * scale)
+
+                        resize_element_image(element, new_width, new_height)
+                    
+                if t % 10 == 0:
+                    profile.creating_elements_progress = (3/5) + (t + 1) / (len(created_elements) * 5)
+                    profile.save()
+                
+        profile.creating_elements_progress = (4/5)
+        profile.save()
+
+        # Delete files after processing (outside loop)
+        for t, key in enumerate(s3_keys):
+            default_storage.delete(key)
+            
+            if t % 10 == 0:
+                profile.creating_elements_progress = (4/5) + ((t + 1) / (len(s3_keys) * 5))
+                profile.save()
+
+        profile.creating_elements_progress = 0
+        profile.save()
+
+        return {"status": 200}
+
+    except Exception as e:
+        print("Error during background element creation:", str(e))
+        profile.creating_elements_progress = 1
+        profile.save()
+            
+        for key in s3_keys:
+            try:
+                default_storage.delete(key)
+            except Exception as inner_e:
+                print("Cleanup failed for:", key, inner_e)
+                
+        profile.creating_elements_progress = 0
+        profile.save()
+        return {"Bad request": str(e), "status": 400}    

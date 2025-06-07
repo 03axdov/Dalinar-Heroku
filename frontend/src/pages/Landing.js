@@ -2,6 +2,7 @@ import React, { useState } from "react"
 import { useNavigate } from "react-router-dom";
 import LandingImageRow from "../components/LandingImageRow"
 import TitleSetter from "../components/minor/TitleSetter";
+import { Helmet } from "react-helmet"
 
 // The default page. Login not required.
 function Landing({BACKEND_URL}) {
@@ -32,7 +33,13 @@ function Landing({BACKEND_URL}) {
         BACKEND_URL + "/static/images/landing9.webp",
     ];
 
-    return (
+    return (<>
+        <Helmet>
+            <meta
+            name="description"
+            content="Welcome to Dalinar - Create and train machine learning models without coding. Upload datasets, build models, and explore AI easily."
+            />
+        </Helmet>
         <div className="landing-container">
             <TitleSetter title="Dalinar | AI made easy" />
             <div className="landing-header">
@@ -44,7 +51,10 @@ function Landing({BACKEND_URL}) {
                     </p>
                     <div className="landing-header-buttons">
                         <button onClick={() => window.location.href = window.location.origin + "/accounts/login/"} type="button" className="landing-header-button landing-header-start">Get started</button>
-                        <button onClick={() => navigate("/explore")} type="button" className="landing-header-button landing-header-explore">Explore</button>
+                        <a href="https://www.youtube.com/watch?v=tQ2lUxumQV4" target="_blank" className="landing-header-button landing-header-video">
+                            <span style={{marginRight: "10px", fontSize: "1.2rem"}}>&#9654;</span>
+                            Watch video
+                        </a>
                     </div>
                 </div>
                 <div className="landing-header-right">
@@ -57,7 +67,7 @@ function Landing({BACKEND_URL}) {
             </div>
 
         </div>
-    )
+    </>)
 }
 
 export default Landing

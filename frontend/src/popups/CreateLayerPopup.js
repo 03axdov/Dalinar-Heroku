@@ -55,7 +55,8 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
             label: 'Pretrained Models',
             options: [
                 getLabeledOption('mobilenetv2', 'MobileNetV2 - 224x224x3'),
-                getLabeledOption('mobilenetv2small', 'MobileNetV2 - 32x32x3'),
+                getLabeledOption('mobilenetv2_96x96', 'MobileNetV2 - 96x96x3'),
+               // getLabeledOption('mobilenetv2_32x32', 'MobileNetV2 - 32x32x3'), // Shouldn't be used as this seems pointless
             ],
         },
     ];
@@ -108,6 +109,16 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                 let param = layer.params[i]
                 temp[param.name] = param.default
             }
+            if (layer.dimensions) {
+                for (let i=0; i < layer.dimensions.length; i++) {
+                    let dimension = layer.dimensions[i]
+                    for (let i=0; i < dimension.params.length; i++) {
+                        let param = dimension.params[i]
+                        temp[param.name] = param.default
+                    }
+                }
+            }
+            
         })
         setParams(temp)
     }, [type])
@@ -292,6 +303,31 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
 
                         data[param.name] = params[param.name]
                     }
+
+                    if (layer.dimensions) {
+                        for (let i=0; i < layer.dimensions.length; i++) {
+                            let dimension = layer.dimensions[i]
+                            for (let i=0; i < dimension.params.length; i++) {
+                                let param = dimension.params[i]
+                                if (param.required && !params[param.name] && params[param.name] !== 0) {
+                                    notification("Please enter " + param.name, "failure")
+                                    return
+                                }
+                                
+                                if (param.validator) {
+                                    let message = param.validator(params[param.name])
+                                    if (message.length > 0) {
+                                        notification(message, "failure")
+                                        return
+                                    }
+                                }
+        
+                                data[param.name] = params[param.name]
+                            }
+                        }
+                    }
+                    
+
                     if (layer.input_x || layer.input_y || layer.input_y) {
                         let message = checkInputDimensions(layer)
                         if (message.length > 0) {
@@ -303,6 +339,8 @@ function CreateLayerPopup({BACKEND_URL, setShowCreateLayerPopup, onSubmit, proce
                     if (!layer.activation_function) {
                         data["activation_function"] = ""
                     }
+
+                    console.log(data)
 
                     onSubmit(data)
                 }}>

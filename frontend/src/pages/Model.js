@@ -22,6 +22,7 @@ import throttle from 'lodash.throttle';
 import Select from 'react-select';
 import { customStylesNoMargin } from "../helpers/styles";
 import TitleSetter from "../components/minor/TitleSetter";
+import { Helmet } from "react-helmet"
 
 
 // The default page. Login not required.
@@ -33,6 +34,8 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
     const [layers, setLayers] = useState([])
 
     const [saving, setSaving] = useState(false)
+    const [resetting, setResetting] = useState(false)
+    const [deletingAllLayers, setDeletingAllLayers] = useState(false)
 
     const [loading, setLoading] = useState(true)
     const [processingBuildModel, setProcessingBuildModel] = useState(false)
@@ -201,6 +204,10 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
         if (isPublic) return;
         if (!layers || layers.length == 0) {
             notification("Please add layers before building the model.", "failure")
+            return
+        }
+        if (learningRate == 0) {
+            notification("Learning rate must be positive.", "failure")
             return
         }
         if (processingBuildModel) {return}
@@ -407,6 +414,46 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
             setSaving(false)
         })
     }
+
+    function resetModelToBuild() {
+        if (!currentProfile) {return}
+
+        const URL = window.location.origin + '/api/reset-model/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        let data = {
+            "id": model.id
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        if (resetting) {return}
+        setResetting(true)
+
+        let resettingInterval = null;
+
+        axios.post(URL, data, config)
+        .then((res) => {
+            resettingInterval = setInterval(() => getTaskResult(
+                "reset_model",
+                resettingInterval,
+                res.data["task_id"],
+                () => {
+                    notification("Successfully reset model.", "success")
+                    getModel()
+                },
+                (data) => notification("Resetting model failed: " + data["message"], "failure"),
+                () => {},
+                () => {
+                    setResetting(false)
+                }
+            ), 2000)
+        }).catch((error) => {
+            notification("Error: " + error, "failure")
+        })
+    }
     
 
     // LAYER FUNCTIONALITY
@@ -502,7 +549,11 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
         setLoading(true)
         axios.post(URL, data, config)
         .then((data) => {
-
+            setWarnings((prevWarnings) => {
+                const newWarnings = new Set(prevWarnings); // clone the Set
+                newWarnings.delete(id);              // remove the item
+                return newWarnings;                        // return new Set
+            });
             getModel()
 
             notification("Successfully deleted layer.", "success")
@@ -515,9 +566,43 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
         })
     }
 
-    function deleteLayer(id, message) {
+    function deleteLayer(id, message, callback) {
         if (isPublic) return;
-        activateConfirmPopup((message || "Are you sure you want to delete this layer? This action cannot be undone."), () => deleteLayerInner(id))
+        activateConfirmPopup((message || "Are you sure you want to delete this layer? This action cannot be undone."), () => {
+            if (callback) {
+                callback()
+            }
+            deleteLayerInner(id)
+        })
+    }
+
+    function deleteAllLayers() {
+        if (isPublic) return
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        let data = {
+            "model": id
+        }
+
+        const URL = window.location.origin + '/api/delete-all-layers/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        if (deletingAllLayers) return
+        setDeletingAllLayers(true)
+        axios.post(URL, data, config)
+        .then((data) => {
+            setLayers([])
+
+            notification("Successfully deleted all layers.", "success")
+
+        }).catch((error) => {
+            notification("Error: " + error + ".")
+
+        }).finally(() => {
+            setDeletingAllLayers(false)
+        })
     }
 
     function updateLayers(updated_layer) {
@@ -682,7 +767,15 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
         {value: "text-large", label: "Text Model (large)"}
     ]
 
-    return (
+    return (<>
+        <Helmet>
+            <meta
+            name="description"
+            content={"Explore " + (model ? "the " + model.name : "this") + " model on Dalinar. Ready-to-use data for machine learning projects — view, analyze, and train models without coding."}
+            />
+
+            {isPublic && <link rel="canonical" href={`https://dalinar.net/models/public/${id}`} />}
+        </Helmet>
         <div className="dataset-container" ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
             <TitleSetter title={"Dalinar " + (model ? "- " + model.name : "")} />
 
@@ -835,6 +928,27 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                     </div>}
                     
                     {!loading && layers.length == 0 && <p className="gray-text">Layers will show here</p>}
+
+                    {!isPublic && model && (model.model_file || layers.length > 0) && <div className="model-reset-button-container">
+                        {model.model_file && <button type="button" 
+                        className={"sidebar-button dataset-upload-button " + (toolbarLeftWidth < 150 ? "sidebar-button-small" : "")} 
+                        title="Reset to build"
+                        onClick={() => activateConfirmPopup("Are you sure you want to reset the entire model to the latest build?", resetModelToBuild, "blue")}>
+                            <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} src={BACKEND_URL + "/static/images/" + (resetting ? "loading.gif" : "reset.svg")} alt="Reset" />
+                            <span>{(resetting ? "Resetting..." : "Reset to build")}</span>
+                        </button>}
+                        {layers.length > 0 && <button type="button" 
+                        style={{marginTop: (model.model_file ? "10px" : "0")}}
+                        className={"sidebar-button dataset-upload-button " + (toolbarLeftWidth < 150 ? "sidebar-button-small" : "")} 
+                        title="Delete layers"
+                        onClick={() => activateConfirmPopup("Are you sure you want to delete all layers?", deleteAllLayers, "red")}>
+                            <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} 
+                                src={BACKEND_URL + "/static/images/" + (deletingAllLayers ? "loading.gif" : "cross.svg")} 
+                                alt="Cross"
+                                style={{height: "10px", width: "10px"}} />
+                            <span>{(resetting ? "Deleting..." : "Delete layers")}</span>
+                        </button>}
+                    </div>}
                 </div>
                 <div className="dataset-toolbar-resizeable" 
                 onMouseDown={resizeLeftToolbarHandleMouseDown}
@@ -971,7 +1085,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                         {showModelMetrics ? "Hide training metrics" : "Show training metrics"}
                     </button>}
 
-                    {layers.length > 0 && numParams && <div className="model-params-container">
+                    {layers.length > 0 && numParams !== "" && numParams > 0 && <div className="model-params-container">
                         {numParams} parameters
                     </div>}
 
@@ -1080,6 +1194,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                         </div>)}
                         </Droppable>
                     </DragDropContext>}
+                    
                     {isPublic && !showModelDescription && !showModelMetrics && <div className="model-layers-container"
                     ref={scrollRef}
                     onMouseDown={handleMouseDown}
@@ -1122,7 +1237,7 @@ function Model({currentProfile, activateConfirmPopup, notification, BACKEND_URL,
                 </div>
             </div>
         </div>
-    )
+    </>)
 
     
 }

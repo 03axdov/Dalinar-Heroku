@@ -7,6 +7,7 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import axios from 'axios'
 import { debounce } from 'lodash';
 import TitleSetter from "../components/minor/TitleSetter"
+import { Helmet } from "react-helmet"
 
 // This is the personal view. /home
 function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_explore=false}) {
@@ -54,20 +55,35 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
         getDatasets()
     }, [datasetShow, sortDatasets, imageDimensions])
 
+    const loadedSaved = useRef(false)
     useEffect(() => {
         if (is_explore) return;
-        if (currentProfile && (currentProfile.saved_datasets || currentProfile.saved_models)) {
+        if (currentProfile && currentProfile.user && startParam == "saved" && savedDatasets.length == 0 && savedModels.length == 0 && !loadedSaved.current) {
+            loadedSaved.current = true
             setLoadingSaved(true)
-            if (currentProfile.saved_datasets) {
-                setSavedDatasets(sort_saved_datasets(currentProfile.saved_datasets))
-            }
-            if (currentProfile.saved_models) {
-                setSavedModels(sort_saved_models(currentProfile.saved_models))
-            }
-            setLoadingSaved(false)
+
+            let URL = window.location.origin + "/api/saved-datasets/?order_by=downloads"
+            axios({
+                method: 'GET',
+                url: URL
+            })
+            .then((res) => {
+                setSavedDatasets(sort_saved_datasets(res.data.results))
+                if (currentProfile.saved_models) {
+                    setSavedModels(sort_saved_models(currentProfile.saved_models))
+                }
+            }).catch((err) => {
+                notification("An error occured while loading your saved datasets.", "failure")
+                console.log(err)
+            }).finally(() => {
+                setLoadingSaved(false)
+                
+            })      
+
+            
         }
         
-    }, [currentProfile])
+    }, [currentProfile, startParam])
 
     const getDatasets = () => {
         setLoading(true)
@@ -88,7 +104,6 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
         })
         .then((res) => {
             if (res.data) {
-                console.log(res.data)
                 setDatasets(res.data.results)
                 setNextPageDatasets(res.data.next)
             } else {
@@ -102,6 +117,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
         }).finally(() => {
             setLoading(false)
         })
+        
     }
 
     const loadMoreDatasets = useCallback(debounce(() => {
@@ -246,14 +262,14 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
             } else if (sortSavedDatasets == "date") {
                 return new Date(d2.created_at) - new Date(d1.created_at)
             } else if (sortSavedDatasets == "elements") {
-                if (d1.elements.length != d2.elements.length) {
-                    return d2.elements.length - d1.elements.length
+                if (d1.element_count != d2.element_count) {
+                    return d2.element_count - d1.element_count
                 } else {
                     return d1.name.localeCompare(d2.name)
                 }
             } else if (sortSavedDatasets == "labels") {
-                if (d1.labels.length != d2.labels.length) {
-                    return d2.labels.length - d1.labels.length
+                if (d1.label_count != d2.label_count) {
+                    return d2.label_count - d1.label_count
                 } else {
                     return d1.name.localeCompare(d2.name)
                 }
@@ -387,6 +403,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
             } else {
                 setSavedModels(sort_saved_models(currentProfile.saved_models))
             }
+
             setLoadingSaved(false)
         }, 350);
     
@@ -423,11 +440,19 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
     const visibleSavedDatasets = savedDatasets.filter((dataset) => datasetShouldShow(dataset));
     const visibleSavedModels = savedModels.filter((model) => modelShouldShow(model));
 
-    return <div className="home-container">
-        <TitleSetter title="Dalinar | Home" />
+    return <>
+        <Helmet>
+            <meta
+            name="description"
+            content={"Browse and manage " + (typeShown == "models" ? "models" : "datasets") +" on Dalinar. Prepare your data for machine learning models easily and quickly."}
+            />
+        </Helmet>
+        <div className="home-container">
+        {!is_explore && <TitleSetter title={"Dalinar | Home"} />}
+        {is_explore && <TitleSetter title={"Dalinar | Explore"} />}
 
         <div className="home-sidebar">
-            <button className="sidebar-button" onClick={() => {
+            <button title="Create dataset" className="sidebar-button" onClick={() => {
                 if (!is_explore) {
                     navigate("/create-dataset")
                 } else {
@@ -435,7 +460,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
                 }
                 
             }}>+ Create dataset</button>
-            <button title="Work in progress" className="sidebar-button create-model" onClick={() => {
+            <button title="Create model" className="sidebar-button create-model" onClick={() => {
                 if (!is_explore) {
                     navigate("/create-model")
                 } else {
@@ -445,27 +470,30 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
             }}>+ Create model</button>
 
             <div className="sidebar-types-container">
-                <div className={"sidebar-types-element " + (typeShown == "datasets" ? "sidebar-types-element-selected" : "")}
-                onClick={() => {
+                <a href={(is_explore ? "/explore" : "/home") + "?start=datasets"} className={"sidebar-types-element " + (typeShown == "datasets" ? "sidebar-types-element-selected" : "")}
+                onClick={(e) => {
+                    e.preventDefault()
                     setSearchParams({"start": "datasets"})
                     setTypeShown("datasets")
                 }}>
                     <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/database.svg"} alt="Database" />Datasets
-                </div>
-                <div className={"sidebar-types-element " + (typeShown == "models" ? "sidebar-types-element-selected" : "")}
-                onClick={() => {
+                </a>
+                <a href={(is_explore ? "/explore" : "/home") + "?start=models"} className={"sidebar-types-element " + (typeShown == "models" ? "sidebar-types-element-selected" : "")}
+                onClick={(e) => {
+                    e.preventDefault()
                     setSearchParams({"start": "models"})
                     setTypeShown("models")
                 }}>
                     <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/model.svg"} alt="Model" />Models
-                </div>
-                {!is_explore && <div className={"sidebar-types-element " + (typeShown == "saved" ? "sidebar-types-element-selected" : "")}
-                onClick={() => {
+                </a>
+                {!is_explore && <a href="/home?start=saved" className={"sidebar-types-element " + (typeShown == "saved" ? "sidebar-types-element-selected" : "")}
+                onClick={(e) => {
+                    e.preventDefault()
                     setSearchParams({"start": "saved"})
                     setTypeShown("saved")
                 }}>
                     <img className="sidebar-types-element-icon" src={BACKEND_URL + "/static/images/star.svg"} alt="Star" />Saved
-                </div>}
+                </a>}
             </div>
         </div>
         <div className="home-non-sidebar">
@@ -495,7 +523,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
                     {!loading && !is_explore && datasets.length === 0 && currentProfile.datasetsCount > 0 && <p className="gray-text">No such datasets found.</p>}
                     {!loading && is_explore && datasets.length === 0 && <p className="gray-text">No such datasets found.</p>}
 
-                    {!loading && !is_explore && currentProfile.datasetsCount == 0 && (
+                    {!loading && !is_explore && datasets.length === 0 && currentProfile.datasetsCount == 0 && (
                         <p>You don't have any datasets. Click <span className="link" onClick={() => navigate("/create-dataset")}>here</span> to create one.</p>
                     )}
 
@@ -505,7 +533,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
                         ))
                     )}
                     {loading && is_explore && datasets.length === 0 && (
-                        [...Array(4)].map((e, i) => (
+                        [...Array(8)].map((e, i) => (
                             <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                         ))
                     )}
@@ -622,9 +650,9 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
                         <p className="gray-text">No such saved datasets found.</p>
                     )}
 
-                    {loadingSaved && savedDatasets.length === 0 && currentProfile.saved_datasets && currentProfile.saved_datasets.length > 0 && (
-                        currentProfile.saved_datasets.map((e, i) => (
-                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
+                    {loadingSaved && savedDatasets.length === 0 && currentProfile?.savedDatasetsCount > 0 && (
+                        [...Array(currentProfile.savedDatasetsCount)].map((e, i) => (
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                         ))
                     )}
 
@@ -647,7 +675,7 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
 
                     {loadingSaved && savedModels.length === 0 && currentProfile.modelsCount > 0 && currentProfile.saved_models && currentProfile.saved_models.length > 0 && (
                         currentProfile.saved_models.map((e, i) => (
-                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL}/>
+                            <DatasetElementLoading key={i} BACKEND_URL={BACKEND_URL} isPublic={true}/>
                         ))
                     )}
 
@@ -660,6 +688,6 @@ function Home({currentProfile, notification, BACKEND_URL, checkLoggedIn, is_expl
 
         
     </div>
-}
+</>}
 
 export default Home

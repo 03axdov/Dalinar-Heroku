@@ -2,14 +2,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from frontend.sitemaps import StaticViewSitemap
+from frontend.sitemaps import StaticViewSitemap, DatasetSitemap, ModelSitemap, AccountSitemap
 from django.contrib.sitemaps.views import sitemap
 from django.http import HttpResponse
 
 sitemaps = {
     'static': StaticViewSitemap,
+    'datasets': DatasetSitemap,
+    "accounts": AccountSitemap,
+    'models': ModelSitemap,
 }
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/", include("api.urls")),

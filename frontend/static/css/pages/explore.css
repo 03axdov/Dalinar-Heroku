@@ -164,13 +164,28 @@
         border-bottom: 1px solid var(--border);
     }
 
+    .title-forms-training {
+        width: 100%;
+    }
+
     .explore-datasets-sort {
         margin-left: 0;
+    }
+
+    .close-model-popup {
+        margin-top: 10px;
     }
 }
 
 @media all and (max-width: 975px) {
     .explore-label {
         font-size: 1rem;
+    }
+}
+
+@media all and (max-width: 550px) {
+    .title-forms {
+        justify-content: center;
+        width: 100%;
     }
 }

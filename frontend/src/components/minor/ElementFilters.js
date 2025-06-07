@@ -1,16 +1,20 @@
-import React, {useState, useEffect} from "react"
+import React, {useState, useEffect, useRef} from "react"
 import {useNavigate} from "react-router-dom"
 
 function ElementFilters({show, setShow, isModel, sort, setSort,
                         imageDimensions, setImageDimensions, search, setSearch, setLoading, 
                         BACKEND_URL, savedTypeShown, setSavedTypeShown, setSearchParams, startParam,
-                        showModelType, setShowModelType}) {
+                        showModelType, setShowModelType, isTraining=false}) {
 
     const [imageWidth, setImageWidth] = useState("")
     const [imageHeight, setImageHeight] = useState("")
 
+    const firstCall = useRef(true)
     useEffect(() => {
-        if (!imageDimensions) return;
+        if (firstCall.current) {
+            firstCall.current = false; // Set to false after first render
+            return;
+        }
         const handler = setTimeout(() => {
             let prevDims = [...imageDimensions]
             prevDims[0] = imageWidth
@@ -25,7 +29,7 @@ function ElementFilters({show, setShow, isModel, sort, setSort,
     }, [imageWidth, imageHeight])
 
     return (
-        <div className="title-forms">
+        <div className={"title-forms " + (isTraining ? "title-forms-training" : "")}>
             {savedTypeShown && <select title="Type shown " className="explore-datasets-sort" value={savedTypeShown} onChange={(e) => {
                 let temp = {
                         start: startParam,

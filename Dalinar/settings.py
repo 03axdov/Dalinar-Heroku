@@ -8,6 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: don't run with debug turned on in production!
+SITE_URL = 'https://dalinar.net'
 
 DEBUG = True
 PRODUCTION = False
@@ -83,6 +84,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'Dalinar.middleware.RemoveWWWRedirectMiddleware'
 ]
 
 ROOT_URLCONF = 'Dalinar.urls'
@@ -164,8 +166,15 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication'
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,  # or however many items you want per page
-
+    'PAGE_SIZE': 50,  # or however many items you want per page
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.UserRateThrottle',     # Authenticated users
+        'rest_framework.throttling.AnonRateThrottle',     # Unauthenticated users (if relevant)
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'user': '10/second',     # Adjust based on your needs
+        'anon': '5/second',
+    }
 }
 
 
@@ -193,6 +202,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/home'
 LOGOUT_REDIRECT_URL = '/accounts/login'
+
+if not DEBUG:
+    ACCOUNT_SIGNUP_REDIRECT_URL = '/welcome/'
 
 AWS_ACCESS_KEY_ID = 'AKIA5JXOPCQYY5WKJEPD'
 
@@ -254,3 +266,10 @@ CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
+
+DATA_UPLOAD_MAX_NUMBER_FILES = 10
+
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    'max_connections': 3,
+}
+CELERY_BROKER_POOL_LIMIT = 3

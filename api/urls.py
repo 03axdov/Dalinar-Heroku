@@ -4,10 +4,14 @@ from .views import *
 urlpatterns = [
     # PROFILE HANDLING
     path("current-profile/", GetCurrentProfile.as_view(), name="current-profile"),
+    path("accounts/", ProfileStatsListView.as_view(), name="accounts"),
+    path("accounts/<str:name>", GetProfile.as_view(), name="get-account"),
+    path("update-profile-image/", UpdateProfileImage.as_view(), name="update-profile-image"),
     
     # DATASET HANDLING
     path("datasets/", DatasetListPublic.as_view(), name="datasets"),
     path("my-datasets/", DatasetListProfile.as_view(), name="my-datasets"),
+    path("saved-datasets/", DatasetListSaved.as_view(), name="saved-datasets"),
     path("datasets/<int:id>", GetDataset.as_view(), name="get-dataset"),
     path("datasets/public/<int:id>", GetDatasetPublic.as_view(), name="get-dataset-public"),
     path("create-dataset/", CreateDataset.as_view(), name="create-dataset"),
@@ -16,11 +20,14 @@ urlpatterns = [
     path("save-dataset/", SaveDataset.as_view(), name="save-dataset"),
     path("unsave-dataset/", UnsaveDataset.as_view(), name="unsave-dataset"),
     path("delete-dataset/", DeleteDataset.as_view(), name="delete-dataset"),
-    path("reorder-dataset-elements/", ReorderDatasetElements.as_view(), name="reorder-dataset-elements"),
     path("reorder-dataset-labels/", ReorderDatasetLabels.as_view(), name="reorder-dataset-labels"),
+    path("reorder-dataset-elements/", ReorderDatasetElements.as_view(), name="reorder-dataset-elements"),
+    path("delete-all-elements/", DeleteAllElements.as_view(), name="delete-all-element"),
 
     # ELEMENT HANDLING
     path("create-element/", CreateElement.as_view(), name="create-element"),
+    path("upload-elements/", UploadElements.as_view(), name="create-elements"),
+    path("finalize-elements-upload/", FinalizeElementsUpload.as_view(), name="finalize-elements-upload"),
     path("edit-element-label/", EditElementLabel.as_view(), name="edit-element-label"),
     path("edit-element/", EditElement.as_view(), name="edit-element"),
     path("remove-element-label/", RemoveElementLabel.as_view(), name="remove-element-label"),
@@ -29,6 +36,7 @@ urlpatterns = [
     
     # LABEL HANDLING
     path("create-label/", CreateLabel.as_view(), name="create-label"),
+    path("create-labels/", CreateLabels.as_view(), name="create-labels"),
     path("dataset-labels/", GetDatasetLabels.as_view(), name="dataset-labels"),
     path("edit-label/", EditLabel.as_view(), name="edit-label"),
     path("delete-label/", DeleteLabel.as_view(), name="delete-label"),
@@ -54,10 +62,12 @@ urlpatterns = [
     path("predict-model/", PredictModel.as_view(), name="predict-model"),
     path("save-model/", SaveModel.as_view(), name="save-model"),
     path("unsave-model/", UnsaveModel.as_view(), name="unsave-model"),
+    path("reset-model/", ResetModelToBuild.as_view(), name="reset-model"),
     
     # LAYER HANDLING
     path("create-layer/", CreateLayer.as_view(), name="create-layer"),
     path("delete-layer/", DeleteLayer.as_view(), name="delete-layer"),
+    path("delete-all-layers/", DeleteAllLayers.as_view(), name="delete-all-layers"),
     path("edit-layer/", EditLayer.as_view(), name="edit-layer"),
     path("clear-layer-updated/", ClearLayerUpdated.as_view(), name="clear-layer-updated"),
     path("reset-to-build/", ResetLayerToBuild.as_view(), name="reset-to-layer"),

@@ -204,7 +204,7 @@
     opacity: 0.6;
 }
 
-#create-dataset-type-text, #create-dataset-type-area, #create-dataset-visibility-public {
+#create-dataset-type-text, #create-dataset-type-area, #create-dataset-visibility-private {
     margin-left: 20px;
 }
 
@@ -248,6 +248,14 @@
     margin-top: 10px;
 }
 
+.upload-dataset-types-container-area {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    align-items: center;
+}
+
 .upload-model-container {
     align-items: center;
     justify-content: start;
@@ -259,6 +267,14 @@
     flex-direction: column;
     align-items: center;
     width: 48%;
+}
+
+.upload-dataset-type-row {
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
 }
 
 .create-dataset-subtitle {
@@ -306,14 +322,10 @@
 
 .uploaded-datasets-labels-container {
     width: 100%;
-    padding: 20px;
-    padding-bottom: 30px;
     box-sizing: border-box;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
     display: flex;
     flex-direction: column;
-    margin-top: 20px;
+    margin-top: 40px;
 }
 
 .uploaded-datasets-label-element {
@@ -321,6 +333,8 @@
     flex-direction: row;
     margin-top: 20px;
     align-items: start;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
 }
 
 .uploaded-datasets-label {
@@ -345,11 +359,20 @@
     font-size: 1rem;
     padding: 3px 7px;
     border-radius: 3px;
+    width: 100px;
     background: var(--background-lighter);
     margin-right: 5px;
     display: flex;
     flex-direction: row;
     align-items: center;
+    justify-content: space-between;
+}
+.uploaded-datasets-element-name {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 100%;
+    cursor: default;
 }
 
 .uploaded-datasets-element-cross {
@@ -430,10 +453,11 @@
 .uploaded-dataset-element {
     padding: 3px 10px;
     border-radius: 3px;
+    box-sizing: border-box;
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: none;
+    white-space: nowrap;
     background: var(--toolbar-light);
     margin: 0;
     cursor: default;
@@ -453,6 +477,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
+    white-space: nowrap;
 }
 
 .edit-dataset-delete:hover {
@@ -583,4 +608,12 @@
 .uploaded-model-cross:hover {
     cursor: pointer;
     background: #384358;
+}
+
+.create-dataset-clear {
+    margin-bottom: 20px;
+    background: var(--background-light);
+}
+.create-dataset-clear:hover {
+    background: var(--background-lighter);
 }

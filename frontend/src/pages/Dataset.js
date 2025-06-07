@@ -14,12 +14,17 @@ import TitleSetter from "../components/minor/TitleSetter";
 import CreateLabel from "../popups/dataset/CreateLabel";
 import EditLabel from "../popups/dataset/EditLabel";
 import EditElement from "../popups/dataset/EditElement";
+import { Helmet } from "react-helmet";
+import { FixedSizeList as List } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { useTask } from "../contexts/TaskContext"
 
 
 const TOOLBAR_HEIGHT = 60
 
 // The default page. Login not required.
 function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_URL, isPublic=false}) {
+    const { getTaskResult } = useTask();
 
     const { id } = useParams();
     const [dataset, setDataset] = useState(null)
@@ -33,10 +38,11 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [textChanged, setTextChanged] = useState(false)
 
     const [showElementPreview, setShowElementPreview] = useState(false)
-    const [showElementPreviewTimeout, setShowElementPreviewTimeout] = useState(null);
+    const hoverTimeoutRef = useRef(null);
 
     // For loading animations
-    const [loading, setLoading] = useState(true)
+    const [pageLoading, setPageLoading] = useState(true)
+    const [loading, setLoading] = useState(false)
     const [uploadLoading, setUploadLoading] = useState(false)
     const [uploadPercentage, setUploadPercentage] = useState(0) // Used for the loading bar
     const [loadingLabelCreate, setLoadingLabelCreate] = useState(false)
@@ -45,6 +51,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [loadingElementEdit, setLoadingElementEdit] = useState(false)
     const [loadingElementDelete, setLoadingElementDelete] = useState(false)
     const [loadingResizeImage, setLoadingResizeImage] = useState(false)
+
+    const [deletingAllElements, setDeletingAllElements] = useState(false)
+    const [deletingElementsProgress, setDeletingElementsProgress] = useState(0)
+    const [reorderingElements, setReorderingElements] = useState(false)
 
     const [saving, setSaving] = useState(false)
     
@@ -97,6 +107,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const [displayAreas, setDisplayAreas] = useState(false)
 
     const [cursor, setCursor] = useState("")
+    const [imageExpanded, setImageExpanded] = useState(false)
+
+    const isScrollingRef = useRef(false);
+    const scrollTimeoutRef = useRef(null);
 
     const datasetMainDisplayRef = useRef(null)
 
@@ -138,8 +152,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     const canvasRefs = useRef([])
     const elementRef = useRef(null)
 
-    const DOT_SIZE = 18
-
     // For drawing lines for area datasets
     useEffect(() => {
         if (elements.length < 1) {return}
@@ -158,6 +170,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             canvas.width = width;
             canvas.height = height;
             ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, width, height); // clear using actual size
         
             // Get the points for the current area
             const area = areas[idx];
@@ -166,8 +179,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         
             // Convert percentage-based coordinates to pixel values
             const percentageToPixels = (point) => ({
-                x: (point[0] / 100) * canvas.offsetWidth + DOT_SIZE / 2,
-                y: (point[1] / 100) * canvas.offsetHeight + DOT_SIZE / 2,
+                x: (point[0] / 100) * width,
+                y: (point[1] / 100) * height,
             });
         
             // Draw lines between points
@@ -264,23 +277,23 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
 
     function pointOnDrag(e) {
-        if (pointSelected[0] == -1 || pointSelected[1] == -1) {return}
+        if (pointSelected[0] === -1 || pointSelected[1] === -1) return;
 
         const imageElement = elementRef.current;
         const boundingRect = imageElement.getBoundingClientRect();
 
-        const clickX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
-        const clickY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
+        // Adjust for zoom
+        const zoomAdjustedLeft = (e.clientX - boundingRect.left) / zoom;
+        const zoomAdjustedTop = (e.clientY - boundingRect.top) / zoom;
 
-        const newX = Math.round((clickX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
-        const newY = Math.round((clickY / boundingRect.height) * 100 * 10) / 10
+        const newX = Math.round((zoomAdjustedLeft / (boundingRect.width / zoom)) * 1000) / 10;
+        const newY = Math.round((zoomAdjustedTop / (boundingRect.height / zoom)) * 1000) / 10;
 
-        setPointSelectedCoords([newX, newY])
-
+        setPointSelectedCoords([newX, newY]);
     }
 
     function getPoints(area, areaIdx) {
-        if (!area) {return}
+        if (!area || !displayAreas) {return}
         let points = JSON.parse(area.area_points)
         return <div key={area.id} className={(hoveredAreaId && hoveredAreaId != area.id ? "display-none" : "")}>
             <canvas ref={(el) => (canvasRefs.current[areaIdx] = el)} 
@@ -309,6 +322,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             setPointSelectedCoords([point[0], point[1]])
                             setSelectedAreaIdx(areaIdx)
                             setSelectedArea(area)
+                            setLabelSelected(null)
                             setPointSelected([area.id, idx])
                         } else {
                             updatePoints(area, pointSelectedCoords, idx)
@@ -317,13 +331,14 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     
                 >
                     {idx == 0 && <div 
-                    title={(idToLabel[area.label] ? idToLabel[area.label].name : "")} 
                     className="dataset-element-view-point-label"
                     style={{background: idToLabel[area.label].color, 
                             color: getTextColor(idToLabel[area.label].color),
-                            display: ((pointSelected[0] == area.id && pointSelected[1] == 0) ? "none" : "block")}}
+                            display: ((pointSelected[0] == area.id && pointSelected[1] == 0) ? "none" : "block"),
+                            pointerEvents: "none"}}
                     onClick={(e) => e.stopPropagation()}>
                         {(idToLabel[area.label] ? idToLabel[area.label].name : "")}
+                        {idToLabel[area.label] && <span> ({areaIdx + 1})</span>}
                     </div>}
                 </div>
             ))}
@@ -357,8 +372,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
             const boundingRect = imageElement.getBoundingClientRect();
 
-            const startX = Math.max(0, event.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
-            const startY = Math.max(0, event.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
+            const startX = Math.max(0, event.clientX - boundingRect.left); // X coordinate relative to image, the offset depends on size of dot
+            const startY = Math.max(0, event.clientY - boundingRect.top);  // Y coordinate relative to image
 
             const startXPercent = Math.round((startX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
             const startYPercent = Math.round((startY / boundingRect.height) * 100 * 10) / 10
@@ -368,9 +383,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             setImageMouseDown(true)
         
             const handleMouseMove = (e) => {
-                console.log("MOVED")
-                const newX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
-                const newY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
+                const newX = Math.max(0, e.clientX - boundingRect.left); // X coordinate relative to image, the offset depends on size of dot
+                const newY = Math.max(0, e.clientY - boundingRect.top);  // Y coordinate relative to image
 
                 const newXPercent = Math.round((newX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
                 const newYPercent = Math.round((newY / boundingRect.height) * 100 * 10) / 10
@@ -382,8 +396,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         
             const handleMouseUp = (e) => {
 
-                const endX = Math.max(0, e.clientX - boundingRect.left - (DOT_SIZE / 2)); // X coordinate relative to image, the offset depends on size of dot
-                const endY = Math.max(0, e.clientY - boundingRect.top - (DOT_SIZE / 2));  // Y coordinate relative to image
+                const endX = Math.max(0, e.clientX - boundingRect.left); // X coordinate relative to image, the offset depends on size of dot
+                const endY = Math.max(0, e.clientY - boundingRect.top);  // Y coordinate relative to image
 
                 const endXPercent = Math.round((endX / boundingRect.width) * 100 * 10) / 10   // Round to 1 decimal
                 const endYPercent = Math.round((endY / boundingRect.height) * 100 * 10) / 10
@@ -641,57 +655,86 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
     }
 
     useEffect(() => {
-        setDisplayAreas(false)
-        if (!currentElementRef.current) return;
-        currentElementRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
-        
+        const element = currentElementRef.current;
+        if (!element) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (!entry.isIntersecting) {
+                    element.scrollIntoView({ block: 'nearest' });
+                }
+            },
+            {
+                root: element.parentElement,
+                threshold: 1.0,
+            }
+        );
+
+        observer.observe(element);
+
+        return () => observer.disconnect();
     }, [elementsIndex])
 
     // Handles user button presses
+    const ARROW_THROTTLE_MS = 40;  // Adjust interval here
+
+    const lastKeyTimeRef = useRef(0);
+
     useEffect(() => {
+        
+
         const handleKeyDown = (event) => {
+            if (loading || inputFocused) return;
 
-            if (loading || inputFocused) {return};  
+            const now = Date.now();
+            const key = getUserPressKeycode(event);
 
-            let key = getUserPressKeycode(event)
-            
-            if (key === "ArrowDown" || key === "ArrowRight") {    
+            // Only throttle Arrow keys
+            if (
+                key === "ArrowDown" || key === "ArrowRight" ||
+                key === "ArrowUp" || key === "ArrowLeft"
+            ) {
                 event.preventDefault()
+                if (now - lastKeyTimeRef.current < ARROW_THROTTLE_MS) {
+                    return;  // Ignore if within throttle window
+                }
+                lastKeyTimeRef.current = now;
+            }
+
+            if (key === "ArrowDown" || key === "ArrowRight") {
+                event.preventDefault();
                 if (loading) {
-                    notification("Cannot switch element while loading.", "failure")
+                    notification("Cannot switch element while loading.", "failure");
                     return;
                 }
-                setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0))
-   
+                setElementsIndex(Math.max(Math.min(elementsIndex + 1, elements.length - 1), 0));
             } else if (key === "ArrowUp" || key === "ArrowLeft") {
-                event.preventDefault()
+                event.preventDefault();
                 if (loading) {
-                    notification("Cannot switch element while loading.", "failure")
+                    notification("Cannot switch element while loading.", "failure");
                     return;
                 }
-                setElementsIndex(Math.max(elementsIndex - 1, 0))  
-
+                setElementsIndex(Math.max(elementsIndex - 1, 0));
             } else if (labelKeybinds[key]) {
                 if (isPublic) return;
-                labelOnClick(labelKeybinds[key])
-            } else if (key === "Backspace" || key === "Delete") {  // For datatype area, deleting points
+                labelOnClick(labelKeybinds[key]);
+            } else if (key === "Backspace" || key === "Delete") {
                 if (isPublic) return;
-                if (pointSelected[0] != -1 || pointSelected[1] != -1) {
-                    updatePoints(selectedArea, [], pointSelected[1], true) // Remove point
+                if (pointSelected[0] !== -1 || pointSelected[1] !== -1) {
+                    updatePoints(selectedArea, [], pointSelected[1], true);
                 }
             }
         };
-    
-        // Attach the event listener
-        window.addEventListener("keydown", handleKeyDown);
 
+        window.addEventListener("keydown", handleKeyDown);
         return () => {
-            window.removeEventListener("keydown", handleKeyDown, false);
+            window.removeEventListener("keydown", handleKeyDown);
         };
-    }, [loading, elements, elementsIndex, inputFocused, labelSelected, pointSelected])
+    }, [loading, elements, elementsIndex, inputFocused, labelSelected, pointSelected]);
 
 
     function getDataset() {
+
         setLoading(true)
 
         let URL = window.location.origin + "/api/datasets/" +
@@ -703,6 +746,16 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         })
         .then((res) => {
             setDataset(res.data)
+
+            if (pageLoading) {
+                if (res.data.imageHeight && res.data.imageWidth) {
+                    if (res.data.imageWidth < 200) {
+                        setImageExpanded(true)
+                    } else if (res.data.imageHeight < 200) {
+                        setImageExpanded(true)
+                    }
+                }
+            }
 
             setALLOWED_FILE_EXTENSIONS(res.data.dataset_type.toLowerCase() == "image" ? new Set(["png", "jpg", "jpeg", "webp", "avif"]) : new Set(["txt", "doc", "docx"]))
 
@@ -719,8 +772,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
             console.log(err)
 
-        }).finally(() => {
+        }).finally(() => {   
             setLoading(false)
+            setPageLoading(false)   
         })
     }
 
@@ -790,32 +844,68 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
     // Element Scroll Functionality (doesn't work for area datasets because of the way points work)
     const minZoom = 1
-    const maxZoom = 2
+    const maxZoom = 3
 
     const handleElementScroll = (e) => {
 
         const rect = elementContainerRef.current.getBoundingClientRect();
+
         const x = ((e.clientX - rect.left) / rect.width) * 100;
         const y = ((e.clientY - rect.top) / rect.height) * 100;
-        
-        setPosition({ x, y });
 
         const newZoom = Math.min(Math.max(zoom + e.deltaY * -0.00125, minZoom), maxZoom);
+
+        if (newZoom > zoom) {
+            if (zoom < 1.25) {
+                setPosition({ x: x, y: y }); 
+            } else if (zoom < 3) {
+                const newX = position.x - (position.x - x) / 10
+                const newY = position.y - (position.y - y) / 10
+                setPosition({ x: newX, y: newY }); 
+            }
+        }
+        
+
+        
         setZoom(newZoom);
     };
+    
+
+    
+    const [lastMousePos, setLastMousePos] = useState(null);
 
     const handleElementMouseMove = (e) => {
         setCursor("")
-        if (zoom == 1 || e.buttons != 2) {return}  // Allow user to move with cursor if zoomed in and holding right mouse
-
-        if (e.buttons == 2) {setCursor("grabbing")}
-
+        if (zoom === 1 || e.buttons !== 2) {
+            setLastMousePos(null); // Reset when not grabbing
+            return;
+        }
+    
+        if (e.buttons === 2) {
+            setCursor("grabbing");
+        }
+    
         const rect = elementContainerRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-        
-        
-        setPosition({ x, y });
+        const currentX = e.clientX;
+        const currentY = e.clientY;
+    
+        if (lastMousePos) {
+            const dx = currentX - lastMousePos.x;
+            const dy = currentY - lastMousePos.y;
+    
+            const DAMPENING = 1 / (zoom * 1.5);  // try values like 0.3 - 0.7
+
+            const percentX = (dx / rect.width) * 100 * DAMPENING;
+            const percentY = (dy / rect.height) * 100 * DAMPENING;
+
+    
+            setPosition(prev => ({
+                x: prev.x - percentX,
+                y: prev.y - percentY,
+            }));
+        }
+    
+        setLastMousePos({ x: currentX, y: currentY });
     
     };
 
@@ -829,12 +919,12 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     onWheel={handleElementScroll}
                     onMouseMove={handleElementMouseMove}
                     style={{overflow: "hidden"}}>
-                        {element.label && idToLabel[element.label] && <div className="dataset-element-view-label" style={{background: "var(--toolbar)", border: "none"}}>
+                        {element.label && idToLabel[element.label] && <div className="dataset-element-view-label">
                             <span className="text-label-color" style={{background: idToLabel[element.label].color}}></span>
                             {idToLabel[element.label].name}
                         </div>}
                         <img ref={elementRef} 
-                        className="dataset-element-view-image" 
+                        className={"dataset-element-view-image " + (imageExpanded ? "dataset-element-view-image-expanded" : "")} 
                         src={element.file} 
                         alt="Element image"
                         style={{
@@ -861,7 +951,16 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 onWheel={handleElementScroll}
                 onMouseMove={handleElementMouseMove}
                 style={{overflow: "hidden"}}>
-                    <div className="dataset-element-view-image-wrapper" 
+                    {selectedArea && <div className="dataset-element-view-label">
+                        <span className="text-label-color" style={{background: idToLabel[selectedArea.label].color}}></span>
+                        {idToLabel[selectedArea.label].name}
+                        <span className="gray-text" style={{marginLeft: "5px"}}>({selectedAreaIdx + 1})</span>
+                    </div>}
+                    {labelSelected && <div className="dataset-element-view-label">
+                        <span className="text-label-color" style={{background: idToLabel[labelSelected].color}}></span>
+                        {idToLabel[labelSelected].name}
+                    </div>}
+                    <div className="dataset-element-view-image-wrapper"
                     onMouseMove={(e) => pointOnDrag(e)}
                     style={{
                         transform: `scale(${zoom}) translate(${(50 - position.x) * (zoom - 1)}%, ${(50 - position.y) * (zoom - 1)}%)`,
@@ -870,12 +969,17 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                     }}
                     onClick={(e) => e.stopPropagation()}>
                         <img onLoad={() => {
-                            setDisplayAreas(true)
-                            setUpdateArea(!updateArea)
+                            canvasRefs.current = []; // Clear old refs!
+                            setDisplayAreas(false);  // Hide everything initially
+                            setPointSelected([-1, -1]); // Deselect everything
+                            setTimeout(() => {
+                                setDisplayAreas(true);    // Show points/canvas after state settles
+                                setUpdateArea(prev => !prev); // Trigger re-render
+                            }, 0);
                         }} 
                         ref={elementRef} 
                         alt="Element image"
-                        className="dataset-element-view-image-area" 
+                        className="dataset-element-view-image-area"
                         src={element.file} 
                         onClick={(e) => {
                             e.stopPropagation()
@@ -895,10 +999,10 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         {!isPublic && imageMouseDown && labelSelected && rectanglePreviewDimensions[0] > 0 && rectanglePreviewDimensions[1] > 0 && <div 
                         className="dataset-rectangle-preview"
                         style={{
-                            width: "calc(" + rectanglePreviewDimensions[0] + "% + " + Math.round(5 / (1 + (zoom - 1)* 3)) + "px)",
-                            height: "calc(" + rectanglePreviewDimensions[1] + "% + " + Math.round(5 / (1 + (zoom - 1)* 3)) + "px)",
-                            left: "calc(" + rectanglePreviewOffset[0] + "% + " + Math.round(5 / (1 + (zoom - 1)* 3)) + "px)",
-                            top: "calc(" + rectanglePreviewOffset[1] + "% + " + Math.round(5 / (1 +(zoom - 1)* 3)) + "px)",
+                            width: rectanglePreviewDimensions[0] + "%",
+                            height: rectanglePreviewDimensions[1] + "%",
+                            left: rectanglePreviewOffset[0] + "%",
+                            top: rectanglePreviewOffset[1] + "%",
                             background: idToLabel[labelSelected].color + "50"
                         }}>
                             
@@ -964,7 +1068,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
         axios.defaults.xsrfCookieName = 'csrftoken';    
 
-        let errorMessages = ""
         let totalSize = 0
         for (let i=0; i < files.length; i++) {
             let file = files[i]
@@ -976,82 +1079,116 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             return;
         }
         
-        setUploadLoading(true)
-        const NUM_FILES = files.length;
-        let AXIOS_OUTSTANDING = files.length
-        for (let i=0; i < files.length; i++) {
-            let file = files[i]
+        createElements(files)
 
-            let extension = file.name.split(".").pop()
-            if (!ALLOWED_FILE_EXTENSIONS.has(extension)) {
-                if (errorMessages) {errorMessages += "\n\n"}
-                errorMessages += "Did not upload file of type ." + extension + " as this filetype is not supported for " + dataset.dataset_type + " datasets."
+    }
 
-                if (i == files.length - 1) {
-                    notification(errorMessages, "failure")
-                    setUploadPercentage(100)
-
-                    setTimeout(() => {
-                        setUploadLoading(false)
-                        setUploadPercentage(0)
-                        getDataset()
-                    }, 200)
-                    
-                    break
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+    
+    async function uploadWithRetry(url, formData, config, retries = 5, delayMs = 1000) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                await axios.post(url, formData, config);
+                return;  // success
+            } catch (error) {
+                if (error.response && error.response.status === 429) {
+                    let waitTime = delayMs * (i + 1); // default backoff
+    
+                    const retryAfter = error.response.headers['retry-after'];
+                    if (retryAfter) {
+                        const parsed = parseInt(retryAfter, 10);
+                        // Retry-After can be seconds or HTTP date. Assume seconds if numeric.
+                        waitTime = isNaN(parsed) ? delayMs * (i + 1) : parsed * 1000;
+                    }
+    
+                    console.warn(`Rate limited. Waiting ${waitTime} ms before retry... (${i + 1}/${retries})`);
+                    await delay(waitTime);
                 } else {
-                    AXIOS_OUTSTANDING -= 1
-                    setUploadPercentage(Math.round(100 * (1- AXIOS_OUTSTANDING / NUM_FILES)))
-                    continue
+                    throw error;  // non-rate-limit errors
                 }
-
             }
-
-            let formData = new FormData()
-
-            // For text datasets include text in addition to file
-            formData.append('file', file)
-            
-            formData.append('dataset', dataset.id)
-            if (elements.length > 0) {  // So it's added to the bottom of the list
-                formData.append("index", elements.length)
-            }
-
-            const URL = window.location.origin + '/api/create-element/'
-            const config = {headers: {'Content-Type': 'multipart/form-data'}}
-
-            axios.post(URL, formData, config)
-            .then((data) => {
-                console.log("Success: ", data)
-                
-            }).catch((error) => {
-                if (errorMessages) {errorMessages += "\n\n"}
-                errorMessages += "Failed to upload " + file.name + "."
-                console.log("Error: ", error)
-            }).finally(() => {
-                AXIOS_OUTSTANDING -= 1
-                setUploadPercentage(Math.round(100 * (1- AXIOS_OUTSTANDING / NUM_FILES)))
-                if (AXIOS_OUTSTANDING == 0) {
-
-                    setTimeout(() => {
-                        setUploadLoading(false)
-                        setUploadPercentage(0)
-                        getDataset()
-                        if (errorMessages) {
-                            notification(errorMessages, "failure")
-                        } else {
-                            notification("Successfully uploaded file" + (NUM_FILES != 1 ? "s" : "") + ".", "success")
-                        }
-                    }, 200)
-                    
-                }
-            })
         }
+        throw new Error("Upload failed after multiple retries due to rate limits.");
+    }
+    
+    function chunkArray(array, size) {
+        const result = [];
+        for (let i = 0; i < array.length; i += size) {
+            result.push(array.slice(i, i + size));
+        }
+        return result;
+    }
+    
+    function createElements(files) {
+        if (isPublic) return;
+        setUploadLoading(true);
+    
+        const URL = window.location.origin + '/api/upload-elements/';  // plural endpoint
+        const config = { headers: { 'Content-Type': 'multipart/form-data' } };
+    
+        const fileChunks = chunkArray([...files].filter(f => ALLOWED_FILE_EXTENSIONS.has(f.name.split(".").pop())), 10);
+        let completedUploads = 0;
+    
+        const uploadChunk = async (chunk) => {
+            const formData = new FormData();
+            chunk.forEach((file, i) => formData.append('files', file));  // Django: request.FILES.getlist("files")
+            formData.append('dataset', dataset.id);
+            if (elements.length > 0) formData.append("index", elements.length);
+    
+            await uploadWithRetry(URL, formData, config);
+        };
+    
+        async function uploadAllChunks() {
+            await Promise.all(fileChunks.map(async (chunk, i) => {
+                try {
+                    await uploadChunk(chunk);
+                } catch (e) {
+                    console.error("Chunk upload failed:", e);
+                    notification("Upload failed for one or more batches.", "failure");
+                } finally {
+                    completedUploads++;
+                    setUploadPercentage((completedUploads / (fileChunks.length * 4)) * 100);
+                }
+            }));
 
+            let resInterval = null;
+            axios.post("/api/finalize-elements-upload/", {
+                dataset: id,
+                start_index: (elements.length > 0 ? elements[-1].index : 0),
+            }).then((res) => {
+                resInterval = setInterval(() => getTaskResult(
+                    "deleting_dataset",
+                    resInterval,
+                    res.data["task_id"],
+                    () => {
+                        notification("Successfully created elements.", "success")
+                    },
+                    (data) => {
+                        notification("Creating elements failed: " + data["message"], "failure")
+                    },
+                    (data) => {
+                        setUploadPercentage(25 + (data["creating_elements_progress"] * 0.75) * 100)
+                    },
+                    () => {
+                        setUploadPercentage(100);
+                        setTimeout(() => {
+                            setUploadPercentage(0);
+                            setUploadLoading(false);
+                            getDataset();
+                        }, 200);
+                    }
+            ), 3000) // ping every 3 seconds
+            })    
+        }
+    
+        uploadAllChunks();
     }
 
 
     // isText used when updating text
-    function updateElement(e, editingElementName, isText=false) {
+    function updateElement(e, editingElementName, editingElementIndex, isText=false) {
         e.preventDefault()
         if (isPublic) return;
         axios.defaults.withCredentials = true;
@@ -1063,6 +1200,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
 
         const data = {
             "name": (isText ? elements[elementsIndex].name : editingElementName),
+            "index": editingElementIndex,
             "id": (isText ? elements[elementsIndex].id : editingElement),
             "text": currentText
         }
@@ -1074,12 +1212,18 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             setLoadingElementEdit(true)
         }
 
+        const ORIGINAL_IDX = elements[editingElementIdx].index
 
         axios.post(URL, data, config)
         .then((res) => {
             if (res.data) {
                 if (!isText) {
-                    elements[editingElementIdx] = res.data
+                    let temp = [...elements]
+                    temp[editingElementIdx] = res.data
+                    if (ORIGINAL_IDX != res.data.index) {
+                        temp.sort((a, b) => a.index - b.index);
+                    }
+                    setElements(temp)
                 }
             }
             notification("Successfully updated element.", "success")
@@ -1181,6 +1325,108 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         })
     }
 
+    function deleteAllElements() {
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken';    
+
+        let data = {
+            "dataset": id
+        }
+
+        const URL = window.location.origin + '/api/delete-all-elements/'
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        if (deletingAllElements) return
+        setDeletingElementsProgress(0)
+        setDeletingAllElements(true)   
+
+        let resInterval = null;
+        axios.post(URL, data, config)
+        .then((res) => {
+            resInterval = setInterval(() => getTaskResult(
+                "deleting_all_elements",
+                resInterval,
+                res.data["task_id"],
+                () => {
+                    notification("Successfully deleted elements.", "success")
+                },
+                (data) => {
+                    notification("Deleting model failed: " + data["message"], "failure")
+                },
+                (data) => {
+                    setDeletingElementsProgress(data["delete_elements_progress"] * 100)
+                },
+                () => {
+                    setDeletingElementsProgress(100)
+                    setTimeout(() => {
+                        setDeletingElementsProgress(0)
+                        setDeletingAllElements(false)
+                        getDataset()
+                    }, 200)
+                }
+            ), 3000)    // ping every 3 seconds
+
+        }).catch((error) => {
+            notification("Error: " + error + ".", "failure")
+        })
+    }
+
+    function sortElementsByLabel() {
+        if (reorderingElements) return;
+        setReorderingElements(true)
+
+        let indexes = new Array(elements.length);
+        let labelBuckets = {};
+        let unlabeled = [];
+
+        for (let i = 0; i < elements.length; i++) {
+            let el = elements[i];
+            if (el.label === null) {
+                unlabeled.push(i);
+            } else {
+                if (!labelBuckets[el.label]) {
+                    labelBuckets[el.label] = [];
+                }
+                labelBuckets[el.label].push(i);
+            }
+        }
+
+        let currentIndex = 0;
+
+        for (let j = 0; j < unlabeled.length; j++) {
+            indexes[unlabeled[j]] = currentIndex++;
+        }
+
+        for (let i=0; i < labels.length; i++) {
+            let labelId = labels[i].id
+            let indices = labelBuckets[labelId];
+            for (let j = 0; j < indices.length; j++) {
+                indexes[indices[j]] = currentIndex++;
+            }
+        }
+
+        axios.defaults.withCredentials = true;
+        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
+        axios.defaults.xsrfCookieName = 'csrftoken'; 
+        const config = {headers: {'Content-Type': 'application/json'}}
+
+        axios.post('/api/reorder-dataset-elements/', {
+            id: id,
+            indexes: indexes
+        }, config)
+        .then(res => {
+            console.log("Success:", res.data);
+            setElements(res.data.elements)
+            notification("Successfully reordered elements.", "success")
+        })
+        .catch(error => {
+            console.error("Error:", error.message);
+        }).finally(() => {
+            setReorderingElements(false)
+        });
+    }
+
 
     // LABEL FUNCTIONALITY
 
@@ -1221,8 +1467,12 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         })
     }
     
-    function createLabelSubmit(createLabelName, createLabelColor, createLabelKeybind) {
+    function createLabelSubmit(createLabelName, createLabelColor, createLabelKeybind, callback) {
         if (isPublic) return;
+        if (labels.length >= 1000) {
+            notification("A dataset can not have more than 1000 labels.", "failure")
+            return;
+        }
 
         axios.defaults.withCredentials = true;
         axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
@@ -1256,6 +1506,9 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             notification("Error: " + error + ".", "failure")
         }).finally(() => {
             setLoadingLabelCreate(false)
+            if (callback) {
+                callback()
+            }
         })
 
     }
@@ -1698,50 +1951,6 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         }
     }
 
-
-    const elementsHandleDragEnd = (result) => {
-        if (!result.destination) return; // Dropped outside
-    
-        const reorderElements = [...elements];
-        const [movedItem] = reorderElements.splice(result.source.index, 1);
-        reorderElements.splice(result.destination.index, 0, movedItem);
-        
-        let currId = elements[elementsIndex].id
-        setElements(reorderElements);
-
-        let idToIdx = {}
-
-        for (let i=0; i < reorderElements.length; i++) {
-            idToIdx[reorderElements[i].id] = i
-            if (reorderElements[i].id == currId) {
-                setElementsIndex(i)
-            }
-        }
-
-        if (isPublic) return;
-        
-        // For updating the order, so it stays the same after refresh
-        const URL = window.location.origin + '/api/reorder-dataset-elements/'
-        const config = {headers: {'Content-Type': 'application/json'}}
-
-        let data = {
-            "id": dataset.id,
-            "order": idToIdx
-        }
-
-        axios.defaults.withCredentials = true;
-        axios.defaults.xsrfHeaderName = 'X-CSRFTOKEN';
-        axios.defaults.xsrfCookieName = 'csrftoken';    
-
-        axios.post(URL, data, config)
-        .then((data) => {
-
-        }).catch((error) => {
-            notification("Error: " + error, "failure")
-            
-        })
-    };
-
     const labelsHandleDragEnd = (result) => {
         if (!result.destination) return; // Dropped outside
     
@@ -1912,7 +2121,34 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
         return data
     }
 
-    return (
+    useEffect(() => {
+        const handleMouseOut = (e) => {
+            const to = e.relatedTarget || e.toElement;
+            if (!to || !document.querySelector(".dataset-elements-list")?.contains(to)) {
+            clearTimeout(hoverTimeoutRef.current);
+            setHoveredElement(null);
+            setShowElementPreview(false);
+            }
+        };
+
+        window.addEventListener("mouseout", handleMouseOut);
+        return () => window.removeEventListener("mouseout", handleMouseOut);
+    }, []);
+
+
+    return (<>
+        <Helmet>
+            <meta
+            name="description"
+            content={"Explore " + (dataset ? "the " + dataset.name : "this") + " dataset on Dalinar. Ready-to-use data for machine learning projects — view, analyze, and train models without coding."}
+            />
+
+            {isPublic && <link rel="canonical" href={`https://dalinar.net/datasets/public/${id}`} />}
+
+        </Helmet>
+
+        {deletingAllElements && <ProgressBar progress={deletingElementsProgress} message="Deleting elements..." BACKEND_URL={BACKEND_URL}></ProgressBar>}
+
         <div className="dataset-container" onClick={closePopups} ref={pageRef} style={{cursor: (cursor ? cursor : "")}}>
             <TitleSetter title={"Dalinar " + (dataset ? "- " + dataset.name : "")} />
 
@@ -1962,7 +2198,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             isDownloaded={isDownloaded}
             setIsDownloaded={setIsDownloaded}>
                 <h1 className="download-successful-title">Download Successful <img className="download-successful-icon" src={BACKEND_URL + "/static/images/blueCheck.png"} alt="Blue checkmark" /></h1>
-                {downloadType == "folders" || downloadType =="files" && <p className="download-successful-instructions">See below for an example of how the dataset can be loaded in Python. Note that the downloaded .zip file must be unpacked
+                {(downloadType == "folders" || downloadType == "files") && <p className="download-successful-instructions">
+                    See below for an example of how the dataset can be loaded in Python. Note that the downloaded .zip file must be unpacked
                     and that relative paths must be updated. Also note that the instructions provided are for image datasets.
                 </p>}
                 {downloadType == "csv" && <p className="download-successful-instructions">
@@ -2027,6 +2264,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
             {editingElement && <EditElement 
                 setEditingElement={setEditingElement}
                 editingElementNameOriginal={elements[editingElementIdx].name}
+                editingElementIndexOriginal={elements[editingElementIdx].index}
                 updateElement={updateElement}
                 loadingElementEdit={loadingElementEdit}
                 loadingElementDelete={loadingElementDelete}
@@ -2063,85 +2301,121 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                 <span>Upload files</span>
                             </button>
                         </div>}
+
+                        {elements.length == 0 && !pageLoading && <p className="dataset-no-items">Elements will show here</p>}
                         
-                        <DragDropContext className="dataset-elements-list" onDragEnd={elementsHandleDragEnd}>
-                            <Droppable droppableId="elements-droppable">
-                            {(provided) => (<div className="dataset-elements-list"
-                                {...provided.droppableProps}
-                                ref={provided.innerRef}>
-                                    {elements.map((element, idx) => (
-                                        <Draggable key={element.id} draggableId={"" + element.id} index={idx}>
-                                            {(provided) => (<div className="dataset-sidebar-element-outer" ref={idx == elementsIndex ? currentElementRef : null}><div className={"dataset-sidebar-element " + (idx == elementsIndex ? "dataset-sidebar-element-selected " : "") + (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")} 
-                                            {...provided.draggableProps}
-                                            {...provided.dragHandleProps}
-                                            onClick={() => {
-                                                setElementsIndex(idx)
-                                            }}
+                        {elements.length > 0 && <div className="dataset-elements-list" style={{ height: "100%", width: "100%" }}
+                        onMouseLeave={() => {
+                            clearTimeout(hoverTimeoutRef.current);
+                            setHoveredElement(null);
+                            setShowElementPreview(false);
+                        }}>
+                            <AutoSizer>
+                                {({ height, width }) => (
+                                <List
+                                    height={height}
+                                    width={width}
+                                    itemCount={elements.length}
+                                    itemSize={32}
+                                    onScroll={() => {
+                                        isScrollingRef.current = true;
+                                        clearTimeout(scrollTimeoutRef.current);
+                                        scrollTimeoutRef.current = setTimeout(() => {
+                                        isScrollingRef.current = false;
+                                        }, 150);
+                                    }}
+                                >
+                                    {({ index, style }) => {
+                                    const element = elements[index];
+
+                                    return (
+                                        <div
+                                        key={element.id}
+                                        className="dataset-sidebar-element-outer"
+                                        ref={index === elementsIndex ? currentElementRef : null}
+                                        style={{ ...style, width: "100%" }}
+                                        >
+                                        <div
+                                            className={
+                                            "dataset-sidebar-element " +
+                                            (index === elementsIndex ? "dataset-sidebar-element-selected " : "") +
+                                            (toolbarLeftWidth < 150 ? "dataset-sidebar-element-small" : "")
+                                            }
+                                            onClick={() => setElementsIndex(index)}
                                             onMouseEnter={(e) => {
-                                                setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT)
-                                                setHoveredElement(idx)
+                                                if (isScrollingRef.current) return;
+                                                clearTimeout(hoverTimeoutRef.current);
 
-                                                // Set a timeout to show the preview after 200ms
-                                                const timeoutId = setTimeout(() => {
-                                                    setShowElementPreview(true);
-                                                }, 750);
-
-                                                // Store the timeout ID so it can be cleared later
-                                                setShowElementPreviewTimeout(timeoutId);
+                                                setElementLabelTop(e.target.getBoundingClientRect().y - TOOLBAR_HEIGHT);
+                                                setHoveredElement(index);
+                                                hoverTimeoutRef.current = setTimeout(() => setShowElementPreview(true), 750);
                                             }}
                                             onMouseLeave={() => {
-                                                setHoveredElement(null)
-
-                                                clearTimeout(showElementPreviewTimeout);
-    
-                                                // Hide the preview immediately
+                                                clearTimeout(hoverTimeoutRef.current);
+                                                setHoveredElement(null);
                                                 setShowElementPreview(false);
                                             }}
-                                            style={{...provided.draggableProps.style}}
-                                            ref={provided.innerRef}>
+                                            style={{ width: "100%", height: "100%" }}
+                                        >
+                                            {dataset && dataset.dataset_type.toLowerCase() == "image" && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"} alt="Image" />}
+                                            {dataset && dataset.dataset_type.toLowerCase() == "text" && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.svg"} alt="Text" />}
 
-                                                {dataset && dataset.dataset_type.toLowerCase() == "image" && <img className="element-type-img" src={BACKEND_URL + "/static/images/image.png"} alt="Image" />}
-                                                {dataset && dataset.dataset_type.toLowerCase() == "text" && <img className="element-type-img" src={BACKEND_URL + "/static/images/text.svg"} alt="Text" />}
+                                            <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
 
-                                                <span className="dataset-sidebar-element-name" title={element.name}>{element.name}</span>
+                                            {!isPublic && (hoveredElement == index) && <img title="Edit element" 
+                                                className="dataset-sidebar-options dataset-sidebar-options-margin"
+                                                src={BACKEND_URL + "/static/images/options.png"}
+                                                alt="Edit"
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    if (editingElement != element.id) {
+                                                        clearTimeout(hoverTimeoutRef.current);
+                                                        setHoveredElement(null);
+                                                        setEditingElement(element.id)
+                                                        setEditingElementIdx(index)
+                                                        closePopups("editing-element")
+                                                    } else {
+                                                        setEditingElement(null)
+                                                        setEditingElementIdx(null)
+                                                    }
+                                                    
+                                            }}/>}
 
-                                                {!isPublic && (hoveredElement == idx) && <img title="Edit element" 
-                                                    className="dataset-sidebar-options dataset-sidebar-options-margin"
-                                                    src={BACKEND_URL + "/static/images/options.png"}
-                                                    alt="Edit"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation()
-                                                        if (editingElement != element.id) {
-                                                            setEditingElement(element.id)
-                                                            setEditingElementIdx(idx)
-                                                            closePopups("editing-element")
-                                                        } else {
-                                                            setEditingElement(null)
-                                                            setEditingElementIdx(null)
-                                                        }
-                                                        
-                                                }}/>}
+                                            {dataset && dataset.datatype == "classification" && element.label && idToLabel[element.label] && <span 
+                                                className={"dataset-sidebar-color dataset-sidebar-color-element " + ((!isPublic && hoveredElement == index) ? "dataset-sidebar-color-margin" : "")} 
+                                                style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
+                                                > 
+                                            </span>}
 
-                                                {dataset && dataset.datatype == "classification" && element.label && idToLabel[element.label] && <span 
-                                                    className={"dataset-sidebar-color dataset-sidebar-color-element " + ((!isPublic && hoveredElement == idx) ? "dataset-sidebar-color-margin" : "")} 
-                                                    style={{background: (idToLabel[element.label].color ? idToLabel[element.label].color : "transparent")}}
-                                                    > 
-                                                </span>}
+                                            {dataset && dataset.datatype == "area" && element.areas && element.areas.length > 0 && <img title="Labelled" 
+                                                className={"dataset-sidebar-labeled " + ((hoveredElement == index && !isPublic) ? "dataset-sidebar-labeled-margin" : "")}
+                                                src={BACKEND_URL + "/static/images/area.svg"} alt="Area" />}
+                                        </div>
+                                        </div>
+                                    );
+                                    }}
+                                </List>
+                                )}
+                            </AutoSizer>
+                        </div>}
 
-                                                {dataset && dataset.datatype == "area" && element.areas && element.areas.length > 0 && <img title="Labelled" 
-                                                    className={"dataset-sidebar-labeled " + ((hoveredElement == idx && !isPublic) ? "dataset-sidebar-labeled-margin" : "")}
-                                                    src={BACKEND_URL + "/static/images/area.svg"} alt="Area" />}
-                                                
-                                            </div></div>)}
-                                        </Draggable>
-                                    ))}
-                                    
-                                    {provided.placeholder} 
-                            </div>)}
-                            </Droppable>
-                        </DragDropContext>
-                        
-                        {elements.length == 0 && !loading && <p className="dataset-no-items">Elements will show here</p>}
+                        {elements.length > 0 && !isPublic && <div className="delete-all-elements-container">
+                            {dataset.datatype == "classification" && <button style={{marginBottom: "10px"}} className="delete-all-elements-button" onClick={() => activateConfirmPopup("Are you sure you want to sort elements by their label? Labels will be ordered as they currently are.", sortElementsByLabel, "blue")}>
+                                <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} 
+                                src={BACKEND_URL + "/static/images/" + (reorderingElements ? "loading.gif" : "reset.svg")} 
+                                alt="Sort"
+                                style={{height: "15px", width: "15px"}} />
+                                Sort by label
+                            </button>}
+
+                            <button className="delete-all-elements-button" onClick={() => activateConfirmPopup("Are you sure you want to delete all elements in this dataset?", deleteAllElements)}>
+                                <img className={"dataset-upload-button-icon " + (toolbarLeftWidth < 150 ? "model-upload-button-icon-small" : "")} 
+                                src={BACKEND_URL + "/static/images/" + (deletingAllElements ? "loading.gif" : "cross.svg")} 
+                                alt="Cross"
+                                style={{height: "10px", width: "10px"}} />
+                                Delete all
+                            </button>
+                        </div>}
                     </div>
                     
                     {/* Shows an element's label */}
@@ -2205,12 +2479,22 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                             Saved
                         </button>}
 
+                        {elements && elements[elementsIndex] && dataset && dataset.dataset_type.toLowerCase() == "image" && dataset.datatype.toLowerCase() != "area" && <button 
+                        title="Expand image"
+                        className={"dataset-image-expand-button " + (imageExpanded ? "dataset-image-expand-button-activated " : "")}
+                        onClick={() => setImageExpanded(!imageExpanded)}>
+                            <img className="dataset-expand-icon" src={BACKEND_URL + "/static/images/expand.svg"} alt="Expand" />
+                        </button>}
+
                         {elements && elements[elementsIndex] && dataset && dataset.dataset_type.toLowerCase() == "image" && <form className="resize-form" onSubmit={(e) => {
                             e.preventDefault()
                             if (isPublic) return;
                             if (!dataset.imageHeight && !dataset.imageWidth) {
                                 activateConfirmPopup("Are you sure you want to resize this image?", resizeElementImage, "blue")
                             }
+                        }}
+                        style={{
+                            marginLeft: (dataset.datatype.toLowerCase() == "area" ? "auto" : "0")
                         }}>
                             
                             {(!dataset.imageWidth && !dataset.imageHeight) && <label htmlFor="resize-width" className="resize-label">Width</label>}
@@ -2253,7 +2537,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 </div>
                 
                 <div className="dataset-main-display" ref={datasetMainDisplayRef} style={((dataset && dataset.dataset_type.toLowerCase() == "text" && !showDatasetDescription) ? {overflowY: "scroll"} : {overflowY: "auto"})}>
-                    {!isPublic && (elements.length == 0 && !loading && !uploadLoading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>
+                    {!isPublic && (elements.length == 0 && !pageLoading && !uploadLoading) && <button type="button" className="dataset-upload-button" onClick={folderInputClick}>
                         <img className="dataset-upload-button-icon" src={BACKEND_URL + "/static/images/upload.svg"} alt="Upload" />
                         Upload folder
                     </button>}
@@ -2313,6 +2597,8 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         </div>
 
                     </div>}
+
+                    {pageLoading && <img className="dataset-loading" src={BACKEND_URL + "/static/images/loading.gif"}/>}
                 </div>
                 
             </div>
@@ -2401,7 +2687,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                         {dataset && dataset.datatype == "area" && elements.length > 0 && <div className="dataset-areas-container">
                             {elements[elementsIndex].areas.map((area, areaIdx) => (
                                 <div className={"dataset-sidebar-element-area " + (selectedAreaIdx == areaIdx ? "dataset-sidebar-element-selected " : "") + + (toolbarRightWidth < 150 ? "dataset-sidebar-element-small" : "")} 
-                                    title={"Area: " + idToLabel[area.label].name}
+                                    title={"Area: " + idToLabel[area.label].name + " (" + (areaIdx + 1) + ")"}
                                     onMouseEnter={(e) => setHoveredAreaId(area.id)}
                                     onMouseLeave={(e) => setHoveredAreaId(null)}
                                     key={areaIdx}
@@ -2419,15 +2705,16 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                                         
                                     }}>
                                         <img className="dataset-element-area-icon" alt="Area" src={BACKEND_URL + "/static/images/area.svg"} />
-                                        <span className="dataset-area-name">{idToLabel[area.label].name}</span>
+                                        <span className="dataset-area-name">{idToLabel[area.label].name} <span className="gray-text">({areaIdx + 1})</span></span>
                                         <span title={"Points: " + JSON.parse(area.area_points).length} 
                                         className={"dataset-sidebar-label-keybind no-box-shadow border " + (toolbarRightWidth < 150 ? "dataset-sidebar-label-keybind-small" : "")}
                                         style={{borderColor: (idToLabel[area.label].color)}}>{JSON.parse(area.area_points).length}</span>
                                         {!isPublic && <img title="Delete area" 
                                         alt="Cross"
                                         className="dataset-sidebar-options dataset-delete-area" 
-                                        style={{marginLeft: "3px"}}
+                                        style={{marginLeft: "5px"}}
                                         src={BACKEND_URL + "/static/images/cross.svg"} onClick={(e) => {
+                                            e.stopPropagation()
                                             deleteArea(area, elementsIndex, areaIdx)
                                         }}/>}
                                 </div>
@@ -2438,7 +2725,7 @@ function Dataset({currentProfile, activateConfirmPopup, notification, BACKEND_UR
                 </div>
             </div>
         </div>
-    )
+    </>)
 
     
 }

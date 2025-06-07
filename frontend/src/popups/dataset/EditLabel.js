@@ -34,7 +34,7 @@ function EditLabel({setShowEditLabel, editingLabel, editLabelOnSubmit, labelKeyb
     };
 
     return (
-        <div className="dataset-bar-container" onClick={() => setShowEditLabel(false)}>
+        <div className="dataset-bar-container" style={{justifyContent: "start"}} onClick={() => setShowEditLabel(false)}>
             <div className={"dataset-create-label-container " + (animateIn ? "slide-in" : "")} 
                 onClick={(e) => e.stopPropagation()}>
                 <h1 className="create-layer-popup-title">Edit label</h1>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import DownloadCode from "../components/DownloadCode"
 import { LAYERS } from "../layers";
 import TitleSetter from "../components/minor/TitleSetter";
+import { Helmet } from "react-helmet";
 
 // The default page. Login not required.
 function Guide({BACKEND_URL}) {
@@ -19,7 +20,7 @@ function Guide({BACKEND_URL}) {
         }
     }, [currentInstructions])
 
-    const SUPPORTED_LAYERS = Object.values(LAYERS).map(layer => [layer.name, layer.color]);
+    const SUPPORTED_LAYERS = Object.values(LAYERS).map(layer => [layer.name, layer.color, layer.link]);
 
     function externalLink(link) {
         const URL = link
@@ -27,8 +28,15 @@ function Guide({BACKEND_URL}) {
         win.focus();
     }
 
-    return (
+    return (<>
+        <Helmet>
+            <meta
+            name="description"
+            content="Learn how to use Dalinar to create datasets, train machine learning models, and explore AI tools — all without coding. Step-by-step guides and best practices to help you succeed."
+            />
+        </Helmet>
         <div className="guide-container" ref={containerRef}>
+            
             <TitleSetter title="Dalinar | Guide" />
             <div className="guide-toolbar">
                 <div className="guide-toolbar-element">
@@ -88,6 +96,22 @@ function Guide({BACKEND_URL}) {
                             Dalinar is a tool for making machine learning intuitive. It allows users to create datasets as well as machine learning models, all without having to code.
                             Crucially, the visual and intuitive interface makes it easy to experiment with different models, while the datasets provided makes it easier to eventually train these to your needs.
                         </p>
+                        <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, marginTop: "20px" }}>
+                            <iframe
+                                src="https://www.youtube.com/embed/tQ2lUxumQV4"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                title="Embedded YouTube"
+                                style={{
+                                position: "absolute",
+                                top: 0,
+                                left: 0,
+                                width: "100%",
+                                height: "100%"
+                                }}
+                            ></iframe>
+                        </div>
                     </div>
 
                     <div className="instructions-container">
@@ -96,7 +120,7 @@ function Guide({BACKEND_URL}) {
                             Users are able to create both area and classification datasets. Dalinar currently supports both images and text.
                             Elements are listed to the left with labels and areas, if applicable, to the right.
                         </p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.webp"} alt="Example page" style={{height: "505px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.jpg"} alt="Example page" style={{height: "505px"}} />
                         
                         <p className="guide-subheader" id="models">Models</p>
                         <p className="instructions-text">
@@ -104,7 +128,7 @@ function Guide({BACKEND_URL}) {
                             These all have different parameters that can be tailored to your needs.
                             Once you've construct a model it must be built (i.e. compiled) and can then be trained or exported. 
                         </p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.webp"} alt="Example model page" style={{height: "505px"}} />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.jpg"} alt="Example model page" style={{height: "505px"}} />
                         <p className="instructions-text">
                             Please see the more detailed pages for further explanations.
                         </p>
@@ -169,7 +193,7 @@ function Guide({BACKEND_URL}) {
                     </div>
 
                     <div className="instructions-container">
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.webp"} style={{height: "505px"}} alt="Example classification" />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/exampleClassification.jpg"} style={{height: "505px"}} alt="Example classification" />
 
                         <p className="guide-subheader" id="labelling">Labelling</p>
                         <p className="instructions-text">
@@ -201,7 +225,7 @@ function Guide({BACKEND_URL}) {
                     </div>
 
                     <div className="instructions-container">
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.webp"} style={{height: "505px"}} alt="Example page" />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePage.jpg"} style={{height: "505px"}} alt="Example page" />
 
                         <p className="guide-subheader" id="area-creation">Area Creation</p>
                         <p className="instructions-text">
@@ -226,7 +250,7 @@ function Guide({BACKEND_URL}) {
                             They can either be image models or text models, which will determine which types of datasets are shown when e.g. training or evaluating.
                             Added layers are displayed in the toolbar to the left as well as the main display. Once a model is created or changed, it must be built before it can be trained, downloaded, etc. (see the section on Building).
                         </p>
-                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.webp"} style={{height: "505px"}} alt="Example page model" />
+                        <img className="guide-image" src={BACKEND_URL + "/static/images/examplePageModel.jpg"} style={{height: "505px"}} alt="Example page model" />
                     </div>
 
                     <div className="instructions-container">
@@ -253,7 +277,7 @@ function Guide({BACKEND_URL}) {
                     <div className="instructions-container">
                         <div className="supported-layers-container">
                             {SUPPORTED_LAYERS.map((layer, idx) => (
-                                <div className="supported-layer" key={idx} onClick={() => externalLink("https://www.tensorflow.org/api_docs/python/tf/keras/layers/" + layer[0])}>
+                                <div className="supported-layer" key={idx} onClick={() => externalLink((layer[2] ? layer[2] : "https://www.tensorflow.org/api_docs/python/tf/keras/layers/" + layer[0]))}>
                                     <span className={"supported-layer-color layer-element-stat-" + layer[1]}></span>
                                     {layer[0]}
                                 </div>
@@ -442,7 +466,7 @@ function Guide({BACKEND_URL}) {
                 </div>
             </div>}
         </div>
-    )
+    </>)
 }
 
 export default Guide

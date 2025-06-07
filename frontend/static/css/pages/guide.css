@@ -261,3 +261,18 @@
         padding-left: var(--guide-sidebar-width);
     }
 }
+
+@media all and (max-width: 550px) {
+    .guide-toolbar-subelement, .guide-toolbar-element {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .guide-main {
+        width: 100%;
+        max-width: 100%;
+        padding: 0 30px;
+        box-sizing: border-box;
+    }
+}

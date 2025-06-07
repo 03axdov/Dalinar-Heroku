@@ -143,7 +143,7 @@
 .layer-element {
     background: var(--toolbar);
     min-width: 200px;
-    max-width: 325px;
+    max-width: 375px;
     padding: 10px;
     box-sizing: border-box;
     margin-right: 50px;
@@ -437,6 +437,9 @@
     border: none;
     outline: 0;
     border-radius: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 div.layer-element-input {
@@ -619,7 +622,6 @@ div.layer-element-mode-input {
 
 .prediction-bottom {
     width: 100%;
-    margin-top: auto;
 }
 
 .predict-image-row {
@@ -648,7 +650,6 @@ div.layer-element-mode-input {
     margin-bottom: 20px;
     min-height: 400px;
     padding: 20px;
-    border: 1px solid var(--border);
     box-sizing: border-box;
     background: var(--background-dark);
     display: flex;
@@ -752,6 +753,10 @@ div.layer-element-mode-input {
     overflow-y: auto;
 }
 
+.model-metrics-container::-webkit-scrollbar {
+    width: 8px;
+}
+
 .train-model-successful-row {
     display: flex;
     flex-direction: row;
@@ -759,7 +764,6 @@ div.layer-element-mode-input {
     align-items: center;
     padding: 10px 20px;
     margin-top: 25px;
-    border: 1px solid var(--border);
     box-sizing: border-box;
     margin-bottom: 20px;
     width: 100%;
@@ -834,6 +838,14 @@ div.layer-element-mode-input {
 
 .model-metrics-split {
     color: var(--gray-text);
+}
+
+.model-reset-button-container {
+    margin-bottom: 20px;
+    margin-top: auto;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    width: calc(100% - 20px);
 }
 
 @media all and (max-width: 1400px) {

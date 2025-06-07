@@ -3,8 +3,11 @@ import {useNavigate} from "react-router-dom"
 import axios from "axios"
 import { useParams, useSearchParams } from "react-router-dom";
 import TitleSetter from "../components/minor/TitleSetter";
+import { useTask } from "../contexts/TaskContext"
+import ProgressBar from "../components/ProgressBar";
 
-function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
+function EditDataset({activateConfirmPopup, notification, BACKEND_URL, changeDatasetCount}) {
+    const { getTaskResult } = useTask();
 
     const navigate = useNavigate()
     const [searchParams] = useSearchParams();
@@ -13,7 +16,11 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
     const { id } = useParams();
     const [loading, setLoading] = useState(true)
     const [processing, setProcessing] = useState(false)
+
+    const [processingResize, setProcessingResize] = useState(false)
+    const [resizingProgress, setResizingProgress] = useState(0)
     const [processingDelete, setProcessingDelete] = useState(false)
+    const [deletingProgress, setDeletingProgress] = useState(0)
 
     const imageInputRef = useRef(null)
     const [imageURL, setImageURL] = useState("")
@@ -48,10 +55,11 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         setLoading(true)
         axios({
             method: 'GET',
-            url: window.location.origin + '/api/datasets/' + id,
+            url: window.location.origin + '/api/datasets/' + id + "?editing=true",
         })
         .then((res) => {
             let dataset = res.data
+            console.log(dataset)
             
             setName(dataset.name)
             setOriginalName(dataset.name)
@@ -106,20 +114,53 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         const URL = window.location.origin + '/api/edit-dataset/'
         const config = {headers: {'Content-Type': 'multipart/form-data'}}
 
+        let resizingInterval = null;
+
         setProcessing(true)
         axios.post(URL, formData, config)
-        .then((data) => {
-            console.log("Success:", data);
-            if (expandedParam) {
-                navigate("/datasets/" + id)
+        .then((res) => {
+
+            if (res.data["task_id"]) {
+                setProcessingResize(true)
+                resizingInterval = setInterval(() => getTaskResult(
+                    "resizing_dataset_images",
+                    resizingInterval,
+                    res.data["task_id"],
+                    () => {
+                        setResizingProgress(100)
+                        setTimeout(() => {
+                           if (expandedParam) {
+                            navigate("/datasets/" + id)
+                            } else {
+                                navigate("/home")
+                            } 
+                        }, 200)
+                        
+                        notification("Successfully updated dataset " + name + ".", "success")
+                    },
+                    (data) => {
+                        notification("Deleting model failed: " + data["message"], "failure")
+                        setProcessing(false)
+                    },
+                    (data) => {
+                        setResizingProgress(data["edit_dataset_progress"] * 100)
+                    },
+                    () => {}
+                ), 3000)    // ping every 3 seconds
             } else {
-                navigate("/home")
+                if (expandedParam) {
+                    navigate("/datasets/" + id)
+                } else {
+                    navigate("/home")
+                }
+
+                notification("Successfully updated dataset " + name + ".", "success")
             }
-            notification("Successfully updated dataset " + name + ".", "success")
+            
+            
         }).catch((error) => {
             notification("An error occurred.", "failure")
             console.log("Error: ", error)
-        }).finally(() => {
             setProcessing(false)
         })
     }
@@ -138,20 +179,42 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
         const config = {headers: {'Content-Type': 'application/json'}}
 
         setProcessingDelete(true)
+
+        let resInterval = null;
         axios.post(URL, data, config)
-        .then((data) => {
-            navigate("/home")
-            notification("Successfully deleted dataset " + name + ".", "success")
+        .then((res) => {
+            resInterval = setInterval(() => getTaskResult(
+                "deleting_dataset",
+                resInterval,
+                res.data["task_id"],
+                () => {
+                    changeDatasetCount(-1)
+                    setDeletingProgress(100)
+                    setTimeout(() => {
+                        navigate("/home")
+                        notification("Successfully deleted dataset " + name + ".", "success")
+                    }, 200)
+                    
+                },
+                (data) => {
+                    notification("Deleting model failed: " + data["message"], "failure")
+                    setProcessingDelete(false)
+                },
+                (data) => {
+                    setDeletingProgress(data["delete_dataset_progress"] * 100)
+                },
+                () => {}
+            ), 3000)    // ping every 3 seconds
 
         }).catch((error) => {
             notification("Error: " + error + ".", "failure")
-        }).finally(() => {
-            setProcessingDelete(false)
         })
     }
 
     function deleteDataset(e) {
         e.preventDefault()
+
+        if (processingDelete) return;
 
         activateConfirmPopup("Are you sure you want to delete the dataset " + originalName + "? This action cannot be undone.", deleteDatasetInner)
     }
@@ -164,6 +227,10 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
 
     return (
         <div className="create-dataset-container">
+
+            {processingDelete && <ProgressBar progress={deletingProgress} message={"Deleting..."} BACKEND_URL={BACKEND_URL}></ProgressBar>}
+            {processingResize && <ProgressBar progress={resizingProgress} message={"Resizing images..."} BACKEND_URL={BACKEND_URL}></ProgressBar>}
+
             <TitleSetter title={"Dalinar " + (originalName ? "- Edit " + originalName : "")} />
             <div className="create-dataset-form">
                 <div className="edit-dataset-title-container">
@@ -246,14 +313,16 @@ function EditDataset({activateConfirmPopup, notification, BACKEND_URL}) {
 
                 <div className="create-dataset-label-inp">
                     <p className="create-dataset-label create-dataset-type">Dataset visibility</p>
-                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={!loading && visibility == "private"} onChange={(e) => {
-                        setVisibility(e.target.value)
-                    }} />
-                    <label htmlFor="create-dataset-visibility-private" className="create-dataset-type-label">Private</label>
+                    
                     <input type="radio" id="create-dataset-visibility-public" name="visibility" value="public" checked={!loading && visibility == "public"}  onChange={(e) => {
                         setVisibility(e.target.value)
                     }} />
                     <label htmlFor="create-dataset-visibility-public" className="create-dataset-type-label">Public</label>
+
+                    <input type="radio" id="create-dataset-visibility-private" name="visibility" value="private" checked={!loading && visibility == "private"} onChange={(e) => {
+                        setVisibility(e.target.value)
+                    }} />
+                    <label htmlFor="create-dataset-visibility-private" className="create-dataset-type-label">Private</label>
                 </div>
 
                 <div className="create-dataset-label-inp">

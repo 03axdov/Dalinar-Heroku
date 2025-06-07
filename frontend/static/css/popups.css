@@ -24,6 +24,10 @@
     box-shadow: 0 0 0 1px var(--border-light);
 }
 
+.account-popup-container {
+    max-width: 85%;
+}
+
 .confirm-popup-container {
     width: 400px;
 }
@@ -387,11 +391,15 @@
     color: #9CDCFE;
 }
 
-.download-popup, .create-layer-popup, .build-model-popup, .model-download-popup, .train-model-popup {
+.download-popup, .build-model-popup, .model-download-popup, .train-model-popup {
     padding-bottom: var(--toolbar-height);
     height: calc(100% - var(--toolbar-height));
     box-sizing: border-box;
 }
+.build-model-popup, .train-model-popup, .model-download-popup {
+    padding-bottom: 0;
+}
+
 
 .confirm-popup {
     z-index: 11;
@@ -400,7 +408,6 @@
 .confirm-popup-message {
     margin: 0;
     font-size: 1.1rem;
-    text-align: justify;
 }
 
 .confirm-popup-buttons {
@@ -679,16 +686,6 @@
 }
 .close-model-popup:hover {
     background: var(--gray-dark);
-}
-
-@media all and (max-height: 800px) {
-    .download-popup, .create-layer-popup, .model-download-popup {
-        padding-bottom: 0;
-    }
-}
-
-.build-model-popup, .train-model-popup {
-    padding-bottom: 0;
 }
 
 .build-model-popup-container, .train-model-popup-container, .model-download-popup-container {

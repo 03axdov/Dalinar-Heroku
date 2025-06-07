@@ -3,6 +3,7 @@ import {useNavigate} from "react-router-dom"
 import axios from "axios"
 import {LAYERS, WARNING_MESSAGES, VALID_PREV_LAYERS} from "../layers"
 import { useTask } from "../contexts/TaskContext"
+import ToggleSwitch from "./ToggleSwitch"
 
 function LayerElement({layer, hoveredLayer, deleteLayer, 
                         BACKEND_URL, updateLayers, layers, notification, 
@@ -19,6 +20,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
     const [revertChanges, setRevertChanges] = useState(false)
 
     const [savingChanges, setSavingChanges] = useState(false)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const [errorMessage, setErrorMessage] = useState("")
 
@@ -37,6 +39,15 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
             for (let i=0; i < current_layer.params.length; i++) {
                 let param = current_layer.params[i]
                 temp[param.name] = layer[param.name]
+            }
+            if (current_layer.dimensions) {
+                for (let i=0; i < current_layer.dimensions.length; i++) {
+                    let dimension = current_layer.dimensions[i]
+                    for (let j=0; j < dimension.params.length; j++) {
+                        let param = dimension.params[j]
+                        temp[param.name] = layer[param.name]
+                    }
+                }
             }
             
         })
@@ -71,7 +82,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         if (current_layer.dimensions) {
             for (let i=0; i < current_layer.dimensions.length; i++) {
                 let dim = current_layer.dimensions[i]
-                for (let j=0; j < dim.params.length; i++) {
+                for (let j=0; j < dim.params.length; j++) {
                     let param = dim.params[j]
                     if (params[param.name] != layer[param.name]) {
                         setUpdated(true)
@@ -145,9 +156,9 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         }
         if (current_layer.dimensions) {
             for (let i=0; i < current_layer.dimensions.length; i++) {
-                let dim = current_layer.dimensions[j]
-                for (let i=0; i < dim.params.length; i++) {
-                    let param = dim.params[i]
+                let dim = current_layer.dimensions[i]
+                for (let j=0; j < dim.params.length; j++) {
+                    let param = dim.params[j]
                     if (param.validator) {
                         let message = param.validator(params[param.name])
                         if (message.length > 0) {
@@ -262,7 +273,7 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                 res.data["task_id"],
                 (data) => {
                     if (!data["data"]) {
-                        deleteLayer(layer.id, "This will delete the layer, as it was not in the last build. Are you sure you want to proceed?")
+                        deleteLayer(layer.id, "This will delete the layer, as it was not in the last build. Are you sure you want to proceed?", () => setIsDeleting(false))
                     } else {
                         let updated_layer = data["data"]
                         updateLayers(updated_layer)
@@ -320,12 +331,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         return (<div className="layer-element-stat">
             <span className={"layer-element-stat-color layer-element-stat-" + (current_layer.name == "Flatten" ? "pink" : "gray2")}></span>
             <label className="layer-element-label" htmlFor={"dimensionX" + layer.id}>Input width</label>
-            {!isPublic && <input type="number" className="layer-element-input" id={"dimensionX" + layer.id} value={params.input_x} onChange={(e) => {
+            {!isPublic && <input title={params.input_x} type="number" className="layer-element-input" id={"dimensionX" + layer.id} value={params.input_x} onChange={(e) => {
                 let temp = {...params}
                 temp["input_x"] = e.target.value
                 setParams(temp)
             }}></input>}
-            {isPublic && <div className="layer-element-input" id={"dimensionX" + layer.id}>{params.input_x || "-"}</div>}
+            {isPublic && <div className="layer-element-input" title={params.input_x || "-"} id={"dimensionX" + layer.id}>{params.input_x || "-"}</div>}
         </div>)
     }
 
@@ -333,12 +344,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         return (<div className="layer-element-stat">
             <span className={"layer-element-stat-color layer-element-stat-" + (current_layer.name == "Flatten" ? "pink" : "gray2")}></span>
             <label className="layer-element-label" htmlFor={"dimensionY" + layer.id}>Input height</label>
-            {!isPublic && <input type="number" className="layer-element-input" id={"dimensionY" + layer.id} value={params.input_y} onChange={(e) => {
+            {!isPublic && <input type="number" className="layer-element-input" title={params.input_y} id={"dimensionY" + layer.id} value={params.input_y} onChange={(e) => {
                 let temp = {...params}
                 temp["input_y"] = e.target.value
                 setParams(temp)
             }}></input>}
-            {isPublic && <div className="layer-element-input" id={"dimensionY" + layer.id}>{params.input_y || "-"}</div>}
+            {isPublic && <div className="layer-element-input" title={params.input_y || "-"} id={"dimensionY" + layer.id}>{params.input_y || "-"}</div>}
         </div>)
     }
 
@@ -346,12 +357,12 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
         return (<div className="layer-element-stat">
             <span className={"layer-element-stat-color layer-element-stat-" + (current_layer.name == "Flatten" ? "pink" : "gray2")}></span>
             <label className="layer-element-label" htmlFor={"dimensionX" + layer.id}>Input depth</label>
-            {!isPublic && <input type="number" className="layer-element-input" id={"dimensionZ" + layer.id} value={params.input_z} onChange={(e) => {
+            {!isPublic && <input type="number" title={params.input_z} className="layer-element-input" id={"dimensionZ" + layer.id} value={params.input_z} onChange={(e) => {
                 let temp = {...params}
                 temp["input_z"] = e.target.value
                 setParams(temp)
             }}></input>}
-            {isPublic && <div className="layer-element-input" id={"dimensionZ" + layer.id}>{params.input_z || "-"}</div>}
+            {isPublic && <div className="layer-element-input" title={params.input_z || "-"} id={"dimensionZ" + layer.id}>{params.input_z || "-"}</div>}
         </div>)
     }
 
@@ -374,15 +385,15 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                     <span className="layer-element-title-text" title={current_layer.name}>{current_layer.name}</span>
                     {current_layer.info && <img className="layer-element-info" title={current_layer.info} src={BACKEND_URL + "/static/images/info.svg"} alt="Info" />}
                     {!isPublic && <img className="layer-element-drag" title="Reorder layer" src={BACKEND_URL + "/static/images/drag.svg"} alt="Drag" {...provided.dragHandleProps} />}
-                    {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/cross.svg"} alt="Cross" onClick={() => {
-                        deleteLayer(layer.id)
+                    {!isPublic && <img className="layer-element-delete" title="Delete layer" src={BACKEND_URL + "/static/images/" + (isDeleting ? "loading.gif" : "cross.svg")} alt="Cross" onClick={() => {
+                        deleteLayer(layer.id, "", () => setIsDeleting(true))
                     }}/>}
                 </h1>
                 {current_layer.params.map((param, idx) => (
                     <div className="layer-element-stat" key={idx}>
                         <span className={"layer-element-stat-color layer-element-stat-" + current_layer.color}></span>
                         <label className="layer-element-label" htmlFor={param.name + layer.id}>{param.name_readable}</label>
-                        {!isPublic && param.choices && <select className="layer-element-input layer-element-dropdown-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
+                        {!isPublic && param.choices && <select title={params[param.name]} className="layer-element-input layer-element-dropdown-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value
                             setParams(temp)
@@ -391,24 +402,24 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                                 <option key={idx2} value={choice.value}>{(choice.name || choice.value)}</option>
                             ))}
                         </select>}
-                        {!isPublic && !param.choices && <input type={param.type} step={param.step || 1} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
+                        {!isPublic && !param.choices && <input type={param.type} step={param.step || 1} className="layer-element-input" title={params[param.name]} id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value
                             setParams(temp)
                         }}></input>}
-                        {isPublic && <div className="layer-element-input" id={param.name + layer.id}>{params[param.name]}</div>}
+                        {isPublic && <div className="layer-element-input" id={param.name + layer.id} title={params[param.name]}>{params[param.name]}</div>}
                     </div>
                 ))}
                 {dimensionParams.map((param, idx) => (
                     <div className="layer-element-stat" key={idx}>
                         <span className={"layer-element-stat-color layer-element-stat-" + current_layer.color}></span>
                         <label className="layer-element-label" htmlFor={param.name + layer.id}>{param.name_readable}</label>
-                        {!isPublic && <input type={param.type} step={param.step || 1} className="layer-element-input" id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
+                        {!isPublic && <input type={param.type} step={param.step || 1} className="layer-element-input" title={params[param.name]} id={param.name + layer.id} value={params[param.name]} onChange={(e) => {
                             let temp = {...params}
                             temp[param.name] = e.target.value
                             setParams(temp)
                         }}></input>}
-                        {isPublic && <div className="layer-element-input" id={param.name + layer.id}>{params[param.name]}</div>}
+                        {isPublic && <div className="layer-element-input" id={param.name + layer.id} title={params[param.name]}>{params[param.name]}</div>}
                     </div>
                 ))}
 
@@ -436,26 +447,29 @@ function LayerElement({layer, hoveredLayer, deleteLayer,
                             <option value="softmax">Softmax</option>
                             <option value="sigmoid">Sigmoid</option>
                     </select>}
-                    {isPublic && <div className="layer-element-input layer-element-activation-input" id={"activation" + layer.id}>{params["activation_function"] || "-"}</div>}
+                    {isPublic && <div className="layer-element-input layer-element-activation-input" id={"activation" + layer.id} title={params["activation_function"] || "-"}>{params["activation_function"] || "-"}</div>}
                 </div>}
-                {current_layer.freezable && !isPublic && <div className="layer-element-stat" title="Whether or not weights should be updated while training.">
+                {current_layer.freezable && <div className="layer-element-stat" title="Whether or not weights should be updated while training.">
                     <span className="layer-element-stat-color layer-element-stat-gray"></span>
                     <label className="layer-element-label" htmlFor={"trainable" + layer.id}>Trainable</label>
-                    <input type="checkbox" className="layer-element-input layer-element-checkbox" id={"trainable" + layer.id} checked={params["trainable"]} onChange={(e) => {
+                    <ToggleSwitch defaultValue={params["trainable"]} onUpdate={(value) => {
                         let temp = {...params}
-                        temp["trainable"] = e.target.checked
+                        temp["trainable"] = value
                         setParams(temp)
-                    }} />
+                    }} style={{marginLeft: "auto"}} isPublic={isPublic}></ToggleSwitch>
                 </div>}
-                {current_layer.freezable && !isPublic && <div className="layer-element-stat" title={"Whether or not this layer should be updated when building the model. Trainable will be updated regardless."}>
+                {current_layer.freezable && <div className="layer-element-stat" title={"Whether or not this layer should be updated when building the model. Trainable will be updated regardless."}>
                     <span className="layer-element-stat-color layer-element-stat-gray"></span>
                     <label className="layer-element-label" htmlFor={"update_build" + layer.id}>Update on build</label>
-                    <input type="checkbox" className="layer-element-input layer-element-checkbox" id={"update_build" + layer.id} checked={params["update_build"]} onChange={(e) => {
+                    <ToggleSwitch defaultValue={params["update_build"]} onUpdate={(value) => {
                         let temp = {...params}
-                        temp["update_build"] = e.target.checked
+                        temp["update_build"] = value
                         setParams(temp)
-                    }} />
+                    }} style={{marginLeft: "auto"}} isPublic={isPublic}></ToggleSwitch>
+
                 </div>}
+
+                
             </form>
         )
     }

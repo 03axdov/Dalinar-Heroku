@@ -7,7 +7,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
 from rest_framework.response import Response
-from django.db.models import Q, Count
+from django.db.models import Q, Count, OuterRef, Subquery, IntegerField, Sum, Value, F, Q, Prefetch
+from django.db.models.functions import Coalesce
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from django.urls import resolve
 import json
@@ -16,17 +17,19 @@ import math
 import time
 
 import os
-import tensorflow as tf
 
 from django.core.files.base import ContentFile
 from io import BytesIO
 from PIL import Image
+import tempfile
 from django.core.files.storage import default_storage
 
 from .serializers import *
 from .models import *
 from .tasks import *
+from .model_utils import create_layer_instance
 import base64
+import uuid
 
 
 # CONSTANTS
@@ -47,7 +50,8 @@ def createSmallImage(instance, target_width=230, target_height=190):
     img = Image.open(instance.image)
     
     new_name = instance.image.name.split("/")[-1]     # Otherwise includes files
-    new_name, extension = new_name.split(".")     
+    extension = new_name.split(".")[-1]
+    new_name = new_name[0:len(new_name) - 1 - len(extension) - 1]
     new_name = new_name.split("-")[0]   # Remove previous resize information      
     new_name += ("-" + str(target_width) + "x" + str(target_height) + "." + extension) 
     
@@ -82,7 +86,14 @@ def createSmallImage(instance, target_width=230, target_height=190):
 
     # Save to BytesIO buffer
     buffer = BytesIO()
-    img_format = img.format if img.format else "JPEG"  # Default to JPEG
+
+    # Determine format
+    img_format = img.format if img.format else "JPEG"
+
+    # Convert to RGB if saving as JPEG and image is RGBA
+    if img_format.upper() == "JPEG" and img.mode == "RGBA":
+        img = img.convert("RGB")
+
     img.save(buffer, format=img_format, quality=90)
     buffer.seek(0)
                             
@@ -121,7 +132,7 @@ def dataset_order_by(datasets, order_by):
     if order_by == "alphabetical": 
         return datasets.order_by("name")
     if order_by == "date": 
-        return datasets.order_by("created_at")
+        return datasets.order_by("-created_at")
 
     return datasets
 
@@ -138,14 +149,121 @@ class GetCurrentProfile(APIView):
         data = profileSerialized.data
         data["datasetsCount"] = profile.datasets.count()
         data["modelsCount"] = profile.models.count()
+        data["savedDatasetsCount"] = profile.saved_datasets.count()
+        data["savedModelsCount"] = profile.saved_models.count()
         
         return Response(data, status=status.HTTP_200_OK)
+    
+    
+class ProfileStatsListView(generics.ListAPIView):
+    serializer_class = ProfileStatsSerializer
 
+    def get_queryset(self):
+        request = self.request
+
+        order_by = request.query_params.get("order_by", "name")
+        search_query = request.query_params.get("search", "").strip()
+
+        allowed_order_fields = ["name", "-total_downloads", "-model_count", "-dataset_count"]
+        if order_by not in allowed_order_fields:
+            order_by = "name"
+
+        queryset = Profile.objects.all()
+        if search_query:
+            queryset = queryset.filter(name__istartswith=search_query)
+
+        # Count all M2M entries pointing to this profile's models and datasets
+        queryset = queryset.annotate(
+            model_count=Count("models", distinct=True),
+            dataset_count=Count("datasets", distinct=True),
+            model_downloads=Count("models__downloaders", distinct=True),
+            dataset_downloads=Count("datasets__downloaders", distinct=True),
+        ).annotate(
+            total_downloads=F("model_downloads") + F("dataset_downloads")
+        )
+
+        return queryset.order_by(order_by)
+    
+    
+# Element count per dataset
+element_count_subquery = (
+    Element.objects.filter(dataset=OuterRef("pk"))
+    .order_by()
+    .values("dataset")
+    .annotate(c=Count("id"))
+    .values("c")[:1]
+)
+
+# Label count per dataset
+label_count_subquery = (
+    Label.objects.filter(dataset=OuterRef("pk"))
+    .order_by()
+    .values("dataset")
+    .annotate(c=Count("id"))
+    .values("c")[:1]
+)
+    
+    
+class GetProfile(APIView):
+    serializer_class = ProfileExpandedSerializer
+    lookup_url_kwarg = 'name'
+
+    def get(self, request, format=None, *args, **kwargs):
+        profile_name = kwargs[self.lookup_url_kwarg]
+
+        try:
+            element_count_subquery = (
+                Element.objects.filter(dataset=OuterRef("pk"))
+                .order_by()
+                .values("dataset")
+                .annotate(c=Count("id"))
+                .values("c")[:1]
+            )
+
+            label_count_subquery = (
+                Label.objects.filter(dataset=OuterRef("pk"))
+                .order_by()
+                .values("dataset")
+                .annotate(c=Count("id"))
+                .values("c")[:1]
+            )
+
+            annotated_datasets = Dataset.objects.annotate(
+                element_count=Subquery(element_count_subquery, output_field=IntegerField()),
+                label_count=Subquery(label_count_subquery, output_field=IntegerField())
+            )
+            
+            profile = profile = Profile.objects.prefetch_related(
+                Prefetch(
+                    'datasets',
+                    queryset=annotated_datasets
+                ),
+                'models__layers'
+            ).get(name=profile_name)
+        
+            return Response(self.serializer_class(profile).data, status=status.HTTP_200_OK)
+        except Profile.DoesNotExist:
+            return Response({'Not found': 'Could not find profile with the name ' + str(profile_name) + '.'}, status=status.HTTP_404_NOT_FOUND)         
+        
+        
+class UpdateProfileImage(APIView):
+    def post(self, request, format=None):
+        try:
+            profile = Profile.objects.get(user=request.user)
+        except Profile.DoesNotExist:
+            return Response({'Not found': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = ProfileImageUpdateSerializer(profile, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+        
 
 # DATASET HANDLING
 
 class DatasetListPublic(generics.ListAPIView):
-    serializer_class = DatasetSerializer
+    serializer_class = DatasetElementSerializer
     permission_classes = [AllowAny]
     
     def get_queryset(self):
@@ -155,14 +273,12 @@ class DatasetListPublic(generics.ListAPIView):
         imageWidth = self.request.GET.get("imageWidth")
         imageHeight = self.request.GET.get("imageHeight")
         
-        datasets = Dataset.objects.filter(Q(visibility="public") & (
-            # Search handling
-            Q(name__icontains=search) | (
-                Q(
-                    keywords__icontains=search
-                )
+        datasets = Dataset.objects.filter(visibility="public")
+        if search:
+            datasets = datasets.filter(
+                Q(name__icontains=search) | Q(keywords__icontains=search)
             )
-        ))
+            
         if dataset_type != "all":
             datasets = datasets.filter(dataset_type=dataset_type)
         if imageWidth:
@@ -172,12 +288,17 @@ class DatasetListPublic(generics.ListAPIView):
 
         if order_by:
             datasets = dataset_order_by(datasets, order_by)
+            
+        datasets = datasets.annotate(
+            element_count=Coalesce(Subquery(element_count_subquery, output_field=IntegerField()), 0),
+            label_count=Coalesce(Subquery(label_count_subquery, output_field=IntegerField()), 0)
+        )
 
         return datasets
 
 
 class DatasetListProfile(generics.ListCreateAPIView):
-    serializer_class = DatasetSerializer
+    serializer_class = DatasetElementSerializer
     permission_classes  = [IsAuthenticated]
 
     def get_queryset(self):
@@ -206,6 +327,29 @@ class DatasetListProfile(generics.ListCreateAPIView):
 
         if order_by:
             datasets = dataset_order_by(datasets, order_by)
+            
+        datasets = datasets.annotate(
+            element_count=Coalesce(Subquery(element_count_subquery, output_field=IntegerField()), 0),
+            label_count=Coalesce(Subquery(label_count_subquery, output_field=IntegerField()), 0)
+        )
+
+        return datasets
+    
+    
+class DatasetListSaved(generics.ListCreateAPIView):
+    serializer_class = DatasetElementSerializer
+    permission_classes  = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        profile = user.profile
+        
+        datasets = profile.saved_datasets.all()
+        
+        datasets = datasets.annotate(
+            element_count=Coalesce(Subquery(element_count_subquery, output_field=IntegerField()), 0),
+            label_count=Coalesce(Subquery(label_count_subquery, output_field=IntegerField()), 0)
+        )
 
         return datasets
 
@@ -215,6 +359,12 @@ class GetDataset(APIView):
     lookup_url_kwarg = 'id'
     
     def get(self, request, *args, **kwargs):
+        
+        editing = request.GET.get('editing', 'false').lower() == 'true'
+        serializer = self.serializer_class
+        if editing:
+            serializer = EditDatasetSerializer
+        
         user = self.request.user
         if user.is_authenticated:
             dataset_id = kwargs[self.lookup_url_kwarg]
@@ -223,7 +373,7 @@ class GetDataset(APIView):
                 try:
                     dataset = Dataset.objects.get(Q(id=dataset_id) & Q(Q(visibility = "public") | Q(owner=user.profile)))
                     
-                    datasetSerialized = self.serializer_class(dataset)
+                    datasetSerialized = serializer(dataset)
                     data = datasetSerialized.data
                     data["ownername"] = dataset.owner.name
                     
@@ -297,66 +447,9 @@ class CreateDataset(APIView):
                 
                 dataset_instance = serializer.save(owner=request.user.profile)
                 
-                createSmallImage(dataset_instance, 230, 190)    # Create a smaller image for displaying dataset elements
-                
-                if "labels" in data_dict.keys():
-                    labels = data_dict["labels"]
-                    create_element = CreateElement.as_view()
-                    create_label = CreateLabel.as_view()
-                    edit_element_label = EditElementLabel.as_view()
-                    
-                    factory = APIRequestFactory()
-
-                    for label in labels:
-                        elements = data_dict[label]
-                        
-                        label_request = factory.post('/create-label/', data=json.dumps({"name": label,
-                                                                                            "dataset": dataset_instance.id, 
-                                                                                            "color": random_light_color(),
-                                                                                            "keybind": ""}), content_type='application/json')
-                        label_request.user = request.user
-                        
-                        label_response = create_label(label_request)
-                        if label_response.status_code != 200:
-                            return Response(
-                                {'Bad Request': f'Error creating label {label}'},
-                                status=label_response.status_code
-                            )
-                        
-                        label_id = label_response.data["id"]
-                        for element in elements:
-                            element_request = factory.post("/create-element/", data={
-                                "file": element,
-                                "dataset": dataset_instance.id,
-
-                            }, format="multipart")
-                            element_request.user = request.user
-                            
-                            element_response = create_element(element_request)
-                            if element_response.status_code != 200:
-                                return Response(
-                                    {'Bad Request': 'Error creating element'},
-                                    status=element_response.status_code
-                                )
-                            
-                            element_id = element_response.data["id"]
-                            
-                            label_element_request = factory.post("/edit-element-label/", data=json.dumps({
-                                "label": label_id,
-                                "id": element_id
-                                }), content_type='application/json')
-                            label_element_request.user = request.user
-                            
-                            label_element_response = edit_element_label(label_element_request)
-                            if label_element_response.status_code != 200:
-                                return Response(
-                                    {'Bad Request': 'Error labelling element'},
-                                    status=label_element_response.status_code
-                                )
-                                
-                    return Response(serializer.data, status=status.HTTP_200_OK)
-                else:            
-                    return Response(serializer.data, status=status.HTTP_200_OK)
+                createSmallImage(dataset_instance, 225, 190)    # Create a smaller image for displaying dataset elements
+  
+                return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 return Response({'Bad Request': 'An error occurred while creating dataset'}, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -383,6 +476,9 @@ class EditDataset(APIView):
             try:
                 dataset = Dataset.objects.get(id=dataset_id)
                 
+                prevImageWidth = dataset.imageWidth
+                prevImageHeight = dataset.imageHeight
+                
                 if dataset.owner == user.profile:
                     dataset.name = name
                     dataset.description = description   
@@ -401,14 +497,16 @@ class EditDataset(APIView):
                     if imageHeight:
                         dataset.imageHeight = int(imageHeight)
                     else: dataset.imageHeight = None
-                        
-                    if imageWidth and imageHeight:
-                        for element in dataset.elements.all():
-                            resize_element_image(element, int(imageHeight), int(imageWidth))
-                        
-                    else: dataset.imageHeight = None
-                        
+                    
                     dataset.save()
+                        
+                    if imageWidth and imageHeight and (dataset.imageWidth != prevImageWidth or dataset.imageHeight != prevImageHeight):
+                        task = resize_dataset_images_task.delay(dataset_id, user.id, imageWidth, imageHeight)
+
+                        return Response({
+                            "message": "Resizing started",
+                            "task_id": task.id
+                        }, status=status.HTTP_200_OK)
                 
                     return Response(None, status=status.HTTP_200_OK)
                 
@@ -494,51 +592,35 @@ class DeleteDataset(APIView):
         user = self.request.user
         
         if user.is_authenticated:
-            try:
-                dataset = Dataset.objects.get(id=dataset_id)
-                
-                if dataset.owner == user.profile:
-                    dataset.delete()
-                    
-                    return Response(None, status=status.HTTP_200_OK)
-                
-                else:
-                    return Response({"Unauthorized": "You can only delete your own datasets."}, status=status.HTTP_401_UNAUTHORIZED)
-            except Dataset.DoesNotExist:
-                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id + ".")}, status=status.HTTP_404_NOT_FOUND)
+            task = delete_dataset_task.delay(dataset_id, user.id)
+
+            return Response({
+                "message": "Deleting started",
+                "task_id": task.id
+            }, status=status.HTTP_200_OK)
         else:
             return Response({'Unauthorized': 'Must be logged in to delete datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
         
         
-class ReorderDatasetElements(APIView):
-    serializer_class = DatasetSerializer
-    parser_classes = [JSONParser]
+class DeleteAllElements(APIView):
+    serializer_class = ElementSerializer
     
     def post(self, request, format=None):
-        idToIdx = request.data["order"]
-        dataset_id = request.data["id"]
+        dataset_id = request.data["dataset"]
         
         user = self.request.user
         
         if user.is_authenticated:
-            try:
-                dataset = Dataset.objects.get(id=dataset_id)
-                
-                if dataset.owner == user.profile:
-                    for element in dataset.elements.all():
-                        element.index = int(idToIdx[str(element.id)])
-                        element.save()
-        
-                    return Response(None, status=status.HTTP_200_OK)
-                
-                else:
-                    return Response({"Unauthorized": "You can only reorder elements in your own datasets."}, status=status.HTTP_401_UNAUTHORIZED)
-            except Dataset.DoesNotExist:
-                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+            task = delete_all_elements_task.delay(dataset_id, user.id)
+
+            return Response({
+                "message": "Deleting started",
+                "task_id": task.id
+            }, status=status.HTTP_200_OK)
         else:
-            return Response({"Unauthorized": "Must be logged in to reorder elements."}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'Unauthorized': 'Must be logged in to delete elements.'}, status=status.HTTP_401_UNAUTHORIZED)
         
-        
+              
 class ReorderDatasetLabels(APIView):
     serializer_class = DatasetSerializer
     parser_classes = [JSONParser]
@@ -566,6 +648,34 @@ class ReorderDatasetLabels(APIView):
                 return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Unauthorized": "Must be logged in to reorder labels."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+
+class ReorderDatasetElements(APIView):
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        indexes = request.data.get('indexes', [])
+        dataset_id = request.data["id"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                dataset = Dataset.objects.get(id=dataset_id)
+                
+                if dataset.owner == user.profile:
+                    for t, element in enumerate(dataset.elements.all()):
+                        element.index = indexes[t]
+                        element.save()
+        
+                    return Response(DatasetSerializer(dataset).data, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only reorder elements in your own datasets."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Dataset.DoesNotExist:
+                return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Unauthorized": "Must be logged in to reorder elements."}, status=status.HTTP_401_UNAUTHORIZED)
             
     
 # ELEMENT HANDLING
@@ -628,6 +738,14 @@ class CreateElement(APIView):
                             # Resize images if dataset has specified dimensions
                             if dataset.imageHeight and dataset.imageWidth and fileExtension in ALLOWED_IMAGE_FILE_EXTENSIONS:
                                 resize_element_image(instance, dataset.imageWidth, dataset.imageHeight)
+                                
+                        if "label" in data.keys():
+                            try:
+                                label = Label.objects.get(id=data["label"])
+                                instance.label = label
+                                instance.save()
+                            except Label.DoesNotExist:
+                                return Response({'Not found': 'Could not find label with the id ' + str(data["label"]) + '.'}, status=status.HTTP_404_NOT_FOUND)
                             
                         return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
                     
@@ -641,6 +759,66 @@ class CreateElement(APIView):
         else:
             return Response({"Bad Request": "An error occured while creating element"}, status=status.HTTP_400_BAD_REQUEST)
         
+        
+def save_element_to_s3(file, idx=None, total=None, user=None):
+    filename = f"tmp/elements/{uuid.uuid4()}_{file.name}"
+    saved_key = default_storage.save(filename, file)  # stored in S3 via django-storages
+
+    # Optional: update progress on the profile
+    if user and user.is_authenticated and idx is not None and total:
+        progress = (idx + 1) / total
+        user.profile.create_elements_progress = progress * 100
+        user.profile.save(update_fields=["create_elements_progress"])
+
+    return saved_key  # this is the S3 key to pass to Celery
+        
+
+class UploadElements(APIView):
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, format=None):
+        files = request.FILES.getlist("files")
+        dataset_id = request.data.get("dataset")
+        index_offset = int(request.data.get("index", 0))
+
+        s3_keys = []
+
+        for i, f in enumerate(files):
+            global_index = index_offset + i
+            filename = f"tmp/elements/{dataset_id}/{global_index:06d}_{uuid.uuid4()}_{f.name}"
+            default_storage.save(filename, f)
+            s3_keys.append(filename)
+
+        return Response({"uploaded": len(s3_keys)}, status=202)
+    
+    
+class FinalizeElementsUpload(APIView):
+    def post(self, request):
+        dataset_id = request.data.get("dataset")
+        user = request.user
+        index = int(request.data.get("start_index", 0))
+        labels = request.data.get("labels", None)
+        area_points = request.data.get("area_points", None)
+
+        # List all uploaded files under the dataset folder
+        prefix = f"tmp/elements/{dataset_id}/"
+        all_keys = default_storage.listdir(prefix)[1]  # second item is file list
+        full_paths = [prefix + fname for fname in sorted(all_keys)]  # ensure order
+
+        task = create_elements_task.delay(
+            s3_keys=full_paths,
+            dataset_id=dataset_id,
+            user_id=user.id,
+            index=index,
+            labels=labels,
+            area_points=area_points
+        )
+
+        return Response({
+            "message": "Creating model started",
+            "task_id": task.id
+        }, status=status.HTTP_200_OK)
+    
         
 class EditElementLabel(APIView):   # Currently only used for labelling
     serializer_class = EditElementSerializer
@@ -682,6 +860,7 @@ class EditElement(APIView):
         name = request.data["name"]
         element_id = request.data["id"]
         text = request.data["text"]
+        index = request.data["index"]
         
         user = self.request.user
         
@@ -694,6 +873,7 @@ class EditElement(APIView):
                         element.name = name
                     if text:
                         element.text = text
+                    element.index = index
                         
                     element.save()
                 
@@ -831,6 +1011,9 @@ class CreateLabel(APIView):
             try:
                 dataset = Dataset.objects.get(id=dataset_id)
                 
+                if dataset.labels.count() >= 1000:
+                    return Response({"Bad Request": "A dataset can have at most 1000 labels."}, status=status.HTTP_400_BAD_REQUEST)
+                
                 user = self.request.user
                 
                 if user.is_authenticated:
@@ -847,6 +1030,61 @@ class CreateLabel(APIView):
                 return Response({"Not found": "Could not find dataset with the id " + str(dataset_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Bad Request": "An error occured while creating label. Invalid input."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        
+class CreateLabels(APIView):
+    serializer_class = CreateLabelSerializer
+    parser_classes = [JSONParser]
+
+    def post(self, request, format=None):
+        data = self.request.data
+
+        # Expecting data like:
+        # {
+        #   "dataset": 123,
+        #   "labels": [
+        #     {"name": "label1", "color": "#ff0000"},
+        #     {"name": "label2", "color": "#00ff00"},
+        #     ...
+        #   ]
+        # }
+
+        dataset_id = data.get("dataset")
+        labels_data = data.get("labels", [])
+
+        if not dataset_id or not isinstance(labels_data, list):
+            return Response({"Bad Request": "dataset and labels list are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            dataset = Dataset.objects.get(id=dataset_id)
+        except Dataset.DoesNotExist:
+            return Response({"Not found": f"Could not find dataset with the id {dataset_id}."}, status=status.HTTP_404_NOT_FOUND)
+        
+        if dataset.labels.count() + len(labels_data) >= 1000:
+            return Response({"Bad Request": "A dataset can have at most 1000 labels."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+        if not user.is_authenticated:
+            return Response({'Unauthorized': 'Users must be logged in to create labels.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if user.profile != dataset.owner:
+            return Response({'Unauthorized': 'Users can only add labels to their own datasets.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        created_labels = []
+        errors = []
+
+        for label_data in labels_data:
+            serializer = self.serializer_class(data=label_data)
+            if serializer.is_valid():
+                instance = serializer.save(owner=user.profile)
+                created_labels.append({"id": instance.id, "name": instance.name, "color": instance.color})
+            else:
+                errors.append({"label": label_data.get("name"), "errors": serializer.errors})
+
+        if errors:
+            return Response({"created": created_labels, "errors": errors}, status=status.HTTP_207_MULTI_STATUS)
+        else:
+            return Response({"created": created_labels}, status=status.HTTP_201_CREATED)
         
         
 class GetDatasetLabels(generics.ListAPIView):
@@ -1048,11 +1286,11 @@ def model_order_by(models, order_by):
     if order_by == "alphabetical": 
         return models.order_by("name")
     if order_by == "date": 
-        return models.order_by("created_at")
+        return models.order_by("-created_at")
     return models
 
 class ModelListPublic(generics.ListAPIView):
-    serializer_class = ModelSerializer
+    serializer_class = ModelElementSerializer
     permission_classes = [AllowAny]
     
     def get_queryset(self):
@@ -1079,7 +1317,7 @@ class ModelListPublic(generics.ListAPIView):
 
 
 class ModelListProfile(generics.ListCreateAPIView):
-    serializer_class = ModelSerializer
+    serializer_class = ModelElementSerializer
     permission_classes  = [IsAuthenticated]
 
     def get_queryset(self):
@@ -1175,19 +1413,27 @@ class CreateModel(APIView):
 
             if serializer.is_valid():
                 
-                model_instance = serializer.save(owner=request.user.profile)
+                model_instance = serializer.save(owner=user.profile)
                 
                 createSmallImage(model_instance, 230, 190)    # Create a smaller image for displaying model elements
                 
+                
+
                 if "model" in request.data.keys() and request.data["model"]:   # Uploaded model
-                    res = create_model_file(request, model_instance)
-                    if res["status"] != 200:
-                        print(res)
-                        return Response({'Bad Request': res["Bad request"]}, status=status.HTTP_400_BAD_REQUEST)
-                       
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                    model_instance.model_file = data["model"]
+                    model_instance.save()
+                    
+                    task = create_model_task.delay(model_instance.id, user.id)
+                    
+                    return Response({
+                        "message": "Creating model started",
+                        "task_id": task.id
+                    }, status=status.HTTP_200_OK)
+                else:
+                    return Response({}, status=status.HTTP_200_OK)
+            
             else:
-                return Response({'Bad Request': 'An error occurred while creating model.'}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"Bad Request": "An error occured while creating model. Invalid input."}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({'Unauthorized': 'Must be logged in to create models.'}, status=status.HTTP_401_UNAUTHORIZED)
         
@@ -1361,7 +1607,6 @@ def trainModelTensorflowDataset(tensorflowDataset, model_id, epochs, validation_
 class TrainModel(APIView):
     parser_classes = [JSONParser]
 
-    @tf.autograph.experimental.do_not_convert
     def post(self, request, format=None):
         model_id = request.data["model"]
         dataset_id = request.data["dataset"]
@@ -1383,7 +1628,6 @@ class TrainModel(APIView):
 class EvaluateModel(APIView):
     parser_classes = [JSONParser]
 
-    @tf.autograph.experimental.do_not_convert
     def post(self, request, format=None):
         model_id = request.data["model"]
         dataset_id = request.data["dataset"]
@@ -1409,18 +1653,37 @@ def convert_image_to_base64(image_file):
     img_str = base64.b64encode(img_data).decode('utf-8')  # Convert to base64
     return img_str
           
+          
+def save_image_to_s3(image_file, idx, total_count, user):
+    import uuid
+    from django.core.files.storage import default_storage
+
+    filename = f"tmp/prediction/{uuid.uuid4()}.jpg"
+    saved_path = default_storage.save(filename, image_file)
+    
+    if user.is_authenticated:
+        user.profile.prediction_progress = (idx + 1) / (total_count * 3)
+        user.profile.save()
+    
+    return saved_path  # This is the key
+
            
 class PredictModel(APIView):
     parser_classes = [MultiPartParser, FormParser]
-    
-    @tf.autograph.experimental.do_not_convert
+
     def post(self, request, format=None):
         model_id = request.data["model"]
         images = request.data.getlist("images[]")
-        encoded_images = [convert_image_to_base64(image) for image in images]
         text = request.data["text"]
         
-        task = predict_model_task.delay(model_id, encoded_images, text)
+        user = request.user
+
+        s3_keys = [save_image_to_s3(image, t, len(images), user) for t, image in enumerate(images)]
+        
+        if user.is_authenticated:
+            task = predict_model_task.delay(model_id, s3_keys, text, user.id)
+        else:
+            task = predict_model_task.delay(model_id, s3_keys, text)
 
         return Response({
             "message": "Prediction started",
@@ -1470,6 +1733,27 @@ class UnsaveModel(APIView):
                 return Response({"Not found": "Could not find model with the id " + str(model_id) + "."}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Unauthorized": "You must be signed in to unsave models."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class ResetModelToBuild(APIView):
+    parser_classes = [JSONParser]
+    
+    def post(self, request, format=None):
+        model_id = request.data["id"]
+        
+        user = self.request.user
+        
+        backend_temp_model_path = ""
+        
+        if user.is_authenticated:
+            task = reset_model_to_build_task.delay(model_id, user.id)
+
+            return Response({
+                "message": "Resetting model started",
+                "task_id": task.id
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({"Unauthorized": "You must be signed in to reset models to build."}, status=status.HTTP_401_UNAUTHORIZED)
 
            
 # LAYER FUNCTIONALITY
@@ -1479,77 +1763,15 @@ class CreateLayer(APIView):
     parser_classes = [JSONParser]
     
     def post(self, request, format=None):
-        data = self.request.data
-        
-        layer_type = data["type"]
-        
-        ALLOWED_TYPES = set(["dense", "conv2d", "flatten",
-                             "dropout", "maxpool2d", "rescaling",
-                             "randomflip", "randomrotation", "resizing", "textvectorization",
-                             "embedding", "globalaveragepooling1d", "mobilenetv2",
-                             "mobilenetv2small"])
-        if not layer_type in ALLOWED_TYPES:
-            return Response({"Bad Request": "Invalid layer type: " + layer_type}, status=status.HTTP_400_BAD_REQUEST)
-        
-        serializer = None
-        parse_dimensions(request.data)
-        if layer_type == "dense":
-            serializer = CreateDenseLayerSerializer(data=data)
-        elif layer_type == "conv2d":
-            serializer = CreateConv2DLayerSerializer(data=data)
-        elif layer_type == "maxpool2d":
-            serializer = CreateMaxPool2DLayerSerializer(data=data)
-        elif layer_type == "flatten":
-            serializer = CreateFlattenLayerSerializer(data=data)
-        elif layer_type == "dropout":
-            serializer = CreateDropoutLayerSerializer(data=data)
-        elif layer_type == "rescaling":
-            serializer = CreateRescalingLayerSerializer(data=data)
-        elif layer_type == "randomflip":
-            serializer = CreateRandomFlipLayerSerializer(data=data)
-        elif layer_type == "randomrotation":
-            serializer = CreateRandomRotationLayerSerializer(data=data)
-        elif layer_type == "resizing":
-            serializer = CreateResizingLayerSerializer(data=data)
-        elif layer_type == "textvectorization":
-            serializer = CreateTextVectorizationLayerSerializer(data=data)
-        elif layer_type == "embedding":
-            serializer = CreateEmbeddingLayerSerializer(data=data)
-        elif layer_type == "globalaveragepooling1d":
-            serializer = CreateGlobalAveragePooling1DLayerSerializer(data=data)
-        elif layer_type == "mobilenetv2":
-            serializer = CreateMobileNetV2LayerSerializer(data=data)
-        elif layer_type == "mobilenetv2small":
-            serializer = CreateMobileNetV2SmallLayerSerializer(data=data)
-        
-        if serializer and serializer.is_valid():
-            
-            model_id = data["model"]
-            try:
-                model = Model.objects.get(id=model_id)
-                
-                user = self.request.user
-                
-                if user.is_authenticated:
-                    
-                    if user.profile == model.owner:
-                        last = model.layers.all().last()
-                        idx = 0
-                        if last: 
-                            idx = model.layers.all().last().index + 1
-                        instance = serializer.save(model=model, layer_type=layer_type, index=idx, activation_function=data["activation_function"])
-
-                        return Response({"data": serializer.data, "id": instance.id}, status=status.HTTP_200_OK)
-                    
-                    
-                    else:
-                        return Response({'Unauthorized': 'You can only add layers to your own models.'}, status=status.HTTP_401_UNAUTHORIZED)
-                else:
-                    return Response({'Unauthorized': 'Must be logged in to create layers.'}, status=status.HTTP_401_UNAUTHORIZED)
-            except Model.DoesNotExist:
-                return Response({'Not found': 'Could not find model with the id ' + str(model_id) + '.'}, status=status.HTTP_404_NOT_FOUND)
-        else:
-            return Response({"Bad Request": "An error occured while creating layer."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            instance = create_layer_instance(request.data, request.user)
+            return Response({"data": self.serializer_class(instance).data, "id": instance.id}, status=status.HTTP_200_OK)
+        except ValueError as e:
+            return Response({"Bad Request": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except serializers.ValidationError:
+            return Response({"Bad Request": "Validation failed."}, status=status.HTTP_400_BAD_REQUEST)
+        except PermissionError as e:
+            return Response({"Unauthorized": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
         
         
 class DeleteLayer(APIView):
@@ -1573,6 +1795,30 @@ class DeleteLayer(APIView):
                     return Response({"Unauthorized": "You can only delete your own layers."}, status=status.HTTP_401_UNAUTHORIZED)
             except Layer.DoesNotExist:
                 return Response({"Not found": "Could not find layer with the id " + str(layer_id + ".")}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'Unauthorized': 'Must be logged in to delete layers.'}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        
+class DeleteAllLayers(APIView):
+    def post(self, request, format=None):
+        model_id = request.data["model"]
+        
+        user = self.request.user
+        
+        if user.is_authenticated:
+            try:
+                model = Model.objects.get(id=model_id)
+                
+                if model.owner == user.profile:
+                    for layer in model.layers.all():
+                        layer.delete()
+                    
+                    return Response(None, status=status.HTTP_200_OK)
+                
+                else:
+                    return Response({"Unauthorized": "You can only delete your own layers."}, status=status.HTTP_401_UNAUTHORIZED)
+            except Layer.DoesNotExist:
+                return Response({"Not found": "Could not find model with the id " + str(model_id + ".")}, status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({'Unauthorized': 'Must be logged in to delete layers.'}, status=status.HTTP_401_UNAUTHORIZED)
         
@@ -1726,16 +1972,30 @@ class GetTaskResult(APIView):
             user = self.request.user
             
             if user.is_authenticated:
-                training_progress = user.profile.training_progress
-                training_accuracy = user.profile.training_accuracy
-                training_loss = user.profile.training_loss
-                training_time_remaining = user.profile.training_time_remaining
+                profile = user.profile
+                
+                training_progress = profile.training_progress
+                training_accuracy = profile.training_accuracy
+                processing_data_progress = profile.processing_data_progress
+                training_loss = profile.training_loss
+                training_time_remaining = profile.training_time_remaining
+                delete_dataset_progress = profile.delete_dataset_progress
+                deleting_elements_progress = profile.deleting_elements_progress
+                creating_elements_progress = profile.creating_elements_progress
+                edit_dataset_progress = profile.edit_dataset_progress
+                prediction_progress = profile.prediction_progress
                 
                 evaluation_progress = user.profile.evaluation_progress
                 return Response({'status': 'in progress', 
                                  "training_progress": training_progress, 
                                  "training_accuracy": training_accuracy,
+                                 "processing_data_progress": processing_data_progress,
                                  "training_loss": training_loss,
+                                 "deleting_elements_progress": deleting_elements_progress,
+                                 "creating_elements_progress": creating_elements_progress,
+                                 "prediction_progress": prediction_progress,
+                                 "delete_dataset_progress": delete_dataset_progress,
+                                 "edit_dataset_progress": edit_dataset_progress,
                                  "training_time_remaining": training_time_remaining,
                                  "evaluation_progress": evaluation_progress}, status=status.HTTP_200_OK)
             else:
@@ -1745,162 +2005,3 @@ class GetTaskResult(APIView):
             if len(message) > 400:
                 message = message[:400] + "..."
             return Response({'status': 'failed', "message": message}, status=status.HTTP_200_OK)
-        
-
-def layer_model_from_tf_layer(tf_layer, model_id, request, idx):    # Takes a TensorFlow layer and creates a Layer instance for the given model (if the layer is valid).
-    config = tf_layer.get_config()
-    
-    data = {}
-    
-    input_shape = False
-    if "batch_input_shape" in config.keys():
-        input_shape = config["batch_input_shape"]
-    
-    if isinstance(tf_layer, layers.Dense):
-        data["type"] = "dense"
-        data["nodes_count"] = config["units"]
-        if input_shape:
-            data["input_x"] = input_shape[-1]
-    elif isinstance(tf_layer, layers.Conv2D):
-        data["type"] = "conv2d"
-        data["filters"] = config["filters"]
-        data["kernel_size"] = config["kernel_size"][0]
-        data["padding"] = config["padding"]
-        if input_shape:
-            data["input_x"] = input_shape[1]    # First one is None
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.MaxPool2D):
-        data["type"] = "maxpool2d"
-        data["pool_size"] = config["pool_size"][0]
-    elif isinstance(tf_layer, layers.Flatten):
-        data["type"] = "flatten"
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-    elif isinstance(tf_layer, layers.Dropout):
-        data["type"] = "dropout"
-        data["rate"] = config["rate"]
-    elif isinstance(tf_layer, layers.Rescaling):
-        data["type"] = "rescaling"
-        data["scale"] = config["scale"]
-        data["offset"] = config["offset"]
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.RandomFlip):
-        data["type"] = "randomflip"
-        data["mode"] = config["mode"]
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.RandomRotation):
-        data["type"] = "randomrotation"
-        data["factor"] = config["factor"]
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.Resizing):
-        data["type"] = "resizing"
-        data["output_x"] = config["width"]
-        data["output_y"] = config["height"]
-        if input_shape:
-            data["input_x"] = input_shape[1]
-            data["input_y"] = input_shape[2]
-            data["input_z"] = input_shape[3]
-    elif isinstance(tf_layer, layers.TextVectorization):
-        data["type"] = "textvectorization"
-        data["max_tokens"] = config["max_tokens"]
-        data["standardize"] = config["standardize"]
-    elif isinstance(tf_layer, layers.Embedding):
-        data["type"] = "embedding"
-        data["max_tokens"] = config["input_dim"]
-        data["output_dim"] = config["output_dim"]
-    elif isinstance(tf_layer, layers.GlobalAveragePooling1D):
-        data["type"] = "globalaveragepooling1d"
-    elif tf_layer.name == "mobilenetv2":
-        data["type"] = "mobilenetv2"
-    elif tf_layer.name == "mobilenetv2small":
-        data["type"] = "mobilenetv2small"
-    else:
-        print("UNKNOWN LAYER TYPE: ", tf_layer)
-        return # Continue instantiating model
-    
-    factory = APIRequestFactory()
-    
-    data["model"] = model_id
-    data["index"] = idx
-    data["activation_function"] = ""
-    if "activation" in config.keys():
-        data["activation_function"] = config["activation"]
-    
-    create_layer = CreateLayer.as_view()
-    
-    layer_request = factory.post('/create-layer/', data=json.dumps(data), content_type='application/json')
-    layer_request.user = request.user
-    
-    layer_response = create_layer(layer_request)
-    if layer_response.status_code != 200:
-        return {'Bad Request': f'Error creating layer {idx}', "status": layer_response.status_code}
-        
-    else:
-        layer_id = str(layer_response.data.get('id'))
-        tf_layer.name = layer_id
-    
-    
-# Not currently a task
-def create_model_file(request, model_instance):
-    backend_temp_model_path = ""
-    try:
-        model_file = request.data["model"]
-        extension = model_file.name.split(".")[-1]
-        temp_path = "tmp/temp_models/" + model_file.name
-        file_path = default_storage.save(temp_path, model_file.file)
-        
-        bucket_name = settings.AWS_STORAGE_BUCKET_NAME
-        temp_model_file_path = "media/" + file_path
-        print(f"Model file saved at: {temp_model_file_path}")
-                
-        s3_client = get_s3_client()
-        
-        # Download the model file from S3 to a local temporary file
-        timestamp = time.time()
-        backend_temp_model_path = get_temp_model_name(model_instance.id, timestamp, extension)
-        with open(backend_temp_model_path, 'wb') as f:
-            s3_client.download_fileobj(bucket_name, temp_model_file_path, f)
-
-        model = tf.keras.models.load_model(backend_temp_model_path)
-        
-        default_storage.delete(file_path)
-        
-        os.remove(backend_temp_model_path)
-        
-        for t, layer in enumerate(model.layers):
-            layer_model_from_tf_layer(layer, model_instance.id, request, t)
-            
-        model_instance.model_file = model_file
-        model_instance.optimizer = model.optimizer.__class__.__name__.lower()
-
-        def get_loss_name(loss):
-            if isinstance(loss, str):
-                return loss
-            elif hasattr(loss, '__name__'):
-                return loss.__name__
-            elif hasattr(loss, 'name'):
-                return loss.name
-            elif hasattr(loss, '__class__'):
-                return loss.__class__.__name__
-            return str(loss)
-
-        model_instance.loss_function = get_loss_name(model.loss)
-        
-        model_instance.save()
-        
-        return {"status": 200}
-    except Exception as e:
-        if os.path.exists(backend_temp_model_path):
-            os.remove(backend_temp_model_path)
-        return {"Bad request": str(e), "status": 400}
