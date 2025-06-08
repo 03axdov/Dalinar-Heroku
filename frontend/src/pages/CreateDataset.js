@@ -172,9 +172,22 @@ function CreateDataset({notification, BACKEND_URL, activateConfirmPopup, changeD
                 }
             };
 
+            let val = 30.0
+            if (description.length > 0) {
+                val += 3
+            }
+            val += keywords.length
+            if (!isEmpty(uploadedDatasets)) {
+                val += 10
+            }
+            if (visibility.toLowerCase() == "public") {
+                val += 5
+            }
+
+
             gtag('event', 'conversion', {
                 send_to: 'AW-17119632058/1ErUCO-D_dEaELq1o-M_',
-                value: 50.0,
+                value: val,
                 currency: 'SEK',
                 event_callback: callback
             });

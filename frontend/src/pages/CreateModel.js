@@ -147,9 +147,18 @@ function CreateModel({notification, BACKEND_URL, changeModelCount}) {
         axios.post(URL, formData, config)
         .then((res) => {
             if (res.data["task_id"]) {
+
+                let val = 30.0
+                if (description.length > 0) {
+                    val += 5
+                }
+                if (visibility.toLowerCase() == "public") {
+                    val += 5
+                }
+
                 gtag('event', 'conversion', {
                     'send_to': 'AW-17119632058/AMoCCNnE_dEaELq1o-M_',
-                    'value': 50.0,
+                    'value': val,
                     'currency': 'SEK'
                 });
                 creatingInterval = setInterval(() => getTaskResult(
