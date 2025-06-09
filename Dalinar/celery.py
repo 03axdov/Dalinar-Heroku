@@ -20,21 +20,6 @@ app.conf.result_backend_transport_options = {
 }
 app.conf.result_backend_pool_limit = 2
 
-# Ensure tasks are acknowledged *after* completion (important for spot preemption)
-app.conf.task_acks_late = True
-
-# Ensure tasks are re-queued if the worker is terminated
-app.conf.task_reject_on_worker_lost = True
-
-# Prevent workers from grabbing too many tasks at once
-app.conf.worker_prefetch_multiplier = 1
-
-# Track when tasks start (optional but useful for monitoring)
-app.conf.task_track_started = True
-
-# Disable rate limits (improves performance slightly)
-app.conf.worker_disable_rate_limits = True
-
 redis_url = "redis://127.0.0.1:6379"    # Change for production
 
 # Only apply SSL if using rediss:// scheme

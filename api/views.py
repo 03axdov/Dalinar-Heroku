@@ -2001,6 +2001,7 @@ class GetTaskResult(APIView):
             else:
                 return Response({'status': 'in progress'}, status=status.HTTP_200_OK)
         else:
+            print(task.result)
             message = task.result[STATUS_TO_MESSAGE[task.result["status"]]]
             if len(message) > 400:
                 message = message[:400] + "..."
